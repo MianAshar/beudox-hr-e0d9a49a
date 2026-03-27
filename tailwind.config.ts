@@ -13,6 +13,11 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        display: ['Syne', 'sans-serif'],
+        body: ['DM Sans', 'sans-serif'],
+        mono: ['Courier New', 'monospace'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -56,6 +61,22 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        bx: {
+          violet: "hsl(var(--bx-violet))",
+          "violet-dark": "hsl(var(--bx-violet-dark))",
+          "violet-deep": "hsl(var(--bx-violet-deep))",
+          "violet-light": "hsl(var(--bx-violet-light))",
+          "violet-mid": "hsl(var(--bx-violet-mid))",
+          indigo: "hsl(var(--bx-indigo))",
+          slate: "hsl(var(--bx-slate))",
+          surface: "hsl(var(--bx-surface))",
+          success: "hsl(var(--bx-success))",
+          "success-bg": "hsl(var(--bx-success-bg))",
+          warning: "hsl(var(--bx-warning))",
+          "warning-bg": "hsl(var(--bx-warning-bg))",
+          danger: "hsl(var(--bx-danger))",
+          "danger-bg": "hsl(var(--bx-danger-bg))",
         },
       },
       borderRadius: {
