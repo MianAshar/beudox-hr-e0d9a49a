@@ -368,9 +368,10 @@ const EmployeeForm = () => {
           const { data: urlData } = supabase.storage
             .from('employee-avatars')
             .getPublicUrl(filePath);
+          const avatarUrlWithCacheBust = `${urlData.publicUrl}?t=${Date.now()}`;
           await supabase
             .from('employees')
-            .update({ avatar_url: urlData.publicUrl })
+            .update({ avatar_url: avatarUrlWithCacheBust })
             .eq('id', employeeId);
         }
       } else if (removeAvatar && employeeId) {
@@ -396,6 +397,7 @@ const EmployeeForm = () => {
 
       queryClient.invalidateQueries({ queryKey: ['employees-list'] });
       queryClient.invalidateQueries({ queryKey: ['employee-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['employee-edit'] });
 
       if (isEdit) {
         toast.success('Employee updated successfully');
