@@ -16,11 +16,15 @@ interface EmployeeData {
   role_name: string | null;
 }
 
+type PasswordMode = 'invite' | 'recovery' | null;
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   employee: EmployeeData | null;
   loading: boolean;
+  passwordMode: PasswordMode;
+  clearPasswordMode: () => void;
   signOut: () => Promise<void>;
 }
 
