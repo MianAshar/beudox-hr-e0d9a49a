@@ -27,7 +27,7 @@ const pageTitles: Record<string, string> = {
 
 const TopBar = () => {
   const location = useLocation();
-  const title = pageTitles[location.pathname] || 'Dashboard';
+  const title = getPageTitle(location.pathname);
 
   return (
     <header
