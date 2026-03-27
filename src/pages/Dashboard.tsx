@@ -72,8 +72,8 @@ const StatCard = ({ icon, value, label, variant = 'default', loading }: StatCard
       <div style={{ color: s.iconColor }}>{icon}</div>
       <div>
         <p
-          className="leading-none"
-          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 32, color: s.text }}
+          className="font-display font-bold text-[32px] leading-none"
+          style={{ color: s.text }}
         >
           {value}
         </p>
@@ -188,8 +188,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div>
         <h1
-          className="text-[32px] font-bold text-foreground"
-          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700 }}
+          className="text-[32px] font-bold text-foreground font-display"
         >
           {getGreeting()}, {firstName}
         </h1>
