@@ -2103,7 +2103,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_employee_by_auth_id: {
+        Args: { _auth_id: string }
+        Returns: {
+          avatar_url: string
+          company_id: string
+          company_name: string
+          company_slug: string
+          department: string
+          designation: string
+          email: string
+          employee_code: string
+          employee_id: string
+          full_name: string
+          role_name: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
