@@ -90,22 +90,22 @@ const Login = () => {
         </div>
 
         <div className="relative z-10 flex flex-col items-center text-center px-10">
-          <BeudoxLogo variant="default" size={52} />
-          <p className="mt-3 text-[15px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+          <BeudoxLogo variant="default" size={64} />
+          <p className="mt-5 text-[18px] font-medium" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>
             HR &amp; Workforce Platform
           </p>
-          <div className="my-7 w-10 h-px" style={{ backgroundColor: '#D5D2EB' }} />
-          <div className="space-y-1" style={{ lineHeight: '2.0' }}>
-            <p className="text-[14px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Attendance tracked automatically.</p>
-            <p className="text-[14px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Payroll calculated precisely.</p>
-            <p className="text-[14px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Your team, in one place.</p>
+          <div className="mt-8 w-10 h-px" style={{ backgroundColor: '#D5D2EB' }} />
+          <div className="mt-8 space-y-1" style={{ lineHeight: '2.2' }}>
+            <p className="text-[16px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Attendance tracked automatically.</p>
+            <p className="text-[16px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Payroll calculated precisely.</p>
+            <p className="text-[16px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Your team, in one place.</p>
           </div>
           <div
-            className="mt-10 rounded-full text-[12px] font-medium"
+            className="mt-12 rounded-full text-[13px] font-medium"
             style={{
               backgroundColor: '#EBE6FF',
               color: '#5B3FF8',
-              padding: '6px 16px',
+              padding: '8px 20px',
               fontFamily: 'var(--ff-body)',
             }}
           >
