@@ -189,7 +189,7 @@ const Dashboard = () => {
       <div>
         <h1
           className="font-display font-bold text-[32px] text-foreground leading-tight"
-          style={{ fontFamily: "'Syne', sans-serif" }}
+          style={{ fontFamily: "'Outfit', sans-serif" }}
         >
           {getGreeting()}, {firstName}
         </h1>
