@@ -72,14 +72,14 @@ const StatCard = ({ icon, value, label, variant = 'default', loading }: StatCard
       <div style={{ color: s.iconColor }}>{icon}</div>
       <div>
         <p
-          className="font-bold leading-none"
-          style={{ fontFamily: 'var(--ff-display)', fontSize: 32, color: s.text }}
+          className="leading-none"
+          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 32, color: s.text }}
         >
           {value}
         </p>
         <p
           className="mt-1"
-          style={{ fontFamily: 'var(--ff-body)', fontWeight: 400, fontSize: 13, color: s.muted }}
+          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: 13, color: s.muted }}
         >
           {label}
         </p>
@@ -93,8 +93,8 @@ const Dashboard = () => {
   const companyId = employee?.company_id;
   const role = employee?.role_name;
 
-  const isHrOrCeo = role === 'HR Manager' || role === 'CEO';
-  const isFinanceOrCeo = role === 'Finance Manager' || role === 'CEO';
+  const isHrOrCeo = role === 'hr_manager' || role === 'ceo';
+  const isFinanceOrCeo = role === 'finance_manager' || role === 'ceo';
 
   const today = format(new Date(), 'EEEE, d MMMM yyyy');
   const firstName = employee?.full_name?.split(' ')[0] || 'there';
@@ -188,12 +188,12 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div>
         <h1
-          className="text-[26px] font-bold text-foreground"
-          style={{ fontFamily: 'var(--ff-display)' }}
+          className="text-[32px] font-bold text-foreground"
+          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700 }}
         >
           {getGreeting()}, {firstName}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-1" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
           {today} · {employee?.company_name}
         </p>
       </div>
