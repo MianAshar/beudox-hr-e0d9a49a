@@ -128,7 +128,14 @@ const LoginV2 = () => {
       </div>
 
       {/* Left brand area — desktop only */}
-      <div className="hidden lg:flex lg:w-[45%] items-center justify-center relative z-10">
+      <div
+        className="hidden lg:flex lg:w-[45%] items-center justify-center relative z-10"
+        style={{
+          backgroundImage: `radial-gradient(circle, rgba(91,63,248,0.12) 3px, transparent 3px), radial-gradient(circle, rgba(91,63,248,0.05) 3px, transparent 3px)`,
+          backgroundSize: '16px 16px, 16px 16px',
+          backgroundPosition: '0 0, 8px 8px',
+        }}
+      >
         <div className="flex flex-col items-start px-16 max-w-md">
           <BeudoxLogo variant="default" size={56} />
 
@@ -148,24 +155,18 @@ const LoginV2 = () => {
             Attendance, payroll, evaluations, and projects — all in one place. Built for teams that move fast.
           </p>
 
-          <div className="mt-10 flex items-center gap-3">
-            {/* Stacked avatars placeholder */}
-            <div className="flex -space-x-2">
-              {['#5B3FF8', '#7B62FA', '#9490B4', '#4429E0'].map((c, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white"
-                  style={{ backgroundColor: c, fontFamily: 'var(--ff-display)' }}
-                >
-                  {['U', 'A', 'S', 'R'][i]}
-                </div>
-              ))}
-            </div>
+          <div className="mt-10">
             <span
-              className="text-[13px] font-medium"
-              style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}
+              className="inline-block text-[13px] font-medium"
+              style={{
+                background: '#EBE6FF',
+                color: '#5B3FF8',
+                fontFamily: 'var(--ff-body)',
+                padding: '8px 20px',
+                borderRadius: '999px',
+              }}
             >
-              Trusted by growing teams
+              Used by teams across Pakistan
             </span>
           </div>
         </div>
@@ -195,7 +196,7 @@ const LoginV2 = () => {
             className="text-center text-[14px] text-muted-foreground mt-2 mb-8"
             style={{ fontFamily: 'var(--ff-body)' }}
           >
-            Sign in to continue to your workspace
+            Sign in to your workspace
           </p>
 
           {errors.general && (
