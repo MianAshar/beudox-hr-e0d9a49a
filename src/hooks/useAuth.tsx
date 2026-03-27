@@ -45,6 +45,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [employee, setEmployee] = useState<EmployeeData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [passwordMode, setPasswordMode] = useState<PasswordMode>(null);
+
+  const clearPasswordMode = () => setPasswordMode(null);
+
+  // Check URL hash on mount for invite/recovery tokens
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      if (hash.includes('type=invite')) {
+        setPasswordMode('invite');
+      } else if (hash.includes('type=recovery')) {
+        setPasswordMode('recovery');
+      }
+    }
+  }, []);
 
   const fetchEmployee = async (userId: string) => {
     const { data, error } = await supabase.rpc('get_employee_by_auth_id', {
@@ -62,13 +77,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setUser(null);
     setEmployee(null);
+    setPasswordMode(null);
   };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+
+        // Detect PASSWORD_RECOVERY event from Supabase
+        if (event === 'PASSWORD_RECOVERY') {
+          setPasswordMode('recovery');
+        }
 
         if (session?.user) {
           setTimeout(() => fetchEmployee(session.user.id), 0);
@@ -92,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, user, employee, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, employee, loading, passwordMode, clearPasswordMode, signOut }}>
       {children}
     </AuthContext.Provider>
   );
