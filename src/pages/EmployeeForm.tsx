@@ -14,9 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 const DEPARTMENTS = ['GC Team', 'MEP Team', 'Admin', 'Director'];
 const EMPLOYMENT_TYPES = ['full_time', 'outsourced', 'director'];
@@ -51,42 +60,55 @@ const getInitials = (name: string) =>
     .toUpperCase()
     .slice(0, 2);
 
-const compressImage = (file: File): Promise<Blob> => {
+function getCroppedBlob(
+  image: HTMLImageElement,
+  crop: Crop
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const canvas = document.createElement('canvas');
-      let w = img.width;
-      let h = img.height;
-      const max = 400;
-      if (w > max || h > max) {
-        if (w > h) {
-          h = Math.round((h * max) / w);
-          w = max;
-        } else {
-          w = Math.round((w * max) / h);
-          h = max;
-        }
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    const cropX = (crop.x ?? 0) * scaleX;
+    const cropY = (crop.y ?? 0) * scaleY;
+    const cropW = (crop.width ?? 0) * scaleX;
+    const cropH = (crop.height ?? 0) * scaleY;
+
+    // Resize to max 400x400
+    const maxSize = 400;
+    let outW = cropW;
+    let outH = cropH;
+    if (outW > maxSize || outH > maxSize) {
+      if (outW > outH) {
+        outH = Math.round((outH * maxSize) / outW);
+        outW = maxSize;
+      } else {
+        outW = Math.round((outW * maxSize) / outH);
+        outH = maxSize;
       }
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0, w, h);
-      canvas.toBlob(
-        (blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error('Compression failed'));
-        },
-        'image/jpeg',
-        0.8
-      );
-    };
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = url;
+    }
+
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(image, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Crop failed'));
+      },
+      'image/jpeg',
+      0.8
+    );
   });
-};
+}
+
+function centerAspectCrop(mediaWidth: number, mediaHeight: number) {
+  return centerCrop(
+    makeAspectCrop({ unit: '%', width: 80 }, 1, mediaWidth, mediaHeight),
+    mediaWidth,
+    mediaHeight
+  );
+}
 
 const EmployeeForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -121,10 +143,16 @@ const EmployeeForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarBlob, setAvatarBlob] = useState<Blob | null>(null);
   const [existingAvatarUrl, setExistingAvatarUrl] = useState<string | null>(null);
   const [removeAvatar, setRemoveAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Crop state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const cropImgRef = useRef<HTMLImageElement | null>(null);
 
   // Fetch roles for this company
   const { data: roles } = useQuery({
@@ -191,15 +219,48 @@ const EmployeeForm = () => {
       toast.error('Only JPG, PNG, and WebP images are allowed');
       return;
     }
-    setAvatarFile(file);
-    setRemoveAvatar(false);
+    // Open crop modal with the selected image
     const reader = new FileReader();
-    reader.onload = () => setAvatarPreview(reader.result as string);
+    reader.onload = () => {
+      setCropImageSrc(reader.result as string);
+      setCrop(undefined); // reset crop; will be set onImageLoad
+      setCropModalOpen(true);
+    };
     reader.readAsDataURL(file);
+    // Reset input so re-selecting the same file triggers onChange
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const onCropImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    cropImgRef.current = img;
+    setCrop(centerAspectCrop(img.width, img.height));
+  }, []);
+
+  const handleCropCancel = () => {
+    setCropModalOpen(false);
+    setCropImageSrc(null);
+    setCrop(undefined);
+  };
+
+  const handleCropApply = async () => {
+    if (!cropImgRef.current || !crop?.width || !crop?.height) return;
+    try {
+      const blob = await getCroppedBlob(cropImgRef.current, crop);
+      setAvatarBlob(blob);
+      setAvatarPreview(URL.createObjectURL(blob));
+      setRemoveAvatar(false);
+    } catch {
+      toast.error('Failed to crop image');
+    } finally {
+      setCropModalOpen(false);
+      setCropImageSrc(null);
+      setCrop(undefined);
+    }
   };
 
   const handleRemoveAvatar = () => {
-    setAvatarFile(null);
+    setAvatarBlob(null);
     setAvatarPreview(null);
     setRemoveAvatar(true);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -264,25 +325,20 @@ const EmployeeForm = () => {
       let employeeId = id;
 
       if (isEdit) {
-        // Update employee
         const { error } = await supabase
           .from('employees')
           .update(employeeData)
           .eq('id', id!);
         if (error) throw error;
 
-        // Update role if changed
         if (existing?.employee_roles?.[0]?.role_id !== form.role_id) {
-          // Delete old role
           await supabase.from('employee_roles').delete().eq('employee_id', id!);
-          // Insert new role
           const { error: roleErr } = await supabase
             .from('employee_roles')
             .insert({ employee_id: id!, role_id: form.role_id });
           if (roleErr) throw roleErr;
         }
       } else {
-        // Insert new employee
         const { data: newEmp, error } = await supabase
           .from('employees')
           .insert(employeeData)
@@ -291,7 +347,6 @@ const EmployeeForm = () => {
         if (error) throw error;
         employeeId = newEmp.id;
 
-        // Insert role
         const { error: roleErr } = await supabase
           .from('employee_roles')
           .insert({ employee_id: employeeId, role_id: form.role_id });
@@ -299,12 +354,11 @@ const EmployeeForm = () => {
       }
 
       // Handle avatar upload
-      if (avatarFile && employeeId) {
-        const compressed = await compressImage(avatarFile);
+      if (avatarBlob && employeeId) {
         const filePath = `${companyId}/${employeeId}.jpg`;
         const { error: uploadErr } = await supabase.storage
           .from('employee-avatars')
-          .upload(filePath, compressed, {
+          .upload(filePath, avatarBlob, {
             contentType: 'image/jpeg',
             upsert: true,
           });
@@ -456,6 +510,41 @@ const EmployeeForm = () => {
           />
         </div>
       </div>
+
+      {/* Crop Modal */}
+      <Dialog open={cropModalOpen} onOpenChange={(open) => { if (!open) handleCropCancel(); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Crop Profile Photo</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-2">
+            {cropImageSrc && (
+              <ReactCrop
+                crop={crop}
+                onChange={(c) => setCrop(c)}
+                aspect={1}
+                circularCrop
+                className="max-h-[400px]"
+              >
+                <img
+                  src={cropImageSrc}
+                  alt="Crop preview"
+                  onLoad={onCropImageLoad}
+                  className="max-h-[400px] w-auto"
+                />
+              </ReactCrop>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={handleCropCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleCropApply}>
+              Apply Crop
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Form fields */}
       <div className="bg-card rounded-[14px] border p-6 space-y-5">
