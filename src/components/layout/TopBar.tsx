@@ -1,5 +1,12 @@
 import { useLocation } from 'react-router-dom';
 
+const getPageTitle = (pathname: string): string => {
+  if (pathname === '/employees/new') return 'Add Employee';
+  if (pathname.match(/^\/employees\/[^/]+\/edit$/)) return 'Edit Employee';
+  if (pathname.match(/^\/employees\/[^/]+$/)) return 'Employee Profile';
+  return pageTitles[pathname] || 'Dashboard';
+};
+
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/employees': 'Employees',
