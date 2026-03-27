@@ -273,7 +273,7 @@ const EmployeeProfile = () => {
         <InfoField label="Full Name" value={emp.full_name} />
         <InfoField label="CNIC" value={emp.cnic} />
         <InfoField label="Phone" value={emp.phone} />
-        <InfoField label="Personal Email" value={emp.email} />
+        
         <InfoField
           label="Date of Birth"
           value={emp.date_of_birth ? format(new Date(emp.date_of_birth), 'dd MMM yyyy') : null}
