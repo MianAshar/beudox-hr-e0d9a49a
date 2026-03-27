@@ -196,7 +196,7 @@ const LoginV2 = () => {
             className="text-center text-[14px] text-muted-foreground mt-2 mb-8"
             style={{ fontFamily: 'var(--ff-body)' }}
           >
-            Sign in to continue to your workspace
+            Sign in to your workspace
           </p>
 
           {errors.general && (
