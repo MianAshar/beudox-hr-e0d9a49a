@@ -33,6 +33,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   employee: null,
   loading: true,
+  passwordMode: null,
+  clearPasswordMode: () => {},
   signOut: async () => {},
 });
 
