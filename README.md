@@ -1,58 +1,65 @@
 <!--
 generated_by: tessera
-source_sha: 1c9de42dc72a4cebfec5dfc58d7831f5a6a6d842
-generated_at: 2026-03-27T03:01:51.241Z
+source_sha: e1711f0f1ddc744b527fc6ce31797ff645acf0c1
+generated_at: 2026-03-27T03:06:58.056Z
 action: update
 -->
 
 # Beudox HR
 
-Beudox HR is a comprehensive Human Resources management application built with modern web technologies. It provides a centralized platform for managing employee data, attendance, leave, payroll, finance, projects, and HR policies.
+A modern, comprehensive Human Resources Management System built with React, TypeScript, and Supabase.
+
+## Overview
+
+Beudox HR is a web-based application designed to streamline HR operations for organizations. It provides a centralized platform for managing employees, attendance, payroll, leave management, and other HR-related functions.
+
+This application is currently in its foundation phase (Sprint A0), featuring:
+- User authentication and authorization
+- Responsive dashboard
+- Modular navigation structure
+- Modern UI design system
 
 ## Features
 
-### People Management
-- Employee profiles and information
+### Current Features (Sprint A0)
+- **Authentication**: Secure login with email/password, forgot password, and password reset
+- **Dashboard**: Welcome screen with user information
+- **App Shell**: Collapsible sidebar navigation and top bar with page titles
+- **Design System**: Consistent UI components using shadcn/ui and custom Beudox branding
+
+### Planned Features
+- Employee management
 - Attendance tracking
-- Public holidays management
-- Leave management system
-
-### Finance & Payroll
 - Payroll processing
-- Financial reporting and sheets
-- Loan management
-- Office expenses tracking
-- Outsourcing management
-
-### Work Management
-- Project tracking
-- Employee evaluations
-- HR policies documentation
-
-### System Features
-- Notifications system
-- User settings
-- Authentication and authorization
+- Leave management
+- Public holidays management
+- Financial reporting
+- Project management
+- Evaluations
+- HR policies
+- Notifications
+- System settings
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui components
 - **Routing**: React Router DOM
+- **UI Components**: shadcn/ui (Radix UI primitives)
+- **Styling**: Tailwind CSS with custom design tokens
+- **Backend**: Supabase (PostgreSQL database + Auth)
 - **State Management**: React Query for server state
-- **Backend**: Supabase (PostgreSQL database, authentication, real-time)
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
-- **Testing**: Vitest with Testing Library
-- **Linting**: ESLint
+- **Testing**: Vitest + Playwright
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (version 18 or higher)
-- npm or yarn or bun package manager
+- Node.js 18+
+- npm or bun
+- Supabase account and project
 
 ### Installation
 
@@ -66,67 +73,86 @@ Beudox HR is a comprehensive Human Resources management application built with m
    ```bash
    npm install
    # or
-   yarn install
-   # or
    bun install
    ```
 
 3. Set up environment variables:
    
-   Copy the `.env` file and update the Supabase configuration with your own project credentials:
+   Copy `.env` and update the Supabase configuration:
    ```bash
    cp .env .env.local
    ```
    
    Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+   ```env
+   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   ```
 
 4. Start the development server:
    ```bash
    npm run dev
+   # or
+   bun run dev
    ```
 
 5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Available Scripts
+### Database Setup
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
+The application requires specific database tables and Row Level Security (RLS) policies. Refer to the `.lovable/plan.md` file for the complete database schema and RLS setup requirements.
+
+### Building for Production
+
+```bash
+npm run build
+npm run preview
+```
 
 ## Project Structure
 
 ```
 src/
 ├── components/
-│   ├── layout/          # Layout components (AppLayout, AppSidebar, TopBar)
-│   ├── ui/              # Reusable UI components (shadcn/ui)
-│   ├── BeudoxLogo.tsx   # Logo component
-│   └── NavLink.tsx      # Navigation link wrapper
-├── hooks/               # Custom React hooks
-├── integrations/        # External service integrations (Supabase)
-├── lib/                 # Utility functions
+│   ├── layout/          # App layout components
+│   │   ├── AppLayout.tsx
+│   │   ├── AppSidebar.tsx
+│   │   └── TopBar.tsx
+│   ├── ui/              # shadcn/ui components
+│   └── BeudoxLogo.tsx   # Logo component
+├── hooks/
+│   └── useAuth.tsx      # Authentication hook
 ├── pages/               # Page components
-└── test/                # Test files
+│   ├── Dashboard.tsx
+│   ├── Login.tsx
+│   ├── ForgotPassword.tsx
+│   ├── ResetPassword.tsx
+│   └── NotFound.tsx
+├── integrations/
+│   └── supabase/         # Supabase client and types
+├── lib/
+│   └── utils.ts         # Utility functions
+└── App.tsx              # Main app component
 ```
 
-## Authentication
+## Scripts
 
-The application uses Supabase for authentication. Users can log in, reset passwords, and access protected routes based on their session.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+1. Follow the existing code style and architecture patterns
+2. Use TypeScript for all new code
+3. Implement proper error handling and loading states
+4. Add tests for new features
+5. Update documentation as needed
 
 ## License
 
