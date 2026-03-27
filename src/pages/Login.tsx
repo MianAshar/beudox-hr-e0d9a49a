@@ -70,8 +70,8 @@ const Login = () => {
     <div className="flex min-h-screen">
       {/* Left Decorative Panel — desktop only */}
       <div
-        className="hidden lg:flex lg:w-[40%] relative overflow-hidden items-center justify-center"
-        style={{ backgroundColor: '#F0EEFF', borderRight: '1px solid rgba(91,63,248,0.12)' }}
+        className="hidden lg:flex lg:w-[65%] relative overflow-hidden items-center justify-center"
+        style={{ backgroundColor: '#E8E4FF', borderRight: '1px solid rgba(91,63,248,0.12)' }}
       >
         {/* Dot grid texture */}
         <div className="absolute inset-0">
@@ -90,22 +90,22 @@ const Login = () => {
         </div>
 
         <div className="relative z-10 flex flex-col items-center text-center px-10">
-          <BeudoxLogo variant="default" size={52} />
-          <p className="mt-3 text-[15px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+          <BeudoxLogo variant="default" size={64} />
+          <p className="mt-5 text-[18px] font-medium" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>
             HR &amp; Workforce Platform
           </p>
-          <div className="my-7 w-10 h-px" style={{ backgroundColor: '#D5D2EB' }} />
-          <div className="space-y-1" style={{ lineHeight: '2.0' }}>
-            <p className="text-[14px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Attendance tracked automatically.</p>
-            <p className="text-[14px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Payroll calculated precisely.</p>
-            <p className="text-[14px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Your team, in one place.</p>
+          <div className="mt-8 w-10 h-px" style={{ backgroundColor: '#D5D2EB' }} />
+          <div className="mt-8 space-y-1" style={{ lineHeight: '2.2' }}>
+            <p className="text-[16px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Attendance tracked automatically.</p>
+            <p className="text-[16px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Payroll calculated precisely.</p>
+            <p className="text-[16px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Your team, in one place.</p>
           </div>
           <div
-            className="mt-10 rounded-full text-[12px] font-medium"
+            className="mt-12 rounded-full text-[13px] font-medium"
             style={{
               backgroundColor: '#EBE6FF',
               color: '#5B3FF8',
-              padding: '6px 16px',
+              padding: '8px 20px',
               fontFamily: 'var(--ff-body)',
             }}
           >
@@ -115,11 +115,8 @@ const Login = () => {
       </div>
 
       {/* Right Panel — login form */}
-      <div className="flex flex-1 items-center justify-center bg-background px-6 lg:w-[60%]">
+      <div className="flex flex-1 items-center justify-center bg-background px-6 lg:w-[35%]">
         <div className="w-full max-w-[420px] rounded-[14px] border border-border bg-card p-10 md:p-12">
-          <div className="flex justify-center mb-8">
-            <BeudoxLogo variant="default" />
-          </div>
           <h1 className="text-center text-[26px] font-bold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
             Welcome back
           </h1>
