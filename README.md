@@ -1,45 +1,51 @@
 <!--
 generated_by: tessera
-source_sha: 07e420fea14e26a0448c9adcbd3864945f2ef897
-generated_at: 2026-03-27T23:39:37.002Z
+source_sha: 6ece2b095b24768cb19717bed5bd748ec1e0597c
+generated_at: 2026-03-27T23:48:30.608Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Management System
 
-A comprehensive Human Resources Management System built as a modern web application. Beudox HR provides tools for managing employees, attendance, payroll, leave, and other HR functions in a user-friendly interface.
+A comprehensive Human Resources management application built with modern web technologies. This frontend application provides a complete HR suite including employee management, attendance tracking, payroll processing, leave management, and more.
 
 ## Features
 
-- **Employee Management**: Add, view, and edit employee profiles
-- **Attendance Tracking**: Monitor employee attendance and public holidays
-- **Leave Management**: Handle employee leave requests and approvals
-- **Payroll Processing**: Manage salary calculations and payroll
-- **Finance Management**: Track office expenses, loans, and financial sheets
-- **Project Management**: Oversee projects and employee evaluations
-- **HR Policies**: Maintain and access HR documentation
-- **Notifications**: Stay updated with system notifications
-- **Settings**: Configure system preferences
+### Core HR Modules
+- **Employee Management**: Add, edit, and manage employee profiles
+- **Attendance Tracking**: Monitor employee attendance and time tracking
+- **Leave Management**: Handle vacation requests and leave policies
+- **Payroll Processing**: Manage salaries, bonuses, and payroll calculations
+- **Finance Management**: Track expenses, loans, and financial reports
+- **Project Management**: Oversee projects and employee assignments
+- **Performance Evaluations**: Conduct and track employee evaluations
+- **HR Policies**: Maintain and distribute company policies
+
+### System Features
+- **Notifications**: Real-time notifications for important updates
+- **Settings**: Configurable system preferences
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
+- **Frontend Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui components
 - **Routing**: React Router DOM
-- **State Management**: React Query for server state
-- **Authentication**: Supabase Auth
-- **Database**: Supabase (PostgreSQL)
-- **Icons**: Lucide React
+- **UI Components**: shadcn/ui (Radix UI primitives)
+- **Styling**: Tailwind CSS
+- **Backend**: Supabase (PostgreSQL database, authentication, real-time)
+- **State Management**: TanStack Query for server state
 - **Forms**: React Hook Form with Zod validation
-- **Testing**: Vitest and Playwright
+- **Icons**: Lucide React
+- **Testing**: Vitest with React Testing Library
+- **E2E Testing**: Playwright
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (version 18 or higher)
-- npm or yarn or bun
+- Node.js (v18 or higher)
+- npm, yarn, or bun package manager
 
 ### Installation
 
@@ -59,7 +65,16 @@ A comprehensive Human Resources Management System built as a modern web applicat
    ```
 
 3. Set up environment variables:
-   Copy `.env` and update the Supabase configuration if needed.
+   
+   Copy `.env` and update the Supabase configuration:
+   ```bash
+   cp .env .env.local
+   ```
+   
+   Update the following variables in `.env.local`:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
+   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
 
 4. Start the development server:
    ```bash
@@ -73,8 +88,8 @@ A comprehensive Human Resources Management System built as a modern web applicat
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run build:dev` - Build for development
-- `npm run lint` - Run ESLint
 - `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 - `npm run test` - Run tests once
 - `npm run test:watch` - Run tests in watch mode
 
@@ -82,24 +97,41 @@ A comprehensive Human Resources Management System built as a modern web applicat
 
 ```
 src/
-├── components/          # Reusable UI components
-│   ├── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
-│   └── ui/             # shadcn/ui components
-├── pages/              # Page components
-├── hooks/              # Custom React hooks
-├── integrations/       # External service integrations
-│   └── supabase/       # Supabase client and types
-├── lib/                # Utility functions
-└── test/               # Test files
+├── components/           # Reusable UI components
+│   ├── ui/              # shadcn/ui components
+│   ├── layout/          # Layout components (AppLayout, AppSidebar, TopBar)
+│   └── ...              # Feature-specific components
+├── pages/               # Page components
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions
+├── integrations/        # External service integrations (Supabase)
+└── ...
 ```
+
+## Architecture
+
+### Frontend Architecture
+- **Component Structure**: Modular component architecture with clear separation of concerns
+- **Routing**: Client-side routing with React Router
+- **State Management**: Server state managed with TanStack Query, local state with React hooks
+- **Form Handling**: Declarative forms with React Hook Form and Zod validation
+- **UI Design System**: Consistent design system using shadcn/ui components
+
+### Backend Integration
+- **Database**: PostgreSQL via Supabase
+- **Authentication**: Supabase Auth for user management
+- **Real-time**: Supabase real-time subscriptions for live updates
+- **API**: RESTful API endpoints through Supabase client
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes and add tests
+4. Run the test suite: `npm run test`
+5. Commit your changes: `git commit -am 'Add new feature'`
+6. Push to the branch: `git push origin feature/your-feature`
+7. Submit a pull request
 
 ## License
 
