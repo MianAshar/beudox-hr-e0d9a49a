@@ -397,6 +397,7 @@ const EmployeeForm = () => {
 
       queryClient.invalidateQueries({ queryKey: ['employees-list'] });
       queryClient.invalidateQueries({ queryKey: ['employee-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['employee-edit'] });
 
       if (isEdit) {
         toast.success('Employee updated successfully');
