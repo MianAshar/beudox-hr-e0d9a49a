@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: 581f5529382d629912d51d9dc86613125abd7306
-generated_at: 2026-03-27T01:50:35.311Z
+source_sha: ad247ba42a3f2e8b8b3fd155bdb9eb108cfdb6bc
+generated_at: 2026-03-27T02:41:05.991Z
 action: create
 -->
 
@@ -9,178 +9,110 @@ action: create
 
 ## Application Structure
 
-### Routing
+### Frontend Architecture
 
-The application uses React Router DOM with a simple routing structure:
+#### Routing Structure
+- **/**: Main dashboard/index page (currently placeholder)
+- **/404**: Not found page with error logging
 
-- `/` (Index): Main dashboard page
-- `*` (NotFound): Catch-all route for 404 errors
+#### Core Components
+- **NavLink**: Enhanced navigation component with active state styling
+- **UI Components**: 40+ shadcn/ui components for consistent interface
+- **Toast System**: Notification system using Sonner and custom toasts
+- **Form Components**: React Hook Form integration with validation
 
-```tsx
-<BrowserRouter>
-  <Routes>
-    <Route path="/" element={<Index />} />
-    <Route path="*" element={<NotFound />} />
-  </Routes>
-</BrowserRouter>
-```
+### Backend Architecture
 
-### Component Hierarchy
+#### Database Design
+- **Multi-tenant**: All tables include `company_id` for data isolation
+- **Audit Trail**: Created/updated timestamps on all entities
+- **Relationships**: Well-structured foreign key constraints
 
-```
-App
-├── TooltipProvider
-├── Toaster (notifications)
-├── Sonner (toast notifications)
-└── BrowserRouter
-    └── Routes
-        ├── Index (dashboard)
-        └── NotFound
-```
+#### Key Entities
+- **Companies**: Root tenant entity
+- **Employees**: Central user entity with auth integration
+- **Attendance/Payroll**: Time and compensation tracking
+- **Projects/Clients**: Business management
+- **Leave/Expenses**: HR operations
 
-## Core Components
+### Data Flow
 
-### UI Component Library
+#### Client-Side State
+- **Local State**: React component state for UI
+- **Server State**: TanStack Query for API data
+- **Form State**: React Hook Form for form management
 
-The application uses shadcn/ui, a comprehensive component library built on Radix UI primitives. Key components include:
+#### Server-Side Integration
+- **Supabase Client**: Type-safe database operations
+- **Real-time**: Live data subscriptions
+- **Auth**: Session management and user authentication
 
-#### Form Components
-- `Input`, `Textarea`: Text input fields
-- `Select`: Dropdown selection
-- `Checkbox`, `RadioGroup`: Selection controls
-- `Switch`, `Slider`: Interactive controls
+## Technology Integration
 
-#### Layout Components
-- `Card`: Content containers
-- `Sheet`, `Dialog`, `Drawer`: Modal and overlay components
-- `Tabs`: Tabbed interfaces
-- `Accordion`: Collapsible content
+### Build System
+- **Vite**: Fast development server and optimized builds
+- **TypeScript**: Type safety and developer experience
+- **ESLint**: Code quality and consistency
 
-#### Navigation
-- `NavigationMenu`: Main navigation
-- `Breadcrumb`: Page hierarchy
-- `Pagination`: Data pagination
+### UI Framework
+- **shadcn/ui**: Pre-built, accessible components
+- **Tailwind CSS**: Utility-first styling
+- **Radix UI**: Low-level UI primitives
 
-#### Feedback
-- `Alert`: Status messages
-- `Toast`, `Toaster`: Notifications
-- `Progress`: Progress indicators
-- `Skeleton`: Loading states
+### Data Management
+- **Supabase**: PostgreSQL database with auth
+- **React Query**: Server state management
+- **Zod**: Schema validation
 
-#### Data Display
-- `Table`: Data tables
-- `Badge`: Status indicators
-- `Avatar`: User images
-- `Chart`: Data visualization
+## Security Architecture
 
-### Custom Components
+### Authentication
+- Supabase Auth for user management
+- Session persistence in localStorage
+- Auto token refresh
 
-- `NavLink`: Enhanced navigation link with active state management
+### Data Security
+- Row Level Security (RLS) policies
+- Company-scoped data access
+- Type-safe query building
 
-## State Management
+### API Security
+- Environment variable configuration
+- No direct database exposure
+- Secure key management
 
-### Server State (TanStack Query)
-- Handles all API data fetching and caching
-- Automatic background refetching
+## Performance Considerations
+
+### Frontend Optimization
+- Vite's fast HMR and builds
+- Component lazy loading
+- Bundle splitting
+- Tailwind CSS optimization
+
+### Data Optimization
+- React Query caching
 - Optimistic updates
-- Error handling and retry logic
+- Background refetching
+- Real-time subscriptions
 
-### Local State (React Hooks)
-- Component-level state management
-- Form state through React Hook Form
+### Database Optimization
+- Indexed foreign keys
+- Efficient query patterns
+- Connection pooling via Supabase
 
-### Form State
-- React Hook Form for form management
-- Zod schemas for validation
-- Integration with shadcn/ui form components
+## Scalability Features
 
-## Data Layer
+### Multi-tenant Support
+- Company-based data isolation
+- Shared infrastructure
+- Per-company feature flags
 
-### Supabase Integration
+### Real-time Capabilities
+- Live data updates
+- Notification system
+- Collaborative features
 
-The application uses Supabase for:
-
-- **Database**: PostgreSQL with type-safe queries
-- **Authentication**: User login/logout
-- **Storage**: File uploads
-- **Real-time**: Live data updates
-
-### Database Schema
-
-The database includes 30+ tables organized by domain:
-
-#### Core Tables
-- `companies`: Multi-tenant company data
-- `employees`: Employee profiles
-- `admin_users`: Administrative accounts
-
-#### HR Operations
-- `attendance_records`: Daily attendance
-- `payroll_records`: Salary processing
-- `leave_requests`: Leave management
-- `evaluations`: Performance reviews
-
-#### Business Operations
-- `projects`: Project management
-- `clients`: Client relationships
-- `invoices`: Billing system
-
-#### Financial
-- `office_expenses`: Expense tracking
-- `loans`: Employee loans
-- `salary_history`: Compensation changes
-
-## Development Patterns
-
-### Component Development
-```tsx
-// Example pattern for shadcn/ui components
-const Component = forwardRef<Element, Props>(
-  ({ className, ...props }, ref) => (
-    <Primitive
-      ref={ref}
-      className={cn(baseClasses, className)}
-      {...props}
-    />
-  )
-);
-Component.displayName = "ComponentName";
-```
-
-### Data Fetching
-```tsx
-// Using TanStack Query
-const { data, isLoading, error } = useQuery({
-  queryKey: ['entity', id],
-  queryFn: () => fetchEntity(id),
-});
-```
-
-### Form Handling
-```tsx
-// React Hook Form with Zod
-const form = useForm<Schema>({
-  resolver: zodResolver(schema),
-  defaultValues: {...}
-});
-```
-
-## Build and Deployment
-
-### Development
-- Vite for fast HMR and building
-- TypeScript for type checking
-- ESLint for code quality
-
-### Production
-- Optimized bundle through Vite
-- Static asset optimization
-- Deployable to any static hosting service
-
-## Security Considerations
-
-- TypeScript prevents type-related vulnerabilities
-- Supabase RLS for data access control
-- Input validation through Zod schemas
-- XSS protection via React sanitization
-- Secure authentication through Supabase Auth
+### Modular Design
+- Component reusability
+- Feature isolation
+- Type-safe APIs
