@@ -1,117 +1,139 @@
 <!--
 generated_by: tessera
-source_sha: 83e8bca997401ed0d8b90bee0a76544dc0ed2bd8
-generated_at: 2026-03-27T23:53:29.765Z
+source_sha: 0e7103b6b34cc39f99b57937277abd5e6d49ab4a
+generated_at: 2026-03-27T23:59:07.902Z
 action: create
 -->
 
-# Beudox HR Management System - Technical Context
+# Beudox HR - Technical Context for AI Assistants
 
 ## Architecture Overview
 
-This is a modern React Single Page Application (SPA) built with TypeScript, using Vite as the build tool. The application follows a component-based architecture with clear separation of concerns.
+Beudox HR is a single-page application (SPA) built with React and TypeScript, using Vite as the build tool. The application follows a component-based architecture with clear separation of concerns.
 
-### Key Architectural Decisions
+### Key Architectural Patterns
 
-- **Frontend Framework**: React 18 with functional components and hooks
-- **Type Safety**: Full TypeScript implementation for type safety
-- **Styling**: Utility-first CSS with Tailwind CSS and ShadCN UI component library
-- **State Management**: 
-  - React Query for server state management and caching
-  - React Router for client-side routing
-  - Context API for authentication state
-- **Backend Integration**: Supabase for authentication, database, and real-time features
-- **Form Handling**: React Hook Form with Zod schema validation
-- **Build System**: Vite for fast development and optimized production builds
+- **Component Composition**: Extensive use of React components with props for reusability
+- **Layout Components**: AppLayout provides consistent structure with sidebar navigation and top bar
+- **Protected Routes**: Authentication-based route protection using React Router
+- **Custom Hooks**: Business logic abstracted into reusable hooks (e.g., useAuth for authentication)
+- **UI Component Library**: shadcn/ui provides consistent, accessible UI components
+- **State Management**: React Query for server state, local component state for UI
 
-## Core Components and Structure
+### Technology Decisions
 
-### Layout System
-- `AppLayout`: Main application wrapper with sidebar and topbar
-- `AppSidebar`: Collapsible navigation sidebar with organized menu sections
-- `TopBar`: Dynamic page title header
-
-### Authentication Flow
-- Protected routes with automatic redirects
-- Password reset and employee invitation handling
-- Session persistence and management
-
-### UI Component Library
-- ShadCN UI components built on Radix UI primitives
-- Consistent design system with Tailwind CSS
-- Accessible components with proper ARIA attributes
+- **React 18**: Latest React with concurrent features and automatic batching
+- **TypeScript**: Type safety throughout the application
+- **Vite**: Fast development server and optimized production builds
+- **Tailwind CSS**: Utility-first CSS framework for rapid styling
+- **Supabase**: Backend-as-a-Service for authentication, database, and real-time features
+- **React Router**: Client-side routing with protected route patterns
+- **React Hook Form + Zod**: Form handling with schema-based validation
 
 ## Key Files and Their Purposes
 
-### Entry Points
-- `src/main.tsx`: Application bootstrap and React root rendering
-- `src/App.tsx`: Main application component with routing configuration
+### Core Application Files
+- `src/main.tsx`: Application entry point, renders the root App component
+- `src/App.tsx`: Main application component with routing configuration and providers
+- `src/index.css`: Global styles and Tailwind imports
 
-### Core Logic
-- `src/hooks/useAuth.ts`: Authentication state management
-- `src/integrations/supabase/`: Supabase client configuration and types
+### Layout and Navigation
+- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and content area
+- `src/components/layout/AppSidebar.tsx`: Collapsible sidebar with navigation sections
+- `src/components/layout/TopBar.tsx`: Top navigation bar with page titles
+- `src/components/BeudoxLogo.tsx`: Logo component with variant support
+- `src/components/NavLink.tsx`: Enhanced NavLink with active state styling
+
+### Authentication
+- `src/hooks/useAuth.tsx`: Authentication hook managing session state
+- `src/pages/Login.tsx`: Login page component
+- `src/pages/ForgotPassword.tsx`: Password recovery page
+- `src/pages/SetPassword.tsx`: Password setup for new users
+
+### Pages
+- `src/pages/Dashboard.tsx`: Main dashboard page
+- `src/pages/Employees.tsx`: Employee listing page
+- `src/pages/EmployeeProfile.tsx`: Individual employee profile view
+- `src/pages/EmployeeForm.tsx`: Form for adding/editing employees
+- `src/pages/NotFound.tsx`: 404 error page
+
+### Integrations
+- `src/integrations/supabase/client.ts`: Supabase client configuration
+- `src/integrations/supabase/types.ts`: TypeScript types for Supabase schema
+
+### Utilities
 - `src/lib/utils.ts`: Utility functions (cn for className merging)
+- `src/hooks/use-toast.ts`: Toast notification system
 
-### Pages/Routes
-- `/dashboard`: Main dashboard view
-- `/employees`: Employee listing and management
-- `/login`: Authentication page
-- `/employees/new`: New employee form
-- `/employees/:id`: Employee profile view
-- `/employees/:id/edit`: Employee edit form
+## Routing Structure
 
-### Navigation Structure
-The sidebar organizes features into logical sections:
-- **MAIN**: Dashboard
-- **PEOPLE**: Employees, Attendance, Holidays, Leave Management
-- **FINANCE**: Payroll, Finance Sheet, Loans, Expenses, Outsourcing
-- **WORK**: Projects, Evaluations, HR Policies
-- **SYSTEM**: Notifications, Settings
+The application uses React Router with the following route hierarchy:
 
-## Database Schema and Relationships
+```
+/
+├── /login (public)
+├── /forgot-password (public)
+├── /dashboard (protected)
+├── /employees (protected)
+│   ├── /employees/new (protected)
+│   ├── /employees/:id (protected)
+│   └── /employees/:id/edit (protected)
+└── /* (NotFound)
+```
 
-The application uses Supabase with PostgreSQL. Key entities include:
-- Employees (profiles, roles, departments)
-- Attendance records
-- Leave requests
-- Payroll data
-- Projects and assignments
-- Financial transactions
+Protected routes are wrapped with authentication checks and the AppLayout component.
 
-## Business Logic and Data Flow
+## Database Schema
 
-1. **Authentication**: Users authenticate via Supabase Auth
-2. **Authorization**: Route protection based on session state
-3. **Data Fetching**: React Query handles API calls with caching
-4. **Form Validation**: Zod schemas ensure data integrity
-5. **State Updates**: Optimistic updates with error handling
+The application uses Supabase with the following key tables (based on migrations):
+
+- **Employees**: Employee profiles and information
+- **Attendance**: Time tracking and attendance records
+- **Leave**: Leave requests and approvals
+- **Payroll**: Salary and compensation data
+- **Projects**: Project management data
+
+## Component Patterns
+
+### UI Components
+- Extensive use of Radix UI primitives through shadcn/ui
+- Consistent theming with CSS custom properties
+- Responsive design with Tailwind CSS breakpoints
+
+### Form Handling
+- React Hook Form for form state management
+- Zod schemas for validation
+- Integration with shadcn/ui form components
+
+### Data Fetching
+- React Query for caching and synchronization
+- Supabase client for database operations
+- Error handling and loading states
 
 ## Development Workflow
 
-- **Linting**: ESLint with TypeScript rules
+- **Linting**: ESLint with React and TypeScript rules
 - **Testing**: Vitest for unit tests, Playwright for E2E
-- **Code Quality**: Pre-commit hooks and CI/CD pipeline
+- **Build**: Vite for fast development and optimized production builds
 - **Styling**: Tailwind CSS with custom design tokens
 
 ## Environment Configuration
 
-Environment variables are prefixed with `VITE_` for client-side access:
+Environment variables are managed through `.env` files:
 - `VITE_SUPABASE_URL`: Supabase project URL
-- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public API key
-- `VITE_SUPABASE_PROJECT_ID`: Project identifier
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public Supabase API key
+- `VITE_SUPABASE_PROJECT_ID`: Supabase project identifier
 
 ## Performance Considerations
 
-- Code splitting with Vite
-- Lazy loading of routes
-- React Query caching strategies
-- Optimized bundle size with tree shaking
-- Responsive images and assets
+- Vite's fast HMR for development
+- Tree shaking and code splitting in production builds
+- React Query for efficient data caching
+- Lazy loading for route components (not yet implemented but recommended)
 
-## Security Measures
+## Security
 
-- Supabase Row Level Security (RLS) policies
-- Secure authentication flows
-- Input validation and sanitization
-- HTTPS-only communication
-- Session token management
+- Authentication handled by Supabase
+- Protected routes with session validation
+- Environment variables for sensitive configuration
+- TypeScript for type safety and reduced runtime errors

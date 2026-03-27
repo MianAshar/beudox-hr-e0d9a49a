@@ -1,130 +1,123 @@
 <!--
 generated_by: tessera
-source_sha: 83e8bca997401ed0d8b90bee0a76544dc0ed2bd8
-generated_at: 2026-03-27T23:53:29.765Z
+source_sha: 0e7103b6b34cc39f99b57937277abd5e6d49ab4a
+generated_at: 2026-03-27T23:59:07.902Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A modern, comprehensive Human Resources management application built with React, TypeScript, and Supabase. This frontend application provides a complete HR solution for managing employees, attendance, payroll, and organizational workflows.
+Beudox HR is a comprehensive Human Resources management application built with modern web technologies. It provides organizations with tools to manage employees, attendance, payroll, leave, and other HR-related functions through an intuitive web interface.
 
 ## Features
 
-### Core HR Functionality
-- **Employee Management**: Complete employee lifecycle management including profiles, onboarding, and personnel records
-- **Attendance Tracking**: Monitor employee attendance and time tracking
-- **Leave Management**: Handle vacation requests, sick leave, and time-off policies
-- **Payroll Processing**: Manage salary calculations, deductions, and payroll runs
-- **Finance Management**: Track expenses, loans, and financial reporting
-- **Project Management**: Oversee organizational projects and resource allocation
-- **Performance Evaluations**: Conduct employee evaluations and reviews
-- **HR Policies**: Maintain and distribute company policies and procedures
+### People Management
+- **Employee Management**: Add, view, and edit employee profiles
+- **Attendance Tracking**: Monitor employee attendance records
+- **Public Holidays**: Manage and display public holiday schedules
+- **Leave Management**: Handle employee leave requests and approvals
 
-### System Features
-- **Authentication**: Secure login with Supabase authentication
-- **Responsive Design**: Mobile-first design with collapsible sidebar navigation
-- **Real-time Notifications**: System-wide notification management
-- **Settings Management**: Configurable system preferences
+### Finance & Payroll
+- **Payroll Processing**: Calculate and manage employee salaries
+- **Finance Sheet**: Overview of financial data and reports
+- **Loan Management**: Track employee loans and repayments
+- **Office Expenses**: Record and categorize office expenditures
+- **Outsourcing**: Manage external contractor relationships
+
+### Work & Projects
+- **Project Management**: Track ongoing projects and assignments
+- **Employee Evaluations**: Conduct performance reviews
+- **HR Policies**: Store and access company policies
+
+### System Administration
+- **Notifications**: System-wide notifications and alerts
+- **Settings**: Configure application preferences
 
 ## Technology Stack
 
-- **Frontend Framework**: React 18 with TypeScript
+- **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with ShadCN UI components
+- **Styling**: Tailwind CSS with shadcn/ui components
 - **Routing**: React Router DOM
-- **State Management**: React Query for server state
-- **Authentication**: Supabase Auth
-- **Database**: Supabase (PostgreSQL)
+- **State Management**: React Query (TanStack Query)
+- **Authentication & Database**: Supabase
+- **Form Handling**: React Hook Form with Zod validation
 - **Icons**: Lucide React
-- **Forms**: React Hook Form with Zod validation
-- **Charts**: Recharts for data visualization
-- **Testing**: Vitest with React Testing Library
+- **Testing**: Vitest with Testing Library
 - **E2E Testing**: Playwright
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- npm or bun package manager
-- Supabase account and project
+
+- Node.js (version 18 or higher)
+- npm or yarn package manager
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
-   # or
-   bun install
    ```
 
-3. **Environment Setup**
+3. Set up environment variables:
    
-   Copy the `.env` file and configure your Supabase credentials:
-   ```env
-   VITE_SUPABASE_PROJECT_ID="your-project-id"
-   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
-   VITE_SUPABASE_URL="https://your-project.supabase.co"
+   Copy the `.env` file and update the Supabase configuration with your project credentials:
+   ```bash
+   cp .env .env.local
    ```
+   
+   Edit `.env.local` with your Supabase project ID, URL, and publishable key.
 
-4. **Start Development Server**
+4. Start the development server:
    ```bash
    npm run dev
-   # or
-   bun run dev
    ```
 
-5. **Build for Production**
-   ```bash
-   npm run build
-   ```
+5. Open your browser and navigate to `http://localhost:5173`
+
+### Available Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build the application for production
+- `npm run build:dev` - Build in development mode
+- `npm run lint` - Run ESLint for code quality checks
+- `npm run preview` - Preview the production build locally
+- `npm run test` - Run unit tests with Vitest
+- `npm run test:watch` - Run tests in watch mode
 
 ## Project Structure
 
 ```
 src/
-├── components/
-│   ├── layout/          # Layout components (AppLayout, AppSidebar, TopBar)
-│   └── ui/              # Reusable UI components (ShadCN)
-├── pages/               # Route components
-├── hooks/               # Custom React hooks
-├── integrations/        # External service integrations (Supabase)
-├── lib/                 # Utility functions
-└── types/               # TypeScript type definitions
+├── components/          # Reusable UI components
+│   ├── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
+│   └── ui/             # shadcn/ui components
+├── hooks/              # Custom React hooks
+├── integrations/       # External service integrations (Supabase)
+├── lib/                # Utility functions and configurations
+├── pages/              # Page components and routing
+└── test/               # Test files
 ```
-
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build in development mode
-- `npm run lint` - Run ESLint
-- `npm run preview` - Preview production build
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
 
 ## Authentication
 
-The application uses Supabase for authentication with support for:
-- Email/password login
-- Password reset and recovery
-- Employee invitation system
-- Session management
+The application uses Supabase for authentication. Users can log in, reset passwords, and access protected routes based on their authentication status.
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is private and proprietary to Beudox.
+This project is private and proprietary.
