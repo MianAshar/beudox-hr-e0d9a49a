@@ -155,24 +155,18 @@ const LoginV2 = () => {
             Attendance, payroll, evaluations, and projects — all in one place. Built for teams that move fast.
           </p>
 
-          <div className="mt-10 flex items-center gap-3">
-            {/* Stacked avatars placeholder */}
-            <div className="flex -space-x-2">
-              {['#5B3FF8', '#7B62FA', '#9490B4', '#4429E0'].map((c, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white"
-                  style={{ backgroundColor: c, fontFamily: 'var(--ff-display)' }}
-                >
-                  {['U', 'A', 'S', 'R'][i]}
-                </div>
-              ))}
-            </div>
+          <div className="mt-10">
             <span
-              className="text-[13px] font-medium"
-              style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}
+              className="inline-block text-[13px] font-medium"
+              style={{
+                background: '#EBE6FF',
+                color: '#5B3FF8',
+                fontFamily: 'var(--ff-body)',
+                padding: '8px 20px',
+                borderRadius: '999px',
+              }}
             >
-              Trusted by growing teams
+              Used by teams across Pakistan
             </span>
           </div>
         </div>
