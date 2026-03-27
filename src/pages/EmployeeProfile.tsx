@@ -347,7 +347,7 @@ const EmployeeProfile = () => {
             Used to sign in to Beudox. Can be a personal or company email.
           </p>
         </div>
-        <InfoField label="Role" value={empRole?.replace('_', ' ')} />
+        <InfoField label="Role" value={formatRoleName(empRole)} />
       </SectionCard>
     </div>
   );

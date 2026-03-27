@@ -289,8 +289,8 @@ const Employees = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-[13px] capitalize">
-                        {roleName?.replace('_', ' ') || '—'}
+                      <span className="text-[13px]">
+                        {formatRoleName(roleName)}
                       </span>
                     </TableCell>
                     <TableCell>
