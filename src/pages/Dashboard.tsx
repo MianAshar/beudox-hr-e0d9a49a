@@ -93,8 +93,8 @@ const Dashboard = () => {
   const companyId = employee?.company_id;
   const role = employee?.role_name;
 
-  const isHrOrCeo = role === 'HR Manager' || role === 'CEO';
-  const isFinanceOrCeo = role === 'Finance Manager' || role === 'CEO';
+  const isHrOrCeo = role === 'hr_manager' || role === 'ceo';
+  const isFinanceOrCeo = role === 'finance_manager' || role === 'ceo';
 
   const today = format(new Date(), 'EEEE, d MMMM yyyy');
   const firstName = employee?.full_name?.split(' ')[0] || 'there';
