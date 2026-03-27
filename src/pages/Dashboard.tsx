@@ -72,8 +72,8 @@ const StatCard = ({ icon, value, label, variant = 'default', loading }: StatCard
       <div style={{ color: s.iconColor }}>{icon}</div>
       <div>
         <p
-          className="font-bold leading-none"
-          style={{ fontFamily: 'var(--ff-display)', fontSize: 32, color: s.text }}
+          className="leading-none"
+          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 32, color: s.text }}
         >
           {value}
         </p>
