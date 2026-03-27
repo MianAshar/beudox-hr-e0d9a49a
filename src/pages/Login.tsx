@@ -128,7 +128,14 @@ const LoginV2 = () => {
       </div>
 
       {/* Left brand area — desktop only */}
-      <div className="hidden lg:flex lg:w-[45%] items-center justify-center relative z-10">
+      <div
+        className="hidden lg:flex lg:w-[45%] items-center justify-center relative z-10"
+        style={{
+          backgroundImage: `radial-gradient(circle, rgba(91,63,248,0.12) 3px, transparent 3px), radial-gradient(circle, rgba(91,63,248,0.05) 3px, transparent 3px)`,
+          backgroundSize: '16px 16px, 16px 16px',
+          backgroundPosition: '0 0, 8px 8px',
+        }}
+      >
         <div className="flex flex-col items-start px-16 max-w-md">
           <BeudoxLogo variant="default" size={56} />
 
