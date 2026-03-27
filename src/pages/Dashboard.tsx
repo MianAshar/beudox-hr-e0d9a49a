@@ -193,7 +193,7 @@ const Dashboard = () => {
         >
           {getGreeting()}, {firstName}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-1" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
           {today} · {employee?.company_name}
         </p>
       </div>
