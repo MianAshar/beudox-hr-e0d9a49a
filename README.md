@@ -1,43 +1,44 @@
 <!--
 generated_by: tessera
-source_sha: 83430515e9679ae4c565139e6e663f8456523b62
-generated_at: 2026-03-27T03:27:41.067Z
+source_sha: 2a5c73b7410b4f31f0e5cbdb984e455472353acd
+generated_at: 2026-03-27T03:34:15.713Z
 action: update
 -->
 
 # Beudox HR
 
-Beudox HR is a comprehensive Human Resources management system designed to streamline employee management, attendance tracking, payroll processing, and organizational workflows. Built as a modern web application, it provides HR professionals and managers with powerful tools to manage workforce data efficiently.
+A comprehensive workforce management system designed for teams in Pakistan. Manage attendance, payroll, evaluations, projects, and HR policies all in one place.
 
 ## Features
 
-- **Employee Management**: Comprehensive employee profiles and data management
-- **Attendance Tracking**: Monitor employee attendance and time tracking
-- **Leave Management**: Handle vacation requests, sick leave, and public holidays
-- **Payroll Processing**: Calculate salaries, manage loans, and track expenses
-- **Project Management**: Oversee projects, evaluations, and HR policies
-- **Finance Management**: Financial sheets, office expenses, and outsourcing
-- **Notifications & Settings**: System notifications and configuration
+- **Employee Management**: Track and manage employee information
+- **Attendance Tracking**: Monitor employee attendance and public holidays
+- **Leave Management**: Handle employee leave requests and approvals
+- **Payroll Processing**: Calculate and manage employee salaries
+- **Finance Management**: Track company expenses and financial data
+- **Project Management**: Organize and track project progress
+- **Performance Evaluations**: Conduct employee evaluations
+- **HR Policies**: Maintain and distribute company policies
+- **Notifications**: Stay updated with system notifications
+- **Settings**: Configure system preferences
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui component library
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui components
 - **Routing**: React Router DOM
-- **State Management**: TanStack Query for server state
-- **Authentication & Database**: Supabase
+- **Backend**: Supabase (PostgreSQL, Authentication, Real-time)
+- **State Management**: React Query (TanStack Query)
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
-- **Testing**: Vitest with React Testing Library
-- **E2E Testing**: Playwright
+- **Testing**: Vitest, Playwright
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (version 18 or higher)
-- npm or yarn package manager
+- Node.js 18+
+- npm or bun
 
 ### Installation
 
@@ -50,59 +51,69 @@ Beudox HR is a comprehensive Human Resources management system designed to strea
 2. Install dependencies:
    ```bash
    npm install
+   # or
+   bun install
    ```
 
 3. Set up environment variables:
    
-   Copy the `.env` file and update the Supabase configuration:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+   Copy `.env` and update the Supabase configuration if needed.
 
 4. Start the development server:
    ```bash
    npm run dev
+   # or
+   bun run dev
    ```
 
-5. Open your browser and navigate to `http://localhost:5173`
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Available Scripts
+### Build for Production
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
+```bash
+npm run build
+```
+
+### Run Tests
+
+```bash
+npm run test
+```
+
+### Linting
+
+```bash
+npm run lint
+```
 
 ## Project Structure
 
 ```
 src/
-├── components/
-│   ├── layout/          # Layout components (AppLayout, AppSidebar, TopBar)
-│   └── ui/              # Reusable UI components (shadcn/ui)
-├── hooks/               # Custom React hooks
-├── integrations/        # External service integrations (Supabase)
-├── lib/                 # Utility functions
-├── pages/               # Route components
-└── test/                # Test files
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, TopBar)
+│   └── BeudoxLogo.tsx  # Logo component
+├── pages/              # Page components
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+├── integrations/       # External service integrations
+│   └── supabase/       # Supabase client and types
+└── App.tsx             # Main app component
 ```
+
+## Authentication
+
+The application uses Supabase Authentication for user management. Users can sign in with email and password.
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## License
 
-This project is private and proprietary.
+This project is private and proprietary to Beudox.
