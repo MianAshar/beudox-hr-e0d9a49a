@@ -68,7 +68,53 @@ const Login = () => {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Panel */}
+      {/* Left Decorative Panel — desktop only */}
+      <div
+        className="hidden lg:flex lg:w-[40%] relative overflow-hidden items-center justify-center"
+        style={{ backgroundColor: '#F0EEFF', borderRight: '1px solid rgba(91,63,248,0.12)' }}
+      >
+        {/* Dot grid texture */}
+        <div className="absolute inset-0">
+          <svg width="100%" height="100%">
+            <defs>
+              <pattern id="dotGhost" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+                <circle cx="3" cy="3" r="3" fill="rgba(91,63,248,0.06)" />
+              </pattern>
+              <pattern id="dotActive" x="8" y="8" width="32" height="32" patternUnits="userSpaceOnUse">
+                <circle cx="3" cy="3" r="3" fill="rgba(91,63,248,0.15)" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dotGhost)" />
+            <rect width="100%" height="100%" fill="url(#dotActive)" />
+          </svg>
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center text-center px-10">
+          <BeudoxLogo variant="default" size={52} />
+          <p className="mt-3 text-[15px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+            HR &amp; Workforce Platform
+          </p>
+          <div className="my-7 w-10 h-px" style={{ backgroundColor: '#D5D2EB' }} />
+          <div className="space-y-1" style={{ lineHeight: '2.0' }}>
+            <p className="text-[14px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Attendance tracked automatically.</p>
+            <p className="text-[14px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Payroll calculated precisely.</p>
+            <p className="text-[14px]" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>Your team, in one place.</p>
+          </div>
+          <div
+            className="mt-10 rounded-full text-[12px] font-medium"
+            style={{
+              backgroundColor: '#EBE6FF',
+              color: '#5B3FF8',
+              padding: '6px 16px',
+              fontFamily: 'var(--ff-body)',
+            }}
+          >
+            Used by teams across Pakistan
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel — login form */}
       <div className="flex flex-1 items-center justify-center bg-background px-6 lg:w-[60%]">
         <div className="w-full max-w-[420px] rounded-[14px] border border-border bg-card p-10 md:p-12">
           <div className="flex justify-center mb-8">
@@ -77,7 +123,7 @@ const Login = () => {
           <h1 className="text-center text-[26px] font-bold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
             Welcome back
           </h1>
-          <p className="text-center text-sm text-muted-foreground mt-1 mb-8">
+          <p className="text-center text-sm text-muted-foreground mt-1 mb-7">
             Sign in to your workspace
           </p>
 
@@ -143,48 +189,19 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-10 rounded-[var(--radius-md)] bg-primary text-primary-foreground text-[13px] font-medium hover:bg-[hsl(var(--bx-violet-dark))] transition-colors duration-[var(--transition-fast)] disabled:opacity-50 flex items-center justify-center"
+              className="w-full h-11 rounded-[var(--radius-md)] bg-primary text-primary-foreground text-[14px] font-medium hover:bg-[hsl(var(--bx-violet-dark))] transition-colors duration-[var(--transition-fast)] disabled:opacity-50 flex items-center justify-center"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
             </button>
           </form>
 
-          <div className="mt-5 text-center">
+          <div className="mt-4 text-center">
             <Link
               to="/forgot-password"
               className="text-[13px] text-primary hover:underline"
             >
               Forgot password?
             </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Panel - desktop only */}
-      <div className="hidden lg:flex lg:w-[40%] relative overflow-hidden items-center justify-center" style={{ backgroundColor: '#1A1240' }}>
-        {/* Dot grid */}
-        <div className="absolute inset-0 opacity-60">
-          <svg width="100%" height="100%">
-            <defs>
-              <pattern id="dotGrid" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
-                <circle cx="4" cy="4" r="3" fill="#D8D4FF" opacity="0.3" />
-              </pattern>
-              <pattern id="dotGridActive" x="7" y="7" width="28" height="28" patternUnits="userSpaceOnUse">
-                <circle cx="4" cy="4" r="3" fill="#5B3FF8" opacity="0.6" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dotGrid)" />
-            <rect width="100%" height="100%" fill="url(#dotGridActive)" />
-          </svg>
-        </div>
-
-        <div className="relative z-10 flex flex-col items-center gap-6 px-10 text-center">
-          <BeudoxLogo variant="sidebar" size={52} />
-          <p className="text-sm text-white/60">HR & Workforce Platform</p>
-          <div className="space-y-2 mt-4">
-            <p className="text-[13px] text-white/50">Attendance tracked automatically.</p>
-            <p className="text-[13px] text-white/50">Payroll calculated precisely.</p>
-            <p className="text-[13px] text-white/50">Your team, in one place.</p>
           </div>
         </div>
       </div>
