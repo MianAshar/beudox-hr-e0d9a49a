@@ -1,124 +1,105 @@
 <!--
 generated_by: tessera
-source_sha: a12f4af3a3b61abfdd6ba2a6eb203bab1d084315
-generated_at: 2026-03-27T22:17:04.938Z
+source_sha: 0a172969861a69e82328e38f016abf24d251a3c7
+generated_at: 2026-03-27T22:22:26.611Z
 action: create
 -->
 
-# Beudox HR Management System - Technical Context
+# Beudox HR - Technical Context
 
-## Architecture Overview
+## Overview
+Beudox HR is a React-based HR management system using Supabase as the backend. It's built with modern web technologies and follows a component-driven architecture.
 
-This is a single-page application (SPA) built with React and TypeScript, using Vite as the build tool. The application follows a component-based architecture with clear separation of concerns.
+## Architecture
 
-### Key Architectural Patterns
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite with SWC for fast development
+- **Routing**: React Router DOM with protected routes
+- **State Management**: 
+  - React Query for server state (API calls, caching)
+  - React Context for authentication state
+  - Local component state for UI interactions
+- **Styling**: Tailwind CSS with custom design tokens
+- **Component Library**: shadcn/ui built on Radix UI primitives
 
-- **Component Composition**: Extensive use of composition with Radix UI primitives
-- **Custom Hooks**: Business logic abstracted into reusable hooks (useAuth, useToast)
-- **Layout Components**: AppLayout provides consistent structure across protected routes
-- **Route Protection**: Authentication-based route guarding with redirects
-- **State Management**: TanStack Query for server state, React Context for auth state
+### Backend Integration
+- **Database**: Supabase PostgreSQL
+- **Authentication**: Supabase Auth with RLS policies
+- **API**: Direct Supabase client calls (no custom API layer)
+- **Real-time**: Not currently implemented
 
-### Technology Decisions
-
-- **React 18**: Latest React with concurrent features
-- **TypeScript**: Full type safety throughout the application
-- **Vite**: Fast development and optimized production builds
-- **Tailwind CSS**: Utility-first styling with custom design tokens
-- **Supabase**: Backend-as-a-Service for auth, database, and real-time features
-- **React Router**: Client-side routing with protected routes
-- **Radix UI**: Accessible, unstyled UI primitives
-- **Zod**: Runtime type validation for forms and API responses
+### Key Design Patterns
+- **Role-Based Access Control**: Features shown/hidden based on user roles (hr_manager, finance_manager, ceo)
+- **Layout Composition**: AppLayout wraps protected pages with sidebar and topbar
+- **Query Keys**: Consistent naming for React Query cache invalidation
+- **Component Variants**: UI components support multiple visual variants
 
 ## Key Files and Their Purposes
 
 ### Core Application Files
-- `src/main.tsx`: Application entry point, renders the App component
-- `src/App.tsx`: Main application component with routing and providers
-- `src/index.css`: Global styles and Tailwind imports
-
-### Layout Components
-- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and content area
-- `src/components/layout/AppSidebar.tsx`: Collapsible sidebar with navigation menu
-- `src/components/layout/TopBar.tsx`: Top navigation bar with page titles
-
-### UI Components
-- `src/components/ui/`: Collection of reusable UI components based on Radix UI
-- `src/components/BeudoxLogo.tsx`: Logo component with variant support
-- `src/components/NavLink.tsx`: Enhanced NavLink with active state styling
+- `src/main.tsx`: Application entry point, renders App component
+- `src/App.tsx`: Main app component with routing and providers
+- `src/index.css`: Global styles, font imports, CSS custom properties
 
 ### Authentication
-- `src/hooks/useAuth.tsx`: Authentication hook managing user sessions
+- `src/hooks/useAuth.tsx`: Auth context provider, manages session and employee data
+- `src/pages/Login.tsx`: Login form with Supabase auth
+- `src/pages/ForgotPassword.tsx`: Password reset request
+- `src/pages/SetPassword.tsx`: Password update for invites/recovery
+
+### Layout Components
+- `src/components/layout/AppLayout.tsx`: Main layout wrapper
+- `src/components/layout/AppSidebar.tsx`: Collapsible navigation sidebar
+- `src/components/layout/TopBar.tsx`: Page header with title
+- `src/components/BeudoxLogo.tsx`: Logo component with variants
+
+### Pages
+- `src/pages/Dashboard.tsx`: Main dashboard with stats cards
+- `src/pages/NotFound.tsx`: 404 error page
+
+### Utilities
+- `src/lib/utils.ts`: Utility functions (cn for class merging)
 - `src/integrations/supabase/client.ts`: Supabase client configuration
 - `src/integrations/supabase/types.ts`: Database type definitions
 
-### Pages
-- `src/pages/Login.tsx`: Authentication page
-- `src/pages/Dashboard.tsx`: Main dashboard (currently the only implemented protected page)
-- `src/pages/NotFound.tsx`: 404 error page
+### UI Components
+- `src/components/ui/`: shadcn/ui components (buttons, forms, dialogs, etc.)
+- `src/hooks/use-toast.ts`: Toast notification system
 
-### Configuration
-- `vite.config.ts`: Vite build configuration
-- `tailwind.config.ts`: Tailwind CSS configuration with custom theme
-- `tsconfig.json`: TypeScript configuration
-- `eslint.config.js`: ESLint configuration
+## Database Schema (Key Tables)
+- `companies`: Company information
+- `employees`: Employee records with auth_user_id
+- `employee_roles`: Junction table for roles
+- `roles`: Available roles (hr_manager, finance_manager, ceo)
+- `attendance_imports`: Monthly attendance data
+- `payroll_records`: Payroll processing records
+- `projects`: Project management
 
-## Data Flow
-
-1. **Authentication Flow**: User logs in → Supabase auth → Session stored → Protected routes accessible
-2. **Data Fetching**: Components use TanStack Query → Supabase client → Database queries
-3. **UI Updates**: State changes trigger re-renders → Optimistic updates where applicable
-
-## Database Schema
-
-The application uses Supabase PostgreSQL with the following key tables:
-- `employees`: Employee profiles and information
-- `attendance`: Time tracking records
-- `leave_requests`: Vacation and leave management
-- `payroll`: Salary and payment information
-- `projects`: Project management data
-- `notifications`: In-app notifications
-
-## Routing Structure
-
-- `/`: Redirects to /dashboard (if authenticated) or /login
-- `/login`: Authentication page
-- `/forgot-password`: Password reset page
-- `/dashboard`: Main dashboard (protected)
-- Additional routes defined in sidebar but not yet implemented: /employees, /attendance, /leave, /payroll, etc.
-
-## Styling Approach
-
-- **Design System**: Custom color palette with CSS custom properties
-- **Responsive Design**: Mobile-first approach with Tailwind breakpoints
-- **Dark Mode Ready**: Theme provider setup (next-themes)
-- **Accessibility**: Radix UI ensures WCAG compliance
+## Business Logic
+- **Authentication Flow**: Login → Fetch employee data → Redirect to dashboard
+- **Role Permissions**: Dashboard shows different stats based on user role
+- **Data Fetching**: React Query handles loading states and error handling
+- **Navigation**: Sidebar items defined in config, active state based on current route
 
 ## Development Workflow
-
-- **Local Development**: `npm run dev` starts Vite dev server
-- **Testing**: Vitest for unit tests, Playwright for E2E
+- **Development Server**: `npm run dev` (Vite on port 8080)
+- **Building**: `npm run build` (production build)
+- **Testing**: Vitest for unit tests
 - **Linting**: ESLint with React and TypeScript rules
-- **Build**: Vite optimizes for production deployment
+- **Type Checking**: TypeScript compiler
 
-## Security Considerations
+## Configuration Files
+- `vite.config.ts`: Build configuration with React plugin and path aliases
+- `tailwind.config.ts`: Tailwind configuration with custom colors and fonts
+- `tsconfig.json`: TypeScript configuration
+- `eslint.config.js`: ESLint configuration
+- `package.json`: Dependencies and scripts
 
-- **Authentication**: Supabase handles secure authentication
-- **Environment Variables**: Sensitive config stored in .env files
-- **Type Safety**: TypeScript prevents runtime errors
-- **Input Validation**: Zod schemas validate user inputs
+## Environment Variables
+- `VITE_SUPABASE_URL`: Supabase project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public Supabase key
+- `VITE_SUPABASE_PROJECT_ID`: Project identifier
 
-## Performance Optimizations
-
-- **Code Splitting**: Vite handles automatic code splitting
-- **Tree Shaking**: Unused code removed in production
-- **Image Optimization**: Static assets served from public directory
-- **Query Caching**: TanStack Query caches API responses
-
-## Future Enhancements
-
-- Implement remaining pages (Employees, Attendance, etc.)
-- Add real-time features using Supabase subscriptions
-- Implement role-based access control
-- Add comprehensive error handling and logging
-- Integrate with external HR systems
+## Current Implementation Status
+This is Sprint A0 (Foundation) - implements authentication, basic layout, and dashboard with role-based stats. Additional features (employee management, attendance, payroll) are planned for future sprints.
