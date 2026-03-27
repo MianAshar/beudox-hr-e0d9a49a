@@ -70,8 +70,8 @@ const Login = () => {
     <div className="flex min-h-screen">
       {/* Left Decorative Panel — desktop only */}
       <div
-        className="hidden lg:flex lg:w-[40%] relative overflow-hidden items-center justify-center"
-        style={{ backgroundColor: '#F0EEFF', borderRight: '1px solid rgba(91,63,248,0.12)' }}
+        className="hidden lg:flex lg:w-[65%] relative overflow-hidden items-center justify-center"
+        style={{ backgroundColor: '#E8E4FF', borderRight: '1px solid rgba(91,63,248,0.12)' }}
       >
         {/* Dot grid texture */}
         <div className="absolute inset-0">
