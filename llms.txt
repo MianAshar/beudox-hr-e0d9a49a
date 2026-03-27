@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: a1fe681bb06393e58c8dee68ec335f474e4437b8
-generated_at: 2026-03-27T03:27:28.348Z
+source_sha: 83430515e9679ae4c565139e6e663f8456523b62
+generated_at: 2026-03-27T03:27:41.067Z
 action: create
 -->
 
@@ -9,113 +9,138 @@ action: create
 
 ## Architecture Overview
 
-Beudox HR is a single-page application (SPA) built with React and TypeScript, using Vite as the build tool. It follows a component-based architecture with a clear separation of concerns.
+Beudox HR is a Single Page Application (SPA) built with React 18 and TypeScript. The application follows a component-based architecture with clear separation of concerns:
 
-### Key Architectural Patterns
+- **Frontend Framework**: React 18 with functional components and hooks
+- **Routing**: React Router DOM with protected routes and authentication guards
+- **State Management**: TanStack Query for server state, React Context for global state
+- **Styling**: Tailwind CSS with design system tokens and shadcn/ui component library
+- **Backend Integration**: Supabase for authentication, database, and real-time features
 
-- **Component Composition**: Extensive use of React components with props for reusability
-- **Layout Components**: AppLayout provides the main structure with sidebar and topbar
-- **UI Library**: shadcn/ui components built on Radix UI primitives for consistent design
-- **Routing**: React Router for client-side navigation with protected routes
-- **State Management**: React Query for server state, custom hooks for client state
-- **Authentication**: Supabase Auth with custom AuthProvider context
+## Key Architectural Patterns
 
-### Database Schema
+### Authentication Flow
+- Uses Supabase Auth for user authentication
+- Protected routes with automatic redirects
+- Auth context provider managing session state
+- Loading states during authentication checks
 
-The application uses Supabase as the backend, which provides:
-- PostgreSQL database
-- Real-time subscriptions
-- Authentication
-- Storage
-- Edge functions
+### Component Structure
+- Layout components (AppLayout, AppSidebar, TopBar) for consistent UI
+- shadcn/ui components for standardized design system
+- Custom components for business logic (BeudoxLogo, NavLink)
+- Page components for route-level features
 
-Key tables likely include:
-- employees
-- attendance
-- leave_requests
-- payroll
-- projects
-- hr_policies
-
-### Data Flow
-
-1. User interacts with UI components
-2. Components trigger React Query mutations/queries
-3. Data flows through Supabase client to database
-4. Responses update the UI via React Query cache
+### Data Fetching
+- TanStack Query for caching and synchronization
+- Supabase client for database operations
+- Optimistic updates and error handling
 
 ## Key Files and Their Purposes
 
 ### Core Application Files
-- `src/main.tsx`: Application entry point, renders App component
+- `src/main.tsx`: Application entry point, renders React app
 - `src/App.tsx`: Main app component with routing and providers
-- `src/pages/Dashboard.tsx`: Main dashboard page (currently placeholder)
+- `src/index.css`: Global styles and Tailwind imports
 
 ### Layout Components
-- `src/components/layout/AppLayout.tsx`: Main layout wrapper
-- `src/components/layout/AppSidebar.tsx`: Collapsible sidebar with navigation
+- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and content area
+- `src/components/layout/AppSidebar.tsx`: Collapsible sidebar with navigation sections
 - `src/components/layout/TopBar.tsx`: Top navigation bar with page titles
 
 ### UI Components
-- `src/components/BeudoxLogo.tsx`: Logo component with variants
+- `src/components/BeudoxLogo.tsx`: Brand logo component with variants
 - `src/components/NavLink.tsx`: Enhanced NavLink with active state styling
-- `src/components/ui/`: Full set of shadcn/ui components
+- `src/components/ui/`: shadcn/ui component library (40+ components)
+
+### Pages and Routing
+- `src/pages/Login.tsx`: Authentication page
+- `src/pages/Dashboard.tsx`: Main dashboard (currently implemented)
+- `src/pages/ForgotPassword.tsx`: Password reset page
+- `src/pages/NotFound.tsx`: 404 error page
+
+### Hooks and Utilities
+- `src/hooks/useAuth.ts`: Authentication state management
+- `src/hooks/use-toast.ts`: Toast notification system
+- `src/lib/utils.ts`: Utility functions (cn for class merging)
 
 ### Integrations
 - `src/integrations/supabase/client.ts`: Supabase client configuration
 - `src/integrations/supabase/types.ts`: Database type definitions
-
-### Hooks
-- `src/hooks/useAuth.ts`: Authentication state management
-- `src/hooks/use-toast.ts`: Toast notification system
-
-### Utilities
-- `src/lib/utils.ts`: Common utility functions (cn for class merging)
-
-## Routing Structure
-
-- `/`: Redirects to /dashboard (if authenticated) or /login
-- `/login`: Authentication page
-- `/forgot-password`: Password reset page
-- `/dashboard`: Main dashboard (protected)
-- Other routes defined in sidebar but not yet implemented
-
-## Configuration
-
-- `vite.config.ts`: Vite configuration
-- `tailwind.config.ts`: Tailwind CSS configuration
-- `tsconfig.json`: TypeScript configuration
 - `supabase/config.toml`: Supabase project configuration
+- `supabase/migrations/`: Database schema migrations
+
+## Database Schema
+
+The application uses Supabase (PostgreSQL) with the following key entities:
+- Employees: User profiles and organizational data
+- Attendance: Time tracking and presence records
+- Leave: Vacation and absence management
+- Payroll: Salary calculations and financial data
+- Projects: Project management and assignments
+
+## Configuration Files
+
+- `vite.config.ts`: Vite build configuration
+- `tailwind.config.ts`: Tailwind CSS customization
+- `tsconfig.json`: TypeScript configuration
+- `eslint.config.js`: Linting rules
+- `playwright.config.ts`: E2E testing configuration
+- `vitest.config.ts`: Unit testing configuration
 
 ## Development Workflow
 
-1. Development server runs on `npm run dev`
-2. Hot module replacement for fast development
-3. ESLint for code quality
-4. Vitest for unit testing
-5. Playwright for end-to-end testing
+1. **Local Development**: `npm run dev` starts Vite dev server
+2. **Building**: `npm run build` creates production bundle
+3. **Testing**: `npm run test` runs unit tests, Playwright for E2E
+4. **Linting**: `npm run lint` checks code quality
+5. **Preview**: `npm run preview` serves production build locally
 
-## Business Logic
+## Environment Variables
 
-The application is designed for HR management with modules for:
+- `VITE_SUPABASE_URL`: Supabase project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public Supabase API key
+- `VITE_SUPABASE_PROJECT_ID`: Supabase project identifier
+
+## Business Logic Areas
+
+### HR Management Features
 - Employee lifecycle management
-- Time and attendance tracking
-- Compensation and benefits
-- Performance management
-- Compliance and policy management
+- Attendance and time tracking
+- Leave request processing
+- Payroll calculation and disbursement
+- Performance evaluations
+- HR policy management
 
-Currently, only the authentication and basic dashboard are implemented. The sidebar navigation indicates planned modules for employees, attendance, payroll, etc.
+### Financial Management
+- Salary processing
+- Loan management
+- Expense tracking
+- Financial reporting
 
-## Security Considerations
+### System Administration
+- User role management
+- Notification system
+- System configuration
+- Audit logging
 
-- Authentication required for all protected routes
-- Supabase handles user sessions and permissions
-- Environment variables for sensitive configuration
+## Current Implementation Status
+
+- ✅ Authentication system
+- ✅ Basic layout and navigation
+- ✅ Dashboard page
+- 🚧 Employee management (UI components exist, backend integration pending)
+- 🚧 Attendance tracking
+- 🚧 Payroll system
+- 🚧 Other HR modules
+
+## Code Quality Standards
+
 - TypeScript for type safety
-
-## Performance Optimizations
-
-- Vite for fast builds and development
-- React Query for efficient data fetching and caching
-- Lazy loading potential for route components
-- Optimized bundle with tree shaking
+- ESLint for code consistency
+- Prettier for code formatting
+- Vitest for unit testing
+- Playwright for E2E testing
+- Component composition over inheritance
+- Custom hooks for reusable logic
+- Environment-based configuration
