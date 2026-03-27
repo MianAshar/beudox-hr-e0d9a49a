@@ -120,7 +120,12 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--ff-display);
+    font-family: 'Syne', var(--ff-display);
+    font-weight: 700;
+  }
+
+  p, span, label, input, textarea, select, button, a, li, td, th, div {
+    font-family: 'DM Sans', var(--ff-body);
   }
 }
 
