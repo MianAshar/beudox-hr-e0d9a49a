@@ -2103,6 +2103,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_company_id_for_auth: { Args: { _auth_id: string }; Returns: string }
       get_employee_by_auth_id: {
         Args: { _auth_id: string }
         Returns: {
@@ -2118,6 +2119,11 @@ export type Database = {
           full_name: string
           role_name: string
         }[]
+      }
+      get_employee_id_for_auth: { Args: { _auth_id: string }; Returns: string }
+      get_employee_role_for_auth: {
+        Args: { _auth_id: string }
+        Returns: string
       }
     }
     Enums: {

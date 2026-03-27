@@ -1,0 +1,730 @@
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { z } from 'zod';
+
+const DEPARTMENTS = ['GC Team', 'MEP Team', 'Admin', 'Director'];
+const EMPLOYMENT_TYPES = ['full_time', 'outsourced', 'director'];
+const INCREMENT_RULES = ['year_1', 'year_2_plus'];
+
+const employeeSchema = z.object({
+  full_name: z.string().trim().min(1, 'Full name is required').max(255),
+  employee_code: z.string().trim().min(1, 'Employee code is required').max(50),
+  cnic: z.string().max(20).optional().or(z.literal('')),
+  phone: z.string().max(20).optional().or(z.literal('')),
+  personal_email: z.string().email('Invalid email').optional().or(z.literal('')),
+  designation: z.string().max(100).optional().or(z.literal('')),
+  department: z.string().optional().or(z.literal('')),
+  date_of_birth: z.string().optional().or(z.literal('')),
+  address: z.string().max(500).optional().or(z.literal('')),
+  joining_date: z.string().min(1, 'Joining date is required'),
+  employment_type: z.string().optional(),
+  increment_rule: z.string().optional(),
+  basic_salary: z.string().optional().or(z.literal('')),
+  allowance: z.string().optional().or(z.literal('')),
+  login_email: z.string().email('Invalid login email'),
+  role_id: z.string().min(1, 'Role is required'),
+});
+
+type FormData = z.infer<typeof employeeSchema>;
+
+const getInitials = (name: string) =>
+  name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+const compressImage = (file: File): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      let w = img.width;
+      let h = img.height;
+      const max = 400;
+      if (w > max || h > max) {
+        if (w > h) {
+          h = Math.round((h * max) / w);
+          w = max;
+        } else {
+          w = Math.round((w * max) / h);
+          h = max;
+        }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Compression failed'));
+        },
+        'image/jpeg',
+        0.8
+      );
+    };
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = url;
+  });
+};
+
+const EmployeeForm = () => {
+  const { id } = useParams<{ id: string }>();
+  const isEdit = !!id;
+  const navigate = useNavigate();
+  const { employee: authEmployee } = useAuth();
+  const queryClient = useQueryClient();
+
+  const companyId = authEmployee?.company_id;
+  const role = authEmployee?.role_name;
+  const canAccess = role === 'hr_manager' || role === 'ceo';
+
+  const [form, setForm] = useState<FormData>({
+    full_name: '',
+    employee_code: '',
+    cnic: '',
+    phone: '',
+    personal_email: '',
+    designation: '',
+    department: '',
+    date_of_birth: '',
+    address: '',
+    joining_date: '',
+    employment_type: 'full_time',
+    increment_rule: 'year_1',
+    basic_salary: '',
+    allowance: '',
+    login_email: '',
+    role_id: '',
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [existingAvatarUrl, setExistingAvatarUrl] = useState<string | null>(null);
+  const [removeAvatar, setRemoveAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch roles for this company
+  const { data: roles } = useQuery({
+    queryKey: ['company-roles', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('roles')
+        .select('id, name')
+        .eq('company_id', companyId!)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  // Fetch employee data if editing
+  const { data: existing } = useQuery({
+    queryKey: ['employee-edit', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employees')
+        .select(`
+          *,
+          employee_roles ( role_id )
+        `)
+        .eq('id', id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  useEffect(() => {
+    if (existing) {
+      setForm({
+        full_name: existing.full_name || '',
+        employee_code: existing.employee_code || '',
+        cnic: existing.cnic || '',
+        phone: existing.phone || '',
+        personal_email: existing.email || '',
+        designation: existing.designation || '',
+        department: existing.department || '',
+        date_of_birth: existing.date_of_birth || '',
+        address: existing.address || '',
+        joining_date: existing.joining_date || '',
+        employment_type: existing.employment_type || 'full_time',
+        increment_rule: existing.increment_rule || 'year_1',
+        basic_salary: existing.basic_salary?.toString() || '',
+        allowance: existing.allowance?.toString() || '',
+        login_email: existing.email || '',
+        role_id: existing.employee_roles?.[0]?.role_id || '',
+      });
+      setExistingAvatarUrl(existing.avatar_url);
+    }
+  }, [existing]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      toast.error('Only JPG, PNG, and WebP images are allowed');
+      return;
+    }
+    setAvatarFile(file);
+    setRemoveAvatar(false);
+    const reader = new FileReader();
+    reader.onload = () => setAvatarPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setRemoveAvatar(true);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const validateField = (field: string, value: string) => {
+    try {
+      const partial = { ...form, [field]: value };
+      employeeSchema.parse(partial);
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        const fieldError = err.errors.find((e) => e.path[0] === field);
+        if (fieldError) {
+          setErrors((prev) => ({ ...prev, [field]: fieldError.message }));
+        }
+      }
+    }
+  };
+
+  const updateField = (field: keyof FormData, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    // Validate all
+    const result = employeeSchema.safeParse(form);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((e) => {
+        if (e.path[0]) fieldErrors[e.path[0] as string] = e.message;
+      });
+      setErrors(fieldErrors);
+      toast.error('Please fix the highlighted errors');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const employeeData: any = {
+        full_name: form.full_name,
+        employee_code: form.employee_code,
+        cnic: form.cnic || null,
+        phone: form.phone || null,
+        email: form.login_email,
+        designation: form.designation || null,
+        department: form.department || null,
+        date_of_birth: form.date_of_birth || null,
+        address: form.address || null,
+        joining_date: form.joining_date,
+        employment_type: form.employment_type,
+        increment_rule: form.increment_rule,
+        basic_salary: form.basic_salary ? parseFloat(form.basic_salary) : 0,
+        allowance: form.allowance ? parseFloat(form.allowance) : 0,
+        company_id: companyId,
+      };
+
+      let employeeId = id;
+
+      if (isEdit) {
+        // Update employee
+        const { error } = await supabase
+          .from('employees')
+          .update(employeeData)
+          .eq('id', id!);
+        if (error) throw error;
+
+        // Update role if changed
+        if (existing?.employee_roles?.[0]?.role_id !== form.role_id) {
+          // Delete old role
+          await supabase.from('employee_roles').delete().eq('employee_id', id!);
+          // Insert new role
+          const { error: roleErr } = await supabase
+            .from('employee_roles')
+            .insert({ employee_id: id!, role_id: form.role_id });
+          if (roleErr) throw roleErr;
+        }
+      } else {
+        // Insert new employee
+        const { data: newEmp, error } = await supabase
+          .from('employees')
+          .insert(employeeData)
+          .select('id')
+          .single();
+        if (error) throw error;
+        employeeId = newEmp.id;
+
+        // Insert role
+        const { error: roleErr } = await supabase
+          .from('employee_roles')
+          .insert({ employee_id: employeeId, role_id: form.role_id });
+        if (roleErr) throw roleErr;
+      }
+
+      // Handle avatar upload
+      if (avatarFile && employeeId) {
+        const compressed = await compressImage(avatarFile);
+        const filePath = `${companyId}/${employeeId}.jpg`;
+        const { error: uploadErr } = await supabase.storage
+          .from('employee-avatars')
+          .upload(filePath, compressed, {
+            contentType: 'image/jpeg',
+            upsert: true,
+          });
+        if (uploadErr) {
+          console.error('Avatar upload error:', uploadErr);
+        } else {
+          const { data: urlData } = supabase.storage
+            .from('employee-avatars')
+            .getPublicUrl(filePath);
+          await supabase
+            .from('employees')
+            .update({ avatar_url: urlData.publicUrl })
+            .eq('id', employeeId);
+        }
+      } else if (removeAvatar && employeeId) {
+        const filePath = `${companyId}/${employeeId}.jpg`;
+        await supabase.storage.from('employee-avatars').remove([filePath]);
+        await supabase
+          .from('employees')
+          .update({ avatar_url: null })
+          .eq('id', employeeId);
+      }
+
+      // Send invite for new employees
+      if (!isEdit && employeeId) {
+        try {
+          await supabase.functions.invoke('invite-employee', {
+            body: { email: form.login_email, employee_id: employeeId },
+          });
+        } catch (inviteErr: any) {
+          console.error('Invite error:', inviteErr);
+          toast.warning('Employee saved but invite email failed to send');
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['employees-list'] });
+      queryClient.invalidateQueries({ queryKey: ['employee-profile'] });
+
+      if (isEdit) {
+        toast.success('Employee updated successfully');
+        navigate(`/employees/${id}`);
+      } else {
+        toast.success(`Employee added. Invite sent to ${form.login_email}`);
+        navigate('/employees');
+      }
+    } catch (err: any) {
+      console.error('Save error:', err);
+      toast.error(err.message || 'Failed to save employee');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!canAccess) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <h2 className="font-display font-semibold text-lg text-foreground">
+          Access denied
+        </h2>
+        <p className="text-muted-foreground text-[13px] mt-1">
+          You don't have permission to manage employees.
+        </p>
+      </div>
+    );
+  }
+
+  const currentAvatarDisplay = avatarPreview || (!removeAvatar ? existingAvatarUrl : null);
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      {/* Back */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="gap-2 text-muted-foreground"
+        onClick={() => navigate(isEdit ? `/employees/${id}` : '/employees')}
+      >
+        <ArrowLeft className="h-4 w-4" style={{ strokeWidth: 1.5 }} />
+        {isEdit ? 'Back to Profile' : 'Back to Employees'}
+      </Button>
+
+      <h2
+        className="font-display font-bold text-[22px] text-foreground"
+        style={{ fontFamily: 'var(--ff-display)' }}
+      >
+        {isEdit ? 'Edit Employee' : 'Add Employee'}
+      </h2>
+
+      {/* Avatar */}
+      <div className="bg-card rounded-[14px] border p-6">
+        <Label className="text-[13px] text-foreground font-medium mb-3 block">
+          Profile Photo
+        </Label>
+        <div className="flex items-center gap-4">
+          <div
+            className="relative cursor-pointer group"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Avatar className="h-20 w-20">
+              {currentAvatarDisplay ? (
+                <AvatarImage src={currentAvatarDisplay} />
+              ) : null}
+              <AvatarFallback
+                className="text-xl font-semibold"
+                style={{
+                  background: 'hsl(var(--bx-violet-light))',
+                  color: 'hsl(var(--primary))',
+                  fontFamily: 'var(--ff-display)',
+                }}
+              >
+                {form.full_name ? getInitials(form.full_name) : <Upload className="h-6 w-6" />}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Upload className="h-5 w-5 text-white" />
+            </div>
+          </div>
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Upload Photo
+            </Button>
+            {currentAvatarDisplay && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="ml-2 text-destructive"
+                onClick={handleRemoveAvatar}
+              >
+                <X className="h-3.5 w-3.5 mr-1" />
+                Remove
+              </Button>
+            )}
+            <p className="text-[11px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+              JPG, PNG, or WebP. Max 400×400px.
+            </p>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+      </div>
+
+      {/* Form fields */}
+      <div className="bg-card rounded-[14px] border p-6 space-y-5">
+        <h3
+          className="font-display font-semibold text-[15px] text-foreground"
+          style={{ fontFamily: 'var(--ff-display)' }}
+        >
+          Personal Information
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            label="Full Name"
+            required
+            value={form.full_name}
+            error={errors.full_name}
+            onChange={(v) => updateField('full_name', v)}
+            onBlur={() => validateField('full_name', form.full_name)}
+          />
+          <div>
+            <Label className="text-[12px] text-muted-foreground mb-1.5 block">
+              Employee Code <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              value={form.employee_code}
+              onChange={(e) => updateField('employee_code', e.target.value)}
+              onBlur={() => validateField('employee_code', form.employee_code)}
+              className="font-mono-bx"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+              Must match the employee's ID in the ZKTeco attendance machine exactly
+            </p>
+            {errors.employee_code && (
+              <p className="text-[11px] text-destructive mt-1">{errors.employee_code}</p>
+            )}
+          </div>
+          <FormField
+            label="CNIC"
+            value={form.cnic || ''}
+            error={errors.cnic}
+            onChange={(v) => updateField('cnic', v)}
+          />
+          <FormField
+            label="Phone"
+            value={form.phone || ''}
+            error={errors.phone}
+            onChange={(v) => updateField('phone', v)}
+          />
+          <FormField
+            label="Personal Email"
+            type="email"
+            value={form.personal_email || ''}
+            error={errors.personal_email}
+            onChange={(v) => updateField('personal_email', v)}
+          />
+          <FormField
+            label="Date of Birth"
+            type="date"
+            value={form.date_of_birth || ''}
+            onChange={(v) => updateField('date_of_birth', v)}
+          />
+        </div>
+        <FormField
+          label="Address"
+          value={form.address || ''}
+          onChange={(v) => updateField('address', v)}
+        />
+      </div>
+
+      <div className="bg-card rounded-[14px] border p-6 space-y-5">
+        <h3
+          className="font-display font-semibold text-[15px] text-foreground"
+          style={{ fontFamily: 'var(--ff-display)' }}
+        >
+          Employment Information
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            label="Designation"
+            value={form.designation || ''}
+            onChange={(v) => updateField('designation', v)}
+          />
+          <div>
+            <Label className="text-[12px] text-muted-foreground mb-1.5 block">Department</Label>
+            <Select
+              value={form.department || ''}
+              onValueChange={(v) => updateField('department', v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent>
+                {DEPARTMENTS.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <FormField
+            label="Joining Date"
+            type="date"
+            required
+            value={form.joining_date}
+            error={errors.joining_date}
+            onChange={(v) => updateField('joining_date', v)}
+            onBlur={() => validateField('joining_date', form.joining_date)}
+          />
+          <div>
+            <Label className="text-[12px] text-muted-foreground mb-1.5 block">
+              Employment Type
+            </Label>
+            <Select
+              value={form.employment_type}
+              onValueChange={(v) => updateField('employment_type', v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EMPLOYMENT_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t.replace('_', ' ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-[12px] text-muted-foreground mb-1.5 block">
+              Increment Rule
+            </Label>
+            <Select
+              value={form.increment_rule}
+              onValueChange={(v) => updateField('increment_rule', v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {INCREMENT_RULES.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r.replace('_', ' ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-card rounded-[14px] border p-6 space-y-5">
+        <h3
+          className="font-display font-semibold text-[15px] text-foreground"
+          style={{ fontFamily: 'var(--ff-display)' }}
+        >
+          Compensation
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            label="Basic Salary"
+            type="number"
+            value={form.basic_salary || ''}
+            onChange={(v) => updateField('basic_salary', v)}
+          />
+          <FormField
+            label="Allowance"
+            type="number"
+            value={form.allowance || ''}
+            onChange={(v) => updateField('allowance', v)}
+          />
+        </div>
+      </div>
+
+      <div className="bg-card rounded-[14px] border p-6 space-y-5">
+        <h3
+          className="font-display font-semibold text-[15px] text-foreground"
+          style={{ fontFamily: 'var(--ff-display)' }}
+        >
+          Portal Access
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-[12px] text-muted-foreground mb-1.5 block">
+              Login Email <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              type="email"
+              value={form.login_email}
+              onChange={(e) => updateField('login_email', e.target.value)}
+              onBlur={() => validateField('login_email', form.login_email)}
+            />
+            <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+              This email will be used to sign in to Beudox. Can be a personal or company email.
+            </p>
+            {errors.login_email && (
+              <p className="text-[11px] text-destructive mt-1">{errors.login_email}</p>
+            )}
+          </div>
+          <div>
+            <Label className="text-[12px] text-muted-foreground mb-1.5 block">
+              Role <span className="text-destructive">*</span>
+            </Label>
+            <Select value={form.role_id} onValueChange={(v) => updateField('role_id', v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                {(roles || []).map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.name.replace('_', ' ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.role_id && (
+              <p className="text-[11px] text-destructive mt-1">{errors.role_id}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-3 pb-8">
+        <Button
+          variant="outline"
+          onClick={() => navigate(isEdit ? `/employees/${id}` : '/employees')}
+        >
+          Cancel
+        </Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          {isEdit ? 'Save Changes' : 'Add Employee'}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Simple reusable form field
+const FormField = ({
+  label,
+  value,
+  onChange,
+  onBlur,
+  error,
+  type = 'text',
+  required,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onBlur?: () => void;
+  error?: string;
+  type?: string;
+  required?: boolean;
+}) => (
+  <div>
+    <Label className="text-[12px] text-muted-foreground mb-1.5 block">
+      {label} {required && <span className="text-destructive">*</span>}
+    </Label>
+    <Input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
+    />
+    {error && <p className="text-[11px] text-destructive mt-1">{error}</p>}
+  </div>
+);
+
+export default EmployeeForm;
