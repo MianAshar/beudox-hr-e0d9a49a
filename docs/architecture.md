@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: ad247ba42a3f2e8b8b3fd155bdb9eb108cfdb6bc
-generated_at: 2026-03-27T02:41:05.991Z
+source_sha: ea60fa1f955ce83642e70153b29070707da198b7
+generated_at: 2026-03-27T02:43:15.228Z
 action: create
 -->
 
@@ -9,110 +9,121 @@ action: create
 
 ## Application Structure
 
-### Frontend Architecture
+### Routing
+The application uses React Router DOM with a simple routing structure:
 
-#### Routing Structure
-- **/**: Main dashboard/index page (currently placeholder)
-- **/404**: Not found page with error logging
+- `/` - Home page (Index component)
+- `*` - 404 Not Found page
 
-#### Core Components
-- **NavLink**: Enhanced navigation component with active state styling
-- **UI Components**: 40+ shadcn/ui components for consistent interface
-- **Toast System**: Notification system using Sonner and custom toasts
-- **Form Components**: React Hook Form integration with validation
+### Core Components
 
-### Backend Architecture
+#### Layout Components
+- **App**: Main application wrapper with providers
+  - QueryClientProvider (TanStack React Query)
+  - TooltipProvider
+  - Toaster components (Sonner + custom toast)
+  - BrowserRouter for routing
 
-#### Database Design
-- **Multi-tenant**: All tables include `company_id` for data isolation
-- **Audit Trail**: Created/updated timestamps on all entities
-- **Relationships**: Well-structured foreign key constraints
+#### UI Components
+The application includes a comprehensive set of shadcn/ui components:
 
-#### Key Entities
-- **Companies**: Root tenant entity
-- **Employees**: Central user entity with auth integration
-- **Attendance/Payroll**: Time and compensation tracking
-- **Projects/Clients**: Business management
-- **Leave/Expenses**: HR operations
+**Form Components**: Button, Input, Textarea, Select, Checkbox, Radio Group, Switch, Slider
+**Layout Components**: Card, Dialog, Sheet, Sidebar, Tabs, Accordion
+**Feedback Components**: Alert, Toast, Progress, Skeleton
+**Navigation**: Navigation Menu, Breadcrumb, Pagination
+**Data Display**: Table, Badge, Avatar, Calendar
+**Overlays**: Popover, Hover Card, Context Menu, Dropdown Menu
 
-### Data Flow
+#### Custom Components
+- **NavLink**: Enhanced React Router NavLink with active state styling
 
-#### Client-Side State
-- **Local State**: React component state for UI
-- **Server State**: TanStack Query for API data
-- **Form State**: React Hook Form for form management
+## State Management
 
-#### Server-Side Integration
-- **Supabase Client**: Type-safe database operations
-- **Real-time**: Live data subscriptions
-- **Auth**: Session management and user authentication
+### Server State
+- **TanStack React Query**: Handles all server state, caching, and synchronization
+- Configured with default QueryClient in App.tsx
 
-## Technology Integration
+### Client State
+- **React Hooks**: useState, useEffect for local component state
+- **Custom Hooks**: useToast for notification management
+
+### Form State
+- **React Hook Form**: Complex form handling
+- **Zod**: Schema validation for forms
+
+## Data Architecture
+
+### Database Integration
+- **Supabase Client**: Centralized in `src/integrations/supabase/client.ts`
+- **Type Safety**: Auto-generated TypeScript types from database schema
+- **Authentication**: Supabase Auth with localStorage persistence
+
+### Database Schema
+The application connects to a PostgreSQL database with 35+ tables organized into:
+
+- **Core Entities**: companies, employees, admin_users
+- **HR Operations**: attendance, payroll, leave management
+- **Business**: projects, clients, invoices
+- **Administrative**: settings, roles, notifications
+
+## Styling Architecture
+
+### Design System
+- **Tailwind CSS**: Utility-first CSS framework
+- **shadcn/ui**: Consistent component design system
+- **CSS Variables**: Theme customization support
+
+### Theming
+- **next-themes**: Dark/light mode support (imported but not fully configured)
+- **CSS Custom Properties**: Consistent color and spacing tokens
+
+## Development Architecture
 
 ### Build System
-- **Vite**: Fast development server and optimized builds
-- **TypeScript**: Type safety and developer experience
+- **Vite**: Fast development server and optimized production builds
+- **TypeScript**: Type-safe development
 - **ESLint**: Code quality and consistency
 
-### UI Framework
-- **shadcn/ui**: Pre-built, accessible components
-- **Tailwind CSS**: Utility-first styling
-- **Radix UI**: Low-level UI primitives
+### Testing
+- **Vitest**: Fast unit testing framework
+- **Testing Library**: Component testing utilities
+- **Playwright**: E2E testing (configured but not implemented)
 
-### Data Management
-- **Supabase**: PostgreSQL database with auth
-- **React Query**: Server state management
-- **Zod**: Schema validation
+## Performance Considerations
+
+### Code Splitting
+- **Vite**: Automatic code splitting for routes and components
+- **Dynamic Imports**: Lazy loading capabilities built-in
+
+### Caching
+- **React Query**: Intelligent caching and background updates
+- **Browser Caching**: Vite handles asset optimization
+
+### Bundle Optimization
+- **Tree Shaking**: Automatic unused code elimination
+- **Minification**: Production build optimizations
 
 ## Security Architecture
 
 ### Authentication
-- Supabase Auth for user management
-- Session persistence in localStorage
-- Auto token refresh
+- **Supabase Auth**: Secure authentication with JWT tokens
+- **Session Management**: Automatic token refresh and persistence
 
-### Data Security
-- Row Level Security (RLS) policies
-- Company-scoped data access
-- Type-safe query building
+### Authorization
+- **Row Level Security**: Database-level access control
+- **Type Safety**: TypeScript prevents common security issues
 
-### API Security
-- Environment variable configuration
-- No direct database exposure
-- Secure key management
+### Input Validation
+- **Zod Schemas**: Runtime validation for all inputs
+- **TypeScript Types**: Compile-time type checking
 
-## Performance Considerations
+## Deployment Architecture
 
-### Frontend Optimization
-- Vite's fast HMR and builds
-- Component lazy loading
-- Bundle splitting
-- Tailwind CSS optimization
+### Build Process
+- **Vite Build**: Optimized production bundles
+- **Asset Handling**: Images, fonts, and static files
+- **Environment Variables**: Secure configuration management
 
-### Data Optimization
-- React Query caching
-- Optimistic updates
-- Background refetching
-- Real-time subscriptions
-
-### Database Optimization
-- Indexed foreign keys
-- Efficient query patterns
-- Connection pooling via Supabase
-
-## Scalability Features
-
-### Multi-tenant Support
-- Company-based data isolation
-- Shared infrastructure
-- Per-company feature flags
-
-### Real-time Capabilities
-- Live data updates
-- Notification system
-- Collaborative features
-
-### Modular Design
-- Component reusability
-- Feature isolation
-- Type-safe APIs
+### Hosting
+- **Static Hosting**: Can be deployed to any static host (Vercel, Netlify, etc.)
+- **SPA Routing**: Proper 404 handling for client-side routing
