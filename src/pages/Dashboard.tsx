@@ -188,8 +188,8 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div>
         <h1
-          className="text-[26px] font-bold text-foreground"
-          style={{ fontFamily: 'var(--ff-display)' }}
+          className="text-[32px] font-bold text-foreground"
+          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700 }}
         >
           {getGreeting()}, {firstName}
         </h1>
