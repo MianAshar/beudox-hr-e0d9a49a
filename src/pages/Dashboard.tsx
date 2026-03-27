@@ -79,7 +79,7 @@ const StatCard = ({ icon, value, label, variant = 'default', loading }: StatCard
         </p>
         <p
           className="mt-1"
-          style={{ fontFamily: 'var(--ff-body)', fontWeight: 400, fontSize: 13, color: s.muted }}
+          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: 13, color: s.muted }}
         >
           {label}
         </p>
