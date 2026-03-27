@@ -29,6 +29,23 @@ const getInitials = (name: string) =>
     .toUpperCase()
     .slice(0, 2);
 
+const formatRoleName = (role: string | null | undefined): string => {
+  if (!role) return '—';
+  const map: Record<string, string> = {
+    ceo: 'CEO',
+    hr_manager: 'HR Manager',
+    finance_manager: 'Finance Manager',
+    team_lead: 'Team Lead',
+    employee: 'Employee',
+  };
+  return map[role] || role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const toTitleCase = (val: string | null | undefined): string => {
+  if (!val) return '—';
+  return val.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
 const statusVariant = (status: string | null) => {
   switch (status) {
     case 'active':
@@ -256,7 +273,7 @@ const EmployeeProfile = () => {
         <InfoField label="Full Name" value={emp.full_name} />
         <InfoField label="CNIC" value={emp.cnic} />
         <InfoField label="Phone" value={emp.phone} />
-        <InfoField label="Personal Email" value={emp.email} />
+        
         <InfoField
           label="Date of Birth"
           value={emp.date_of_birth ? format(new Date(emp.date_of_birth), 'dd MMM yyyy') : null}
@@ -275,12 +292,12 @@ const EmployeeProfile = () => {
         />
         <InfoField
           label="Employment Type"
-          value={emp.employment_type?.replace('_', ' ')}
+          value={toTitleCase(emp.employment_type)}
         />
-        <InfoField label="Status" value={emp.status} />
+        <InfoField label="Status" value={toTitleCase(emp.status)} />
         <InfoField
           label="Increment Rule"
-          value={emp.increment_rule?.replace('_', ' ')}
+          value={toTitleCase(emp.increment_rule)}
         />
       </SectionCard>
 
@@ -330,7 +347,7 @@ const EmployeeProfile = () => {
             Used to sign in to Beudox. Can be a personal or company email.
           </p>
         </div>
-        <InfoField label="Role" value={empRole?.replace('_', ' ')} />
+        <InfoField label="Role" value={formatRoleName(empRole)} />
       </SectionCard>
     </div>
   );
