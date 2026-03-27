@@ -115,11 +115,8 @@ const Login = () => {
       </div>
 
       {/* Right Panel — login form */}
-      <div className="flex flex-1 items-center justify-center bg-background px-6 lg:w-[60%]">
+      <div className="flex flex-1 items-center justify-center bg-background px-6 lg:w-[35%]">
         <div className="w-full max-w-[420px] rounded-[14px] border border-border bg-card p-10 md:p-12">
-          <div className="flex justify-center mb-8">
-            <BeudoxLogo variant="default" />
-          </div>
           <h1 className="text-center text-[26px] font-bold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
             Welcome back
           </h1>
