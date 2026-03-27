@@ -292,12 +292,12 @@ const EmployeeProfile = () => {
         />
         <InfoField
           label="Employment Type"
-          value={emp.employment_type?.replace('_', ' ')}
+          value={toTitleCase(emp.employment_type)}
         />
-        <InfoField label="Status" value={emp.status} />
+        <InfoField label="Status" value={toTitleCase(emp.status)} />
         <InfoField
           label="Increment Rule"
-          value={emp.increment_rule?.replace('_', ' ')}
+          value={toTitleCase(emp.increment_rule)}
         />
       </SectionCard>
 
