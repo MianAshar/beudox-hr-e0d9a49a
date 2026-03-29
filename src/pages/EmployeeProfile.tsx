@@ -198,6 +198,7 @@ const EmployeeProfile = () => {
     }
   };
 
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="bx-skeleton h-8 w-32" />
