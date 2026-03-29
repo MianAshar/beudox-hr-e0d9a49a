@@ -61,7 +61,18 @@ const LoginV2 = () => {
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setErrors({ general: 'Invalid email or password' });
+      // Check if user is deactivated
+      const { data: empData } = await supabase
+        .from('employees')
+        .select('status')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (empData?.status === 'inactive') {
+        setErrors({ general: 'Your account has been deactivated. Please contact your HR Manager or system administrator.' });
+      } else {
+        setErrors({ general: 'Invalid email or password' });
+      }
     }
     setLoading(false);
   };

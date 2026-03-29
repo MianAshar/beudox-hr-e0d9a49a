@@ -55,8 +55,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (hash) {
       if (hash.includes('type=invite')) {
         setPasswordMode('invite');
+        window.history.replaceState({}, '', '/set-password');
       } else if (hash.includes('type=recovery')) {
         setPasswordMode('recovery');
+        window.history.replaceState({}, '', '/set-password');
       }
     }
   }, []);
