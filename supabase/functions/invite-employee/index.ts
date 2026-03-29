@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
       data: { user },
       error: userError,
     } = await userClient.auth.getUser();
+    console.log('Calling user ID:', user?.id);
     if (userError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
@@ -45,6 +46,7 @@ Deno.serve(async (req) => {
     const { data: roleData } = await adminClient.rpc('get_employee_role_for_auth', {
       _auth_id: user.id,
     });
+    console.log('Caller role:', roleData);
     if (!roleData || !['hr_manager', 'ceo'].includes(roleData)) {
       return new Response(
         JSON.stringify({ error: 'Forbidden: insufficient role' }),
@@ -55,6 +57,7 @@ Deno.serve(async (req) => {
     // Parse and validate body
     const body = await req.json();
     const { email, employee_id } = body;
+    console.log('Request body:', { email, employee_id });
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {
       return new Response(
@@ -71,11 +74,13 @@ Deno.serve(async (req) => {
     }
 
     // Generate invite link
+    console.log('Generating invite link for:', email);
     const { data: linkData, error: linkError } =
       await adminClient.auth.admin.generateLink({
         type: 'invite',
         email,
       });
+    console.log('generateLink result:', { userId: linkData?.user?.id, error: linkError?.message });
 
     if (linkError) {
       console.error('Generate link error:', linkError);
@@ -91,6 +96,7 @@ Deno.serve(async (req) => {
         .from('employees')
         .update({ auth_user_id: linkData.user.id })
         .eq('id', employee_id);
+      console.log('Updated employee auth_user_id:', employee_id);
     }
 
     return new Response(
