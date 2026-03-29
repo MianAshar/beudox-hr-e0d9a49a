@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
     const { data: roleData } = await adminClient.rpc('get_employee_role_for_auth', {
       _auth_id: user.id,
     });
+    console.log('Caller role:', roleData);
     if (!roleData || !['hr_manager', 'ceo'].includes(roleData)) {
       return new Response(
         JSON.stringify({ error: 'Forbidden: insufficient role' }),
