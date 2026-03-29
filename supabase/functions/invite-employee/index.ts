@@ -74,11 +74,13 @@ Deno.serve(async (req) => {
     }
 
     // Generate invite link
+    console.log('Generating invite link for:', email);
     const { data: linkData, error: linkError } =
       await adminClient.auth.admin.generateLink({
         type: 'invite',
         email,
       });
+    console.log('generateLink result:', { userId: linkData?.user?.id, error: linkError?.message });
 
     if (linkError) {
       console.error('Generate link error:', linkError);
