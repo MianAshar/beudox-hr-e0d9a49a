@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { canAccess } from '@/lib/role-access';
 import BeudoxLogo from '@/components/BeudoxLogo';
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
