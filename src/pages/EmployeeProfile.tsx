@@ -103,6 +103,11 @@ const EmployeeProfile = () => {
   const role = authEmployee?.role_name;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const [resending, setResending] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   // Allow self-view for employee/team_lead
   const isSelfView =
