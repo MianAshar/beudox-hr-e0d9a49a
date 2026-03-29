@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Beudox <onboarding@resend.dev>',
+        from: 'Beudox <noreply@beudox.com>',
         to: [email],
         subject: 'You have been invited to Beudox',
         html: emailHtml,
