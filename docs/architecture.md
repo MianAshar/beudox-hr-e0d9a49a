@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: 1912bab0ad21101787bdfbc9b42a058207c7862c
-generated_at: 2026-03-29T23:20:01.841Z
+source_sha: 9a9598c271fbdd5799e93c44d78e3b84c67feb16
+generated_at: 2026-03-29T23:38:44.978Z
 action: create
 -->
 
@@ -19,140 +19,75 @@ The application uses React Router DOM for client-side routing with the following
 ### Protected Routes (Require Authentication)
 - `/dashboard` - Main dashboard overview
 - `/employees` - Employee list and management
-  - `/employees/new` - Add new employee form
-  - `/employees/:id` - View employee profile
-  - `/employees/:id/edit` - Edit employee form
+- `/employees/new` - Add new employee form
+- `/employees/:id` - View employee profile
+- `/employees/:id/edit` - Edit employee form
 
-### Future Routes (Based on Navigation)
-The sidebar navigation indicates planned routes for:
+### Future Routes (Based on Sidebar Navigation)
+The sidebar includes navigation items for features not yet implemented:
 - `/attendance` - Attendance tracking
 - `/holidays` - Public holidays management
 - `/leave` - Leave management
 - `/payroll` - Payroll processing
-- `/finance` - Financial reporting
-- `/loans` - Loan management
+- `/finance` - Financial reports
+- `/loans` - Employee loans
 - `/expenses` - Office expenses
 - `/outsourcing` - Outsourcing management
 - `/projects` - Project management
 - `/evaluations` - Employee evaluations
-- `/hr-policies` - HR policies
-- `/notifications` - Notification system
-- `/settings` - System settings
+- `/hr-policies` - HR policy documents
+- `/notifications` - System notifications
+- `/settings` - Application settings
 
 ## Core Components
 
 ### Layout Components
+- **AppLayout**: Main application layout wrapper that includes sidebar and topbar
+- **AppSidebar**: Collapsible navigation sidebar with role-based menu visibility
+- **TopBar**: Header component displaying current page title
 
-#### AppLayout
-- Main application wrapper
-- Provides consistent layout structure
-- Includes sidebar and topbar
-- Manages responsive behavior
+### UI Component Library
+The application uses shadcn/ui components built on Radix UI primitives:
+- Form components (Input, Select, Checkbox, etc.)
+- Feedback components (Toast, Alert, Dialog)
+- Layout components (Card, Tabs, Accordion)
+- Navigation components (Navigation Menu, Breadcrumb)
+- Data display (Table, Chart, Progress)
 
-#### AppSidebar
-- Collapsible navigation sidebar
-- Role-based menu filtering
-- Organized into sections: MAIN, PEOPLE, FINANCE, WORK, SYSTEM
-- Custom purple theme (#1A1240)
-- Shows user information and sign-out option
+### Custom Components
+- **BeudoxLogo**: Logo component with variant support (default/sidebar) and size options
+- **NavLink**: Enhanced React Router NavLink with active state styling
 
-#### TopBar
-- Application header
-- Displays current page title
-- Dynamic title based on route
-- Consistent styling with card background
+## Authentication Flow
 
-### UI Components
-
-#### BeudoxLogo
-- Custom logo component
-- Supports multiple variants: default, sidebar
-- Configurable size and wordmark display
-- Uses SVG assets from `/assets/`
-
-#### NavLink
-- Enhanced React Router NavLink
-- Supports active and pending class names
-- Consistent styling integration
-
-### Component Library
-The application uses shadcn/ui components including:
-- Form controls (Button, Input, Select, etc.)
-- Layout components (Card, Sheet, Dialog, etc.)
-- Data display (Table, Chart, etc.)
-- Feedback (Toast, Alert, etc.)
-- Navigation (Tabs, Breadcrumb, etc.)
-
-## State Management
-
-### Authentication State
-- Managed by `useAuth` hook
-- Tracks session, loading state, and employee data
-- Handles password recovery and invite flows
-
-### Server State
-- React Query for API data management
-- Automatic caching and background updates
-- Optimistic updates for better UX
-
-### UI State
-- Local component state for UI interactions
-- Sidebar collapse state
-- Form state management
+1. **Login Process**: Users authenticate via Supabase Auth
+2. **Password Setup**: New users or password resets go through setup flow
+3. **Role Assignment**: Employee data includes role information for access control
+4. **Protected Routes**: All business routes check authentication and role permissions
+5. **Auto Redirect**: Unauthorized access redirects to appropriate pages
 
 ## Data Flow
 
-1. **User Authentication**
-   - Login form → Supabase auth
-   - Session created → Employee data fetched
-   - Route protection applied
+### State Management
+- **Authentication State**: Managed via AuthProvider context
+- **Server State**: Handled by React Query for caching and synchronization
+- **UI State**: Local component state for forms and interactions
 
-2. **Page Navigation**
-   - Route change → Access check
-   - Authorized → Render protected content
-   - Unauthorized → Redirect to dashboard
+### API Integration
+- **Supabase Client**: Centralized client for all Supabase operations
+- **React Query**: Manages data fetching, caching, and mutations
+- **Error Handling**: Proper error states and user feedback
 
-3. **Data Operations**
-   - Component → React Query → Supabase API
-   - Response cached and UI updated
-   - Error handling and loading states
+## Role-Based Access Control
 
-## Security
-
-### Route Protection
-- `ProtectedRoute` component wraps sensitive routes
-- Checks authentication and role permissions
-- Automatic redirects for unauthorized access
-
-### Role-Based Access
-- `canAccess` utility function
-- Permission checks based on user role
-- Navigation items filtered by permissions
-
-### Authentication
-- Supabase handles secure authentication
-- JWT tokens for API access
-- Password recovery and invite flows
+The application implements role-based permissions:
+- Menu items in the sidebar are conditionally rendered based on user role
+- Route access is protected at the component level
+- Unauthorized users are redirected to the dashboard
 
 ## Responsive Design
 
-- **Mobile-First**: Tailwind CSS breakpoints
-- **Sidebar**: Collapsible on smaller screens
-- **Layout**: Flexible grid system
-- **Components**: Responsive variants available
-
-## Performance Considerations
-
-- **Code Splitting**: Vite handles automatic splitting
-- **Lazy Loading**: Route-based code splitting
-- **Caching**: React Query for API response caching
-- **Bundle Optimization**: Tree shaking and minification
-
-## Extensibility
-
-The architecture is designed for easy extension:
-- **Modular Components**: Easy to add new UI components
-- **Route Structure**: Simple to add new protected routes
-- **Navigation**: Sidebar supports additional menu items
-- **API Integration**: Supabase client handles new endpoints
-- **Role System**: Permission-based access control ready for new roles
+- **Mobile-First**: Tailwind CSS responsive utilities
+- **Collapsible Sidebar**: Adapts to different screen sizes
+- **Flexible Layout**: Main content area adjusts based on sidebar state
+- **Touch-Friendly**: Appropriate sizing for mobile interactions
