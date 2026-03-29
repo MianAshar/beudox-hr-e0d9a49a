@@ -77,47 +77,51 @@ const AppSidebar = () => {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 space-y-5">
-        {navSections.map(section => (
-          <div key={section.label}>
-            {!collapsed && (
-              <div
-                className="px-5 mb-2 text-[9px] font-medium uppercase tracking-[0.12em]"
-                style={{ color: 'rgba(255,255,255,0.30)', fontFamily: 'var(--ff-body)' }}
-              >
-                {section.label}
+        {navSections.map(section => {
+          const visibleItems = section.items.filter(item => canAccess(employee?.role_name, item.path));
+          if (visibleItems.length === 0) return null;
+          return (
+            <div key={section.label}>
+              {!collapsed && (
+                <div
+                  className="px-5 mb-2 text-[9px] font-medium uppercase tracking-[0.12em]"
+                  style={{ color: 'rgba(255,255,255,0.30)', fontFamily: 'var(--ff-body)' }}
+                >
+                  {section.label}
+                </div>
+              )}
+              <div className="space-y-0.5">
+                {visibleItems.map(item => {
+                  const active = isActive(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`flex items-center h-10 transition-all duration-[var(--transition-fast)] ${
+                        collapsed ? 'justify-center px-0' : 'px-5'
+                      } ${
+                        active
+                          ? 'text-white border-l-[3px]'
+                          : 'text-white/40 hover:text-white/70 border-l-[3px] border-transparent'
+                      }`}
+                      style={{
+                        backgroundColor: active ? 'rgba(91,63,248,0.20)' : 'transparent',
+                        borderLeftColor: active ? '#5B3FF8' : 'transparent',
+                      }}
+                    >
+                      <item.icon className="h-5 w-5 shrink-0" style={{ strokeWidth: 1.5 }} />
+                      {!collapsed && (
+                        <span className="ml-3 text-[13px] font-normal" style={{ fontFamily: 'var(--ff-body)' }}>
+                          {item.title}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
-            )}
-            <div className="space-y-0.5">
-              {section.items.map(item => {
-                const active = isActive(item.path);
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center h-10 transition-all duration-[var(--transition-fast)] ${
-                      collapsed ? 'justify-center px-0' : 'px-5'
-                    } ${
-                      active
-                        ? 'text-white border-l-[3px]'
-                        : 'text-white/40 hover:text-white/70 border-l-[3px] border-transparent'
-                    }`}
-                    style={{
-                      backgroundColor: active ? 'rgba(91,63,248,0.20)' : 'transparent',
-                      borderLeftColor: active ? '#5B3FF8' : 'transparent',
-                    }}
-                  >
-                    <item.icon className="h-5 w-5 shrink-0" style={{ strokeWidth: 1.5 }} />
-                    {!collapsed && (
-                      <span className="ml-3 text-[13px] font-normal" style={{ fontFamily: 'var(--ff-body)' }}>
-                        {item.title}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
       {/* User zone */}

@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { canAccess } from "@/lib/role-access";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import SetPassword from "./pages/SetPassword";
@@ -18,7 +19,8 @@ import { Loader2 } from "lucide-react";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, loading, passwordMode, clearPasswordMode } = useAuth();
+  const { session, loading, passwordMode, clearPasswordMode, employee } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -34,6 +36,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!session) return <Navigate to="/login" replace />;
+
+  // Role-based route guard — redirect unauthorized access to dashboard silently
+  if (employee && !canAccess(employee.role_name, location.pathname)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <AppLayout>{children}</AppLayout>;
 };
 
