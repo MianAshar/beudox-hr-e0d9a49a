@@ -97,7 +97,7 @@ const Dashboard = () => {
   const isFinanceOrCeo = role === 'finance_manager' || role === 'ceo';
 
   const today = format(new Date(), 'EEEE, d MMMM yyyy');
-  const firstName = employee?.full_name?.split(' ')[0] || 'there';
+  const firstName = employee?.full_name || 'there';
 
   // Active employees count
   const { data: empCount, isLoading: empLoading } = useQuery({
