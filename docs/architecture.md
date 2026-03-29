@@ -1,129 +1,158 @@
 <!--
 generated_by: tessera
-source_sha: ea60fa1f955ce83642e70153b29070707da198b7
-generated_at: 2026-03-27T02:43:15.228Z
+source_sha: 1912bab0ad21101787bdfbc9b42a058207c7862c
+generated_at: 2026-03-29T23:20:01.841Z
 action: create
 -->
 
 # Architecture Documentation
 
-## Application Structure
+## Routing Structure
 
-### Routing
-The application uses React Router DOM with a simple routing structure:
+The application uses React Router DOM for client-side routing with the following structure:
 
-- `/` - Home page (Index component)
-- `*` - 404 Not Found page
+### Public Routes
+- `/` - Root redirect (to dashboard if authenticated, login if not)
+- `/login` - User authentication
+- `/forgot-password` - Password recovery
 
-### Core Components
+### Protected Routes (Require Authentication)
+- `/dashboard` - Main dashboard overview
+- `/employees` - Employee list and management
+  - `/employees/new` - Add new employee form
+  - `/employees/:id` - View employee profile
+  - `/employees/:id/edit` - Edit employee form
 
-#### Layout Components
-- **App**: Main application wrapper with providers
-  - QueryClientProvider (TanStack React Query)
-  - TooltipProvider
-  - Toaster components (Sonner + custom toast)
-  - BrowserRouter for routing
+### Future Routes (Based on Navigation)
+The sidebar navigation indicates planned routes for:
+- `/attendance` - Attendance tracking
+- `/holidays` - Public holidays management
+- `/leave` - Leave management
+- `/payroll` - Payroll processing
+- `/finance` - Financial reporting
+- `/loans` - Loan management
+- `/expenses` - Office expenses
+- `/outsourcing` - Outsourcing management
+- `/projects` - Project management
+- `/evaluations` - Employee evaluations
+- `/hr-policies` - HR policies
+- `/notifications` - Notification system
+- `/settings` - System settings
 
-#### UI Components
-The application includes a comprehensive set of shadcn/ui components:
+## Core Components
 
-**Form Components**: Button, Input, Textarea, Select, Checkbox, Radio Group, Switch, Slider
-**Layout Components**: Card, Dialog, Sheet, Sidebar, Tabs, Accordion
-**Feedback Components**: Alert, Toast, Progress, Skeleton
-**Navigation**: Navigation Menu, Breadcrumb, Pagination
-**Data Display**: Table, Badge, Avatar, Calendar
-**Overlays**: Popover, Hover Card, Context Menu, Dropdown Menu
+### Layout Components
 
-#### Custom Components
-- **NavLink**: Enhanced React Router NavLink with active state styling
+#### AppLayout
+- Main application wrapper
+- Provides consistent layout structure
+- Includes sidebar and topbar
+- Manages responsive behavior
+
+#### AppSidebar
+- Collapsible navigation sidebar
+- Role-based menu filtering
+- Organized into sections: MAIN, PEOPLE, FINANCE, WORK, SYSTEM
+- Custom purple theme (#1A1240)
+- Shows user information and sign-out option
+
+#### TopBar
+- Application header
+- Displays current page title
+- Dynamic title based on route
+- Consistent styling with card background
+
+### UI Components
+
+#### BeudoxLogo
+- Custom logo component
+- Supports multiple variants: default, sidebar
+- Configurable size and wordmark display
+- Uses SVG assets from `/assets/`
+
+#### NavLink
+- Enhanced React Router NavLink
+- Supports active and pending class names
+- Consistent styling integration
+
+### Component Library
+The application uses shadcn/ui components including:
+- Form controls (Button, Input, Select, etc.)
+- Layout components (Card, Sheet, Dialog, etc.)
+- Data display (Table, Chart, etc.)
+- Feedback (Toast, Alert, etc.)
+- Navigation (Tabs, Breadcrumb, etc.)
 
 ## State Management
 
+### Authentication State
+- Managed by `useAuth` hook
+- Tracks session, loading state, and employee data
+- Handles password recovery and invite flows
+
 ### Server State
-- **TanStack React Query**: Handles all server state, caching, and synchronization
-- Configured with default QueryClient in App.tsx
+- React Query for API data management
+- Automatic caching and background updates
+- Optimistic updates for better UX
 
-### Client State
-- **React Hooks**: useState, useEffect for local component state
-- **Custom Hooks**: useToast for notification management
+### UI State
+- Local component state for UI interactions
+- Sidebar collapse state
+- Form state management
 
-### Form State
-- **React Hook Form**: Complex form handling
-- **Zod**: Schema validation for forms
+## Data Flow
 
-## Data Architecture
+1. **User Authentication**
+   - Login form → Supabase auth
+   - Session created → Employee data fetched
+   - Route protection applied
 
-### Database Integration
-- **Supabase Client**: Centralized in `src/integrations/supabase/client.ts`
-- **Type Safety**: Auto-generated TypeScript types from database schema
-- **Authentication**: Supabase Auth with localStorage persistence
+2. **Page Navigation**
+   - Route change → Access check
+   - Authorized → Render protected content
+   - Unauthorized → Redirect to dashboard
 
-### Database Schema
-The application connects to a PostgreSQL database with 35+ tables organized into:
+3. **Data Operations**
+   - Component → React Query → Supabase API
+   - Response cached and UI updated
+   - Error handling and loading states
 
-- **Core Entities**: companies, employees, admin_users
-- **HR Operations**: attendance, payroll, leave management
-- **Business**: projects, clients, invoices
-- **Administrative**: settings, roles, notifications
+## Security
 
-## Styling Architecture
+### Route Protection
+- `ProtectedRoute` component wraps sensitive routes
+- Checks authentication and role permissions
+- Automatic redirects for unauthorized access
 
-### Design System
-- **Tailwind CSS**: Utility-first CSS framework
-- **shadcn/ui**: Consistent component design system
-- **CSS Variables**: Theme customization support
+### Role-Based Access
+- `canAccess` utility function
+- Permission checks based on user role
+- Navigation items filtered by permissions
 
-### Theming
-- **next-themes**: Dark/light mode support (imported but not fully configured)
-- **CSS Custom Properties**: Consistent color and spacing tokens
+### Authentication
+- Supabase handles secure authentication
+- JWT tokens for API access
+- Password recovery and invite flows
 
-## Development Architecture
+## Responsive Design
 
-### Build System
-- **Vite**: Fast development server and optimized production builds
-- **TypeScript**: Type-safe development
-- **ESLint**: Code quality and consistency
-
-### Testing
-- **Vitest**: Fast unit testing framework
-- **Testing Library**: Component testing utilities
-- **Playwright**: E2E testing (configured but not implemented)
+- **Mobile-First**: Tailwind CSS breakpoints
+- **Sidebar**: Collapsible on smaller screens
+- **Layout**: Flexible grid system
+- **Components**: Responsive variants available
 
 ## Performance Considerations
 
-### Code Splitting
-- **Vite**: Automatic code splitting for routes and components
-- **Dynamic Imports**: Lazy loading capabilities built-in
+- **Code Splitting**: Vite handles automatic splitting
+- **Lazy Loading**: Route-based code splitting
+- **Caching**: React Query for API response caching
+- **Bundle Optimization**: Tree shaking and minification
 
-### Caching
-- **React Query**: Intelligent caching and background updates
-- **Browser Caching**: Vite handles asset optimization
+## Extensibility
 
-### Bundle Optimization
-- **Tree Shaking**: Automatic unused code elimination
-- **Minification**: Production build optimizations
-
-## Security Architecture
-
-### Authentication
-- **Supabase Auth**: Secure authentication with JWT tokens
-- **Session Management**: Automatic token refresh and persistence
-
-### Authorization
-- **Row Level Security**: Database-level access control
-- **Type Safety**: TypeScript prevents common security issues
-
-### Input Validation
-- **Zod Schemas**: Runtime validation for all inputs
-- **TypeScript Types**: Compile-time type checking
-
-## Deployment Architecture
-
-### Build Process
-- **Vite Build**: Optimized production bundles
-- **Asset Handling**: Images, fonts, and static files
-- **Environment Variables**: Secure configuration management
-
-### Hosting
-- **Static Hosting**: Can be deployed to any static host (Vercel, Netlify, etc.)
-- **SPA Routing**: Proper 404 handling for client-side routing
+The architecture is designed for easy extension:
+- **Modular Components**: Easy to add new UI components
+- **Route Structure**: Simple to add new protected routes
+- **Navigation**: Sidebar supports additional menu items
+- **API Integration**: Supabase client handles new endpoints
+- **Role System**: Permission-based access control ready for new roles
