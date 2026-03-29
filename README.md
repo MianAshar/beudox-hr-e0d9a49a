@@ -1,38 +1,46 @@
 <!--
 generated_by: tessera
-source_sha: bcf71ae34e524f3c3dbb0f58c818a0ee4639cbef
-generated_at: 2026-03-29T22:59:32.389Z
+source_sha: a3f5f655ebc057dc58d1a1ace1f3c809d1a248e4
+generated_at: 2026-03-29T23:06:07.521Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Management System
 
-A comprehensive Human Resources Management System built as a modern web application. Beudox HR provides organizations with tools to manage employees, attendance, payroll, leave management, and more through an intuitive dashboard interface.
+A comprehensive human resources management application built for modern businesses. Beudox HR provides tools for employee management, attendance tracking, payroll processing, and organizational administration.
 
 ## Features
 
-- **Employee Management**: Add, view, and edit employee profiles
-- **Attendance Tracking**: Monitor employee attendance and public holidays
-- **Leave Management**: Handle leave requests and approvals
-- **Payroll Processing**: Manage salary calculations and payments
-- **Finance Management**: Track expenses, loans, and financial reports
-- **Project Management**: Oversee projects and evaluations
-- **Role-Based Access Control**: Different permission levels for employees, managers, and executives
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
+### Core Functionality
+- **Employee Management**: Complete employee profiles, onboarding, and lifecycle management
+- **Attendance Tracking**: Daily attendance monitoring and reporting
+- **Leave Management**: Vacation, sick leave, and holiday tracking
+- **Payroll Processing**: Salary calculations and payroll management
+- **Finance Management**: Budget tracking and expense management
+- **Project Management**: Resource allocation and project tracking
+- **Performance Evaluations**: Employee assessment and feedback systems
+- **HR Policies**: Centralized policy documentation and management
+
+### User Experience
+- **Role-based Access Control**: Secure access based on user roles and permissions
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **Real-time Notifications**: Instant updates and alerts
+- **Intuitive Navigation**: Clean, organized interface with collapsible sidebar
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **UI Framework**: shadcn/ui (built on Radix UI primitives)
-- **Styling**: Tailwind CSS with custom design tokens
+- **Styling**: Tailwind CSS with shadcn/ui components
 - **Routing**: React Router DOM
 - **State Management**: TanStack Query for server state
 - **Authentication**: Supabase Auth
-- **Backend**: Supabase (PostgreSQL database with real-time capabilities)
-- **Testing**: Vitest with React Testing Library
-- **E2E Testing**: Playwright
+- **Database**: Supabase (PostgreSQL)
+- **UI Components**: Radix UI primitives with custom theming
+- **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
+- **Testing**: Vitest with Testing Library
+- **E2E Testing**: Playwright
 
 ## Getting Started
 
@@ -44,31 +52,34 @@ A comprehensive Human Resources Management System built as a modern web applicat
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. Set up environment variables:
+3. **Environment Setup**
    
-   Copy `.env` and update the Supabase configuration:
+   Copy the `.env` file and update the Supabase configuration:
    ```bash
    cp .env .env.local
    ```
    
    Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
+   ```env
+   VITE_SUPABASE_PROJECT_ID="your-project-id"
+   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
+   VITE_SUPABASE_URL="https://your-project.supabase.co"
+   ```
 
-4. Start the development server:
+4. **Start the development server**
    ```bash
    npm run dev
    # or
@@ -81,16 +92,7 @@ A comprehensive Human Resources Management System built as a modern web applicat
 
 ```bash
 npm run build
-```
-
-### Run Tests
-
-```bash
-# Unit tests
-npm run test
-
-# E2E tests
-npx playwright test
+npm run preview
 ```
 
 ## Project Structure
@@ -99,35 +101,39 @@ npx playwright test
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   └── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
-├── pages/              # Page components
+│   └── layout/         # Layout components (AppLayout, Sidebar, TopBar)
+├── pages/              # Page components and routes
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations (Supabase)
 └── test/               # Test files
-
-supabase/
-├── migrations/         # Database schema migrations
-├── functions/          # Edge functions
-└── config.toml         # Supabase configuration
 ```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests once
+- `npm run test:watch` - Run tests in watch mode
 
 ## Authentication & Authorization
 
-The application uses Supabase for authentication with role-based access control:
+The application uses Supabase for authentication with role-based access control. User roles determine access to different sections of the application:
 
-- **CEO**: Full access to all features
-- **HR Manager**: Employee management, attendance, leave, policies
-- **Finance Manager**: Payroll, expenses, financial reports
-- **Team Lead**: Project management, evaluations
-- **Employee**: Basic dashboard, attendance, projects
+- **Admin**: Full access to all features
+- **Manager**: Access to team management and reporting
+- **Employee**: Limited access to personal data and basic features
 
 ## Contributing
 
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Ensure all tests pass before submitting PRs
-4. Update documentation as needed
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
