@@ -151,7 +151,53 @@ const EmployeeProfile = () => {
     }
   };
 
-  if (isLoading) {
+  const handleDeactivateReactivate = async () => {
+    if (!emp?.id) return;
+    const isInactive = emp.status === 'inactive';
+    setDeactivating(true);
+    try {
+      // Update employee status
+      const newStatus = isInactive ? 'active' : 'inactive';
+      const { error: updateError } = await supabase
+        .from('employees')
+        .update({ status: newStatus })
+        .eq('id', emp.id);
+      if (updateError) throw updateError;
+
+      // Ban/unban auth user
+      const { error: fnError } = await supabase.functions.invoke('deactivate-employee', {
+        body: { employee_id: emp.id, reactivate: isInactive },
+      });
+      if (fnError) throw fnError;
+
+      toast.success(`${emp.full_name} has been ${isInactive ? 'reactivated' : 'deactivated'}`);
+      queryClient.invalidateQueries({ queryKey: ['employee-profile', id] });
+    } catch (err: any) {
+      toast.error(err.message || `Failed to ${isInactive ? 'reactivate' : 'deactivate'} employee`);
+    } finally {
+      setDeactivating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!emp?.id) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke('delete-employee', {
+        body: { employee_id: emp.id },
+      });
+      if (error) throw error;
+      toast.success(`${emp.full_name} has been permanently deleted`);
+      navigate('/employees');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete employee');
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeleteConfirmName('');
+    }
+  };
+
     return (
       <div className="space-y-6">
         <div className="bx-skeleton h-8 w-32" />
