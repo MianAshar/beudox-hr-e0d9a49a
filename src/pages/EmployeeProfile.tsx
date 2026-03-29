@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +17,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Pencil, Send } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -93,6 +103,11 @@ const EmployeeProfile = () => {
   const role = authEmployee?.role_name;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const [resending, setResending] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   // Allow self-view for employee/team_lead
   const isSelfView =
@@ -133,6 +148,53 @@ const EmployeeProfile = () => {
       toast.error(err.message || 'Failed to resend invite');
     } finally {
       setResending(false);
+    }
+  };
+
+  const handleDeactivateReactivate = async () => {
+    if (!emp?.id) return;
+    const isInactive = emp.status === 'inactive';
+    setDeactivating(true);
+    try {
+      // Update employee status
+      const newStatus = isInactive ? 'active' : 'inactive';
+      const { error: updateError } = await supabase
+        .from('employees')
+        .update({ status: newStatus })
+        .eq('id', emp.id);
+      if (updateError) throw updateError;
+
+      // Ban/unban auth user
+      const { error: fnError } = await supabase.functions.invoke('deactivate-employee', {
+        body: { employee_id: emp.id, reactivate: isInactive },
+      });
+      if (fnError) throw fnError;
+
+      toast.success(`${emp.full_name} has been ${isInactive ? 'reactivated' : 'deactivated'}`);
+      queryClient.invalidateQueries({ queryKey: ['employee-profile', id] });
+    } catch (err: any) {
+      toast.error(err.message || `Failed to ${isInactive ? 'reactivate' : 'deactivate'} employee`);
+    } finally {
+      setDeactivating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!emp?.id) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke('delete-employee', {
+        body: { employee_id: emp.id },
+      });
+      if (error) throw error;
+      toast.success(`${emp.full_name} has been permanently deleted`);
+      navigate('/employees');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete employee');
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeleteConfirmName('');
     }
   };
 
@@ -349,6 +411,107 @@ const EmployeeProfile = () => {
         </div>
         <InfoField label="Role" value={formatRoleName(empRole)} />
       </SectionCard>
+
+      {/* Danger Zone — hr_manager / ceo only */}
+      {isManager && (
+        <div className="bg-card rounded-[14px] border border-destructive/20 p-6">
+          <h3
+            className="font-display font-semibold text-[15px] text-foreground mb-1"
+            style={{ fontFamily: 'var(--ff-display)' }}
+          >
+            Danger Zone
+          </h3>
+          <p className="text-muted-foreground text-[12px] mb-4" style={{ fontFamily: 'var(--ff-body)' }}>
+            These actions affect the employee's access and data.
+          </p>
+          <div className="flex items-center gap-3">
+            {/* Deactivate / Reactivate */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  disabled={deactivating}
+                >
+                  {emp.status === 'inactive' ? (
+                    <ShieldCheck className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                  ) : (
+                    <ShieldOff className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                  )}
+                  {emp.status === 'inactive' ? 'Reactivate' : 'Deactivate'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {emp.status === 'inactive' ? 'Reactivate' : 'Deactivate'} {emp.full_name}?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {emp.status === 'inactive'
+                      ? `${emp.full_name} will regain access to the portal and can log in again.`
+                      : `${emp.full_name} will lose access to the portal immediately. Their data will be retained and they can be reactivated later.`}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeactivateReactivate}>
+                    {emp.status === 'inactive' ? 'Reactivate' : 'Deactivate'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Delete */}
+            <Dialog open={deleteDialogOpen} onOpenChange={(open) => {
+              setDeleteDialogOpen(open);
+              if (!open) setDeleteConfirmName('');
+            }}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="gap-2"
+                  disabled={deleting}
+                >
+                  <Trash2 className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                  Delete
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Permanently delete {emp.full_name}?</DialogTitle>
+                  <DialogDescription>
+                    This will delete all their data including attendance, payroll records, and evaluations. This cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-2">
+                  <p className="text-[13px] text-foreground mb-2" style={{ fontFamily: 'var(--ff-body)' }}>
+                    Type <strong>{emp.full_name}</strong> to confirm:
+                  </p>
+                  <Input
+                    value={deleteConfirmName}
+                    onChange={(e) => setDeleteConfirmName(e.target.value)}
+                    placeholder={emp.full_name}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    disabled={deleteConfirmName !== emp.full_name || deleting}
+                    onClick={handleDelete}
+                  >
+                    {deleting ? 'Deleting…' : 'Delete permanently'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
