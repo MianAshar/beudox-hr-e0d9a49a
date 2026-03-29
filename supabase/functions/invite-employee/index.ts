@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
       data: { user },
       error: userError,
     } = await userClient.auth.getUser();
+    console.log('Calling user ID:', user?.id);
     if (userError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
