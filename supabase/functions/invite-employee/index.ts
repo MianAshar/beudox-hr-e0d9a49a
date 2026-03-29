@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
     // Parse and validate body
     const body = await req.json();
     const { email, employee_id } = body;
+    console.log('Request body:', { email, employee_id });
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {
       return new Response(
