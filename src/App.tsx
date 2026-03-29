@@ -22,7 +22,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading, passwordMode, clearPasswordMode, employee } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  // 1. Loading auth or employee data → show spinner, never flash content
+  if (loading || (session && !employee)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -35,13 +36,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <SetPassword mode={passwordMode} onComplete={clearPasswordMode} />;
   }
 
+  // 2. Not authenticated → login
   if (!session) return <Navigate to="/login" replace />;
 
-  // Role-based route guard — redirect unauthorized access to dashboard silently
-  if (employee && !canAccess(employee.role_name, location.pathname)) {
+  // 3. Authenticated but role not allowed → dashboard
+  if (!canAccess(employee?.role_name, location.pathname)) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // 4. Authenticated and allowed → render
   return <AppLayout>{children}</AppLayout>;
 };
 
