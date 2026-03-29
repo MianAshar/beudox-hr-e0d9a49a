@@ -61,7 +61,14 @@ const LoginV2 = () => {
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      // Check if user is deactivated
+      const isBannedUser = error.code === 'user_banned' || error.message.toLowerCase().includes('banned');
+
+      if (isBannedUser) {
+        setErrors({ general: 'Your account has been deactivated. Please contact your HR Manager or system administrator.' });
+        setLoading(false);
+        return;
+      }
+
       const { data: empData } = await supabase
         .from('employees')
         .select('status')
