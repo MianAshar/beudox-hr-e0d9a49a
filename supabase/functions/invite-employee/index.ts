@@ -96,6 +96,7 @@ Deno.serve(async (req) => {
         .from('employees')
         .update({ auth_user_id: linkData.user.id })
         .eq('id', employee_id);
+      console.log('Updated employee auth_user_id:', employee_id);
     }
 
     return new Response(
