@@ -1,51 +1,62 @@
 <!--
 generated_by: tessera
-source_sha: 1912bab0ad21101787bdfbc9b42a058207c7862c
-generated_at: 2026-03-29T23:20:01.840Z
+source_sha: e27de79f84391ef9d477229b9416249cc2eef19c
+generated_at: 2026-03-29T23:35:01.222Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources management application built with modern web technologies. This frontend application provides a complete HR dashboard for managing employees, attendance, payroll, and organizational operations.
+A comprehensive Human Resources management application built with modern web technologies. Beudox HR provides organizations with tools to manage employees, track attendance, handle payroll, and oversee various HR operations through a secure, role-based interface.
 
 ## Features
 
-### Core Functionality
-- **Employee Management**: Add, view, edit, and manage employee profiles
-- **Dashboard**: Overview of key HR metrics and activities
-- **Authentication**: Secure login with role-based access control
-- **Responsive Design**: Optimized for desktop and mobile devices
+### Core HR Management
+- **Employee Management**: Add, view, edit, and manage employee profiles with role-based access
+- **Attendance Tracking**: Monitor employee attendance and time management
+- **Leave Management**: Handle vacation requests and leave policies
+- **Public Holidays**: Manage company-wide holiday schedules
 
-### Planned Features (Based on Navigation)
-- Attendance tracking
-- Public holidays management
-- Leave management
-- Payroll processing
-- Financial reporting
-- Loan management
-- Office expenses tracking
-- Outsourcing management
-- Project management
-- Employee evaluations
-- HR policies
-- Notifications system
-- System settings
+### Finance & Payroll
+- **Payroll Processing**: Calculate and manage employee salaries
+- **Finance Sheet**: Track financial data and reports
+- **Loans Management**: Handle employee loan applications and repayments
+- **Office Expenses**: Track and categorize business expenses
+- **Outsourcing**: Manage external contractor relationships
+
+### Project & Performance
+- **Project Management**: Oversee company projects and assignments
+- **Employee Evaluations**: Conduct performance reviews and assessments
+- **HR Policies**: Maintain and distribute company policies
+
+### System Features
+- **Notifications**: Real-time alerts and announcements
+- **Settings**: Configure system preferences and user settings
+- **Role-Based Access Control**: Secure access with hierarchical permissions
 
 ## Technology Stack
 
-- **Frontend Framework**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui component library
-- **Routing**: React Router DOM
-- **State Management**: React Query for server state
-- **Authentication & Database**: Supabase
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Framework**: shadcn/ui (Radix UI primitives), Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Authentication, Storage)
+- **State Management**: React Query (TanStack Query)
+- **Routing**: React Router v6
+- **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
-- **Testing**: Vitest with Playwright for E2E
+- **Testing**: Vitest, Playwright
+
+## User Roles & Permissions
+
+- **CEO**: Full system access
+- **HR Manager**: Employee management, attendance, leave, policies, settings
+- **Finance Manager**: Payroll, finance, expenses, loans, outsourcing
+- **Team Lead**: Attendance, projects, evaluations
+- **Employee**: Dashboard, attendance, projects, notifications
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or bun package manager
 
@@ -65,56 +76,60 @@ A comprehensive Human Resources management application built with modern web tec
    ```
 
 3. Set up environment variables:
-   Copy `.env` and update the Supabase configuration with your project credentials.
+   
+   Copy `.env` and update the Supabase configuration if needed.
 
 4. Start the development server:
    ```bash
    npm run dev
-   # or
-   bun run dev
    ```
 
 5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Environment Configuration
+### Available Scripts
 
-The application requires the following environment variables (configured in `.env`):
-
-- `VITE_SUPABASE_URL`: Your Supabase project URL
-- `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
-- `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests with Vitest
+- `npm run test:watch` - Run tests in watch mode
 
 ## Project Structure
 
 ```
 src/
-├── components/
-│   ├── ui/           # shadcn/ui components
-│   ├── layout/       # App layout components (AppLayout, AppSidebar, TopBar)
-│   ├── BeudoxLogo.tsx
-│   └── NavLink.tsx
-├── pages/            # Route components
-├── hooks/            # Custom React hooks
-├── lib/              # Utilities and configurations
-├── integrations/     # External service integrations (Supabase)
-└── test/             # Test files
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   ├── layout/         # App layout components
+│   └── ...
+├── pages/              # Route components
+├── hooks/              # Custom React hooks
+├── lib/                # Utilities and configurations
+├── integrations/       # External service integrations
+│   └── supabase/       # Supabase client and types
+└── test/               # Test files
 ```
 
-## Available Scripts
+## Database Schema
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run unit tests
-- `npm run test:e2e` - Run end-to-end tests
-- `npm run lint` - Run ESLint
+The application uses Supabase with PostgreSQL. Key tables include:
+
+- **employees**: Employee profiles and information
+- **companies**: Company/organization data
+- **roles**: User roles and permissions
+- **employee_roles**: Role assignments for employees
+
+Row Level Security (RLS) policies ensure data access is restricted based on user roles and company membership.
 
 ## Contributing
 
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Ensure all tests pass before submitting PRs
-4. Update documentation as needed
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `npm run test`
+5. Submit a pull request
 
 ## License
 
