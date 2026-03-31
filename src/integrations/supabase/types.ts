@@ -252,6 +252,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          logo_url: string | null
           name: string
           owner_email: string
           plan: string
@@ -262,6 +263,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          logo_url?: string | null
           name: string
           owner_email: string
           plan?: string
@@ -272,6 +274,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          logo_url?: string | null
           name?: string
           owner_email?: string
           plan?: string
