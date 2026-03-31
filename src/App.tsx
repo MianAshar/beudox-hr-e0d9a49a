@@ -82,6 +82,7 @@ const App = () => (
             <Route path="/employees/new" element={<ProtectedRoute><EmployeeForm /></ProtectedRoute>} />
             <Route path="/employees/:id" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
             <Route path="/employees/:id/edit" element={<ProtectedRoute><EmployeeForm /></ProtectedRoute>} />
+            <Route path="/holidays" element={<ProtectedRoute><PublicHolidays /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
