@@ -13,6 +13,7 @@ import Employees from "./pages/Employees";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import EmployeeForm from "./pages/EmployeeForm";
 import Settings from "./pages/Settings";
+import PublicHolidays from "./pages/PublicHolidays";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -81,6 +82,7 @@ const App = () => (
             <Route path="/employees/new" element={<ProtectedRoute><EmployeeForm /></ProtectedRoute>} />
             <Route path="/employees/:id" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
             <Route path="/employees/:id/edit" element={<ProtectedRoute><EmployeeForm /></ProtectedRoute>} />
+            <Route path="/holidays" element={<ProtectedRoute><PublicHolidays /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
