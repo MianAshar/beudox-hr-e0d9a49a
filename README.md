@@ -1,51 +1,43 @@
 <!--
 generated_by: tessera
-source_sha: b539e0ef426dc79227432acc6263ba638f91abbe
-generated_at: 2026-03-31T22:18:34.119Z
+source_sha: 40b00ee682691bbcef30c51375cf535d551e0a81
+generated_at: 2026-03-31T22:19:40.175Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources management application built with modern web technologies. This system provides tools for managing employees, attendance, payroll, projects, evaluations, and more.
+A modern, role-based HR management web application built with React, TypeScript, and Supabase. This frontend application provides a comprehensive interface for managing employees, attendance, payroll, and other HR functions.
 
 ## Features
 
-### Core HR Functions
-- **Employee Management**: Add, edit, and view employee profiles with detailed information
-- **Attendance Tracking**: Monitor employee check-in/check-out times, overtime, and absences
-- **Leave Management**: Handle leave requests, balances, and approvals
-- **Payroll Processing**: Calculate salaries, bonuses, deductions, and generate payroll records
-- **Project Management**: Track projects, assignments, and client relationships
-- **Performance Evaluations**: Conduct daily and periodic employee evaluations
-- **Finance Management**: Handle loans, office expenses, and outsourcing records
-
-### User Roles & Access Control
-- **CEO**: Full access to all features
-- **HR Manager**: Employee management, attendance, leave, projects, evaluations, policies
-- **Finance Manager**: Payroll, finance, loans, expenses, outsourcing
-- **Team Lead**: Dashboard, attendance, projects, evaluations
-- **Employee**: Basic dashboard, attendance, projects, notifications
+- **Role-Based Access Control**: Supports multiple user roles (Employee, HR Manager, Finance Manager, Team Lead, CEO) with granular permissions
+- **Employee Management**: Add, view, edit, and manage employee profiles
+- **Dashboard**: Overview of key HR metrics and activities
+- **Authentication**: Secure login with Supabase Auth, including password reset and invite flows
+- **Responsive Design**: Built with Tailwind CSS and shadcn/ui components for a modern, mobile-friendly interface
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
+- **Frontend Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **UI Framework**: shadcn/ui (Radix UI components)
-- **Styling**: Tailwind CSS
 - **Routing**: React Router DOM
-- **State Management**: React Query for server state
-- **Backend**: Supabase (PostgreSQL database + Auth)
+- **State Management**: TanStack Query (React Query) for server state
+- **UI Components**: shadcn/ui (Radix UI primitives) with Tailwind CSS
+- **Backend**: Supabase (PostgreSQL database, Auth, Edge Functions)
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
-- **Testing**: Vitest + Testing Library
+- **Charts**: Recharts
+- **Testing**: Vitest with Testing Library
 - **E2E Testing**: Playwright
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
-- npm or bun
+- npm or bun package manager
+- Supabase account and project
 
 ### Installation
 
@@ -62,65 +54,76 @@ A comprehensive Human Resources management application built with modern web tec
    bun install
    ```
 
-3. Create environment file:
+3. Set up environment variables:
+   
+   Copy `.env` and update the Supabase configuration:
    ```bash
-   cp .env.example .env
+   cp .env .env.local
    ```
+   
+   Update the following variables in `.env.local`:
+   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
 
-4. Configure environment variables in `.env`:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_key
-   ```
-
-5. Start the development server:
+4. Start the development server:
    ```bash
    npm run dev
+   # or
+   bun run dev
    ```
 
-The application will be available at `http://localhost:8080`.
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-## Available Scripts
+### Building for Production
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
+```bash
+npm run build
+```
+
+### Running Tests
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npx playwright test
+```
 
 ## Project Structure
 
 ```
 src/
-├── components/          # Reusable UI components
-│   ├── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
-│   └── ui/             # shadcn/ui components
-├── pages/              # Page components
-├── hooks/              # Custom React hooks
-├── lib/                # Utilities and configurations
-├── integrations/       # External service integrations
-│   └── supabase/       # Supabase client and types
-└── test/               # Test files
+├── components/
+│   ├── layout/          # Layout components (AppLayout, AppSidebar, TopBar)
+│   ├── ui/              # Reusable UI components (shadcn/ui)
+│   └── ...               # Feature-specific components
+├── hooks/               # Custom React hooks (useAuth, useToast)
+├── lib/                 # Utilities and configurations
+├── pages/               # Route components
+├── integrations/        # External service integrations (Supabase)
+└── test/                # Test utilities
 ```
 
-## Database Schema
+## Available Routes
 
-The application uses a PostgreSQL database via Supabase with the following main entities:
+- `/` - Root (redirects to dashboard or login)
+- `/login` - User login
+- `/forgot-password` - Password reset request
+- `/dashboard` - Main dashboard
+- `/employees` - Employee list
+- `/employees/new` - Add new employee
+- `/employees/:id` - Employee profile
+- `/employees/:id/edit` - Edit employee
 
-- **companies**: Multi-tenant company information
-- **employees**: Employee profiles and details
-- **attendance_records**: Daily attendance tracking
-- **payroll_records**: Monthly payroll calculations
-- **projects**: Project management and assignments
-- **leave_requests**: Leave management system
-- **evaluations**: Performance evaluation system
-- **notifications**: In-app notification system
+## User Roles and Permissions
 
-## Authentication
-
-The application uses Supabase Auth for user authentication with role-based access control. Users can log in via email/password or through invitation links.
+- **CEO**: Full access to all features
+- **HR Manager**: Employee management, attendance, leave, projects, evaluations, HR policies
+- **Finance Manager**: Payroll, finance, loans, expenses, outsourcing
+- **Team Lead**: Attendance, projects, evaluations
+- **Employee**: Basic dashboard, attendance, projects
 
 ## Contributing
 

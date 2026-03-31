@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: b539e0ef426dc79227432acc6263ba638f91abbe
-generated_at: 2026-03-31T22:18:34.119Z
+source_sha: 40b00ee682691bbcef30c51375cf535d551e0a81
+generated_at: 2026-03-31T22:19:40.175Z
 action: create
 -->
 
@@ -9,132 +9,133 @@ action: create
 
 ## Application Structure
 
-### Routing Architecture
+Beudox HR is a React-based single-page application with the following high-level architecture:
 
-The application uses React Router for client-side routing with the following structure:
+### Frontend Layers
+- **Presentation Layer**: React components with shadcn/ui
+- **Routing Layer**: React Router DOM with protected routes
+- **State Management**: TanStack Query + React Context
+- **Data Layer**: Supabase client with TypeScript types
+- **Styling Layer**: Tailwind CSS with custom theme
 
-#### Public Routes
-- `/` - Root redirect (authenticated → dashboard, unauthenticated → login)
-- `/login` - Authentication page
-- `/forgot-password` - Password recovery
+## Routing Architecture
 
-#### Protected Routes (Role-Based Access)
-All protected routes require authentication and are filtered by user role permissions:
+### Route Structure
+```
+/
+├── / (RootRedirect)
+├── /login
+├── /forgot-password
+├── /dashboard (Protected)
+├── /employees (Protected)
+│   ├── /employees/new (Protected)
+│   ├── /employees/:id (Protected)
+│   └── /employees/:id/edit (Protected)
+└── /* (NotFound)
+```
 
-- `/dashboard` - Main dashboard (all roles)
-- `/employees` - Employee list (HR Manager, Finance Manager, CEO)
-- `/employees/new` - Add employee (HR Manager, CEO)
-- `/employees/:id` - Employee profile (HR Manager, Finance Manager, CEO)
-- `/employees/:id/edit` - Edit employee (HR Manager, CEO)
-- `/attendance` - Attendance tracking (HR Manager, Finance Manager, Team Lead, Employee, CEO)
-- `/holidays` - Public holidays (HR Manager, CEO)
-- `/leave` - Leave management (HR Manager, CEO)
-- `/payroll` - Payroll processing (Finance Manager, CEO)
-- `/finance` - Financial reports (Finance Manager, CEO)
-- `/loans` - Loan management (Finance Manager, CEO)
-- `/expenses` - Office expenses (Finance Manager, CEO)
-- `/outsourcing` - Outsourcing records (Finance Manager, CEO)
-- `/projects` - Project management (HR Manager, Team Lead, Employee, CEO)
-- `/evaluations` - Performance evaluations (HR Manager, Team Lead, CEO)
-- `/hr-policies` - HR documents (HR Manager, CEO)
-- `/notifications` - Notifications (all roles)
-- `/settings` - Settings (HR Manager, CEO)
+### Route Protection
+- All business routes are wrapped in `ProtectedRoute` component
+- Authentication check redirects to `/login`
+- Role-based access control redirects unauthorized users to `/dashboard`
+- Password reset flow intercepts authenticated users
 
-### Component Architecture
+## Component Architecture
 
-#### Layout Components
-- **AppLayout**: Main application wrapper providing consistent layout structure
-- **AppSidebar**: Collapsible navigation sidebar with role-filtered menu sections
-- **TopBar**: Header component displaying current page title
+### Layout Components
+- **AppLayout**: Main application wrapper with sidebar and content area
+- **AppSidebar**: Collapsible navigation with role-filtered menu items
+- **TopBar**: Page title display and potential future actions
 
-#### Core Components
-- **BeudoxLogo**: Brand logo component with variant support (default/sidebar)
-- **NavLink**: Custom navigation link with active state styling
+### Page Components
+- **Login**: Authentication form
+- **Dashboard**: Main overview page
+- **Employees**: Employee list with search/filter
+- **EmployeeProfile**: Individual employee details
+- **EmployeeForm**: Add/edit employee form
 
-#### UI Component Library
-The application uses shadcn/ui, a comprehensive component library built on Radix UI primitives, including:
-- Form controls (Button, Input, Select, etc.)
-- Layout components (Card, Sheet, Dialog, etc.)
-- Data display (Table, Chart, etc.)
-- Feedback components (Toast, Alert, etc.)
-- Navigation (Tabs, Accordion, etc.)
+### UI Components
+- 40+ reusable components from shadcn/ui library
+- Custom components like `BeudoxLogo` and `NavLink`
+- Consistent theming and accessibility features
 
-### State Management
+## State Management
 
-#### Authentication State
-- Managed via React Context (`useAuth` hook)
-- Persisted session with Supabase Auth
-- Automatic token refresh
-- Role-based permissions
+### Authentication State
+- Managed via `useAuth` hook and `AuthProvider` context
+- Includes session, user profile, and role information
+- Handles loading states and password reset flows
 
-#### Server State
-- React Query for API data fetching and caching
+### Server State
+- TanStack Query for API data fetching and caching
 - Optimistic updates for better UX
-- Background refetching for data freshness
 - Error handling and retry logic
 
-#### Form State
-- React Hook Form for complex form management
-- Zod schemas for validation
-- Integration with shadcn/ui form components
+### UI State
+- Local component state for forms and interactions
+- Toast notifications for user feedback
 
-### Database Architecture
+## Data Architecture
 
-#### Multi-Tenant Design
-- All business data scoped to `company_id`
-- Company-specific settings and configurations
-- Feature flags per company
+### Supabase Integration
+- Client configured in `src/integrations/supabase/client.ts`
+- Type-safe database operations
+- Real-time subscriptions where needed
+- Edge functions for complex business logic
 
-#### Core Entities
-- **companies**: Tenant management
-- **employees**: User profiles and employment data
-- **attendance_records**: Time tracking
-- **payroll_records**: Salary calculations
-- **projects**: Project management
-- **leave_requests**: Leave workflow
-- **evaluations**: Performance management
+### API Patterns
+- RESTful endpoints via Supabase
+- GraphQL-like queries with RLS policies
+- File uploads for profile images
 
-#### Key Relationships
-- Employees central to most operations
-- Projects link clients, employees, and financials
-- Audit trails with user tracking
-- Approval workflows for sensitive operations
+## Security Architecture
 
-### Security Architecture
+### Authentication
+- JWT-based auth via Supabase
+- Secure token storage and refresh
+- Password reset and invite flows
 
-#### Authentication
-- Supabase Auth with JWT tokens
-- Email/password and magic link authentication
-- Session persistence and automatic refresh
+### Authorization
+- Role-based access control at route level
+- Database-level row security policies
+- API endpoint protection
 
-#### Authorization
-- Role-based access control (RBAC)
-- Centralized permission checking (`canAccess` function)
-- Route-level protection
-- Database row-level security (RLS)
-
-#### Data Protection
+### Data Protection
 - Input validation with Zod schemas
-- XSS prevention via React
-- CSRF protection via Supabase
-- Secure environment variable handling
+- SQL injection prevention via Supabase
+- XSS protection with React's built-in sanitization
 
-### Performance Considerations
+## Performance Considerations
 
-#### Build Optimization
-- Vite with SWC for fast builds
-- Code splitting by routes
-- Tree shaking and minification
-- Asset optimization
+### Build Optimization
+- Vite for fast development and tree-shaking
+- Code splitting at route level
+- Optimized bundle sizes
 
-#### Runtime Performance
-- React Query caching strategies
-- Lazy loading for components
-- Optimized re-renders
-- Bundle size monitoring
+### Runtime Performance
+- React.memo for expensive components
+- TanStack Query caching
+- Lazy loading for heavy components
 
-#### Database Performance
-- Proper indexing on foreign keys
-- Efficient queries with Supabase
+### Database Performance
+- Indexed queries via Supabase
 - Pagination for large datasets
-- Background processing for heavy operations
+- Efficient data fetching patterns
+
+## Development Architecture
+
+### Code Organization
+- Feature-based folder structure
+- Shared utilities in `lib/` directory
+- Type definitions alongside components
+
+### Testing Strategy
+- Unit tests with Vitest
+- Integration tests for components
+- E2E tests with Playwright
+
+### Tooling
+- TypeScript for type safety
+- ESLint for code quality
+- Prettier for formatting
+- Husky for git hooks
