@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import PublicHolidays from "./pages/PublicHolidays";
 import Projects from "./pages/Projects";
 import ProjectForm from "./pages/ProjectForm";
+import ProjectDetail from "./pages/ProjectDetail";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import AppLayout from "./components/layout/AppLayout";
