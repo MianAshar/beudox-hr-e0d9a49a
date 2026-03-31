@@ -33,7 +33,7 @@ const navSections = [
       { title: 'Finance Sheet', icon: BarChart2, path: '/finance' },
       { title: 'Loans', icon: CreditCard, path: '/loans' },
       { title: 'Office Expenses', icon: Receipt, path: '/expenses' },
-      { title: 'Outsourcing', icon: Briefcase, path: '/outsourcing' },
+      { title: 'Outsourcing', icon: Building2, path: '/outsourcing' },
     ],
   },
   {
