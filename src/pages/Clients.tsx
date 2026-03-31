@@ -5,14 +5,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Search, Pencil, XCircle, Building2 } from 'lucide-react';
+import { Plus, Search, Pencil, XCircle, Building2, RotateCcw } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -47,18 +49,23 @@ const Clients = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showInactive, setShowInactive] = useState(false);
+  const [deactivateTarget, setDeactivateTarget] = useState<Client | null>(null);
 
   const companyId = employee?.company_id;
 
   const { data: clients, isLoading } = useQuery({
-    queryKey: ['clients', companyId],
+    queryKey: ['clients', companyId, showInactive],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('clients')
         .select('*')
         .eq('company_id', companyId!)
-        .eq('is_active', true)
         .order('name');
+      if (!showInactive) {
+        query = query.eq('is_active', true);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data as Client[];
     },
@@ -101,6 +108,18 @@ const Clients = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['clients'] });
       toast({ title: 'Client deactivated' });
+      setDeactivateTarget(null);
+    },
+  });
+
+  const reactivateMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('clients').update({ is_active: true }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] });
+      toast({ title: 'Client reactivated' });
     },
   });
 
@@ -143,7 +162,7 @@ const Clients = () => {
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Clients</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {clients ? `${clients.length} active client${clients.length !== 1 ? 's' : ''}` : 'Loading…'}
+            {clients ? `${clients.length} client${clients.length !== 1 ? 's' : ''}` : 'Loading…'}
           </p>
         </div>
         <Button onClick={() => { setForm(emptyForm); setEditingId(null); setModalOpen(true); }}>
@@ -151,15 +170,21 @@ const Clients = () => {
         </Button>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search clients…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      {/* Search + Toggle */}
+      <div className="flex items-center gap-4">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search clients…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch id="show-inactive" checked={showInactive} onCheckedChange={setShowInactive} />
+          <Label htmlFor="show-inactive" className="text-sm text-muted-foreground cursor-pointer">Show inactive</Label>
+        </div>
       </div>
 
       {/* Table */}
@@ -197,6 +222,7 @@ const Clients = () => {
                     >
                       {c.name}
                     </button>
+                    {!c.is_active && <Badge variant="outline" className="ml-2 text-xs">Inactive</Badge>}
                   </TableCell>
                   <TableCell>{c.contact_name || '—'}</TableCell>
                   <TableCell>{c.contact_email || '—'}</TableCell>
@@ -205,9 +231,15 @@ const Clients = () => {
                     <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => deactivateMutation.mutate(c.id)}>
-                      <XCircle className="h-4 w-4 text-destructive" />
-                    </Button>
+                    {c.is_active ? (
+                      <Button variant="ghost" size="icon" onClick={() => setDeactivateTarget(c)}>
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" size="icon" onClick={() => reactivateMutation.mutate(c.id)}>
+                        <RotateCcw className="h-4 w-4 text-primary" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -215,6 +247,24 @@ const Clients = () => {
           </Table>
         </div>
       )}
+
+      {/* Deactivate Confirmation */}
+      <Dialog open={!!deactivateTarget} onOpenChange={v => { if (!v) setDeactivateTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deactivate Client</DialogTitle>
+            <DialogDescription>
+              Deactivate "{deactivateTarget?.name}"? Their projects will remain but no new projects can be added to this client.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeactivateTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deactivateMutation.mutate(deactivateTarget!.id)} disabled={deactivateMutation.isPending}>
+              {deactivateMutation.isPending ? 'Deactivating…' : 'Deactivate'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add/Edit Modal */}
       <Dialog open={modalOpen} onOpenChange={v => { if (!v) closeModal(); }}>

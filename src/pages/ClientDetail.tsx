@@ -1,12 +1,16 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
+import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2 } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -26,16 +30,17 @@ const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { employee } = useAuth();
+  const qc = useQueryClient();
   const companyId = employee?.company_id;
+  const isCeo = employee?.role_name === 'ceo';
+
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ['client', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', id!)
-        .single();
+      const { data, error } = await supabase.from('clients').select('*').eq('id', id!).single();
       if (error) throw error;
       return data;
     },
@@ -57,6 +62,37 @@ const ClientDetail = () => {
     enabled: !!id && !!companyId,
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      // 1. Get all project IDs for this client
+      const { data: clientProjects } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('client_id', id!)
+        .eq('company_id', companyId!);
+      const projectIds = clientProjects?.map(p => p.id) || [];
+
+      // 2. Deactivate projects
+      if (projectIds.length > 0) {
+        await supabase.from('projects').update({ is_active: false }).in('id', projectIds);
+        // 3. Delete assignments
+        await supabase.from('project_assignments').delete().in('project_id', projectIds);
+        // 4. Delete projects
+        await supabase.from('projects').delete().in('id', projectIds);
+      }
+
+      // 5. Delete client
+      const { error } = await supabase.from('clients').delete().eq('id', id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] });
+      toast({ title: 'Client deleted permanently' });
+      navigate('/clients');
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+
   if (clientLoading) {
     return (
       <div className="p-6 space-y-4">
@@ -68,11 +104,7 @@ const ClientDetail = () => {
   }
 
   if (!client) {
-    return (
-      <div className="p-6">
-        <p className="text-muted-foreground">Client not found.</p>
-      </div>
-    );
+    return <div className="p-6"><p className="text-muted-foreground">Client not found.</p></div>;
   }
 
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -80,14 +112,21 @@ const ClientDetail = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Back + Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/clients')}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">{client.name}</h1>
-          <p className="text-sm text-muted-foreground">Client Details</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/clients')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">{client.name}</h1>
+            <p className="text-sm text-muted-foreground">Client Details</p>
+          </div>
         </div>
+        {isCeo && (
+          <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+            <Trash2 className="h-4 w-4 mr-2" /> Delete Client
+          </Button>
+        )}
       </div>
 
       {/* Client Info Card */}
@@ -131,9 +170,11 @@ const ClientDetail = () => {
       {/* Projects Section */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Projects</h2>
-        <Button onClick={() => navigate(`/projects/new?clientId=${id}`)}>
-          <Plus className="h-4 w-4 mr-2" /> Add Project
-        </Button>
+        {client.is_active && (
+          <Button onClick={() => navigate(`/projects/new?clientId=${id}`)}>
+            <Plus className="h-4 w-4 mr-2" /> Add Project
+          </Button>
+        )}
       </div>
 
       {projectsLoading ? (
@@ -177,6 +218,33 @@ const ClientDetail = () => {
           </Table>
         </div>
       )}
+
+      {/* Delete Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={v => { if (!v) { setDeleteOpen(false); setDeleteConfirmText(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Client Permanently</DialogTitle>
+            <DialogDescription>
+              This will permanently delete "{client.name}", all their projects, and all project assignments. This action cannot be undone. Type the client name <strong className="text-foreground">{client.name}</strong> to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={deleteConfirmText}
+            onChange={e => setDeleteConfirmText(e.target.value)}
+            placeholder={`Type "${client.name}" to confirm`}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeleteOpen(false); setDeleteConfirmText(''); }}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteMutation.mutate()}
+              disabled={deleteConfirmText !== client.name || deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting…' : 'Delete Permanently'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
