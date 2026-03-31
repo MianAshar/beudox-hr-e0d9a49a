@@ -1,38 +1,51 @@
 <!--
 generated_by: tessera
-source_sha: 9a9598c271fbdd5799e93c44d78e3b84c67feb16
-generated_at: 2026-03-29T23:38:44.978Z
+source_sha: b539e0ef426dc79227432acc6263ba638f91abbe
+generated_at: 2026-03-31T22:18:34.119Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Management System
 
-Beudox HR is a comprehensive Human Resources management application built for modern businesses. It provides a centralized platform for managing employee data, attendance, payroll, leave management, and other HR functions.
+A comprehensive Human Resources management application built with modern web technologies. This system provides tools for managing employees, attendance, payroll, projects, evaluations, and more.
 
 ## Features
 
-- **Employee Management**: Add, edit, and view employee profiles
-- **Dashboard**: Overview of key HR metrics and activities
-- **Role-Based Access Control**: Secure access based on user roles
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
+### Core HR Functions
+- **Employee Management**: Add, edit, and view employee profiles with detailed information
+- **Attendance Tracking**: Monitor employee check-in/check-out times, overtime, and absences
+- **Leave Management**: Handle leave requests, balances, and approvals
+- **Payroll Processing**: Calculate salaries, bonuses, deductions, and generate payroll records
+- **Project Management**: Track projects, assignments, and client relationships
+- **Performance Evaluations**: Conduct daily and periodic employee evaluations
+- **Finance Management**: Handle loans, office expenses, and outsourcing records
+
+### User Roles & Access Control
+- **CEO**: Full access to all features
+- **HR Manager**: Employee management, attendance, leave, projects, evaluations, policies
+- **Finance Manager**: Payroll, finance, loans, expenses, outsourcing
+- **Team Lead**: Dashboard, attendance, projects, evaluations
+- **Employee**: Basic dashboard, attendance, projects, notifications
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui components
+- **UI Framework**: shadcn/ui (Radix UI components)
+- **Styling**: Tailwind CSS
 - **Routing**: React Router DOM
 - **State Management**: React Query for server state
-- **Authentication & Database**: Supabase
+- **Backend**: Supabase (PostgreSQL database + Auth)
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
+- **Testing**: Vitest + Testing Library
+- **E2E Testing**: Playwright
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js (version 18 or higher)
-- npm or yarn or bun
+- Node.js 18+
+- npm or bun
 
 ### Installation
 
@@ -46,51 +59,75 @@ Beudox HR is a comprehensive Human Resources management application built for mo
    ```bash
    npm install
    # or
-   yarn install
-   # or
    bun install
    ```
 
-3. Set up environment variables:
-   Copy `.env` and update the Supabase configuration with your project details.
+3. Create environment file:
+   ```bash
+   cp .env.example .env
+   ```
 
-4. Start the development server:
+4. Configure environment variables in `.env`:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_key
+   ```
+
+5. Start the development server:
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
+The application will be available at `http://localhost:8080`.
 
-### Available Scripts
+## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run build:dev` - Build for development
-- `npm run lint` - Run ESLint
 - `npm run preview` - Preview production build
-- `npm run test` - Run tests
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests once
 - `npm run test:watch` - Run tests in watch mode
 
 ## Project Structure
 
 ```
 src/
-├── components/
-│   ├── layout/          # Layout components (AppLayout, AppSidebar, TopBar)
-│   └── ui/              # Reusable UI components (shadcn/ui)
-├── hooks/               # Custom React hooks
-├── lib/                 # Utility functions and configurations
-├── pages/               # Page components
-└── integrations/        # External service integrations (Supabase)
+├── components/          # Reusable UI components
+│   ├── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
+│   └── ui/             # shadcn/ui components
+├── pages/              # Page components
+├── hooks/              # Custom React hooks
+├── lib/                # Utilities and configurations
+├── integrations/       # External service integrations
+│   └── supabase/       # Supabase client and types
+└── test/               # Test files
 ```
+
+## Database Schema
+
+The application uses a PostgreSQL database via Supabase with the following main entities:
+
+- **companies**: Multi-tenant company information
+- **employees**: Employee profiles and details
+- **attendance_records**: Daily attendance tracking
+- **payroll_records**: Monthly payroll calculations
+- **projects**: Project management and assignments
+- **leave_requests**: Leave management system
+- **evaluations**: Performance evaluation system
+- **notifications**: In-app notification system
+
+## Authentication
+
+The application uses Supabase Auth for user authentication with role-based access control. Users can log in via email/password or through invitation links.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+1. Follow the existing code style and conventions
+2. Write tests for new features
+3. Ensure all tests pass before submitting PRs
+4. Update documentation as needed
 
 ## License
 

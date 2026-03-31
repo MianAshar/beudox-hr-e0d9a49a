@@ -1,93 +1,140 @@
 <!--
 generated_by: tessera
-source_sha: 9a9598c271fbdd5799e93c44d78e3b84c67feb16
-generated_at: 2026-03-29T23:38:44.978Z
+source_sha: b539e0ef426dc79227432acc6263ba638f91abbe
+generated_at: 2026-03-31T22:18:34.119Z
 action: create
 -->
 
 # Architecture Documentation
 
-## Routing Structure
+## Application Structure
 
-The application uses React Router DOM for client-side routing with the following structure:
+### Routing Architecture
 
-### Public Routes
-- `/` - Root redirect (to dashboard if authenticated, login if not)
-- `/login` - User authentication
+The application uses React Router for client-side routing with the following structure:
+
+#### Public Routes
+- `/` - Root redirect (authenticated → dashboard, unauthenticated → login)
+- `/login` - Authentication page
 - `/forgot-password` - Password recovery
 
-### Protected Routes (Require Authentication)
-- `/dashboard` - Main dashboard overview
-- `/employees` - Employee list and management
-- `/employees/new` - Add new employee form
-- `/employees/:id` - View employee profile
-- `/employees/:id/edit` - Edit employee form
+#### Protected Routes (Role-Based Access)
+All protected routes require authentication and are filtered by user role permissions:
 
-### Future Routes (Based on Sidebar Navigation)
-The sidebar includes navigation items for features not yet implemented:
-- `/attendance` - Attendance tracking
-- `/holidays` - Public holidays management
-- `/leave` - Leave management
-- `/payroll` - Payroll processing
-- `/finance` - Financial reports
-- `/loans` - Employee loans
-- `/expenses` - Office expenses
-- `/outsourcing` - Outsourcing management
-- `/projects` - Project management
-- `/evaluations` - Employee evaluations
-- `/hr-policies` - HR policy documents
-- `/notifications` - System notifications
-- `/settings` - Application settings
+- `/dashboard` - Main dashboard (all roles)
+- `/employees` - Employee list (HR Manager, Finance Manager, CEO)
+- `/employees/new` - Add employee (HR Manager, CEO)
+- `/employees/:id` - Employee profile (HR Manager, Finance Manager, CEO)
+- `/employees/:id/edit` - Edit employee (HR Manager, CEO)
+- `/attendance` - Attendance tracking (HR Manager, Finance Manager, Team Lead, Employee, CEO)
+- `/holidays` - Public holidays (HR Manager, CEO)
+- `/leave` - Leave management (HR Manager, CEO)
+- `/payroll` - Payroll processing (Finance Manager, CEO)
+- `/finance` - Financial reports (Finance Manager, CEO)
+- `/loans` - Loan management (Finance Manager, CEO)
+- `/expenses` - Office expenses (Finance Manager, CEO)
+- `/outsourcing` - Outsourcing records (Finance Manager, CEO)
+- `/projects` - Project management (HR Manager, Team Lead, Employee, CEO)
+- `/evaluations` - Performance evaluations (HR Manager, Team Lead, CEO)
+- `/hr-policies` - HR documents (HR Manager, CEO)
+- `/notifications` - Notifications (all roles)
+- `/settings` - Settings (HR Manager, CEO)
 
-## Core Components
+### Component Architecture
 
-### Layout Components
-- **AppLayout**: Main application layout wrapper that includes sidebar and topbar
-- **AppSidebar**: Collapsible navigation sidebar with role-based menu visibility
+#### Layout Components
+- **AppLayout**: Main application wrapper providing consistent layout structure
+- **AppSidebar**: Collapsible navigation sidebar with role-filtered menu sections
 - **TopBar**: Header component displaying current page title
 
-### UI Component Library
-The application uses shadcn/ui components built on Radix UI primitives:
-- Form components (Input, Select, Checkbox, etc.)
-- Feedback components (Toast, Alert, Dialog)
-- Layout components (Card, Tabs, Accordion)
-- Navigation components (Navigation Menu, Breadcrumb)
-- Data display (Table, Chart, Progress)
+#### Core Components
+- **BeudoxLogo**: Brand logo component with variant support (default/sidebar)
+- **NavLink**: Custom navigation link with active state styling
 
-### Custom Components
-- **BeudoxLogo**: Logo component with variant support (default/sidebar) and size options
-- **NavLink**: Enhanced React Router NavLink with active state styling
-
-## Authentication Flow
-
-1. **Login Process**: Users authenticate via Supabase Auth
-2. **Password Setup**: New users or password resets go through setup flow
-3. **Role Assignment**: Employee data includes role information for access control
-4. **Protected Routes**: All business routes check authentication and role permissions
-5. **Auto Redirect**: Unauthorized access redirects to appropriate pages
-
-## Data Flow
+#### UI Component Library
+The application uses shadcn/ui, a comprehensive component library built on Radix UI primitives, including:
+- Form controls (Button, Input, Select, etc.)
+- Layout components (Card, Sheet, Dialog, etc.)
+- Data display (Table, Chart, etc.)
+- Feedback components (Toast, Alert, etc.)
+- Navigation (Tabs, Accordion, etc.)
 
 ### State Management
-- **Authentication State**: Managed via AuthProvider context
-- **Server State**: Handled by React Query for caching and synchronization
-- **UI State**: Local component state for forms and interactions
 
-### API Integration
-- **Supabase Client**: Centralized client for all Supabase operations
-- **React Query**: Manages data fetching, caching, and mutations
-- **Error Handling**: Proper error states and user feedback
+#### Authentication State
+- Managed via React Context (`useAuth` hook)
+- Persisted session with Supabase Auth
+- Automatic token refresh
+- Role-based permissions
 
-## Role-Based Access Control
+#### Server State
+- React Query for API data fetching and caching
+- Optimistic updates for better UX
+- Background refetching for data freshness
+- Error handling and retry logic
 
-The application implements role-based permissions:
-- Menu items in the sidebar are conditionally rendered based on user role
-- Route access is protected at the component level
-- Unauthorized users are redirected to the dashboard
+#### Form State
+- React Hook Form for complex form management
+- Zod schemas for validation
+- Integration with shadcn/ui form components
 
-## Responsive Design
+### Database Architecture
 
-- **Mobile-First**: Tailwind CSS responsive utilities
-- **Collapsible Sidebar**: Adapts to different screen sizes
-- **Flexible Layout**: Main content area adjusts based on sidebar state
-- **Touch-Friendly**: Appropriate sizing for mobile interactions
+#### Multi-Tenant Design
+- All business data scoped to `company_id`
+- Company-specific settings and configurations
+- Feature flags per company
+
+#### Core Entities
+- **companies**: Tenant management
+- **employees**: User profiles and employment data
+- **attendance_records**: Time tracking
+- **payroll_records**: Salary calculations
+- **projects**: Project management
+- **leave_requests**: Leave workflow
+- **evaluations**: Performance management
+
+#### Key Relationships
+- Employees central to most operations
+- Projects link clients, employees, and financials
+- Audit trails with user tracking
+- Approval workflows for sensitive operations
+
+### Security Architecture
+
+#### Authentication
+- Supabase Auth with JWT tokens
+- Email/password and magic link authentication
+- Session persistence and automatic refresh
+
+#### Authorization
+- Role-based access control (RBAC)
+- Centralized permission checking (`canAccess` function)
+- Route-level protection
+- Database row-level security (RLS)
+
+#### Data Protection
+- Input validation with Zod schemas
+- XSS prevention via React
+- CSRF protection via Supabase
+- Secure environment variable handling
+
+### Performance Considerations
+
+#### Build Optimization
+- Vite with SWC for fast builds
+- Code splitting by routes
+- Tree shaking and minification
+- Asset optimization
+
+#### Runtime Performance
+- React Query caching strategies
+- Lazy loading for components
+- Optimized re-renders
+- Bundle size monitoring
+
+#### Database Performance
+- Proper indexing on foreign keys
+- Efficient queries with Supabase
+- Pagination for large datasets
+- Background processing for heavy operations
