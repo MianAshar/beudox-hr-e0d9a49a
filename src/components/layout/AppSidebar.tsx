@@ -5,9 +5,9 @@ import { canAccess } from '@/lib/role-access';
 import BeudoxLogo from '@/components/BeudoxLogo';
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
-  DollarSign, BarChart2, CreditCard, Receipt, Briefcase,
+  DollarSign, BarChart2, CreditCard, Receipt, Building2,
   FolderKanban, ClipboardCheck, FileText, Settings, Bell,
-  LogOut, ChevronLeft, ChevronRight,
+  LogOut, ChevronLeft, ChevronRight, Briefcase,
 } from 'lucide-react';
 
 const navSections = [
