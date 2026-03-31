@@ -1,41 +1,57 @@
 <!--
 generated_by: tessera
-source_sha: 295c28ea6912fcf6433508a91523a7a71029d19b
-generated_at: 2026-03-31T22:48:02.657Z
+source_sha: 31af184409d257b5e5f8f357cba10d70c2c9aea4
+generated_at: 2026-03-31T22:53:44.573Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources management application built for companies to manage their workforce efficiently. This frontend application provides a modern, role-based interface for handling employee data, attendance, payroll, and organizational workflows.
+A comprehensive Human Resources management application built with modern web technologies. This system provides organizations with tools to manage employees, track attendance, handle leave requests, process payroll, and maintain HR policies.
 
 ## Features
 
+### People Management
 - **Employee Management**: Add, view, edit, and manage employee profiles
-- **Role-Based Access Control**: Different permissions based on user roles
-- **Dashboard**: Overview of key HR metrics and activities
-- **Public Holidays Management**: Configure and manage company holidays
-- **Settings**: System configuration and preferences
-- **Authentication**: Secure login with password recovery and invite system
+- **Attendance Tracking**: Monitor employee attendance and time records
+- **Leave Management**: Handle vacation requests, sick leave, and other time off
+- **Public Holidays**: Manage company-wide holiday schedules
+
+### Finance & Payroll
+- **Payroll Processing**: Calculate and manage employee salaries
+- **Finance Sheet**: Track financial data and reports
+- **Loan Management**: Handle employee loan requests and repayments
+- **Office Expenses**: Track and categorize business expenses
+- **Outsourcing**: Manage external contractor relationships
+
+### Work Management
+- **Project Management**: Track project progress and assignments
+- **Employee Evaluations**: Conduct performance reviews
+- **HR Policies**: Maintain and distribute company policies
+
+### System Features
+- **Notifications**: System-wide messaging and alerts
+- **Settings**: Configure application preferences
+- **Role-based Access Control**: Secure access based on user roles
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui components
+- **UI Framework**: shadcn/ui (Radix UI components)
+- **Styling**: Tailwind CSS
 - **Routing**: React Router DOM
-- **State Management**: TanStack Query for server state
-- **Backend**: Supabase (authentication, database, edge functions)
+- **State Management**: TanStack Query (React Query)
+- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
-- **Testing**: Vitest with React Testing Library
-- **E2E Testing**: Playwright
+- **Testing**: Vitest with Playwright for E2E
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (version 18 or higher)
+- Node.js 18+
 - npm or bun package manager
 
 ### Installation
@@ -54,63 +70,72 @@ A comprehensive Human Resources management application built for companies to ma
    ```
 
 3. Set up environment variables:
-   Copy `.env` and configure your Supabase credentials:
-   ```bash
-   cp .env .env.local
-   ```
    
-   Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+   Copy `.env` and update the Supabase configuration with your project credentials:
+   ```env
+   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+   VITE_SUPABASE_URL=your_supabase_url
+   ```
 
 4. Start the development server:
    ```bash
    npm run dev
+   # or
+   bun run dev
    ```
 
 5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Available Scripts
+### Build for Production
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
+```bash
+npm run build
+npm run preview
+```
+
+### Testing
+
+```bash
+# Run unit tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run E2E tests
+npx playwright test
+```
 
 ## Project Structure
 
 ```
 src/
-├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   └── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
-├── pages/              # Page components
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
-└── test/               # Test files
+├── components/
+│   ├── layout/          # Layout components (AppLayout, AppSidebar, TopBar)
+│   ├── ui/              # Reusable UI components (shadcn/ui)
+│   └── ...               # Feature-specific components
+├── pages/               # Route components
+├── hooks/               # Custom React hooks
+├── lib/                 # Utilities and configurations
+├── integrations/        # External service integrations (Supabase)
+└── test/                # Test files
+
+supabase/
+├── migrations/          # Database schema migrations
+└── functions/           # Edge functions
 ```
 
-## Architecture
+## Authentication & Authorization
 
-The application follows a component-based architecture with:
-
-- **Authentication Flow**: Supabase handles user authentication with role-based access control
-- **Data Fetching**: TanStack Query manages server state and caching
-- **Form Handling**: React Hook Form with Zod schemas for validation
-- **UI Components**: shadcn/ui provides consistent, accessible components
-- **Routing**: Protected routes with role-based permissions
+The application uses Supabase for authentication and implements role-based access control. User roles determine which features and pages are accessible.
 
 ## Contributing
 
-1. Follow the existing code style and patterns
+1. Follow the existing code style and conventions
 2. Write tests for new features
-3. Ensure all tests pass before submitting PRs
-4. Update documentation as needed
+3. Update documentation as needed
+4. Ensure all tests pass before submitting PRs
 
 ## License
 
