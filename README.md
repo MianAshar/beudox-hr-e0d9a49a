@@ -1,35 +1,52 @@
 <!--
 generated_by: tessera
-source_sha: 40b00ee682691bbcef30c51375cf535d551e0a81
-generated_at: 2026-03-31T22:19:40.175Z
+source_sha: b539e0ef426dc79227432acc6263ba638f91abbe
+generated_at: 2026-03-31T22:19:56.145Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A modern, role-based HR management web application built with React, TypeScript, and Supabase. This frontend application provides a comprehensive interface for managing employees, attendance, payroll, and other HR functions.
+A comprehensive Human Resources management application built with modern web technologies.
+
+## Overview
+
+Beudox HR is a full-featured HR management system designed to streamline employee management, attendance tracking, payroll processing, and organizational workflows. The application provides role-based access control and a user-friendly interface for managing various HR functions.
 
 ## Features
 
-- **Role-Based Access Control**: Supports multiple user roles (Employee, HR Manager, Finance Manager, Team Lead, CEO) with granular permissions
-- **Employee Management**: Add, view, edit, and manage employee profiles
+### Core Modules
+
 - **Dashboard**: Overview of key HR metrics and activities
-- **Authentication**: Secure login with Supabase Auth, including password reset and invite flows
-- **Responsive Design**: Built with Tailwind CSS and shadcn/ui components for a modern, mobile-friendly interface
+- **People Management**:
+  - Employee profiles and management
+  - Attendance tracking
+  - Public holidays management
+  - Leave management system
+- **Finance**:
+  - Payroll processing
+  - Financial reporting
+  - Loan management
+  - Office expenses tracking
+  - Outsourcing management
+- **Work Management**:
+  - Project management
+  - Employee evaluations
+  - HR policies documentation
+- **System**:
+  - Notifications
+  - System settings
 
 ## Technology Stack
 
-- **Frontend Framework**: React 18 with TypeScript
+- **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Routing**: React Router DOM
-- **State Management**: TanStack Query (React Query) for server state
-- **UI Components**: shadcn/ui (Radix UI primitives) with Tailwind CSS
-- **Backend**: Supabase (PostgreSQL database, Auth, Edge Functions)
-- **Forms**: React Hook Form with Zod validation
-- **Icons**: Lucide React
-- **Charts**: Recharts
-- **Testing**: Vitest with Testing Library
-- **E2E Testing**: Playwright
+- **Routing**: React Router
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui component library
+- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
+- **Testing**: Vitest, Playwright
+- **Code Quality**: ESLint
 
 ## Getting Started
 
@@ -50,8 +67,6 @@ A modern, role-based HR management web application built with React, TypeScript,
 2. Install dependencies:
    ```bash
    npm install
-   # or
-   bun install
    ```
 
 3. Set up environment variables:
@@ -62,33 +77,30 @@ A modern, role-based HR management web application built with React, TypeScript,
    ```
    
    Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
    - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
 
 4. Start the development server:
    ```bash
    npm run dev
-   # or
-   bun run dev
    ```
 
 5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Building for Production
+### Database Setup
 
+The application uses Supabase for data storage. Database migrations are located in `supabase/migrations/`.
+
+### Testing
+
+Run unit tests:
 ```bash
-npm run build
+npm run test
 ```
 
-### Running Tests
-
+Run end-to-end tests:
 ```bash
-# Unit tests
-npm run test
-
-# E2E tests
-npx playwright test
+npm run test:e2e
 ```
 
 ## Project Structure
@@ -96,42 +108,32 @@ npx playwright test
 ```
 src/
 ├── components/
-│   ├── layout/          # Layout components (AppLayout, AppSidebar, TopBar)
-│   ├── ui/              # Reusable UI components (shadcn/ui)
-│   └── ...               # Feature-specific components
-├── hooks/               # Custom React hooks (useAuth, useToast)
-├── lib/                 # Utilities and configurations
-├── pages/               # Route components
-├── integrations/        # External service integrations (Supabase)
-└── test/                # Test utilities
+│   ├── ui/           # Reusable UI components (shadcn/ui)
+│   ├── layout/       # Layout components (AppLayout, AppSidebar, TopBar)
+│   └── BeudoxLogo.tsx # Logo component
+├── pages/            # Page components
+├── hooks/            # Custom React hooks
+├── lib/              # Utility functions and configurations
+├── integrations/     # External service integrations (Supabase)
+└── test/             # Test files
+
+supabase/
+├── functions/        # Edge functions for serverless operations
+├── migrations/       # Database schema migrations
+└── config.toml       # Supabase configuration
 ```
 
-## Available Routes
+## Authentication & Authorization
 
-- `/` - Root (redirects to dashboard or login)
-- `/login` - User login
-- `/forgot-password` - Password reset request
-- `/dashboard` - Main dashboard
-- `/employees` - Employee list
-- `/employees/new` - Add new employee
-- `/employees/:id` - Employee profile
-- `/employees/:id/edit` - Edit employee
-
-## User Roles and Permissions
-
-- **CEO**: Full access to all features
-- **HR Manager**: Employee management, attendance, leave, projects, evaluations, HR policies
-- **Finance Manager**: Payroll, finance, loans, expenses, outsourcing
-- **Team Lead**: Attendance, projects, evaluations
-- **Employee**: Basic dashboard, attendance, projects
+The application uses Supabase authentication with role-based access control. Employee roles determine access to different sections of the application.
 
 ## Contributing
 
 1. Follow the existing code style and conventions
 2. Write tests for new features
-3. Ensure all tests pass before submitting PRs
-4. Update documentation as needed
+3. Update documentation as needed
+4. Ensure all tests pass before submitting PRs
 
 ## License
 
-This project is private and proprietary.
+This project is proprietary software owned by Beudox.
