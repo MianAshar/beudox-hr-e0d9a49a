@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: c137177acc2da9c7c6111ad3f73b93efd194a352
-generated_at: 2026-03-31T22:27:13.993Z
+source_sha: 295c28ea6912fcf6433508a91523a7a71029d19b
+generated_at: 2026-03-31T22:48:02.657Z
 action: create
 -->
 
@@ -9,113 +9,141 @@ action: create
 
 ## Architecture Overview
 
-This is a single-page application (SPA) built with React and TypeScript, using Vite as the build tool. The application follows a component-based architecture with clear separation of concerns.
+This is a modern React single-page application (SPA) built with TypeScript, using Vite as the build tool. The application follows a component-based architecture with clear separation of concerns.
 
-### Key Architectural Patterns
+### Core Technologies
+- **React 18** with TypeScript for type-safe component development
+- **Vite** for fast development and optimized production builds
+- **Tailwind CSS** with shadcn/ui for consistent, accessible UI components
+- **React Router DOM** for client-side routing
+- **TanStack Query** for server state management and caching
+- **Supabase** for backend services (authentication, database, edge functions)
 
-- **Component Composition**: Extensive use of React components with props drilling and context for state management
-- **Protected Routes**: Authentication-based routing with role-based access control
-- **Layout Components**: AppLayout provides consistent structure with sidebar navigation and top bar
-- **UI Component Library**: shadcn/ui components built on Radix UI primitives for consistent design
-- **Custom Hooks**: Reusable logic extracted into custom hooks (useAuth, useToast)
+## Key Architectural Patterns
 
-### Technology Stack Details
+### Authentication & Authorization
+- **Supabase Auth**: Handles user sessions, password recovery, and invite flows
+- **Role-Based Access Control**: Implemented via `canAccess` function in `src/lib/role-access.ts`
+- **Protected Routes**: `ProtectedRoute` component wraps authenticated pages with layout
+- **Password Mode Handling**: Special flow for invite/recovery scenarios
 
-- **React 18**: Latest React with concurrent features and automatic batching
-- **TypeScript**: Strict type checking for better code quality
-- **Vite**: Fast build tool with HMR and optimized production builds
-- **Tailwind CSS**: Utility-first CSS framework with custom design tokens
-- **Supabase**: Backend-as-a-Service providing auth, database, and edge functions
-- **TanStack Query**: Powerful data fetching and caching library
-- **React Router**: Client-side routing with protected route guards
-- **React Hook Form + Zod**: Form handling with runtime validation
-- **Recharts**: Declarative charting library for data visualization
+### State Management
+- **Server State**: TanStack Query manages API calls and caching
+- **Local State**: React hooks for component-level state
+- **Auth State**: Custom `useAuth` hook provides session and employee data
+
+### Component Structure
+- **Layout Components**: `AppLayout`, `AppSidebar`, `TopBar` provide consistent structure
+- **UI Components**: shadcn/ui components in `src/components/ui/`
+- **Page Components**: Feature-specific pages in `src/pages/`
+- **Custom Components**: Business logic components like `BeudoxLogo`, `NavLink`
 
 ## Key Files and Their Purposes
 
-### Core Application Files
-- `src/main.tsx`: Application entry point, renders App component
+### Entry Points
+- `src/main.tsx`: Application bootstrap, renders App component
 - `src/App.tsx`: Main application component with routing and providers
-- `src/index.css`: Global styles and Tailwind imports
 
-### Layout Components
+### Core Components
 - `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and content area
-- `src/components/layout/AppSidebar.tsx`: Collapsible sidebar with navigation sections
-- `src/components/layout/TopBar.tsx`: Top navigation bar with page titles
-
-### UI Components
-- `src/components/ui/`: Complete set of shadcn/ui components (buttons, forms, dialogs, etc.)
+- `src/components/layout/AppSidebar.tsx`: Navigation sidebar with role-based menu items
+- `src/components/layout/TopBar.tsx`: Page title header
 - `src/components/BeudoxLogo.tsx`: Logo component with variant support
 - `src/components/NavLink.tsx`: Enhanced NavLink with active state styling
 
-### Authentication & Authorization
-- `src/hooks/useAuth.tsx`: Authentication state management
-- `src/lib/role-access.ts`: Role-based access control logic
-- `src/integrations/supabase/client.ts`: Supabase client configuration
-
 ### Pages
 - `src/pages/Login.tsx`: Authentication page
-- `src/pages/Dashboard.tsx`: Main dashboard view
+- `src/pages/Dashboard.tsx`: Main dashboard overview
 - `src/pages/Employees.tsx`: Employee listing page
 - `src/pages/EmployeeProfile.tsx`: Individual employee details
 - `src/pages/EmployeeForm.tsx`: Add/edit employee form
 - `src/pages/Settings.tsx`: Application settings
+- `src/pages/PublicHolidays.tsx`: Holiday management
 
-### Configuration
-- `vite.config.ts`: Vite build configuration
-- `tailwind.config.ts`: Tailwind CSS customization
-- `tsconfig.json`: TypeScript compiler options
-- `package.json`: Dependencies and scripts
+### Hooks & Utilities
+- `src/hooks/useAuth.ts`: Authentication state management
+- `src/hooks/use-toast.ts`: Toast notification system
+- `src/lib/utils.ts`: Utility functions (cn for class merging)
+- `src/lib/role-access.ts`: Role-based permission checking
 
-## Database Schema (Supabase)
+### Integrations
+- `src/integrations/supabase/client.ts`: Supabase client configuration
+- `src/integrations/supabase/types.ts`: Database type definitions
 
-The application uses Supabase PostgreSQL database with the following key tables:
-- `employees`: Employee information and profiles
-- `attendance`: Attendance records
-- `leave_requests`: Leave management data
-- `payroll`: Salary and payroll information
-- `projects`: Project management data
-- `notifications`: System notifications
+## Database Schema & Relationships
 
-Database migrations are located in `supabase/migrations/`.
+The application uses Supabase PostgreSQL with the following key entities:
+- **Employees**: Core user data with roles and company associations
+- **Companies**: Organization-level information
+- **Attendance**: Time tracking records
+- **Leave Management**: Vacation and absence tracking
+- **Payroll**: Salary and compensation data
+- **Projects**: Work assignment tracking
 
-## Business Logic and Data Flow
+Database migrations are located in `supabase/migrations/` and include:
+- Initial schema setup
+- Employee management functions
+- Authentication triggers
 
-1. **Authentication Flow**: Users authenticate via Supabase Auth, with role-based access control
-2. **Data Fetching**: TanStack Query manages server state with caching and optimistic updates
-3. **Form Handling**: React Hook Form with Zod schemas for validation
-4. **Navigation**: React Router with protected routes and role checking
-5. **UI State**: Local component state with occasional context usage
+## Business Logic & Data Flow
 
-## Development Workflow
+### Authentication Flow
+1. User visits root path `/`
+2. `RootRedirect` checks auth status
+3. Unauthenticated users go to `/login`
+4. Authenticated users redirected to `/dashboard`
+5. Password mode (invite/recovery) intercepts to `SetPassword`
 
-- **Development**: `npm run dev` starts Vite dev server with HMR
-- **Building**: `npm run build` creates optimized production bundle
-- **Testing**: Vitest for unit tests, Playwright for E2E testing
-- **Linting**: ESLint with React and TypeScript rules
-- **Code Quality**: TypeScript strict mode, custom hooks for reusability
+### Route Protection
+1. `ProtectedRoute` component wraps all authenticated pages
+2. Checks loading states to prevent content flash
+3. Validates user permissions via `canAccess`
+4. Unauthorized access redirects to dashboard
+5. Authorized users get `AppLayout` wrapper
 
-## Environment Configuration
+### Navigation Structure
+The sidebar organizes features into sections:
+- **MAIN**: Dashboard
+- **PEOPLE**: Employees, Attendance, Public Holidays, Leave Management
+- **FINANCE**: Payroll, Finance Sheet, Loans, Office Expenses, Outsourcing
+- **WORK**: Projects, Evaluations, HR Policies
+- **SYSTEM**: Notifications, Settings
 
-Environment variables are loaded via Vite's env handling:
-- `VITE_SUPABASE_URL`: Supabase project URL
-- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public Supabase API key
-- `VITE_SUPABASE_PROJECT_ID`: Supabase project identifier
+### Form Handling
+- React Hook Form for form state management
+- Zod schemas for validation
+- @hookform/resolvers for schema integration
+- Consistent error handling and user feedback
 
-## Deployment
+## Development & Testing
 
-The application is designed to be deployed as a static site to any hosting platform that supports SPAs (Vercel, Netlify, etc.). The build output in `dist/` contains all necessary files.
+### Build Configuration
+- `vite.config.ts`: Vite configuration with React SWC plugin
+- `tailwind.config.ts`: Tailwind with custom theme and animations
+- `tsconfig.json`: TypeScript configuration
+- `eslint.config.js`: ESLint with React and TypeScript rules
 
-## Performance Considerations
+### Testing Setup
+- **Unit Tests**: Vitest with React Testing Library
+- **E2E Tests**: Playwright for browser automation
+- Test files located in `src/test/`
 
-- **Code Splitting**: Vite handles automatic code splitting
-- **Image Optimization**: Static assets in `public/` directory
-- **Caching**: TanStack Query provides intelligent caching
-- **Bundle Size**: Tree-shaking and minification via Vite
+### Environment Configuration
+- `.env`: Environment variables for Supabase
+- Development and production mode support
 
-## Security
+## Edge Functions (Backend)
 
-- **Authentication**: Supabase handles secure authentication
-- **Authorization**: Client-side role checking with server-side validation
-- **Data Validation**: Zod schemas for runtime type checking
-- **Environment Variables**: Sensitive config stored securely
+Supabase Edge Functions handle server-side logic:
+- `supabase/functions/invite-employee/`: Employee invitation workflow
+- `supabase/functions/deactivate-employee/`: Employee deactivation
+- `supabase/functions/delete-employee/`: Employee removal
+
+These functions implement business rules and data validation on the server side.
+
+## Deployment Considerations
+
+- Built as a static SPA deployable to any web server
+- Supabase handles backend scaling and data persistence
+- Environment variables required for Supabase configuration
+- No server-side rendering currently implemented
