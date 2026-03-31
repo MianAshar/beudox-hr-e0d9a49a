@@ -1,136 +1,156 @@
 <!--
 generated_by: tessera
-source_sha: 31af184409d257b5e5f8f357cba10d70c2c9aea4
-generated_at: 2026-03-31T22:53:44.573Z
+source_sha: 4b6c7840184af8d9333056cebf98c520375f0140
+generated_at: 2026-03-31T23:29:41.406Z
 action: create
 -->
 
-# Beudox HR Management System - Technical Context
+# Beudox HR - Technical Context for AI Assistants
 
 ## Architecture Overview
 
-This is a modern React single-page application (SPA) built with TypeScript, using Vite as the build tool. The application follows a component-based architecture with clear separation of concerns.
+Beudox HR is a modern React-based frontend application built with TypeScript, serving as the user interface for a comprehensive Human Resources Management System. The application follows a component-based architecture with clear separation of concerns.
 
-### Core Technologies
-- **React 18**: Component-based UI framework with hooks
-- **TypeScript**: Type-safe JavaScript for better developer experience
-- **Vite**: Fast build tool with hot module replacement
-- **React Router DOM**: Client-side routing
-- **TanStack Query**: Data fetching and caching library
-- **Supabase**: Backend-as-a-Service (database, auth, edge functions)
+### Technology Stack
+- **Framework**: React 18 with TypeScript
+- **Build System**: Vite with SWC for fast development and builds
+- **Routing**: React Router DOM v6 with protected routes and role-based access
+- **State Management**: 
+  - React Query (@tanstack/react-query) for server state management
+  - React Context for authentication state
+- **Styling**: Tailwind CSS with custom design tokens and shadcn/ui component library
+- **Backend Integration**: Supabase (PostgreSQL + Auth + Real-time)
+- **Form Handling**: React Hook Form with Zod schema validation
+- **UI Components**: Radix UI primitives via shadcn/ui
+- **Icons**: Lucide React
+- **Charts**: Recharts for data visualization
 
-### UI Framework
-- **shadcn/ui**: High-quality React components built on Radix UI primitives
-- **Tailwind CSS**: Utility-first CSS framework
-- **Lucide React**: Icon library
+## Key Architectural Patterns
 
-### Key Architectural Patterns
-- **Protected Routes**: Authentication-based route protection with role checking
-- **Layout Components**: Consistent app layout with sidebar navigation
-- **Custom Hooks**: Reusable logic for authentication, data fetching
-- **Role-based Access Control**: Feature visibility based on user roles
+### Authentication & Authorization
+- **AuthProvider**: Context provider managing authentication state
+- **Protected Routes**: Route-level protection with role-based access control
+- **Role Access Control**: `canAccess()` function checks user permissions against routes
+- **Password Management**: Support for invite-based registration and password reset
+
+### Component Architecture
+- **Layout Components**: AppLayout provides consistent structure with sidebar navigation
+- **UI Components**: Extensive use of shadcn/ui for consistent, accessible components
+- **Page Components**: Route-based page components handling specific features
+- **Custom Hooks**: Reusable logic extracted into custom hooks (useAuth, useToast)
+
+### Data Flow
+- **React Query**: Handles all server state with caching, background refetching, and optimistic updates
+- **Supabase Client**: Direct integration for database operations and real-time subscriptions
+- **Form Validation**: Zod schemas ensure data integrity before submission
 
 ## Key Files and Their Purposes
 
-### Entry Points
-- `src/main.tsx`: Application bootstrap, renders App component
-- `src/App.tsx`: Main application component with routing and providers
+### Core Application Files
+- `src/main.tsx`: Application entry point, renders App component
+- `src/App.tsx`: Main application component with routing configuration
+- `src/index.css`: Global styles and Tailwind imports
 
-### Layout Components
+### Authentication & Context
+- `src/hooks/useAuth.tsx`: Authentication hook providing session, user, and employee data
+- `src/lib/role-access.ts`: Role-based access control logic
+- `src/integrations/supabase/client.ts`: Supabase client configuration
+- `src/integrations/supabase/types.ts`: TypeScript types for database schema
+
+### Layout & Navigation
 - `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and content area
-- `src/components/layout/AppSidebar.tsx`: Collapsible sidebar with navigation menu
-- `src/components/layout/TopBar.tsx`: Top header with page titles
-
-### Core Components
+- `src/components/layout/AppSidebar.tsx`: Collapsible sidebar with navigation sections
+- `src/components/layout/TopBar.tsx`: Top navigation bar with page titles
 - `src/components/BeudoxLogo.tsx`: Logo component with variant support
 - `src/components/NavLink.tsx`: Enhanced NavLink with active state styling
 
-### Authentication
-- `src/hooks/useAuth.tsx`: Authentication state management
-- `src/lib/role-access.ts`: Role-based access control utilities
+### UI Components
+- `src/components/ui/`: Complete shadcn/ui component library (40+ components)
+- `src/hooks/use-toast.ts`: Toast notification system
 
-### Integrations
-- `src/integrations/supabase/client.ts`: Supabase client configuration
-- `src/integrations/supabase/types.ts`: Database type definitions
+### Pages & Features
+- `src/pages/Login.tsx`: Authentication page
+- `src/pages/Dashboard.tsx`: Main dashboard overview
+- `src/pages/Employees.tsx`: Employee listing and management
+- `src/pages/EmployeeProfile.tsx`: Individual employee details
+- `src/pages/EmployeeForm.tsx`: Add/edit employee form
+- `src/pages/Settings.tsx`: Application settings
+- Additional pages for holidays, projects, clients, etc.
 
-### Configuration
-- `vite.config.ts`: Vite build configuration
-- `tailwind.config.ts`: Tailwind CSS configuration
+### Utilities & Configuration
+- `src/lib/utils.ts`: Common utility functions (cn for class merging)
+- `package.json`: Dependencies and scripts
+- `vite.config.ts`: Build configuration
+- `tailwind.config.ts`: Styling configuration
 - `tsconfig.json`: TypeScript configuration
-- `package.json`: Project dependencies and scripts
 
-## Routing Structure
+## Database Schema (Supabase)
 
-The application uses React Router with protected routes. Key routes include:
-
-- `/`: Root redirect (to dashboard or login)
-- `/login`: Authentication page
-- `/forgot-password`: Password recovery
-- `/dashboard`: Main dashboard
-- `/employees`: Employee list
-- `/employees/new`: Add new employee
-- `/employees/:id`: Employee profile view
-- `/employees/:id/edit`: Edit employee
-- `/holidays`: Public holidays management
-- `/settings`: Application settings
-
-## Database Schema
-
-The application uses Supabase with PostgreSQL. Key tables include:
-- `employees`: Employee information
-- `companies`: Company details
+The application interacts with a PostgreSQL database via Supabase. Key tables include:
+- `employees`: Employee profile information
+- `companies`: Company/organization data
+- `projects`: Project management data
+- `clients`: Client relationship data
 - `attendance`: Time tracking records
 - `leave_requests`: Vacation and leave management
 - `payroll`: Salary and compensation data
+- `loans`: Employee loan tracking
+- `expenses`: Business expense records
 
-## Business Logic
+## Routing Structure
 
-### Authentication Flow
-1. User logs in via Supabase Auth
-2. Employee data is fetched and cached
-3. Role-based permissions are applied
-4. Protected routes check access before rendering
+The application uses client-side routing with the following main routes:
+- `/`: Root redirect (to dashboard or login)
+- `/login`: User authentication
+- `/forgot-password`: Password reset
+- `/dashboard`: Main application dashboard
+- `/employees`: Employee management (list, add, edit, profile)
+- `/holidays`: Public holiday management
+- `/projects`: Project tracking
+- `/clients`: Client management
+- `/settings`: Application configuration
 
-### Data Flow
-1. Components use TanStack Query for data fetching
-2. Mutations update data via Supabase client
-3. Real-time subscriptions for live updates
-4. Optimistic updates for better UX
-
-### Role Access Control
-- Access is determined by `employee.role_name`
-- `canAccess()` function checks permissions for specific paths
-- Unauthorized access redirects to dashboard
+All protected routes use the `ProtectedRoute` component which:
+1. Checks authentication status
+2. Handles loading states
+3. Enforces role-based access control
+4. Redirects unauthorized users
 
 ## Development Workflow
 
-### Local Development
+### Scripts
 - `npm run dev`: Start development server
 - `npm run build`: Production build
-- `npm run test`: Run unit tests
-- `npm run lint`: Code linting
+- `npm run test`: Run unit tests (Vitest)
+- `npm run lint`: Code linting (ESLint)
+- `npx playwright test`: End-to-end testing
 
-### Testing Strategy
-- **Unit Tests**: Component and utility testing with Vitest
-- **E2E Tests**: User journey testing with Playwright
-- **Integration Tests**: API and database interactions
-
-## Deployment
-
-The application is designed for deployment to static hosting services. Build outputs are optimized for production with code splitting and asset optimization.
+### Environment Configuration
+- Environment variables prefixed with `VITE_` are exposed to the client
+- Supabase configuration requires project URL and public key
+- Database migrations managed via Supabase CLI
 
 ## Security Considerations
 
-- Environment variables for sensitive configuration
-- Supabase RLS (Row Level Security) policies
-- Client-side route protection
-- Secure authentication flows
-- Input validation with Zod schemas
+- All sensitive operations require authentication
+- Role-based access control prevents unauthorized feature access
+- Supabase Row Level Security (RLS) policies protect database access
+- Password management follows security best practices
+- Client-side validation supplemented by server-side checks
 
 ## Performance Optimizations
 
-- Code splitting with dynamic imports
-- Image optimization and lazy loading
-- Query caching and background updates
-- Bundle analysis and tree shaking
-- Efficient re-renders with React.memo and useMemo
+- Vite's fast HMR for development
+- Tree-shaking and code splitting
+- React Query caching reduces unnecessary API calls
+- Lazy loading for route components
+- Optimized bundle size through modern build tools
+
+## Testing Strategy
+
+- **Unit Tests**: Component and utility function testing with Vitest
+- **Integration Tests**: API integration and hook testing
+- **E2E Tests**: User workflow testing with Playwright
+- **Component Testing**: UI component behavior validation
+
+This technical context provides the foundation for understanding the Beudox HR codebase and making informed decisions about code changes, feature additions, and maintenance tasks.

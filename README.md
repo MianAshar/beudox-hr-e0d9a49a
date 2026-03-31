@@ -1,51 +1,53 @@
 <!--
 generated_by: tessera
-source_sha: 31af184409d257b5e5f8f357cba10d70c2c9aea4
-generated_at: 2026-03-31T22:53:44.573Z
+source_sha: 4b6c7840184af8d9333056cebf98c520375f0140
+generated_at: 2026-03-31T23:29:41.406Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A comprehensive Human Resources management application built with modern web technologies. This system provides organizations with tools to manage employees, track attendance, handle leave requests, process payroll, and maintain HR policies.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with tools to manage employees, attendance, payroll, projects, and more through an intuitive web interface.
 
 ## Features
 
-### People Management
-- **Employee Management**: Add, view, edit, and manage employee profiles
-- **Attendance Tracking**: Monitor employee attendance and time records
-- **Leave Management**: Handle vacation requests, sick leave, and other time off
-- **Public Holidays**: Manage company-wide holiday schedules
+### Core HR Management
+- **Employee Management**: Add, edit, and view employee profiles with detailed information
+- **Attendance Tracking**: Monitor employee attendance and time tracking
+- **Leave Management**: Handle vacation requests, sick leave, and other time-off policies
+- **Public Holidays**: Manage and display company holiday schedules
 
-### Finance & Payroll
-- **Payroll Processing**: Calculate and manage employee salaries
+### Financial Management
+- **Payroll Processing**: Calculate and manage employee salaries and compensation
 - **Finance Sheet**: Track financial data and reports
 - **Loan Management**: Handle employee loan requests and repayments
 - **Office Expenses**: Track and categorize business expenses
-- **Outsourcing**: Manage external contractor relationships
+- **Outsourcing**: Manage external vendor relationships and contracts
 
-### Work Management
-- **Project Management**: Track project progress and assignments
-- **Employee Evaluations**: Conduct performance reviews
-- **HR Policies**: Maintain and distribute company policies
+### Project & Client Management
+- **Project Tracking**: Create and manage projects with timelines and resources
+- **Client Management**: Maintain client relationships and project assignments
+- **Performance Evaluations**: Conduct employee performance reviews
+- **HR Policies**: Store and manage company policies and procedures
 
 ### System Features
-- **Notifications**: System-wide messaging and alerts
-- **Settings**: Configure application preferences
-- **Role-based Access Control**: Secure access based on user roles
+- **Role-Based Access Control**: Secure access based on user roles and permissions
+- **Notifications**: Real-time alerts and system notifications
+- **Settings**: Configurable system preferences and user settings
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **UI Framework**: shadcn/ui (Radix UI components)
-- **Styling**: Tailwind CSS
 - **Routing**: React Router DOM
-- **State Management**: TanStack Query (React Query)
-- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
+- **Styling**: Tailwind CSS with custom design system
+- **UI Components**: Shadcn/ui (built on Radix UI primitives)
+- **State Management**: React Query for server state, React Context for auth
+- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
 - **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts for data visualization
 - **Icons**: Lucide React
-- **Testing**: Vitest with Playwright for E2E
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
 
 ## Getting Started
 
@@ -71,12 +73,14 @@ A comprehensive Human Resources management application built with modern web tec
 
 3. Set up environment variables:
    
-   Copy `.env` and update the Supabase configuration with your project credentials:
-   ```env
-   VITE_SUPABASE_PROJECT_ID=your_project_id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=your_supabase_url
+   Copy `.env` and update the Supabase configuration:
+   ```bash
+   cp .env .env.local
    ```
+   
+   Update the following variables in `.env.local`:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
 
 4. Start the development server:
    ```bash
@@ -91,19 +95,15 @@ A comprehensive Human Resources management application built with modern web tec
 
 ```bash
 npm run build
-npm run preview
 ```
 
-### Testing
+### Run Tests
 
 ```bash
-# Run unit tests
+# Unit tests
 npm run test
 
-# Run tests in watch mode
-npm run test:watch
-
-# Run E2E tests
+# E2E tests
 npx playwright test
 ```
 
@@ -111,24 +111,24 @@ npx playwright test
 
 ```
 src/
-├── components/
-│   ├── layout/          # Layout components (AppLayout, AppSidebar, TopBar)
-│   ├── ui/              # Reusable UI components (shadcn/ui)
-│   └── ...               # Feature-specific components
-├── pages/               # Route components
-├── hooks/               # Custom React hooks
-├── lib/                 # Utilities and configurations
-├── integrations/        # External service integrations (Supabase)
-└── test/                # Test files
-
-supabase/
-├── migrations/          # Database schema migrations
-└── functions/           # Edge functions
+├── components/          # Reusable UI components
+│   ├── ui/             # Shadcn/ui components
+│   └── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
+├── pages/              # Page components and routes
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations (Supabase)
+└── test/               # Test files
 ```
 
 ## Authentication & Authorization
 
-The application uses Supabase for authentication and implements role-based access control. User roles determine which features and pages are accessible.
+The application uses Supabase for authentication with role-based access control. User roles determine which features and pages are accessible. The system supports:
+
+- Employee login and password management
+- Invite-based user registration
+- Password reset functionality
+- Role-based route protection
 
 ## Contributing
 
@@ -139,4 +139,4 @@ The application uses Supabase for authentication and implements role-based acces
 
 ## License
 
-This project is private and proprietary.
+This project is private and proprietary to Beudox.
