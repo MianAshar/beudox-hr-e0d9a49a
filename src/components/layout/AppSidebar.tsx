@@ -40,6 +40,7 @@ const navSections = [
     label: 'WORK',
     items: [
       { title: 'Projects', icon: FolderKanban, path: '/projects' },
+      { title: 'Clients', icon: Briefcase, path: '/clients' },
       { title: 'Evaluations', icon: ClipboardCheck, path: '/evaluations' },
       { title: 'HR Policies', icon: FileText, path: '/hr-policies' },
     ],
