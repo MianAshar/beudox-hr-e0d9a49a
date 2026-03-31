@@ -5,9 +5,9 @@ import { canAccess } from '@/lib/role-access';
 import BeudoxLogo from '@/components/BeudoxLogo';
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
-  DollarSign, BarChart2, CreditCard, Receipt, Briefcase,
+  DollarSign, BarChart2, CreditCard, Receipt, Building2,
   FolderKanban, ClipboardCheck, FileText, Settings, Bell,
-  LogOut, ChevronLeft, ChevronRight,
+  LogOut, ChevronLeft, ChevronRight, Briefcase,
 } from 'lucide-react';
 
 const navSections = [
@@ -33,13 +33,14 @@ const navSections = [
       { title: 'Finance Sheet', icon: BarChart2, path: '/finance' },
       { title: 'Loans', icon: CreditCard, path: '/loans' },
       { title: 'Office Expenses', icon: Receipt, path: '/expenses' },
-      { title: 'Outsourcing', icon: Briefcase, path: '/outsourcing' },
+      { title: 'Outsourcing', icon: Building2, path: '/outsourcing' },
     ],
   },
   {
     label: 'WORK',
     items: [
       { title: 'Projects', icon: FolderKanban, path: '/projects' },
+      { title: 'Clients', icon: Briefcase, path: '/clients' },
       { title: 'Evaluations', icon: ClipboardCheck, path: '/evaluations' },
       { title: 'HR Policies', icon: FileText, path: '/hr-policies' },
     ],
