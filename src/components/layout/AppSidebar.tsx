@@ -60,6 +60,7 @@ const AppSidebar = () => {
 
   const isActive = (path: string) => location.pathname === path;
   const width = collapsed ? 64 : 240;
+  const companyLogo = employee?.company_logo_url || null;
 
   return (
     <aside
@@ -68,7 +69,18 @@ const AppSidebar = () => {
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        {collapsed ? (
+        {companyLogo ? (
+          <img
+            src={companyLogo}
+            alt={employee?.company_name || 'Company'}
+            style={{
+              height: 32,
+              width: 'auto',
+              maxWidth: collapsed ? 32 : 140,
+              objectFit: 'contain',
+            }}
+          />
+        ) : collapsed ? (
           <BeudoxLogo variant="sidebar" showWordmark={false} size={32} />
         ) : (
           <BeudoxLogo variant="sidebar" size={36} />

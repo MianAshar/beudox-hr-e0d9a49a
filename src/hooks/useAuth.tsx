@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -14,6 +14,7 @@ interface EmployeeData {
   company_name: string;
   company_slug: string;
   role_name: string | null;
+  company_logo_url: string | null;
 }
 
 type PasswordMode = 'invite' | 'recovery' | null;
@@ -26,6 +27,7 @@ interface AuthContextType {
   passwordMode: PasswordMode;
   clearPasswordMode: () => void;
   signOut: () => Promise<void>;
+  refreshEmployee: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -36,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   passwordMode: null,
   clearPasswordMode: () => {},
   signOut: async () => {},
+  refreshEmployee: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -63,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const fetchEmployee = async (userId: string) => {
+  const fetchEmployee = useCallback(async (userId: string) => {
     const { data, error } = await supabase.rpc('get_employee_by_auth_id', {
       _auth_id: userId,
     });
@@ -72,7 +75,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setEmployee(null);
     }
-  };
+  }, []);
+
+  const refreshEmployee = useCallback(() => {
+    if (user) {
+      fetchEmployee(user.id);
+    }
+  }, [user, fetchEmployee]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -112,10 +121,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchEmployee]);
 
   return (
-    <AuthContext.Provider value={{ session, user, employee, loading, passwordMode, clearPasswordMode, signOut }}>
+    <AuthContext.Provider value={{ session, user, employee, loading, passwordMode, clearPasswordMode, signOut, refreshEmployee }}>
       {children}
     </AuthContext.Provider>
   );

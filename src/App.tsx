@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import EmployeeForm from "./pages/EmployeeForm";
+import Settings from "./pages/Settings";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
