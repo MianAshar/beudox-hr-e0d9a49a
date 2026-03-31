@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Pencil, Calendar, DollarSign, FileText, Users } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/hooks/use-toast';
+import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -26,9 +30,14 @@ const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { employee } = useAuth();
+  const qc = useQueryClient();
   const role = employee?.role_name;
   const isManager = role === 'hr_manager' || role === 'ceo';
-  const companyId = employee?.company_id;
+  const isCeo = role === 'ceo';
+
+  const [deactivateOpen, setDeactivateOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project-detail', id],
@@ -49,13 +58,41 @@ const ProjectDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_assignments')
-        .select('employee_id, employees(full_name, avatar_url, designation)')
+        .select('employee_id, is_active, employees(full_name, avatar_url, designation)')
         .eq('project_id', id!)
-        .eq('is_active', true);
+        .or('is_active.eq.true,is_active.is.null');
       if (error) throw error;
       return data;
     },
     enabled: !!id,
+  });
+
+  const deactivateMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('projects').update({ is_active: false, status: 'cancelled' }).eq('id', id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      toast({ title: 'Project deactivated' });
+      navigate('/projects');
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      // Delete assignments first, then project
+      await supabase.from('project_assignments').delete().eq('project_id', id!);
+      const { error } = await supabase.from('projects').delete().eq('id', id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      toast({ title: 'Project deleted' });
+      navigate('/projects');
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -91,16 +128,27 @@ const ProjectDetail = () => {
             <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>
           </div>
         </div>
-        {isManager && (
-          <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
-            <Pencil className="h-4 w-4 mr-2" /> Edit
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {isManager && (
+            <>
+              <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
+                <Pencil className="h-4 w-4 mr-2" /> Edit
+              </Button>
+              <Button variant="outline" onClick={() => setDeactivateOpen(true)}>
+                <XCircle className="h-4 w-4 mr-2" /> Deactivate
+              </Button>
+            </>
+          )}
+          {isCeo && (
+            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-2" /> Delete
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Details Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left: Project Info */}
         <div className="rounded-lg border bg-card p-5 space-y-4">
           <h2 className="text-base font-semibold text-foreground">Project Information</h2>
           <div className="space-y-3 text-sm">
@@ -127,7 +175,6 @@ const ProjectDetail = () => {
           </div>
         </div>
 
-        {/* Right: Dates */}
         <div className="rounded-lg border bg-card p-5 space-y-4">
           <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
             <Calendar className="h-4 w-4" /> Deadlines
@@ -189,6 +236,51 @@ const ProjectDetail = () => {
           <p className="text-sm text-muted-foreground">No team members assigned</p>
         )}
       </div>
+
+      {/* Deactivate Dialog */}
+      <Dialog open={deactivateOpen} onOpenChange={setDeactivateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deactivate Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to deactivate "{project.project_name}"? The project will be marked as cancelled and hidden from views.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeactivateOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deactivateMutation.mutate()} disabled={deactivateMutation.isPending}>
+              {deactivateMutation.isPending ? 'Deactivating…' : 'Deactivate'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={v => { if (!v) { setDeleteOpen(false); setDeleteConfirmText(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Project Permanently</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. Type the project code <strong className="text-foreground">{project.project_code}</strong> to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={deleteConfirmText}
+            onChange={e => setDeleteConfirmText(e.target.value)}
+            placeholder={`Type ${project.project_code} to confirm`}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeleteOpen(false); setDeleteConfirmText(''); }}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteMutation.mutate()}
+              disabled={deleteConfirmText !== project.project_code || deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting…' : 'Delete Permanently'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

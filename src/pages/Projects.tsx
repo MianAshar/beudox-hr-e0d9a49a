@@ -1,15 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, FolderKanban } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
+import { Plus, Search, FolderKanban, XCircle } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -28,6 +32,7 @@ const priorityColors: Record<string, string> = {
 const Projects = () => {
   const { employee } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const companyId = employee?.company_id;
   const role = employee?.role_name;
   const isManager = role === 'hr_manager' || role === 'ceo';
@@ -36,21 +41,24 @@ const Projects = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
+  const [showInactive, setShowInactive] = useState(false);
+  const [deactivateTarget, setDeactivateTarget] = useState<any>(null);
 
-  // Fetch projects
   const { data: projects, isLoading } = useQuery({
-    queryKey: ['projects', companyId, role],
+    queryKey: ['projects', companyId, role, showInactive],
     queryFn: async () => {
       if (isManager) {
-        const { data, error } = await supabase
+        let query = supabase
           .from('projects')
           .select('*, clients(name), project_categories(name), lead:employees!projects_project_lead_id_fkey(full_name)')
-          .eq('company_id', companyId!)
-          .order('created_at', { ascending: false });
+          .eq('company_id', companyId!);
+        if (!showInactive) {
+          query = query.eq('is_active', true);
+        }
+        const { data, error } = await query.order('created_at', { ascending: false });
         if (error) throw error;
         return data;
       } else {
-        // Employee: only assigned + in_progress
         const { data: assignments, error: aErr } = await supabase
           .from('project_assignments')
           .select('project_id')
@@ -65,6 +73,7 @@ const Projects = () => {
           .select('*, clients(name), project_categories(name), lead:employees!projects_project_lead_id_fkey(full_name)')
           .eq('company_id', companyId!)
           .eq('status', 'in_progress')
+          .eq('is_active', true)
           .in('id', pIds)
           .order('created_at', { ascending: false });
         if (error) throw error;
@@ -74,20 +83,27 @@ const Projects = () => {
     enabled: !!companyId && !!employee,
   });
 
-  // Fetch clients for filter dropdown
   const { data: clients } = useQuery({
     queryKey: ['clients-filter', companyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('id, name')
-        .eq('company_id', companyId!)
-        .eq('is_active', true)
-        .order('name');
+      const { data, error } = await supabase.from('clients').select('id, name').eq('company_id', companyId!).eq('is_active', true).order('name');
       if (error) throw error;
       return data;
     },
     enabled: !!companyId && isManager,
+  });
+
+  const deactivateMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase.from('projects').update({ is_active: false, status: 'cancelled' }).eq('id', projectId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      toast({ title: 'Project deactivated' });
+      setDeactivateTarget(null);
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -117,7 +133,7 @@ const Projects = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 items-center">
         <div className="relative max-w-xs flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search code or name…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
@@ -151,6 +167,10 @@ const Projects = () => {
                 </SelectContent>
               </Select>
             )}
+            <div className="flex items-center gap-2 ml-auto">
+              <Switch id="show-inactive-projects" checked={showInactive} onCheckedChange={setShowInactive} />
+              <Label htmlFor="show-inactive-projects" className="text-sm text-muted-foreground cursor-pointer">Show inactive</Label>
+            </div>
           </>
         )}
       </div>
@@ -178,6 +198,7 @@ const Projects = () => {
                 <TableHead>Internal Deadline</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
+                {isManager && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -194,13 +215,41 @@ const Projects = () => {
                   </TableCell>
                   <TableCell>
                     <Badge className={statusColors[p.status] || ''}>{fmt(p.status)}</Badge>
+                    {!p.is_active && <Badge variant="outline" className="ml-1 text-xs">Inactive</Badge>}
                   </TableCell>
+                  {isManager && (
+                    <TableCell className="text-right" onClick={e => e.stopPropagation()}>
+                      {p.is_active && (
+                        <Button variant="ghost" size="icon" onClick={() => setDeactivateTarget(p)}>
+                          <XCircle className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       )}
+
+      {/* Deactivate Dialog */}
+      <Dialog open={!!deactivateTarget} onOpenChange={v => { if (!v) setDeactivateTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deactivate Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to deactivate "{deactivateTarget?.project_name}"? The project will be marked as cancelled.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeactivateTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deactivateMutation.mutate(deactivateTarget?.id)} disabled={deactivateMutation.isPending}>
+              {deactivateMutation.isPending ? 'Deactivating…' : 'Deactivate'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,11 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { ArrowLeft, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X } from 'lucide-react';
 
 const STATUSES = ['in_progress', 'completed', 'invoiced', 'on_hold', 'cancelled'];
 const PRIORITIES = ['high', 'medium', 'low'];
@@ -46,6 +47,14 @@ const ProjectForm = () => {
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Combobox open states
+  const [clientOpen, setClientOpen] = useState(false);
+  const [leadOpen, setLeadOpen] = useState(false);
+  const [teamOpen, setTeamOpen] = useState(false);
+  const [clientSearch, setClientSearch] = useState('');
+  const [leadSearch, setLeadSearch] = useState('');
+  const [teamSearch, setTeamSearch] = useState('');
+
   // Fetch lookups
   const { data: clients } = useQuery({
     queryKey: ['clients-lookup', companyId],
@@ -68,7 +77,7 @@ const ProjectForm = () => {
   const { data: employees } = useQuery({
     queryKey: ['employees-lookup', companyId],
     queryFn: async () => {
-      const { data } = await supabase.from('employees').select('id, full_name').eq('company_id', companyId!).eq('status', 'active').order('full_name');
+      const { data } = await supabase.from('employees').select('id, full_name, employee_code').eq('company_id', companyId!).eq('status', 'active').order('full_name');
       return data ?? [];
     },
     enabled: !!companyId,
@@ -140,7 +149,6 @@ const ProjectForm = () => {
       if (isEdit) {
         const { error } = await supabase.from('projects').update(payload).eq('id', id!);
         if (error) throw error;
-        // Manage assignments: deactivate removed, add new
         const prev = existingAssignments ?? [];
         const removed = prev.filter(e => !teamMembers.includes(e));
         const added = teamMembers.filter(e => !prev.includes(e));
@@ -157,6 +165,7 @@ const ProjectForm = () => {
               employee_id: empId,
               company_id: companyId!,
               assigned_by: employee?.employee_id!,
+              is_active: true,
             }))
           );
         }
@@ -170,6 +179,7 @@ const ProjectForm = () => {
               employee_id: empId,
               company_id: companyId!,
               assigned_by: employee?.employee_id!,
+              is_active: true,
             }))
           );
         }
@@ -178,6 +188,7 @@ const ProjectForm = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['projects'] });
       qc.invalidateQueries({ queryKey: ['client-projects'] });
+      qc.invalidateQueries({ queryKey: ['project-team'] });
       toast({ title: isEdit ? 'Project updated successfully' : 'Project added successfully' });
       navigate('/projects');
     },
@@ -198,7 +209,32 @@ const ProjectForm = () => {
     setTeamMembers(prev => prev.includes(empId) ? prev.filter(e => e !== empId) : [...prev, empId]);
   };
 
+  const removeTeamMember = (empId: string) => {
+    setTeamMembers(prev => prev.filter(e => e !== empId));
+  };
+
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  const filteredClients = useMemo(() => {
+    if (!clients) return [];
+    if (!clientSearch) return clients;
+    const q = clientSearch.toLowerCase();
+    return clients.filter(c => c.name.toLowerCase().includes(q));
+  }, [clients, clientSearch]);
+
+  const filteredLeadEmployees = useMemo(() => {
+    if (!employees) return [];
+    if (!leadSearch) return employees;
+    const q = leadSearch.toLowerCase();
+    return employees.filter(e => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
+  }, [employees, leadSearch]);
+
+  const filteredTeamEmployees = useMemo(() => {
+    if (!employees) return [];
+    if (!teamSearch) return employees;
+    const q = teamSearch.toLowerCase();
+    return employees.filter(e => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
+  }, [employees, teamSearch]);
 
   return (
     <div className="p-6 max-w-3xl space-y-6">
@@ -224,16 +260,34 @@ const ProjectForm = () => {
           </div>
         </div>
 
-        {/* Row 2 */}
+        {/* Row 2: Client combobox + Category */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label>Client *</Label>
-            <Select value={form.client_id} onValueChange={v => setForm({ ...form, client_id: v })}>
-              <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
-              <SelectContent>
-                {clients?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Popover open={clientOpen} onOpenChange={setClientOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" aria-expanded={clientOpen} className="w-full justify-between font-normal">
+                  {selectedClient?.name || 'Select client…'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command shouldFilter={false}>
+                  <CommandInput placeholder="Search clients…" value={clientSearch} onValueChange={setClientSearch} />
+                  <CommandList>
+                    <CommandEmpty>No clients found.</CommandEmpty>
+                    <CommandGroup>
+                      {filteredClients.map(c => (
+                        <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id }); setClientOpen(false); setClientSearch(''); }}>
+                          <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
+                          {c.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
           </div>
           <div>
@@ -289,16 +343,34 @@ const ProjectForm = () => {
           </div>
         </div>
 
-        {/* Lead + Priority + Status */}
+        {/* Lead combobox + Priority + Status */}
         <div className="grid grid-cols-3 gap-4">
           <div>
             <Label>Project Lead</Label>
-            <Select value={form.project_lead_id} onValueChange={v => setForm({ ...form, project_lead_id: v })}>
-              <SelectTrigger><SelectValue placeholder="Select lead" /></SelectTrigger>
-              <SelectContent>
-                {employees?.map(e => <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Popover open={leadOpen} onOpenChange={setLeadOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" aria-expanded={leadOpen} className="w-full justify-between font-normal">
+                  {employees?.find(e => e.id === form.project_lead_id)?.full_name || 'Select lead…'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command shouldFilter={false}>
+                  <CommandInput placeholder="Search by name or code…" value={leadSearch} onValueChange={setLeadSearch} />
+                  <CommandList>
+                    <CommandEmpty>No employees found.</CommandEmpty>
+                    <CommandGroup>
+                      {filteredLeadEmployees.map(e => (
+                        <CommandItem key={e.id} value={e.id} onSelect={() => { setForm({ ...form, project_lead_id: e.id }); setLeadOpen(false); setLeadSearch(''); }}>
+                          <Check className={cn('mr-2 h-4 w-4', form.project_lead_id === e.id ? 'opacity-100' : 'opacity-0')} />
+                          {e.full_name} {e.employee_code ? `(${e.employee_code})` : ''}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div>
             <Label>Priority</Label>
@@ -320,23 +392,49 @@ const ProjectForm = () => {
           </div>
         </div>
 
-        {/* Team Members */}
+        {/* Team Members - searchable multi-select */}
         <div>
           <Label>Team Members / Resources</Label>
-          <div className="mt-2 border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
-            {employees?.map(emp => (
-              <label key={emp.id} className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={teamMembers.includes(emp.id)}
-                  onCheckedChange={() => toggleTeamMember(emp.id)}
-                />
-                <span className="text-sm text-foreground">{emp.full_name}</span>
-              </label>
-            ))}
-            {(!employees || employees.length === 0) && (
-              <p className="text-sm text-muted-foreground">No active employees found</p>
-            )}
-          </div>
+          {/* Selected chips */}
+          {teamMembers.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2 mb-2">
+              {teamMembers.map(empId => {
+                const emp = employees?.find(e => e.id === empId);
+                return (
+                  <Badge key={empId} variant="secondary" className="gap-1 pr-1">
+                    {emp?.full_name || 'Unknown'}
+                    <button type="button" onClick={() => removeTeamMember(empId)} className="ml-1 rounded-full hover:bg-muted p-0.5">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+          <Popover open={teamOpen} onOpenChange={setTeamOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                Search and select team members…
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+              <Command shouldFilter={false}>
+                <CommandInput placeholder="Search by name or code…" value={teamSearch} onValueChange={setTeamSearch} />
+                <CommandList>
+                  <CommandEmpty>No employees found.</CommandEmpty>
+                  <CommandGroup>
+                    {filteredTeamEmployees.map(e => (
+                      <CommandItem key={e.id} value={e.id} onSelect={() => toggleTeamMember(e.id)}>
+                        <Check className={cn('mr-2 h-4 w-4', teamMembers.includes(e.id) ? 'opacity-100' : 'opacity-0')} />
+                        {e.full_name} {e.employee_code ? `(${e.employee_code})` : ''}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Notes */}
