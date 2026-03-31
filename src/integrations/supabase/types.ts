@@ -2112,6 +2112,7 @@ export type Database = {
         Returns: {
           avatar_url: string
           company_id: string
+          company_logo_url: string
           company_name: string
           company_slug: string
           department: string
