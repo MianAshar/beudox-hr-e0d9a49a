@@ -1,53 +1,47 @@
 <!--
 generated_by: tessera
-source_sha: 4b6c7840184af8d9333056cebf98c520375f0140
-generated_at: 2026-03-31T23:29:41.406Z
+source_sha: c1c40e15f1e1daac85f89e13ea51aa0cf458c7b2
+generated_at: 2026-03-31T23:42:39.951Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with tools to manage employees, attendance, payroll, projects, and more through an intuitive web interface.
+Beudox HR is a comprehensive Human Resources Management System built as a modern web application. It provides tools for managing employees, attendance, payroll, projects, clients, and various HR operations in a role-based, secure environment.
 
 ## Features
 
 ### Core HR Management
 - **Employee Management**: Add, edit, and view employee profiles with detailed information
 - **Attendance Tracking**: Monitor employee attendance and time tracking
-- **Leave Management**: Handle vacation requests, sick leave, and other time-off policies
-- **Public Holidays**: Manage and display company holiday schedules
-
-### Financial Management
-- **Payroll Processing**: Calculate and manage employee salaries and compensation
-- **Finance Sheet**: Track financial data and reports
-- **Loan Management**: Handle employee loan requests and repayments
-- **Office Expenses**: Track and categorize business expenses
-- **Outsourcing**: Manage external vendor relationships and contracts
+- **Leave Management**: Handle vacation, sick leave, and other time-off requests
+- **Payroll Processing**: Manage salary calculations and payroll operations
+- **Finance Management**: Track expenses, loans, and financial sheets
 
 ### Project & Client Management
-- **Project Tracking**: Create and manage projects with timelines and resources
-- **Client Management**: Maintain client relationships and project assignments
-- **Performance Evaluations**: Conduct employee performance reviews
-- **HR Policies**: Store and manage company policies and procedures
+- **Project Tracking**: Create and manage projects with detailed information
+- **Client Relations**: Maintain client database and relationships
+- **Evaluations**: Performance evaluation and review system
 
-### System Features
-- **Role-Based Access Control**: Secure access based on user roles and permissions
-- **Notifications**: Real-time alerts and system notifications
-- **Settings**: Configurable system preferences and user settings
+### Administrative Features
+- **Public Holidays**: Manage company-wide holiday schedules
+- **HR Policies**: Document and maintain HR policies
+- **Notifications**: System-wide notification management
+- **Settings**: Configure system preferences and settings
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
+- **UI Framework**: Radix UI components with Tailwind CSS
 - **Routing**: React Router DOM
+- **State Management**: React Query for server state
+- **Authentication**: Supabase Auth
+- **Database**: Supabase (PostgreSQL)
 - **Styling**: Tailwind CSS with custom design system
-- **UI Components**: Shadcn/ui (built on Radix UI primitives)
-- **State Management**: React Query for server state, React Context for auth
-- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **Forms**: React Hook Form with Zod validation
-- **Charts**: Recharts for data visualization
 - **Icons**: Lucide React
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
+- **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts
 
 ## Getting Started
 
@@ -55,6 +49,7 @@ A comprehensive Human Resources Management System built with modern web technolo
 
 - Node.js 18+
 - npm or bun package manager
+- Supabase account and project
 
 ### Installation
 
@@ -74,19 +69,15 @@ A comprehensive Human Resources Management System built with modern web technolo
 3. Set up environment variables:
    
    Copy `.env` and update the Supabase configuration:
-   ```bash
-   cp .env .env.local
+   ```env
+   VITE_SUPABASE_PROJECT_ID="your-project-id"
+   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
+   VITE_SUPABASE_URL="https://your-project.supabase.co"
    ```
-   
-   Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
 
 4. Start the development server:
    ```bash
    npm run dev
-   # or
-   bun run dev
    ```
 
 5. Open [http://localhost:5173](http://localhost:5173) in your browser.
@@ -97,14 +88,16 @@ A comprehensive Human Resources Management System built with modern web technolo
 npm run build
 ```
 
-### Run Tests
+### Testing
 
 ```bash
-# Unit tests
 npm run test
+```
 
-# E2E tests
-npx playwright test
+### Linting
+
+```bash
+npm run lint
 ```
 
 ## Project Structure
@@ -112,8 +105,8 @@ npx playwright test
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # Shadcn/ui components
-│   └── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
+│   ├── layout/         # Layout components (AppLayout, Sidebar, TopBar)
+│   └── ui/             # shadcn/ui components
 ├── pages/              # Page components and routes
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
@@ -123,20 +116,16 @@ src/
 
 ## Authentication & Authorization
 
-The application uses Supabase for authentication with role-based access control. User roles determine which features and pages are accessible. The system supports:
-
-- Employee login and password management
-- Invite-based user registration
-- Password reset functionality
-- Role-based route protection
+The application uses Supabase for authentication and implements role-based access control. Different user roles have varying levels of access to different sections of the application.
 
 ## Contributing
 
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure all tests pass before submitting PRs
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## License
 
-This project is private and proprietary to Beudox.
+This project is private and proprietary.
