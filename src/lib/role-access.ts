@@ -35,6 +35,7 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/loans',
     '/expenses',
     '/outsourcing',
+    '/hr-policies',
     '/notifications',
   ],
   team_lead: [
