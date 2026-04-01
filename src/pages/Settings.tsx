@@ -227,6 +227,9 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* Company Details */}
+      <CompanyDetailsSection />
     </div>
   );
 };
