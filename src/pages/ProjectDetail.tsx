@@ -44,7 +44,7 @@ const ProjectDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(full_name, avatar_url)')
+        .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, designation, avatar_url)')
         .eq('id', id!)
         .single();
       if (error) throw error;
