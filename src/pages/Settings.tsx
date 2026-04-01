@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Upload, Trash2, Loader2, ImageIcon } from 'lucide-react';
+import CompanyDetailsSection from '@/components/settings/CompanyDetailsSection';
 
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp'];
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
@@ -226,6 +227,9 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* Company Details */}
+      <CompanyDetailsSection />
     </div>
   );
 };
