@@ -1,46 +1,50 @@
 <!--
 generated_by: tessera
-source_sha: a15d5b2711d130e083ecc68f33f6a4aff150e0ec
-generated_at: 2026-04-01T10:21:10.741Z
+source_sha: 545dc3a8815d875f7cb23308b63e9db6fe152f3d
+generated_at: 2026-04-01T10:26:20.221Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A comprehensive Human Resources management application built with modern web technologies. This frontend application provides a complete HR solution for managing employees, projects, clients, attendance, payroll, and more.
+Beudox HR is a comprehensive Human Resources management system designed to streamline employee management, payroll, project tracking, and organizational operations. Built as a modern web application, it provides role-based access to various HR functions including employee profiles, attendance tracking, leave management, payroll processing, invoicing, and more.
 
 ## Features
 
-### Core HR Functionality
-- **Employee Management**: Add, edit, and view employee profiles with role-based access control
-- **Attendance Tracking**: Monitor employee attendance and public holidays
-- **Leave Management**: Handle employee leave requests and approvals
-- **Payroll Processing**: Manage salary calculations and financial records
-- **Project Management**: Create and track projects with client associations
-- **Client Management**: Maintain client relationships and project assignments
-- **Finance & Expenses**: Track office expenses and financial sheets
-- **HR Policies**: Store and manage company policies
-- **Notifications**: System-wide notification management
-- **Settings**: Configure application preferences
+### Core HR Management
+- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
+- **Attendance Tracking**: Monitor employee attendance and time tracking
+- **Leave Management**: Handle vacation, sick leave, and other time-off requests
+- **Payroll Processing**: Calculate and manage employee salaries and benefits
 
-### Technical Features
-- **Role-Based Access Control**: Different permission levels for various user roles
-- **Responsive Design**: Mobile-friendly interface using Tailwind CSS
-- **Real-time Data**: Powered by Supabase for real-time database operations
-- **Modern UI**: Built with shadcn/ui components for consistent design
-- **Type-Safe**: Full TypeScript implementation for reliability
+### Financial Management
+- **Invoicing System**: Create, send, and track invoices
+- **Expense Tracking**: Monitor office expenses and outsourcing costs
+- **Financial Reports**: Generate comprehensive financial sheets
+
+### Project & Client Management
+- **Project Tracking**: Manage projects, assign team members, and track progress
+- **Client Relations**: Maintain client information and project associations
+- **Evaluations**: Conduct employee performance evaluations
+
+### Administrative Features
+- **Public Holidays**: Configure and manage company holiday schedules
+- **HR Policies**: Store and access company policies and procedures
+- **Notifications**: System-wide notification management
+- **Settings**: Company-wide configuration and preferences
 
 ## Technology Stack
 
-- **Frontend Framework**: React 18 with TypeScript
+- **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
+- **Styling**: Tailwind CSS with shadcn/ui component library
 - **Routing**: React Router DOM
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **State Management**: React Query for server state, custom hooks for local state
-- **Forms**: React Hook Form with Zod validation
+- **State Management**: React Query for server state
+- **Authentication**: Supabase Auth
+- **Database**: Supabase (PostgreSQL)
 - **Icons**: Lucide React
-- **Charts**: Recharts for data visualization
+- **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts
 - **Testing**: Vitest with React Testing Library
 - **E2E Testing**: Playwright
 
@@ -48,8 +52,9 @@ A comprehensive Human Resources management application built with modern web tec
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn/bun
-- A Supabase project (for backend services)
+- Node.js (v18 or higher)
+- npm, yarn, or bun package manager
+- Supabase account and project
 
 ### Installation
 
@@ -68,10 +73,13 @@ A comprehensive Human Resources management application built with modern web tec
    bun install
    ```
 
-3. Create a `.env` file in the root directory with your Supabase credentials:
+3. Set up environment variables:
+   
+   Copy `.env` and configure your Supabase credentials:
    ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+   VITE_SUPABASE_URL=https://your-project.supabase.co
    ```
 
 4. Start the development server:
@@ -87,17 +95,9 @@ A comprehensive Human Resources management application built with modern web tec
 npm run build
 ```
 
-### Run Tests
-
+Preview the production build:
 ```bash
-npm run test
-```
-
-### Run E2E Tests
-
-```bash
-npx playwright install
-npx playwright test
+npm run preview
 ```
 
 ## Project Structure
@@ -105,33 +105,37 @@ npx playwright test
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
 │   ├── ui/             # shadcn/ui components
-│   └── ...             # Custom components
-├── pages/              # Page components for routing
+│   └── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
+├── pages/              # Page components and routes
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations (Supabase)
-├── test/               # Test files
-└── ...
+└── test/               # Test files
 ```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests once
+- `npm run test:watch` - Run tests in watch mode
 
 ## Authentication & Authorization
 
-The application uses Supabase Authentication for user management. Role-based access control is implemented through:
-
-- **Authentication**: Email/password login with password reset functionality
-- **Authorization**: Role-based permissions checked on route access
-- **Session Management**: Automatic session handling with protected routes
+The application uses Supabase for authentication with role-based access control. Different user roles have varying levels of access to different sections of the application.
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## License
 
-This project is private and proprietary.
+This project is private and proprietary to Beudox.
