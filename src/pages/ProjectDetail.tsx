@@ -32,6 +32,7 @@ const ProjectDetail = () => {
   const { employee } = useAuth();
   const qc = useQueryClient();
   const role = employee?.role_name;
+  const companyId = employee?.company_id;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const isCeo = role === 'ceo';
 
@@ -40,17 +41,18 @@ const ProjectDetail = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const { data: project, isLoading } = useQuery({
-    queryKey: ['project-detail', id],
+    queryKey: ['project-detail', id, companyId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
         .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, designation, avatar_url)')
         .eq('id', id!)
+        .eq('company_id', companyId!)
         .single();
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && !!companyId,
   });
 
   const { data: teamMembers } = useQuery({
