@@ -1,6 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.100.1';
 import { PDFDocument, rgb, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1';
-import { corsHeaders } from 'https://esm.sh/@supabase/supabase-js@2.100.1/cors';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -62,7 +66,33 @@ Deno.serve(async (req) => {
     const mutedColor = rgb(0.45, 0.45, 0.45);
     const primaryColor = rgb(0.357, 0.247, 0.973); // #5B3FF8
 
-    // Company name
+    // Company logo + name
+    let logoDrawn = false;
+    if (company?.logo_url) {
+      try {
+        const logoRes = await fetch(company.logo_url);
+        if (logoRes.ok) {
+          const logoBytes = new Uint8Array(await logoRes.arrayBuffer());
+          const contentType = logoRes.headers.get('content-type') || '';
+          let logoImage;
+          if (contentType.includes('png') || company.logo_url.toLowerCase().includes('.png')) {
+            logoImage = await pdfDoc.embedPng(logoBytes);
+          } else {
+            logoImage = await pdfDoc.embedJpg(logoBytes);
+          }
+          const maxH = 40;
+          const scale = maxH / logoImage.height;
+          const logoW = logoImage.width * scale;
+          const logoH = maxH;
+          page.drawImage(logoImage, { x: margin, y: y - logoH + 10, width: logoW, height: logoH });
+          y -= logoH + 5;
+          logoDrawn = true;
+        }
+      } catch {
+        // skip logo on error
+      }
+    }
+
     if (company) {
       page.drawText(company.name || '', {
         x: margin,
