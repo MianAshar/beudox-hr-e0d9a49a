@@ -61,7 +61,8 @@ const ProjectDetail = () => {
         .select(`
           id,
           is_active,
-          employees (
+          removed_at,
+          employees!project_assignments_employee_id_fkey (
             id,
             full_name,
             designation,
