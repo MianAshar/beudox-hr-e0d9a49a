@@ -250,8 +250,17 @@ export type Database = {
       }
       companies: {
         Row: {
+          address: string | null
+          bank_account_number: string | null
+          bank_account_title: string | null
+          bank_iban: string | null
+          bank_name: string | null
+          bank_swift: string | null
+          city: string | null
+          country: string | null
           created_at: string | null
           id: string
+          invoice_prefix: string | null
           logo_url: string | null
           name: string
           owner_email: string
@@ -261,8 +270,17 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
+          bank_account_number?: string | null
+          bank_account_title?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           id?: string
+          invoice_prefix?: string | null
           logo_url?: string | null
           name: string
           owner_email: string
@@ -272,8 +290,17 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
+          bank_account_number?: string | null
+          bank_account_title?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           id?: string
+          invoice_prefix?: string | null
           logo_url?: string | null
           name?: string
           owner_email?: string
