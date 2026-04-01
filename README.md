@@ -1,36 +1,35 @@
 <!--
 generated_by: tessera
-source_sha: 9a1513f1c87df3ca8c3c9695c610b3763d06f627
-generated_at: 2026-04-01T09:31:20.264Z
+source_sha: 57916dea765f7842719cc653be4eca1e09745835
+generated_at: 2026-04-01T09:45:14.978Z
 action: update
 -->
 
 # Beudox HR
 
-Beudox HR is a comprehensive Human Resources management application built for modern businesses. It provides tools for employee management, project tracking, client relationships, and organizational administration.
+Beudox HR is a comprehensive Human Resources management system built as a modern React application. It provides tools for managing employees, projects, clients, attendance, payroll, and other HR functions in a user-friendly web interface.
 
 ## Features
 
-- **Employee Management**: Complete employee lifecycle management including profiles, onboarding, and role-based access control
-- **Project Management**: Track projects, assign team members, and monitor progress
-- **Client Management**: Maintain client relationships and project associations
-- **Public Holidays**: Manage organizational holiday schedules
-- **Dashboard**: Centralized overview of key metrics and activities
-- **Settings**: System configuration and user preferences
+- **Employee Management**: Add, edit, and view employee profiles
+- **Project Management**: Create and manage projects with client associations
+- **Client Management**: Maintain client information and relationships
+- **Attendance Tracking**: Monitor employee attendance and public holidays
+- **Payroll Management**: Handle salary and financial operations
+- **Role-Based Access Control**: Secure access based on user roles
+- **Responsive Design**: Works seamlessly across desktop and mobile devices
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Routing**: React Router DOM
-- **UI Components**: shadcn/ui (Radix UI primitives)
+- **UI Components**: shadcn/ui (built on Radix UI)
 - **Styling**: Tailwind CSS
-- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
-- **State Management**: TanStack Query (React Query)
+- **Backend**: Supabase (PostgreSQL database + Auth)
+- **State Management**: TanStack Query for server state
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
-- **Testing**: Vitest with React Testing Library
-- **E2E Testing**: Playwright
 
 ## Getting Started
 
@@ -55,32 +54,28 @@ Beudox HR is a comprehensive Human Resources management application built for mo
    ```
 
 3. Set up environment variables:
-   Copy `.env` and configure your Supabase credentials:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+   Copy `.env` and update the Supabase configuration with your project credentials.
 
 4. Start the development server:
    ```bash
    npm run dev
+   # or
+   bun run dev
    ```
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
+5. Open [http://localhost:8080](http://localhost:8080) in your browser.
 
-### Available Scripts
+### Build for Production
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
+```bash
+npm run build
+```
+
+### Run Tests
+
+```bash
+npm run test
+```
 
 ## Project Structure
 
@@ -90,23 +85,23 @@ src/
 │   ├── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
 │   └── ui/             # shadcn/ui components
 ├── hooks/              # Custom React hooks
-├── integrations/       # External service integrations (Supabase)
 ├── lib/                # Utility functions and configurations
-├── pages/              # Page components and routing
+├── pages/              # Page components
+├── integrations/       # External service integrations (Supabase)
 └── test/               # Test files
 ```
 
-## Authentication & Authorization
+## Authentication
 
-The application uses Supabase for authentication and implements role-based access control. User roles determine access to different sections of the application through the `canAccess` utility function.
+The application uses Supabase Auth for user authentication. Users can log in with email and password, and access is controlled based on their assigned roles.
 
 ## Contributing
 
 1. Follow the existing code style and conventions
 2. Write tests for new features
-3. Ensure all tests pass before submitting PRs
+3. Ensure all tests pass before submitting
 4. Update documentation as needed
 
 ## License
 
-This project is private and proprietary.
+This project is private and proprietary to Beudox.

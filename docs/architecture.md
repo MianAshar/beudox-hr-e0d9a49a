@@ -1,220 +1,144 @@
 <!--
 generated_by: tessera
-source_sha: 49efd5789a2fd043e8337de3e55431c26077ebfc
-generated_at: 2026-04-01T00:00:22.117Z
+source_sha: 57916dea765f7842719cc653be4eca1e09745835
+generated_at: 2026-04-01T09:45:14.979Z
 action: create
 -->
 
-# Beudox HR Frontend Architecture
+# Beudox HR - Architecture Documentation
 
-## Application Structure
+## Application Architecture
 
-Beudox HR follows a modern React application architecture with clear separation of concerns and modular component design.
+Beudox HR is built as a single-page application (SPA) using React with a component-based architecture. The application follows modern React patterns with hooks, context, and functional components.
 
-### Directory Structure
+## Technology Stack
 
-```
-src/
-├── components/          # Reusable UI components
-│   ├── layout/         # Application layout components
-│   └── ui/             # shadcn/ui component library
-├── pages/              # Route-based page components
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations
-├── test/               # Test files and utilities
-└── main.tsx            # Application entry point
-```
+### Frontend Framework
+- **React 18**: Latest React with concurrent features
+- **TypeScript**: Type-safe development
+- **Vite**: Fast build tool with HMR
 
-## Routing Architecture
+### UI & Styling
+- **shadcn/ui**: Component library built on Radix UI
+- **Tailwind CSS**: Utility-first CSS framework
+- **Custom Design System**: Beudox brand colors and typography
 
-### Route Configuration
+### State Management
+- **TanStack Query**: Server state management
+- **React Context**: Global auth state
+- **React Hook Form**: Form state management
 
-The application uses React Router DOM with a hierarchical routing structure:
-
-```typescript
-// Main routes defined in src/App.tsx
-- / (Root redirect)
-- /login (Authentication)
-- /forgot-password (Password recovery)
-- /dashboard (Main dashboard)
-├── /employees (Employee management)
-│   ├── /new (Create employee)
-│   ├── /:id (Employee profile)
-│   └── /:id/edit (Edit employee)
-├── /holidays (Public holidays)
-├── /projects (Project management)
-│   ├── /new (Create project)
-│   ├── /:id (Project details)
-│   └── /:id/edit (Edit project)
-├── /clients (Client management)
-│   └── /:id (Client details)
-├── /settings (Application settings)
-└── * (404 Not Found)
-```
-
-### Protected Routes
-
-All business routes are wrapped in `ProtectedRoute` component that handles:
-- Authentication checking
-- Role-based access control
-- Password reset interception
-- Loading states
-
-### Navigation System
-
-The sidebar navigation is organized into logical sections:
-
-- **MAIN**: Core application features
-- **PEOPLE**: Employee and HR-related functions
-- **FINANCE**: Financial management and reporting
-- **WORK**: Project and client management
-- **SYSTEM**: Administrative functions
+### Backend & Data
+- **Supabase**: PostgreSQL database + Auth + Edge Functions
+- **Zod**: Schema validation
 
 ## Component Architecture
 
-### Layout Components
+### Layout System
+```
+AppLayout
+├── AppSidebar (collapsible navigation)
+├── TopBar (page headers)
+└── Main Content Area
+```
 
-#### AppLayout
-- Main application wrapper
-- Manages sidebar and main content layout
-- Responsive design with collapsible sidebar
-- Consistent spacing and styling
+### Component Hierarchy
+- **Pages**: Route-level components (Dashboard, Employees, etc.)
+- **Layout Components**: App structure (AppLayout, AppSidebar, TopBar)
+- **UI Components**: Reusable elements (Button, Input, Card, etc.)
+- **Feature Components**: Domain-specific components
 
-#### AppSidebar
-- Collapsible navigation sidebar
-- Role-based menu item visibility
-- Company logo integration
-- User information display
+## Routing Architecture
 
-#### TopBar
-- Page title display
-- Dynamic titles based on current route
-- Consistent header styling
+### Route Structure
+- **Public Routes**: `/login`, `/forgot-password`
+- **Protected Routes**: All app routes wrapped in `ProtectedRoute`
+- **Role-Based Access**: Routes filtered by user permissions
 
-### UI Component Library
+### Route Protection
+```typescript
+// ProtectedRoute component checks:
+1. Authentication status
+2. User role permissions
+3. Loading states
+4. Password reset flows
+```
 
-The application uses shadcn/ui, a comprehensive component library built on Radix UI primitives:
+## Data Flow
 
-- **Form Components**: Input, Select, Checkbox, Radio, etc.
-- **Layout Components**: Card, Sheet, Dialog, Drawer
-- **Data Display**: Table, Chart, Badge, Avatar
-- **Feedback**: Toast, Alert, Progress, Skeleton
-- **Navigation**: Tabs, Breadcrumb, Pagination
-- **Overlay**: Tooltip, Popover, Dropdown Menu
+### Authentication Flow
+1. User submits credentials
+2. Supabase validates and returns session
+3. Auth context fetches employee data
+4. User data cached in context
+5. Routes and components access via hooks
 
-### Core Components
-
-#### BeudoxLogo
-- Flexible logo component with variants
-- Supports different sizes and display modes
-- Company logo integration
-
-#### NavLink
-- Enhanced React Router NavLink
-- Active state styling
-- Customizable class names
+### Data Fetching
+- **TanStack Query**: Caching, background updates, optimistic updates
+- **Supabase Client**: Direct database queries
+- **Edge Functions**: Server-side business logic
 
 ## State Management
 
 ### Global State
-- **Authentication**: AuthProvider context for user session and profile
-- **UI State**: Local component state for UI interactions
-- **Server State**: TanStack React Query for API data caching
+- **Auth Context**: User session, employee data, permissions
+- **Query Client**: Server state with caching
 
-### Data Fetching
-- React Query for declarative data fetching
-- Automatic caching and background updates
-- Error handling and loading states
-- Optimistic updates for better UX
+### Local State
+- **Component State**: UI interactions, form data
+- **URL State**: Route parameters and query strings
 
-## Authentication & Authorization
+## Security Architecture
 
-### Authentication Flow
-1. User authentication via Supabase Auth
-2. Session management with automatic refresh
-3. Password reset and invitation handling
-4. Protected route access control
+### Authentication
+- **Supabase Auth**: JWT-based authentication
+- **Session Management**: Automatic token refresh
+- **Password Reset**: Secure reset flows
 
-### Role-Based Access Control
-- Permission checking via `canAccess` utility
-- Route-level protection
-- Menu item visibility based on roles
-- Database-level security with RLS policies
+### Authorization
+- **Role-Based Access**: Permission checks at route and component levels
+- **Row Level Security**: Database-level access control
+- **API Security**: Authenticated requests only
 
-## Styling System
+## Performance Considerations
 
-### Design System
-- **Tailwind CSS**: Utility-first styling
-- **CSS Variables**: Theme customization
-- **Responsive Design**: Mobile-first approach
-- **Dark Mode Support**: Theme switching capability
+### Build Optimization
+- **Vite**: Fast development and optimized production builds
+- **SWC**: Fast TypeScript compilation
+- **Tree Shaking**: Unused code elimination
 
-### Theme Configuration
-- Custom color palette
-- Typography scale
-- Spacing and sizing system
-- Component-specific styling
+### Runtime Performance
+- **React 18**: Concurrent rendering features
+- **Query Caching**: Reduced API calls
+- **Lazy Loading**: Code splitting opportunities
 
 ## Development Architecture
 
-### Build System
-- **Vite**: Fast development server and optimized builds
-- **TypeScript**: Type safety and better DX
-- **ESLint**: Code quality enforcement
-- **PostCSS**: CSS processing and optimization
-
-### Testing Strategy
-- **Unit Tests**: Vitest for component and utility testing
-- **Integration Tests**: Component interaction testing
-- **E2E Tests**: Playwright for full user workflow testing
-- **Test Utilities**: React Testing Library for component testing
+### Project Structure
+```
+src/
+├── components/     # Reusable components
+├── hooks/         # Custom hooks
+├── lib/           # Utilities
+├── pages/         # Route components
+├── integrations/  # External services
+└── test/          # Test files
+```
 
 ### Code Organization
-- **Feature-based**: Components grouped by functionality
-- **Utility Functions**: Shared logic in lib directory
-- **Type Definitions**: Centralized type definitions
-- **Constants**: Configuration and constants
-
-## Performance Optimizations
-
-### Build Optimizations
-- Code splitting with Vite
-- Tree shaking for unused code
-- Asset optimization and compression
-- Service worker for caching (future)
-
-### Runtime Performance
-- React Query caching
-- Lazy loading for routes
-- Image optimization
-- Bundle analysis and monitoring
-
-## Integration Architecture
-
-### Supabase Integration
-- **Authentication**: User management and sessions
-- **Database**: PostgreSQL with real-time capabilities
-- **Edge Functions**: Serverless functions for complex operations
-- **Storage**: File uploads and asset management
-
-### External APIs
-- **Charts**: Recharts for data visualization
-- **Forms**: React Hook Form for form management
-- **Validation**: Zod for schema validation
-- **Icons**: Lucide React for consistent iconography
+- **Feature-based**: Components grouped by domain
+- **Shared Components**: Common UI elements
+- **Utilities**: Pure functions and helpers
+- **Integrations**: External service configurations
 
 ## Deployment Architecture
 
 ### Build Process
-1. Type checking and linting
-2. Test execution
-3. Production build generation
-4. Asset optimization
-5. Deployment to hosting platform
+- **Static Generation**: Vite produces static assets
+- **Environment Config**: Supabase keys via environment variables
+- **CDN Ready**: Optimized bundles for global distribution
 
-### Environment Configuration
-- Development, staging, and production environments
-- Environment-specific Supabase configurations
-- Build-time variable injection
-- Secure credential management
+### Backend Dependencies
+- **Supabase Project**: Required for database and auth
+- **Edge Functions**: Deployed serverless functions
+- **Database Migrations**: Version-controlled schema changes
