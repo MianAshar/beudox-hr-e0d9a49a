@@ -395,30 +395,14 @@ const ProjectForm = () => {
         {/* Team Members - searchable multi-select */}
         <div>
           <Label>Team Members / Resources</Label>
-          {/* Selected chips */}
-          {teamMembers.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2 mb-2">
-              {teamMembers.map(empId => {
-                const emp = employees?.find(e => e.id === empId);
-                return (
-                  <Badge key={empId} variant="secondary" className="gap-1 pr-1">
-                    {emp?.full_name || 'Unknown'}
-                    <button type="button" onClick={() => removeTeamMember(empId)} className="ml-1 rounded-full hover:bg-muted p-0.5">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                );
-              })}
-            </div>
-          )}
           <Popover open={teamOpen} onOpenChange={setTeamOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+              <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-2">
                 Search and select team members…
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom" avoidCollisions={false}>
               <Command shouldFilter={false}>
                 <CommandInput placeholder="Search by name or code…" value={teamSearch} onValueChange={setTeamSearch} />
                 <CommandList>
@@ -435,6 +419,34 @@ const ProjectForm = () => {
               </Command>
             </PopoverContent>
           </Popover>
+          {/* Selected members list */}
+          {teamMembers.length > 0 && (
+            <div className="mt-3 space-y-1.5">
+              {teamMembers.map(empId => {
+                const emp = employees?.find(e => e.id === empId);
+                const name = emp?.full_name || 'Unknown';
+                const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                return (
+                  <div key={empId} className="flex items-center justify-between rounded-md border bg-muted/50 px-3 py-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                        {initials}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{name}</p>
+                        {emp?.employee_code && (
+                          <p className="text-xs text-muted-foreground">{emp.employee_code}</p>
+                        )}
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => removeTeamMember(empId)} className="rounded-full p-1 hover:bg-muted">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Notes */}

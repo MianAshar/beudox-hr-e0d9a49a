@@ -191,10 +191,12 @@ const ProjectDetail = () => {
             <Calendar className="h-4 w-4" /> Deadlines
           </h2>
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Client Deadline</span>
-              <span className="text-foreground">{project.client_deadline || '—'}</span>
-            </div>
+            {isManager && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Client Deadline</span>
+                <span className="text-foreground">{project.client_deadline || '—'}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Internal Deadline</span>
               <span className="text-foreground">{project.internal_deadline || '—'}</span>
