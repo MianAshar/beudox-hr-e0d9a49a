@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Download, Send, CreditCard, Pencil, Ban, Loader2, FileText,
+  ArrowLeft, Send, CreditCard, Pencil, Ban, Loader2, FileText, Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -52,6 +52,7 @@ const InvoiceDetail = () => {
   const [sendOpen, setSendOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   // Send form
   const [sendTo, setSendTo] = useState('');
@@ -65,7 +66,7 @@ const InvoiceDetail = () => {
   const [payRef, setPayRef] = useState('');
   const [payNotes, setPayNotes] = useState('');
 
-  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [viewingPdf, setViewingPdf] = useState(false);
 
   const { data: invoice, isLoading } = useQuery({
     queryKey: ['invoice-detail', id, companyId],
@@ -128,20 +129,29 @@ const InvoiceDetail = () => {
 
   const client = invoice?.clients as any;
 
-  // Generate PDF
-  const handleGeneratePdf = async () => {
-    setGeneratingPdf(true);
+  // View PDF — generate if needed, then open
+  const handleViewPdf = async () => {
+    if (invoice?.pdf_url) {
+      window.open(invoice.pdf_url, '_blank');
+      return;
+    }
+    setViewingPdf(true);
     try {
-      const { error } = await supabase.functions.invoke('generate-invoice-pdf', {
+      const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
         body: { invoice_id: id },
       });
       if (error) throw error;
-      toast.success('PDF generated');
-      qc.invalidateQueries({ queryKey: ['invoice-detail'] });
+      const url = data?.pdf_url;
+      if (url) {
+        window.open(url, '_blank');
+        qc.invalidateQueries({ queryKey: ['invoice-detail'] });
+      } else {
+        toast.error('No PDF URL returned');
+      }
     } catch (err: any) {
       toast.error(err.message || 'PDF generation failed');
     } finally {
-      setGeneratingPdf(false);
+      setViewingPdf(false);
     }
   };
 
@@ -231,6 +241,41 @@ const InvoiceDetail = () => {
     onError: (err: Error) => toast.error(err.message || 'Failed to cancel'),
   });
 
+  // Delete invoice
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      // Delete line items first
+      const { error: liError } = await supabase
+        .from('invoice_line_items')
+        .delete()
+        .eq('invoice_id', id!)
+        .eq('company_id', companyId!);
+      if (liError) throw liError;
+
+      // Delete payments
+      const { error: payError } = await supabase
+        .from('invoice_payments')
+        .delete()
+        .eq('invoice_id', id!)
+        .eq('company_id', companyId!);
+      if (payError) throw payError;
+
+      // Delete invoice
+      const { error: invError } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', id!)
+        .eq('company_id', companyId!);
+      if (invError) throw invError;
+    },
+    onSuccess: () => {
+      toast.success('Invoice deleted');
+      qc.invalidateQueries({ queryKey: ['invoices'] });
+      navigate('/invoices');
+    },
+    onError: (err: Error) => toast.error(err.message || 'Failed to delete invoice'),
+  });
+
   const openSendModal = () => {
     setSendTo(client?.contact_email || '');
     setSendSubject(invoice?.title || '');
@@ -260,27 +305,27 @@ const InvoiceDetail = () => {
   return (
     <div className="p-6 max-w-5xl space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/invoices')}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4 min-w-0">
+          <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" onClick={() => navigate('/invoices')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+              <h1 className="text-2xl font-semibold text-foreground whitespace-nowrap" style={{ fontFamily: 'var(--ff-display)' }}>
                 {invoice.invoice_number}
               </h1>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[invoice.status] || ''}`}>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 ${statusStyles[invoice.status] || ''}`}>
                 {statusLabel[invoice.status] || invoice.status}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5" style={{ fontFamily: 'var(--ff-body)' }}>
+            <p className="text-sm text-muted-foreground mt-0.5 truncate" style={{ fontFamily: 'var(--ff-body)' }}>
               {client?.name} · {invoice.title}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {invoice.status === 'draft' && (
             <Button variant="outline" size="sm" onClick={() => navigate(`/invoices/${id}/edit`)}>
               <Pencil className="h-4 w-4 mr-1.5" /> Edit
@@ -289,19 +334,12 @@ const InvoiceDetail = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleGeneratePdf}
-            disabled={generatingPdf}
+            onClick={handleViewPdf}
+            disabled={viewingPdf}
           >
-            {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <FileText className="h-4 w-4 mr-1.5" />}
-            Generate PDF
+            {viewingPdf ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <FileText className="h-4 w-4 mr-1.5" />}
+            View PDF
           </Button>
-          {invoice.pdf_url && (
-            <Button variant="outline" size="sm" asChild>
-              <a href={invoice.pdf_url} target="_blank" rel="noopener noreferrer">
-                <Download className="h-4 w-4 mr-1.5" /> Download PDF
-              </a>
-            </Button>
-          )}
           {invoice.status !== 'cancelled' && (
             <Button variant="outline" size="sm" onClick={openSendModal}>
               <Send className="h-4 w-4 mr-1.5" /> Send
@@ -317,6 +355,11 @@ const InvoiceDetail = () => {
               <Ban className="h-4 w-4 mr-1.5" /> Cancel
             </Button>
           )}
+          {isCeo && (
+            <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -324,6 +367,9 @@ const InvoiceDetail = () => {
       <div className="grid grid-cols-2 gap-6">
         <div className="rounded-[14px] border p-5 bg-card" style={{ borderColor: 'hsl(var(--border))' }}>
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">From</h3>
+          {company?.logo_url && (
+            <img src={company.logo_url} alt={company.name} className="max-h-[60px] w-auto mb-3" />
+          )}
           <p className="font-semibold text-foreground">{company?.name}</p>
           {company?.address && <p className="text-sm text-muted-foreground">{company.address}</p>}
           {(company?.city || company?.country) && (
@@ -572,6 +618,24 @@ const InvoiceDetail = () => {
             <Button variant="outline" onClick={() => setCancelOpen(false)}>Keep Invoice</Button>
             <Button variant="destructive" onClick={() => cancelMutation.mutate()} disabled={cancelMutation.isPending}>
               {cancelMutation.isPending ? 'Cancelling…' : 'Cancel Invoice'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Invoice</DialogTitle>
+            <DialogDescription>
+              Delete invoice {invoice.invoice_number}? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Deleting…' : 'Delete Invoice'}
             </Button>
           </DialogFooter>
         </DialogContent>
