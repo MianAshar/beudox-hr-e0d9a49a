@@ -177,7 +177,7 @@ const ProjectDetail = () => {
               <span className="text-muted-foreground">Project Lead</span>
               <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
             </div>
-            {project.fee != null && project.fee > 0 && (
+            {isManager && project.fee != null && project.fee > 0 && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Fee</span>
                 <span className="text-foreground font-medium">{Number(project.fee).toLocaleString()}</span>
