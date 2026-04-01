@@ -22,6 +22,9 @@ import ClientDetail from "./pages/ClientDetail";
 import Invoices from "./pages/Invoices";
 import InvoiceForm from "./pages/InvoiceForm";
 import InvoiceDetail from "./pages/InvoiceDetail";
+import HrPolicies from "./pages/HrPolicies";
+import HrPolicyDetail from "./pages/HrPolicyDetail";
+import HrPolicyForm from "./pages/HrPolicyForm";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -101,6 +104,10 @@ const App = () => (
             <Route path="/invoices/new" element={<ProtectedRoute><InvoiceForm /></ProtectedRoute>} />
             <Route path="/invoices/:id" element={<ProtectedRoute><InvoiceDetail /></ProtectedRoute>} />
             <Route path="/invoices/:id/edit" element={<ProtectedRoute><InvoiceForm /></ProtectedRoute>} />
+            <Route path="/hr-policies" element={<ProtectedRoute><HrPolicies /></ProtectedRoute>} />
+            <Route path="/hr-policies/new" element={<ProtectedRoute><HrPolicyForm /></ProtectedRoute>} />
+            <Route path="/hr-policies/:id" element={<ProtectedRoute><HrPolicyDetail /></ProtectedRoute>} />
+            <Route path="/hr-policies/:id/edit" element={<ProtectedRoute><HrPolicyForm /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
