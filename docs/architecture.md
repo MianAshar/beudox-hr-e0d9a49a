@@ -1,117 +1,220 @@
 <!--
 generated_by: tessera
-source_sha: 31af184409d257b5e5f8f357cba10d70c2c9aea4
-generated_at: 2026-03-31T22:53:44.573Z
+source_sha: 49efd5789a2fd043e8337de3e55431c26077ebfc
+generated_at: 2026-04-01T00:00:22.117Z
 action: create
 -->
 
-# Architecture Documentation
+# Beudox HR Frontend Architecture
 
-## Routing Structure
+## Application Structure
 
-The application uses React Router DOM for client-side routing with the following structure:
+Beudox HR follows a modern React application architecture with clear separation of concerns and modular component design.
 
-### Public Routes
-- `/` - Root redirect (authenticated → dashboard, unauthenticated → login)
-- `/login` - User authentication
-- `/forgot-password` - Password recovery
+### Directory Structure
 
-### Protected Routes (Require Authentication)
-- `/dashboard` - Main dashboard view
-- `/employees` - Employee list view
-- `/employees/new` - Add new employee form
-- `/employees/:id` - Employee profile view
-- `/employees/:id/edit` - Edit employee form
-- `/holidays` - Public holidays management
-- `/settings` - Application settings
+```
+src/
+├── components/          # Reusable UI components
+│   ├── layout/         # Application layout components
+│   └── ui/             # shadcn/ui component library
+├── pages/              # Route-based page components
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations
+├── test/               # Test files and utilities
+└── main.tsx            # Application entry point
+```
 
-All protected routes are wrapped in `AppLayout` component and include role-based access control.
+## Routing Architecture
 
-## Core Components
+### Route Configuration
+
+The application uses React Router DOM with a hierarchical routing structure:
+
+```typescript
+// Main routes defined in src/App.tsx
+- / (Root redirect)
+- /login (Authentication)
+- /forgot-password (Password recovery)
+- /dashboard (Main dashboard)
+├── /employees (Employee management)
+│   ├── /new (Create employee)
+│   ├── /:id (Employee profile)
+│   └── /:id/edit (Edit employee)
+├── /holidays (Public holidays)
+├── /projects (Project management)
+│   ├── /new (Create project)
+│   ├── /:id (Project details)
+│   └── /:id/edit (Edit project)
+├── /clients (Client management)
+│   └── /:id (Client details)
+├── /settings (Application settings)
+└── * (404 Not Found)
+```
+
+### Protected Routes
+
+All business routes are wrapped in `ProtectedRoute` component that handles:
+- Authentication checking
+- Role-based access control
+- Password reset interception
+- Loading states
+
+### Navigation System
+
+The sidebar navigation is organized into logical sections:
+
+- **MAIN**: Core application features
+- **PEOPLE**: Employee and HR-related functions
+- **FINANCE**: Financial management and reporting
+- **WORK**: Project and client management
+- **SYSTEM**: Administrative functions
+
+## Component Architecture
 
 ### Layout Components
 
 #### AppLayout
 - Main application wrapper
-- Provides consistent layout structure
-- Includes sidebar and main content area
-- Responsive design with mobile considerations
+- Manages sidebar and main content layout
+- Responsive design with collapsible sidebar
+- Consistent spacing and styling
 
 #### AppSidebar
 - Collapsible navigation sidebar
-- Role-based menu visibility
-- Organized into sections: MAIN, PEOPLE, FINANCE, WORK, SYSTEM
-- Company logo display with fallback to Beudox branding
-- User information and sign-out functionality
+- Role-based menu item visibility
+- Company logo integration
+- User information display
 
 #### TopBar
-- Application header
-- Dynamic page titles based on current route
-- Consistent styling with design system
+- Page title display
+- Dynamic titles based on current route
+- Consistent header styling
 
-### UI Components
+### UI Component Library
 
-The application uses shadcn/ui component library built on Radix UI primitives:
+The application uses shadcn/ui, a comprehensive component library built on Radix UI primitives:
 
-- Form components (Input, Select, Checkbox, etc.)
-- Layout components (Card, Sheet, Dialog, etc.)
-- Navigation components (Tabs, Accordion, etc.)
-- Feedback components (Toast, Alert, Progress, etc.)
-- Data display (Table, Chart, etc.)
+- **Form Components**: Input, Select, Checkbox, Radio, etc.
+- **Layout Components**: Card, Sheet, Dialog, Drawer
+- **Data Display**: Table, Chart, Badge, Avatar
+- **Feedback**: Toast, Alert, Progress, Skeleton
+- **Navigation**: Tabs, Breadcrumb, Pagination
+- **Overlay**: Tooltip, Popover, Dropdown Menu
 
-### Custom Components
+### Core Components
 
 #### BeudoxLogo
-- Displays company or Beudox branding
-- Supports different variants (default, sidebar)
-- Configurable size and wordmark visibility
+- Flexible logo component with variants
+- Supports different sizes and display modes
+- Company logo integration
 
 #### NavLink
 - Enhanced React Router NavLink
 - Active state styling
-- Supports custom class names for different states
+- Customizable class names
 
 ## State Management
 
-### Authentication State
-- Managed through `useAuth` custom hook
-- Integrates with Supabase authentication
-- Handles loading states and password reset flows
-- Provides employee data and role information
+### Global State
+- **Authentication**: AuthProvider context for user session and profile
+- **UI State**: Local component state for UI interactions
+- **Server State**: TanStack React Query for API data caching
 
-### Server State
-- TanStack Query for data fetching and caching
+### Data Fetching
+- React Query for declarative data fetching
+- Automatic caching and background updates
+- Error handling and loading states
 - Optimistic updates for better UX
-- Background refetching and cache invalidation
-- Error handling and retry logic
 
-## Role-Based Access Control
+## Authentication & Authorization
 
-Access to features is controlled by user roles:
-- Routes are protected at the component level
-- Sidebar menu items are conditionally rendered
-- `canAccess()` utility function checks permissions
-- Unauthorized access redirects to dashboard
+### Authentication Flow
+1. User authentication via Supabase Auth
+2. Session management with automatic refresh
+3. Password reset and invitation handling
+4. Protected route access control
 
-## Data Flow
+### Role-Based Access Control
+- Permission checking via `canAccess` utility
+- Route-level protection
+- Menu item visibility based on roles
+- Database-level security with RLS policies
 
-1. **Authentication**: Supabase handles user login/logout
-2. **Data Fetching**: Components use TanStack Query hooks
-3. **Mutations**: Update operations via Supabase client
-4. **Real-time Updates**: Supabase subscriptions for live data
-5. **Caching**: Query results cached for performance
-6. **Error Handling**: User-friendly error messages and fallbacks
+## Styling System
 
-## Configuration
+### Design System
+- **Tailwind CSS**: Utility-first styling
+- **CSS Variables**: Theme customization
+- **Responsive Design**: Mobile-first approach
+- **Dark Mode Support**: Theme switching capability
 
-### Environment Variables
-- `VITE_SUPABASE_PROJECT_ID`: Supabase project identifier
-- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public API key
-- `VITE_SUPABASE_URL`: Supabase project URL
+### Theme Configuration
+- Custom color palette
+- Typography scale
+- Spacing and sizing system
+- Component-specific styling
 
-### Build Configuration
-- Vite for fast development and optimized builds
-- TypeScript for type checking
-- ESLint for code quality
-- Tailwind CSS for styling
-- PostCSS for CSS processing
+## Development Architecture
+
+### Build System
+- **Vite**: Fast development server and optimized builds
+- **TypeScript**: Type safety and better DX
+- **ESLint**: Code quality enforcement
+- **PostCSS**: CSS processing and optimization
+
+### Testing Strategy
+- **Unit Tests**: Vitest for component and utility testing
+- **Integration Tests**: Component interaction testing
+- **E2E Tests**: Playwright for full user workflow testing
+- **Test Utilities**: React Testing Library for component testing
+
+### Code Organization
+- **Feature-based**: Components grouped by functionality
+- **Utility Functions**: Shared logic in lib directory
+- **Type Definitions**: Centralized type definitions
+- **Constants**: Configuration and constants
+
+## Performance Optimizations
+
+### Build Optimizations
+- Code splitting with Vite
+- Tree shaking for unused code
+- Asset optimization and compression
+- Service worker for caching (future)
+
+### Runtime Performance
+- React Query caching
+- Lazy loading for routes
+- Image optimization
+- Bundle analysis and monitoring
+
+## Integration Architecture
+
+### Supabase Integration
+- **Authentication**: User management and sessions
+- **Database**: PostgreSQL with real-time capabilities
+- **Edge Functions**: Serverless functions for complex operations
+- **Storage**: File uploads and asset management
+
+### External APIs
+- **Charts**: Recharts for data visualization
+- **Forms**: React Hook Form for form management
+- **Validation**: Zod for schema validation
+- **Icons**: Lucide React for consistent iconography
+
+## Deployment Architecture
+
+### Build Process
+1. Type checking and linting
+2. Test execution
+3. Production build generation
+4. Asset optimization
+5. Deployment to hosting platform
+
+### Environment Configuration
+- Development, staging, and production environments
+- Environment-specific Supabase configurations
+- Build-time variable injection
+- Secure credential management
