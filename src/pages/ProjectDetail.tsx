@@ -44,7 +44,7 @@ const ProjectDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(full_name, avatar_url)')
+        .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, designation, avatar_url)')
         .eq('id', id!)
         .single();
       if (error) throw error;
@@ -177,7 +177,7 @@ const ProjectDetail = () => {
               <span className="text-muted-foreground">Project Lead</span>
               <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
             </div>
-            {project.fee != null && project.fee > 0 && (
+            {isManager && project.fee != null && project.fee > 0 && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Fee</span>
                 <span className="text-foreground font-medium">{Number(project.fee).toLocaleString()}</span>
@@ -191,10 +191,12 @@ const ProjectDetail = () => {
             <Calendar className="h-4 w-4" /> Deadlines
           </h2>
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Client Deadline</span>
-              <span className="text-foreground">{project.client_deadline || '—'}</span>
-            </div>
+            {isManager && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Client Deadline</span>
+                <span className="text-foreground">{project.client_deadline || '—'}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Internal Deadline</span>
               <span className="text-foreground">{project.internal_deadline || '—'}</span>
