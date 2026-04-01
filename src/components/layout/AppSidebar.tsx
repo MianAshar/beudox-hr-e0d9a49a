@@ -6,7 +6,7 @@ import BeudoxLogo from '@/components/BeudoxLogo';
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
-  FolderKanban, ClipboardCheck, FileText, Settings, Bell,
+  FolderKanban, ClipboardCheck, FileText, Settings, Bell, FileSpreadsheet,
   LogOut, ChevronLeft, ChevronRight, Briefcase,
 } from 'lucide-react';
 
