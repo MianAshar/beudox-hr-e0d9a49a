@@ -58,7 +58,16 @@ const ProjectDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_assignments')
-        .select('id, employee_id, is_active, employees(id, full_name, designation, avatar_url, employee_code)')
+        .select(`
+          id,
+          is_active,
+          employees (
+            id,
+            full_name,
+            designation,
+            avatar_url
+          )
+        `)
         .eq('project_id', id!)
         .eq('is_active', true)
         .is('removed_at', null);
@@ -218,20 +227,24 @@ const ProjectDetail = () => {
         </h2>
         {teamMembers && teamMembers.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {teamMembers.map((a: any) => (
-              <div key={a.employee_id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={a.employees?.avatar_url} />
-                  <AvatarFallback className="text-xs">{initials(a.employees?.full_name || '?')}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{a.employees?.full_name}</p>
-                  {a.employees?.designation && (
-                    <p className="text-xs text-muted-foreground">{a.employees.designation}</p>
-                  )}
+            {teamMembers.map((a: any) => {
+              const emp = a.employees;
+              if (!emp) return null;
+              return (
+                <div key={a.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={emp.avatar_url} />
+                    <AvatarFallback className="text-xs">{initials(emp.full_name || '?')}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{emp.full_name}</p>
+                    {emp.designation && (
+                      <p className="text-xs text-muted-foreground">{emp.designation}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">No team members assigned</p>
