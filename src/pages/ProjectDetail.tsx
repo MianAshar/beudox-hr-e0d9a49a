@@ -58,7 +58,16 @@ const ProjectDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_assignments')
-        .select('id, employee_id, is_active, employees(id, full_name, designation, avatar_url, employee_code)')
+        .select(`
+          id,
+          is_active,
+          employees (
+            id,
+            full_name,
+            designation,
+            avatar_url
+          )
+        `)
         .eq('project_id', id!)
         .eq('is_active', true)
         .is('removed_at', null);
