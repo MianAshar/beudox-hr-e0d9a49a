@@ -1,89 +1,155 @@
 <!--
 generated_by: tessera
-source_sha: f8e63aff55b9832c02ca51ce745bf1116d15709e
-generated_at: 2026-04-01T10:57:34.610Z
+source_sha: 0ff6efb7fea87440925f59f47bae0d72be9a80ea
+generated_at: 2026-04-01T11:12:52.385Z
 action: create
 -->
 
 # Beudox HR - Technical Context for AI Assistants
 
-## Architecture Overview
+## Project Overview
+Beudox HR is a comprehensive Human Resources Management System built as a single-page application using React, TypeScript, and Supabase. The system manages employee data, payroll, projects, invoicing, and HR policies with role-based access control.
 
-Beudox HR is a single-page application (SPA) built with React and TypeScript. It uses a component-based architecture with:
+## Architecture
 
-- **Layout System**: AppLayout provides the main structure with a collapsible sidebar (AppSidebar) and top bar (TopBar)
-- **Routing**: React Router for client-side navigation
-- **State Management**: React hooks for local state, Supabase for data persistence
-- **UI Framework**: shadcn/ui components built on Radix UI primitives, styled with Tailwind CSS
-- **Backend Integration**: Supabase for database, authentication, and serverless functions
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite for fast development and optimized production builds
+- **Routing**: React Router DOM with protected routes and role-based access
+- **State Management**: 
+  - React Query for server state (API calls, caching)
+  - Context API for authentication state
+  - Local component state for UI interactions
+- **UI Components**: shadcn/ui built on Radix UI primitives with Tailwind CSS
+- **Forms**: React Hook Form with Zod schema validation
+- **Styling**: Tailwind CSS with custom design tokens (--bx-* variables)
 
-## Key Architectural Decisions
+### Backend Architecture
+- **Database**: Supabase (PostgreSQL with Row Level Security)
+- **Authentication**: Supabase Auth with email/password and magic links
+- **API**: Supabase client for database operations and real-time subscriptions
+- **Edge Functions**: Supabase Functions for server-side logic (PDF generation, email sending)
+- **File Storage**: Supabase Storage for documents and images
 
-- **Modular Component Design**: UI components are organized in `src/components/ui/` for reusability
-- **Role-Based Access Control**: Navigation items are filtered based on user roles using `canAccess` function
-- **Responsive Design**: Sidebar collapses on smaller screens, layouts adapt to different screen sizes
-- **Theming**: Custom color scheme with purple accents (#1A1240 background, #5B3FF8 active states)
+### Key Design Patterns
+- **Component Composition**: Reusable UI components with consistent APIs
+- **Custom Hooks**: Encapsulated logic for auth, data fetching, and UI state
+- **Role-Based Access**: Navigation and features filtered by user roles
+- **Protected Routes**: Authentication and authorization checks at route level
+- **Optimistic Updates**: Immediate UI feedback with React Query mutations
 
 ## Key Files and Their Purposes
 
-- `src/main.tsx`: Application entry point, renders the App component
-- `src/App.tsx`: Main app component with routing configuration
-- `src/components/layout/AppLayout.tsx`: Root layout wrapper
-- `src/components/layout/AppSidebar.tsx`: Navigation sidebar with role-based menu items
-- `src/components/layout/TopBar.tsx`: Header with dynamic page titles
+### Core Application Files
+- `src/main.tsx`: Application entry point, renders App component
+- `src/App.tsx`: Main routing configuration with protected routes
+- `src/index.css`: Global styles, font imports, and design token definitions
+
+### Authentication
+- `src/hooks/useAuth.tsx`: Authentication context provider managing Supabase sessions
+- `src/pages/Login.tsx`: Login form with email/password authentication
+- `src/pages/ForgotPassword.tsx`: Password reset request form
+- `src/pages/SetPassword.tsx`: Password setup/reset form for invites and recovery
+
+### Layout Components
+- `src/components/layout/AppLayout.tsx`: Main app wrapper with sidebar and content area
+- `src/components/layout/AppSidebar.tsx`: Collapsible navigation sidebar with role-based menu items
+- `src/components/layout/TopBar.tsx`: Top navigation bar with breadcrumbs and page titles
+
+### Business Logic Components
 - `src/components/BeudoxLogo.tsx`: Logo component with variant support
-- `src/hooks/useAuth.ts`: Authentication hook for user management
-- `src/lib/role-access.ts`: Role-based access control utilities
-- `src/integrations/supabase/`: Supabase client configuration and TypeScript types
+- `src/components/NavLink.tsx`: Enhanced NavLink with active state styling
+- `src/components/hr-policies/RichTextEditor.tsx`: Rich text editor using Tiptap for policy content
 
-## Business Logic and Data Flow
+### Utility and Configuration
+- `src/lib/utils.ts`: Common utility functions (cn for class merging)
+- `src/lib/role-access.ts`: Role-based access control logic
+- `src/integrations/supabase/client.ts`: Supabase client configuration
+- `src/integrations/supabase/types.ts`: TypeScript types generated from database schema
 
-The application manages HR operations through several modules:
-
-- **Authentication**: Supabase Auth for user login/logout
-- **Employee Data**: CRUD operations for employee profiles
-- **Attendance & Leave**: Tracking and management of time-off
-- **Finance**: Payroll, invoices, expenses, and financial reporting
-- **Projects**: Client and project management
-- **System**: Notifications and settings
-
-Data flows from Supabase database through React components, with edge functions handling complex operations like PDF generation and email sending.
+### Page Components
+- `src/pages/Dashboard.tsx`: Main dashboard with welcome message
+- `src/pages/Employees.tsx`: Employee listing and management
+- `src/pages/Settings.tsx`: Company and user settings
+- `src/pages/Projects.tsx`: Project management interface
+- `src/pages/Invoices.tsx`: Invoice creation and management
+- `src/pages/HrPolicies.tsx`: HR policy administration
 
 ## Database Schema
 
-The application uses Supabase with PostgreSQL. Key tables include:
-- Employees (profiles, roles, departments)
-- Attendance records
-- Leave requests
-- Payroll data
-- Projects and clients
-- Financial transactions
+### Core Tables
+- **companies**: Company information and settings
+- **employees**: Employee profiles and basic information
+- **employee_roles**: Junction table for employee-role relationships
+- **roles**: Available roles with permissions
+- **projects**: Project definitions and metadata
+- **clients**: Client company information
+- **invoices**: Invoice records with line items
+- **hr_policies**: Company policies and procedures
 
-Migrations are stored in `supabase/migrations/` with timestamps.
+### Security
+- Row Level Security (RLS) policies ensure users can only access their company's data
+- Authentication required for all data access
+- Role-based permissions control feature access
 
-## Configuration and Environment
+## Business Logic and Data Flow
 
-- **Vite**: Build configuration in `vite.config.ts`
-- **Tailwind**: Styling configuration in `tailwind.config.ts`
-- **Supabase**: Project configuration in `supabase/config.toml`
-- **Environment Variables**: Supabase credentials in `.env`
+### Authentication Flow
+1. User enters credentials on login page
+2. Supabase Auth validates credentials and creates session
+3. Auth context fetches employee data and role information
+4. Protected routes check authentication and role permissions
+5. User is redirected to dashboard or appropriate page
 
-## Testing Strategy
+### Employee Management
+1. HR/Admin users can view employee list
+2. Employee profiles include personal info, role, and employment details
+3. Role-based access controls what information is visible
+4. Employee data is cached and updated via React Query
 
-- **Unit Tests**: Vitest for component and utility testing
-- **E2E Tests**: Playwright for full application testing
-- **Test Files**: Located in `src/test/`
+### Invoice Generation
+1. Users create invoices with client and line item details
+2. Supabase Edge Function generates PDF using PDF-lib
+3. Email is sent via Resend integration
+4. Invoice status is tracked in database
+
+### HR Policy Management
+1. Rich text editor allows formatting of policy content
+2. Policies are stored as HTML in database
+3. Access controlled by user roles
+4. Version history maintained for compliance
 
 ## Development Workflow
 
-1. Code changes trigger automatic documentation updates via Tessera
-2. Build process uses Vite for fast development
-3. TypeScript provides type safety throughout
-4. ESLint ensures code quality
+### Code Organization
+- Feature-based folder structure in components and pages
+- Shared UI components in components/ui/
+- Custom hooks for reusable logic
+- TypeScript interfaces defined alongside components
 
-## Security Considerations
+### State Management Strategy
+- React Query for server state (CRUD operations)
+- Context API for global app state (auth, user preferences)
+- Local state for component-specific interactions
+- Optimistic updates for better UX
 
-- Role-based access control prevents unauthorized access
-- Supabase handles authentication and data security
-- Environment variables protect sensitive configuration
-- Row Level Security (RLS) policies in Supabase ensure data privacy
+### Testing Approach
+- Unit tests for utility functions and hooks
+- Integration tests for component interactions
+- E2E tests for critical user flows
+- Playwright for browser automation testing
+
+## Deployment and CI/CD
+
+### Build Process
+- Vite handles bundling and optimization
+- TypeScript compilation ensures type safety
+- ESLint enforces code quality
+- Production builds include minification and asset optimization
+
+### Environment Configuration
+- Environment variables for Supabase configuration
+- Separate configs for development and production
+- Build-time variable injection via Vite
+
+This technical context provides the foundation for understanding the Beudox HR codebase and making informed decisions about code changes, feature additions, and maintenance tasks.
