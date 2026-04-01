@@ -58,9 +58,10 @@ const ProjectDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_assignments')
-        .select('employee_id, is_active, employees(full_name, avatar_url, designation)')
+        .select('id, employee_id, is_active, employees(id, full_name, designation, avatar_url, employee_code)')
         .eq('project_id', id!)
-        .or('is_active.eq.true,is_active.is.null');
+        .eq('is_active', true)
+        .is('removed_at', null);
       if (error) throw error;
       return data;
     },
