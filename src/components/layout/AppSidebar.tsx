@@ -30,6 +30,7 @@ const navSections = [
     label: 'FINANCE',
     items: [
       { title: 'Payroll', icon: DollarSign, path: '/payroll' },
+      { title: 'Invoices', icon: FileText, path: '/invoices' },
       { title: 'Finance Sheet', icon: BarChart2, path: '/finance' },
       { title: 'Loans', icon: CreditCard, path: '/loans' },
       { title: 'Office Expenses', icon: Receipt, path: '/expenses' },
