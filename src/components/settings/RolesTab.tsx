@@ -9,9 +9,7 @@ import { toast } from 'sonner';
 import { Lock, Loader2 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const formatRole = (role: string) =>
-  role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+import { formatRole } from '@/lib/format-role';
 
 const getInitials = (name: string) =>
   name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);

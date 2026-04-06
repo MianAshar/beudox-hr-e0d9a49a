@@ -147,7 +147,7 @@ const AppSidebar = () => {
               {employee.full_name}
             </div>
             <div className="text-[10px] text-white/40 truncate" style={{ fontFamily: 'var(--ff-body)' }}>
-              {employee.role_name || employee.designation || 'Employee'}
+              {employee.role_name ? formatRole(employee.role_name) : employee.designation || 'Employee'}
             </div>
           </div>
         )}

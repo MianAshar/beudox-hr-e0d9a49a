@@ -37,17 +37,6 @@ const getInitials = (name: string) => {
     .slice(0, 2);
 };
 
-const formatRoleName = (role: string | null | undefined): string => {
-  if (!role) return '—';
-  const map: Record<string, string> = {
-    ceo: 'CEO',
-    hr_manager: 'HR Manager',
-    finance_manager: 'Finance Manager',
-    team_lead: 'Team Lead',
-    employee: 'Employee',
-  };
-  return map[role] || role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-};
 
 const statusVariant = (status: string | null) => {
   switch (status) {
