@@ -280,7 +280,7 @@ const Employees = () => {
                     </TableCell>
                     <TableCell>
                       <span className="text-[13px]">
-                        {formatRoleName(roleName)}
+                        {formatRole(roleName)}
                       </span>
                     </TableCell>
                     <TableCell>
