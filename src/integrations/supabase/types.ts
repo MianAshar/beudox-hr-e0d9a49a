@@ -259,15 +259,18 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string | null
+          departments: string[] | null
           id: string
           invoice_prefix: string | null
           logo_url: string | null
           name: string
           owner_email: string
+          phone: string | null
           plan: string
           slug: string
           status: string
           updated_at: string | null
+          website: string | null
         }
         Insert: {
           address?: string | null
@@ -279,15 +282,18 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string | null
+          departments?: string[] | null
           id?: string
           invoice_prefix?: string | null
           logo_url?: string | null
           name: string
           owner_email: string
+          phone?: string | null
           plan?: string
           slug: string
           status?: string
           updated_at?: string | null
+          website?: string | null
         }
         Update: {
           address?: string | null
@@ -299,15 +305,18 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string | null
+          departments?: string[] | null
           id?: string
           invoice_prefix?: string | null
           logo_url?: string | null
           name?: string
           owner_email?: string
+          phone?: string | null
           plan?: string
           slug?: string
           status?: string
           updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
