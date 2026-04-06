@@ -3,6 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { canAccess } from '@/lib/role-access';
 import BeudoxLogo from '@/components/BeudoxLogo';
+import { formatRole } from '@/lib/format-role';
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
@@ -146,7 +147,7 @@ const AppSidebar = () => {
               {employee.full_name}
             </div>
             <div className="text-[10px] text-white/40 truncate" style={{ fontFamily: 'var(--ff-body)' }}>
-              {employee.role_name || employee.designation || 'Employee'}
+              {employee.role_name ? formatRole(employee.role_name) : employee.designation || 'Employee'}
             </div>
           </div>
         )}
