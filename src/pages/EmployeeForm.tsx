@@ -27,7 +27,7 @@ import { z } from 'zod';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-const DEPARTMENTS = ['GC Team', 'MEP Team', 'Admin', 'Director'];
+const DEPARTMENTS_FALLBACK = ['GC Team', 'MEP Team', 'Admin', 'Director'];
 const EMPLOYMENT_TYPES = ['full_time', 'outsourced', 'director'];
 const INCREMENT_RULES = ['year_1', 'year_2_plus'];
 
@@ -153,6 +153,22 @@ const EmployeeForm = () => {
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>();
   const cropImgRef = useRef<HTMLImageElement | null>(null);
+
+  // Fetch departments from company settings
+  const { data: companyData } = useQuery({
+    queryKey: ['company-departments', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('departments')
+        .eq('id', companyId!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+  const departmentsList: string[] = (companyData as any)?.departments || DEPARTMENTS_FALLBACK;
 
   // Fetch roles for this company
   const { data: roles } = useQuery({
@@ -638,7 +654,7 @@ const EmployeeForm = () => {
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
               <SelectContent>
-                {DEPARTMENTS.map((d) => (
+                {departmentsList.map((d) => (
                   <SelectItem key={d} value={d}>
                     {d}
                   </SelectItem>
