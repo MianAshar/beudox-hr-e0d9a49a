@@ -3,6 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { canAccess } from '@/lib/role-access';
 import BeudoxLogo from '@/components/BeudoxLogo';
+import { formatRole } from '@/lib/format-role';
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
