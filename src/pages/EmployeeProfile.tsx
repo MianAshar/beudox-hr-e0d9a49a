@@ -399,7 +399,7 @@ const EmployeeProfile = () => {
             Used to sign in to Beudox. Can be a personal or company email.
           </p>
         </div>
-        <InfoField label="Role" value={formatRoleName(empRole)} />
+        <InfoField label="Role" value={formatRole(empRole)} />
       </SectionCard>
 
       {/* Danger Zone — hr_manager / ceo only */}
