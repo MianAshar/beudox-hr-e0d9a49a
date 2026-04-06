@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { formatRole } from '@/lib/format-role';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
