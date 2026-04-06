@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatRole } from '@/lib/format-role';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
