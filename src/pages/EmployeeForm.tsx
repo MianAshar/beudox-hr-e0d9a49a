@@ -27,7 +27,7 @@ import { z } from 'zod';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-const DEPARTMENTS = ['GC Team', 'MEP Team', 'Admin', 'Director'];
+const DEPARTMENTS_FALLBACK = ['GC Team', 'MEP Team', 'Admin', 'Director'];
 const EMPLOYMENT_TYPES = ['full_time', 'outsourced', 'director'];
 const INCREMENT_RULES = ['year_1', 'year_2_plus'];
 
