@@ -154,6 +154,22 @@ const EmployeeForm = () => {
   const [crop, setCrop] = useState<Crop>();
   const cropImgRef = useRef<HTMLImageElement | null>(null);
 
+  // Fetch departments from company settings
+  const { data: companyData } = useQuery({
+    queryKey: ['company-departments', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('departments')
+        .eq('id', companyId!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+  const departmentsList: string[] = (companyData as any)?.departments || DEPARTMENTS_FALLBACK;
+
   // Fetch roles for this company
   const { data: roles } = useQuery({
     queryKey: ['company-roles', companyId],
