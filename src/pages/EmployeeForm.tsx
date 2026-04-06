@@ -654,7 +654,7 @@ const EmployeeForm = () => {
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
               <SelectContent>
-                {DEPARTMENTS.map((d) => (
+                {departmentsList.map((d) => (
                   <SelectItem key={d} value={d}>
                     {d}
                   </SelectItem>
