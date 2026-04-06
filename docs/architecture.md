@@ -1,144 +1,198 @@
 <!--
 generated_by: tessera
-source_sha: 57916dea765f7842719cc653be4eca1e09745835
-generated_at: 2026-04-01T09:45:14.979Z
+source_sha: 3ec6744ead84afc356ca43d3b9becba3c32d942f
+generated_at: 2026-04-06T21:16:19.832Z
 action: create
 -->
 
-# Beudox HR - Architecture Documentation
+# Beudox HR - Frontend Architecture
 
-## Application Architecture
+## Application Structure
 
-Beudox HR is built as a single-page application (SPA) using React with a component-based architecture. The application follows modern React patterns with hooks, context, and functional components.
+Beudox HR is built as a single-page application (SPA) using React 18 and TypeScript, following modern frontend architecture patterns.
 
-## Technology Stack
+## Core Architecture Patterns
 
-### Frontend Framework
-- **React 18**: Latest React with concurrent features
-- **TypeScript**: Type-safe development
-- **Vite**: Fast build tool with HMR
-
-### UI & Styling
-- **shadcn/ui**: Component library built on Radix UI
-- **Tailwind CSS**: Utility-first CSS framework
-- **Custom Design System**: Beudox brand colors and typography
-
-### State Management
-- **TanStack Query**: Server state management
-- **React Context**: Global auth state
-- **React Hook Form**: Form state management
-
-### Backend & Data
-- **Supabase**: PostgreSQL database + Auth + Edge Functions
-- **Zod**: Schema validation
-
-## Component Architecture
-
-### Layout System
+### 1. Component Hierarchy
 ```
-AppLayout
-├── AppSidebar (collapsible navigation)
-├── TopBar (page headers)
-└── Main Content Area
+App (Root)
+├── AuthProvider (Context)
+├── QueryClientProvider (Data)
+├── BrowserRouter (Routing)
+└── AppLayout (UI Shell)
+    ├── AppSidebar (Navigation)
+    ├── TopBar (Secondary Nav)
+    └── Main Content (Pages)
 ```
 
-### Component Hierarchy
-- **Pages**: Route-level components (Dashboard, Employees, etc.)
-- **Layout Components**: App structure (AppLayout, AppSidebar, TopBar)
-- **UI Components**: Reusable elements (Button, Input, Card, etc.)
-- **Feature Components**: Domain-specific components
+### 2. Route Protection
+- **Authentication Guard**: Checks session validity
+- **Authorization Guard**: Validates role-based access
+- **Loading States**: Prevents content flashing during auth checks
+- **Redirect Logic**: Automatic navigation based on auth state
 
-## Routing Architecture
+### 3. Data Management
+- **Server State**: TanStack Query for API data with caching
+- **Local State**: React hooks for UI state
+- **Authentication State**: Custom auth context
+- **Form State**: React Hook Form with external validation
 
-### Route Structure
-- **Public Routes**: `/login`, `/forgot-password`
-- **Protected Routes**: All app routes wrapped in `ProtectedRoute`
-- **Role-Based Access**: Routes filtered by user permissions
+## Navigation Architecture
 
-### Route Protection
+### Sidebar Organization
+The application uses a hierarchical navigation structure:
+
+- **MAIN**: Core dashboard functionality
+- **PEOPLE**: Employee and attendance management
+- **FINANCE**: Financial operations and reporting
+- **WORK**: Project and client management
+- **SYSTEM**: Administrative and configuration features
+
+### Route Configuration
+Routes are defined with nested protection:
+- Public routes: `/login`, `/forgot-password`
+- Protected routes: All business functionality
+- Parameterized routes: Dynamic pages for entities
+- Fallback routes: 404 handling
+
+## Component Design System
+
+### UI Components (shadcn/ui)
+- **Primitive Components**: Buttons, inputs, dialogs, etc.
+- **Layout Components**: Cards, grids, flex containers
+- **Feedback Components**: Toasts, alerts, loading states
+- **Data Display**: Tables, charts, lists
+
+### Business Components
+- **Form Components**: Reusable forms with validation
+- **List Components**: Data tables with sorting/filtering
+- **Detail Components**: Entity-specific views
+- **Editor Components**: Rich text and form editors
+
+## State Management Strategy
+
+### Authentication State
 ```typescript
-// ProtectedRoute component checks:
-1. Authentication status
-2. User role permissions
-3. Loading states
-4. Password reset flows
+interface AuthState {
+  session: Session | null;
+  employee: Employee | null;
+  loading: boolean;
+  passwordMode: 'invite' | 'recovery' | null;
+}
 ```
 
-## Data Flow
+### Server State (TanStack Query)
+- **Queries**: Cached data fetching with background updates
+- **Mutations**: Optimistic updates with rollback
+- **Invalidation**: Automatic cache updates on mutations
+- **Error Handling**: Global error boundaries
 
-### Authentication Flow
+### Form State
+- **Validation**: Zod schemas for type-safe validation
+- **Submission**: Async handling with loading states
+- **Error Display**: Field-level and form-level errors
+
+## Data Flow Patterns
+
+### 1. Authentication Flow
 1. User submits credentials
 2. Supabase validates and returns session
-3. Auth context fetches employee data
-4. User data cached in context
-5. Routes and components access via hooks
+3. Auth context updates with session data
+4. Employee data is fetched and cached
+5. UI updates based on role permissions
 
-### Data Fetching
-- **TanStack Query**: Caching, background updates, optimistic updates
-- **Supabase Client**: Direct database queries
-- **Edge Functions**: Server-side business logic
+### 2. Data Fetching Flow
+1. Component mounts and triggers query
+2. TanStack Query checks cache
+3. If stale, fetches from Supabase
+4. Data is cached and component updates
+5. Background refetching keeps data fresh
 
-## State Management
+### 3. Form Submission Flow
+1. User interacts with form
+2. Validation runs on change/blur
+3. On submit, data is validated
+4. Mutation executes with optimistic update
+5. Success/error states update UI
 
-### Global State
-- **Auth Context**: User session, employee data, permissions
-- **Query Client**: Server state with caching
+## Performance Optimizations
 
-### Local State
-- **Component State**: UI interactions, form data
-- **URL State**: Route parameters and query strings
+### Build Optimizations
+- **Code Splitting**: Route-based splitting with React.lazy
+- **Tree Shaking**: Vite removes unused code
+- **Asset Optimization**: Image optimization and font loading
+
+### Runtime Optimizations
+- **Query Caching**: Prevents unnecessary API calls
+- **Memoization**: React.memo for expensive components
+- **Virtual Scrolling**: For large lists (future enhancement)
+- **Image Lazy Loading**: For profile pictures and documents
 
 ## Security Architecture
 
-### Authentication
-- **Supabase Auth**: JWT-based authentication
-- **Session Management**: Automatic token refresh
-- **Password Reset**: Secure reset flows
+### Authentication Security
+- **JWT Tokens**: Secure token storage and refresh
+- **Session Validation**: Server-side session verification
+- **Route Protection**: Client-side authorization checks
 
-### Authorization
-- **Role-Based Access**: Permission checks at route and component levels
+### Data Security
 - **Row Level Security**: Database-level access control
-- **API Security**: Authenticated requests only
+- **API Validation**: Server-side input validation
+- **XSS Protection**: Sanitized content rendering
 
-## Performance Considerations
-
-### Build Optimization
-- **Vite**: Fast development and optimized production builds
-- **SWC**: Fast TypeScript compilation
-- **Tree Shaking**: Unused code elimination
-
-### Runtime Performance
-- **React 18**: Concurrent rendering features
-- **Query Caching**: Reduced API calls
-- **Lazy Loading**: Code splitting opportunities
+### Access Control
+- **Role-Based UI**: Components render based on permissions
+- **API Authorization**: Backend validates user permissions
+- **Audit Logging**: Track sensitive operations
 
 ## Development Architecture
 
 ### Project Structure
 ```
 src/
-├── components/     # Reusable components
-├── hooks/         # Custom hooks
-├── lib/           # Utilities
-├── pages/         # Route components
-├── integrations/  # External services
-└── test/          # Test files
+├── components/     # Reusable UI components
+├── pages/         # Route-level components
+├── hooks/         # Custom React hooks
+├── lib/           # Utilities and configurations
+├── integrations/  # External service integrations
+└── types/         # TypeScript definitions
 ```
 
-### Code Organization
-- **Feature-based**: Components grouped by domain
-- **Shared Components**: Common UI elements
-- **Utilities**: Pure functions and helpers
-- **Integrations**: External service configurations
+### Development Tools
+- **TypeScript**: Strict type checking
+- **ESLint**: Code quality and consistency
+- **Vitest**: Unit testing framework
+- **Playwright**: End-to-end testing
+- **Vite**: Fast development server
 
 ## Deployment Architecture
 
 ### Build Process
-- **Static Generation**: Vite produces static assets
-- **Environment Config**: Supabase keys via environment variables
-- **CDN Ready**: Optimized bundles for global distribution
+1. TypeScript compilation
+2. Code splitting and bundling
+3. Asset optimization
+4. Static file generation
 
-### Backend Dependencies
-- **Supabase Project**: Required for database and auth
-- **Edge Functions**: Deployed serverless functions
-- **Database Migrations**: Version-controlled schema changes
+### Hosting Strategy
+- **Static Hosting**: Vercel/Netlify for frontend
+- **Backend**: Supabase for database and functions
+- **CDN**: Global asset delivery
+- **Environment Config**: Environment-specific settings
+
+## Future Architecture Considerations
+
+### Scalability
+- **Micro-frontends**: Potential modularization
+- **Service Workers**: Offline functionality
+- **Progressive Web App**: Mobile optimization
+
+### Monitoring
+- **Error Tracking**: Sentry integration
+- **Performance Monitoring**: Core Web Vitals tracking
+- **Analytics**: User behavior insights
+
+### Testing Strategy
+- **Unit Tests**: Component and hook testing
+- **Integration Tests**: API and component interaction
+- **E2E Tests**: Critical user journeys
+- **Visual Regression**: UI consistency testing
