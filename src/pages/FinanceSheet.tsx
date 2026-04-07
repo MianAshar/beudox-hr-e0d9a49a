@@ -726,26 +726,73 @@ const FinanceSheet = () => {
                               </div>
                             </TableCell>
                           </TableRow>
-                          {items.map(li => (
-                            <TableRow key={li.id}>
-                              <TableCell className="text-[13px]" style={{ fontFamily: 'var(--ff-body)' }}>
-                                {li.description}
-                              </TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">
-                                {getExpenseAmount(li.id).toLocaleString()}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                          {getOneTimeExpenses(cat.id).map((ot: any) => (
-                            <TableRow key={ot.id}>
-                              <TableCell className="text-[13px] italic" style={{ fontFamily: 'var(--ff-body)' }}>
-                                {ot.description}
-                              </TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">
-                                {Number(ot.amount).toLocaleString()}
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {items.map(li => {
+                            const expRow = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
+                            const receiptUrl = expRow?.receipt_url;
+                            return (
+                              <TableRow key={li.id}>
+                                <TableCell className="text-[13px]" style={{ fontFamily: 'var(--ff-body)' }}>
+                                  {li.description}
+                                </TableCell>
+                                <TableCell className="text-right text-[12px] font-mono">
+                                  <span className="inline-flex items-center gap-1.5 justify-end">
+                                    {getExpenseAmount(li.id).toLocaleString()}
+                                    {receiptUrl && (
+                                      isImageUrl(receiptUrl) ? (
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                              <Paperclip className="h-3.5 w-3.5" />
+                                            </button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-64 p-2" side="left">
+                                            <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
+                                          </PopoverContent>
+                                        </Popover>
+                                      ) : (
+                                        <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
+                                          <Paperclip className="h-3.5 w-3.5" />
+                                        </a>
+                                      )
+                                    )}
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                          {getOneTimeExpenses(cat.id).map((ot: any) => {
+                            const receiptUrl = ot.receipt_url;
+                            return (
+                              <TableRow key={ot.id}>
+                                <TableCell className="text-[13px] italic" style={{ fontFamily: 'var(--ff-body)' }}>
+                                  {ot.description}
+                                </TableCell>
+                                <TableCell className="text-right text-[12px] font-mono">
+                                  <span className="inline-flex items-center gap-1.5 justify-end">
+                                    {Number(ot.amount).toLocaleString()}
+                                    {receiptUrl && (
+                                      isImageUrl(receiptUrl) ? (
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                              <Paperclip className="h-3.5 w-3.5" />
+                                            </button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-64 p-2" side="left">
+                                            <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
+                                          </PopoverContent>
+                                        </Popover>
+                                      ) : (
+                                        <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
+                                          <Paperclip className="h-3.5 w-3.5" />
+                                        </a>
+                                      )
+                                    )}
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                           <TableRow key={`catsub-${cat.id}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
                             <TableCell className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
                               {cat.name} Subtotal
