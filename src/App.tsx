@@ -31,6 +31,7 @@ import EvaluationDetail from "./pages/EvaluationDetail";
 import DailyEvaluations from "./pages/DailyEvaluations";
 import DailyEvaluationForm from "./pages/DailyEvaluationForm";
 import DailyEvaluationDetail from "./pages/DailyEvaluationDetail";
+import Loans from "./pages/Loans";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -121,6 +122,7 @@ const App = () => (
             <Route path="/evaluations/daily" element={<ProtectedRoute><DailyEvaluations /></ProtectedRoute>} />
             <Route path="/evaluations/daily/new" element={<ProtectedRoute><DailyEvaluationForm /></ProtectedRoute>} />
             <Route path="/evaluations/daily/:id" element={<ProtectedRoute><DailyEvaluationDetail /></ProtectedRoute>} />
+            <Route path="/loans" element={<ProtectedRoute><Loans /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
