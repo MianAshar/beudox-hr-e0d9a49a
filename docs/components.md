@@ -1,425 +1,374 @@
 <!--
 generated_by: tessera
-source_sha: 1cec2ce393d8f182112788746e7935917c082ccd
-generated_at: 2026-04-07T21:17:04.205Z
+source_sha: 8e11b5d7fe7d65cb4672bc4879a4a7d4c01dc9e0
+generated_at: 2026-04-07T22:34:23.180Z
 action: create
 -->
 
-# Beudox HR - Component Documentation
+# Beudox HR - Component Architecture
 
-## Component Architecture
+## Component Organization
 
-Beudox HR follows a hierarchical component structure with reusable UI primitives, layout components, and feature-specific components.
+Beudox HR follows a modular component architecture organized by functionality and reusability. Components are structured in a hierarchical manner with clear separation of concerns.
 
-## UI Components (shadcn/ui)
+## Component Layers
 
-### Core Primitives (40+ components)
+### 1. UI Components (`src/components/ui/`)
 
-#### Form Components
-- **Button**: Variants (default, destructive, outline, secondary, ghost, link)
-- **Input**: Text input with validation states
-- **Textarea**: Multi-line text input
-- **Select**: Dropdown selection
-- **Checkbox**: Boolean input
-- **RadioGroup**: Single selection from options
-- **Switch**: Toggle input
-- **Label**: Form field labels
+These are the base reusable components built on Radix UI primitives, following the Shadcn/ui design system.
 
-#### Layout Components
-- **Card**: Content containers with header, content, footer
-- **Dialog**: Modal dialogs with overlay
-- **Sheet**: Slide-out panels (left, right, top, bottom)
-- **Popover**: Floating content containers
-- **Tooltip**: Contextual help text
-- **Accordion**: Collapsible content sections
-- **Tabs**: Tabbed interface navigation
+#### Core UI Components
+- **Form Components**: `button.tsx`, `input.tsx`, `textarea.tsx`, `select.tsx`, `checkbox.tsx`
+- **Layout Components**: `card.tsx`, `separator.tsx`, `scroll-area.tsx`, `resizable.tsx`
+- **Navigation**: `navigation-menu.tsx`, `breadcrumb.tsx`, `pagination.tsx`
+- **Feedback**: `alert.tsx`, `alert-dialog.tsx`, `toast.tsx`, `progress.tsx`
+- **Data Display**: `table.tsx`, `badge.tsx`, `avatar.tsx`, `calendar.tsx`
+- **Overlays**: `dialog.tsx`, `sheet.tsx`, `popover.tsx`, `tooltip.tsx`, `hover-card.tsx`
 
-#### Data Display
-- **Table**: Data tables with sorting and pagination
-- **Badge**: Status indicators and labels
-- **Avatar**: User profile images with fallbacks
-- **Skeleton**: Loading state placeholders
-- **Progress**: Progress bars and indicators
+#### Special Components
+- **Command**: `command.tsx` - Advanced searchable command palette
+- **Carousel**: `carousel.tsx` - Image/content carousel
+- **Chart**: `chart.tsx` - Data visualization component
+- **Form**: `form.tsx` - Form context and validation display
 
-#### Navigation
-- **NavigationMenu**: Complex navigation menus
-- **Breadcrumb**: Page hierarchy navigation
-- **Pagination**: Data pagination controls
+### 2. Layout Components (`src/components/layout/`)
 
-#### Feedback
-- **Alert**: Status messages and notifications
-- **Toast**: Non-intrusive notifications
-- **Sonner**: Modern toast notifications
+These provide the application's structural layout and navigation.
 
-### Usage Patterns
-
-#### Consistent API Design
+#### AppLayout (`AppLayout.tsx`)
 ```typescript
-// All components follow similar patterns
-<Button variant="default" size="sm" onClick={handleClick}>
-  Click me
-</Button>
-
-<Card>
-  <CardHeader>
-    <CardTitle>Title</CardTitle>
-    <CardDescription>Description</CardDescription>
-  </CardHeader>
-  <CardContent>
-    Content
-  </CardContent>
-</Card>
-```
-
-#### Theme Integration
-```typescript
-// Components respect CSS custom properties
---background, --foreground
---primary, --primary-foreground
---muted, --muted-foreground
---border, --input, --ring
-```
-
-## Layout Components
-
-### AppLayout
-
-Main application layout with sidebar and topbar:
-
-```typescript
-// src/components/layout/AppLayout.tsx
 interface AppLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 const AppLayout = ({ children }: AppLayoutProps) => (
-  <div className="flex h-screen bg-background">
+  <div className="min-h-screen flex">
     <AppSidebar />
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col ml-16 lg:ml-[240px]">
       <TopBar />
-      <main className="flex-1 overflow-auto p-6">
-        {children}
+      <main className="flex-1 bg-background p-6">
+        <div className="max-w-[1280px] mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   </div>
 );
 ```
 
-### AppSidebar
+**Features:**
+- Responsive sidebar with dynamic width
+- Fixed top bar
+- Centered content area with max-width
+- Mobile-responsive adjustments
 
-Role-based navigation sidebar:
+#### AppSidebar (`AppSidebar.tsx`)
+- Collapsible navigation sidebar
+- Role-based menu items
+- Active route highlighting
+- Mobile overlay mode
 
+#### TopBar (`TopBar.tsx`)
+- User avatar and menu
+- Notification center
+- Global search (future enhancement)
+- Theme toggle
+
+### 3. Feature Components
+
+Organized by business domain for better maintainability.
+
+#### Evaluation Components (`src/components/evaluations/`)
+
+**EvaluationTimeline (`EvaluationTimeline.tsx`)**
+- Displays evaluation history for employees
+- Supports quarterly and daily evaluations
+- Role-based visibility filtering
+- Timeline layout with badges and avatars
+
+**Key Features:**
+- Complex visibility logic based on user roles
+- Unified timeline for different evaluation types
+- Interactive links to evaluation details
+- Loading states and empty states
+
+#### HR Policy Components (`src/components/hr-policies/`)
+
+**RichTextEditor (`RichTextEditor.tsx`)**
+- Full-featured rich text editor using TipTap
+- Toolbar with formatting options
+- Link insertion and editing
+- Content validation
+
+**Features:**
+- Bold, italic, underline formatting
+- Headings (H1, H2, H3)
+- Lists (ordered and unordered)
+- Link management
+- HTML output for storage
+
+#### Settings Components (`src/components/settings/`)
+
+**Tab-based organization:**
+- `CompanyTab.tsx` - Company information management
+- `DepartmentsTab.tsx` - Department structure
+- `RolesTab.tsx` - Role definitions
+- `AttendanceTab.tsx` - Attendance settings
+- `EvaluationParametersTab.tsx` - Evaluation criteria
+- `ExpenseCategoriesTab.tsx` - Expense categorization
+- `DangerZoneTab.tsx` - Critical operations
+
+#### Shared Components (`src/components/`)
+
+**BeudoxLogo (`BeudoxLogo.tsx`)**
 ```typescript
-// src/components/layout/AppSidebar.tsx
-const navigationItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: Home, roles: ['all'] },
-  { path: '/employees', label: 'Employees', icon: Users, roles: ['hr_manager', 'finance_manager', 'ceo'] },
-  // ... more items
-];
-```
-
-### TopBar
-
-Application header with user menu and notifications:
-
-```typescript
-// src/components/layout/TopBar.tsx
-const TopBar = () => (
-  <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div className="flex h-14 items-center px-4">
-      <div className="flex items-center space-x-4">
-        {/* Logo and navigation */}
-      </div>
-      <div className="ml-auto flex items-center space-x-4">
-        {/* User menu, notifications */}
-      </div>
-    </div>
-  </header>
-);
-```
-
-## Feature Components
-
-### BeudoxLogo
-
-Brand logo component with variant support:
-
-```typescript
-// src/components/BeudoxLogo.tsx
 interface BeudoxLogoProps {
   variant?: 'default' | 'sidebar';
   showWordmark?: boolean;
   size?: number;
 }
-
-const BeudoxLogo = ({ 
-  variant = 'default', 
-  showWordmark = true, 
-  size = 36 
-}: BeudoxLogoProps) => {
-  if (!showWordmark) {
-    return <img src="/assets/beudox-icon-256.svg" alt="Beudox" height={size} />;
-  }
-
-  const src = variant === 'sidebar' 
-    ? '/assets/beudox-logo-reversed.svg' 
-    : '/assets/beudox-logo-primary.svg';
-
-  return <img src={src} alt="Beudox" height={size} />;
-};
 ```
+- Logo component with variants
+- Responsive sizing
+- SVG-based for crisp rendering
 
-### NavLink
+**NavLink (`NavLink.tsx`)**
+- Enhanced React Router NavLink
+- Active state styling
+- TypeScript wrapper with proper typing
 
-Enhanced React Router NavLink with active state styling:
-
-```typescript
-// src/components/NavLink.tsx
-interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
-  className?: string;
-  activeClassName?: string;
-  pendingClassName?: string;
-}
-
-const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
-  ({ className, activeClassName, pendingClassName, to, ...props }, ref) => {
-    return (
-      <RouterNavLink
-        ref={ref}
-        to={to}
-        className={({ isActive, isPending }) =>
-          cn(className, isActive && activeClassName, isPending && pendingClassName)
-        }
-        {...props}
-      />
-    );
-  }
-);
-```
-
-### SearchableEmployeeSelect
-
-Advanced employee selection with search and filtering:
-
-```typescript
-// src/components/SearchableEmployeeSelect.tsx
-interface EmployeeOption {
-  id: string;
-  full_name: string;
-  avatar_url?: string | null;
-  designation?: string | null;
-}
-
-interface SearchableEmployeeSelectProps {
-  employees: EmployeeOption[];
-  value: string;
-  onValueChange: (id: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-  allowAll?: boolean;
-  allLabel?: string;
-}
-```
-
-Features:
-- Real-time search filtering
+**SearchableEmployeeSelect (`SearchableEmployeeSelect.tsx`)**
+- Advanced employee selection component
+- Search and filtering capabilities
 - Avatar display with initials fallback
-- "All Employees" option support
-- Keyboard navigation
-- Accessible design
-
-### EvaluationTimeline
-
-Complex evaluation display component:
-
-```typescript
-// src/components/evaluations/EvaluationTimeline.tsx
-interface Props {
-  employeeId: string;
-  companyId: string;
-}
-
-const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
-  // Quarterly evaluations query
-  const { data: quarterly } = useQuery({
-    queryKey: ['eval-timeline-quarterly', employeeId, companyId],
-    // ... query logic
-  });
-
-  // Daily evaluations query
-  const { data: daily } = useQuery({
-    queryKey: ['eval-timeline-daily', employeeId, companyId],
-    // ... query logic
-  });
-
-  // Unified timeline with role-based filtering
-  // ... complex business logic
-};
-```
-
-Features:
-- Combines quarterly and daily evaluations
-- Role-based visibility (managers see recommendations)
-- Timeline sorting and limiting
-- Rich evaluation display with scores and comments
-
-### RichTextEditor
-
-Tiptap-based rich text editor for HR policies:
-
-```typescript
-// src/components/hr-policies/RichTextEditor.tsx
-interface RichTextEditorProps {
-  content: string;
-  onChange: (html: string) => void;
-}
-
-const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
-      Underline,
-      Link.configure({ openOnClick: false }),
-    ],
-    content,
-    onUpdate: ({ editor }) => onChange(editor.getHTML()),
-  });
-
-  // Toolbar with formatting options
-  // Bold, italic, underline, headings, lists, links
-};
-```
-
-## Settings Components
-
-### Modular Settings Architecture
-
-```typescript
-// src/components/settings/
-├── CompanyTab.tsx       // Company information
-├── DepartmentsTab.tsx   // Department management
-├── RolesTab.tsx         // Role configuration
-├── AttendanceTab.tsx    // Attendance settings
-├── EvaluationParametersTab.tsx  // Evaluation criteria
-├── ExpenseCategoriesTab.tsx     // Expense categories
-└── DangerZoneTab.tsx    // Critical operations
-```
-
-Each settings tab follows consistent patterns:
-- Form validation with Zod
-- Optimistic updates
-- Confirmation dialogs for destructive actions
-- Role-based field visibility
+- Multi-select support (optional)
+- "All" option for bulk operations
 
 ## Component Patterns
 
 ### Data Fetching Pattern
-
 ```typescript
-// Consistent React Query usage
+// Using React Query for server state
 const MyComponent = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['resource', id],
-    queryFn: () => api.getResource(id),
+    queryFn: () => fetchResource(id),
+    enabled: !!id,
   });
-
+  
   if (isLoading) return <Skeleton />;
-  if (error) return <ErrorMessage error={error} />;
-
+  if (error) return <ErrorMessage />;
+  
   return <Component data={data} />;
 };
 ```
 
-### Form Pattern
-
+### Form Component Pattern
 ```typescript
-// React Hook Form + Zod validation
-const MyForm = () => {
-  const form = useForm<FormData>({
+// React Hook Form with Zod validation
+const MyForm = ({ initialData, onSubmit }) => {
+  const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: initialData,
   });
-
-  const mutation = useMutation({
-    mutationFn: api.updateResource,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resource'] });
-      toast.success('Updated successfully');
-    },
-  });
-
-  const onSubmit = (data: FormData) => {
-    mutation.mutate(data);
-  };
-
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        {/* Form fields */}
+        <FormField
+          control={form.control}
+          name="fieldName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Label</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Submit</Button>
       </form>
     </Form>
   );
 };
 ```
 
-### Error Handling Pattern
-
+### List Component Pattern
 ```typescript
-// Consistent error display
-const ErrorMessage = ({ error }: { error: Error }) => (
-  <Alert variant="destructive">
-    <AlertCircle className="h-4 w-4" />
-    <AlertTitle>Error</AlertTitle>
-    <AlertDescription>
-      {error.message || 'Something went wrong'}
-    </AlertDescription>
-  </Alert>
+// Consistent list/table pattern
+const DataList = ({ data, isLoading }) => {
+  if (isLoading) {
+    return <Skeleton className="h-32" />;
+  }
+  
+  return (
+    <div className="space-y-4">
+      {data?.map(item => (
+        <Card key={item.id}>
+          <CardContent>
+            {/* Item content */}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+```
+
+## Component Communication
+
+### Props Interface Pattern
+```typescript
+interface ComponentProps {
+  // Required props
+  requiredProp: string;
+  
+  // Optional props with defaults
+  optionalProp?: number;
+  
+  // Event handlers
+  onAction?: (data: ActionData) => void;
+  
+  // Children
+  children?: ReactNode;
+}
+
+const Component = ({
+  requiredProp,
+  optionalProp = defaultValue,
+  onAction,
+  children
+}: ComponentProps) => {
+  // Component implementation
+};
+```
+
+### Custom Hook Pattern
+```typescript
+// Extract complex logic into custom hooks
+const useComponentLogic = (id: string) => {
+  const [state, setState] = useState(initialState);
+  
+  const { data, isLoading } = useQuery({
+    queryKey: ['data', id],
+    queryFn: () => fetchData(id),
+  });
+  
+  const handleAction = useCallback(() => {
+    // Action logic
+  }, [data]);
+  
+  return {
+    data,
+    isLoading,
+    state,
+    handleAction,
+  };
+};
+```
+
+## Styling Patterns
+
+### Tailwind CSS Classes
+- Utility-first approach
+- Consistent spacing scale
+- Responsive design utilities
+- Dark mode support
+
+### CSS Variables
+```css
+/* Design system variables */
+:root {
+  --ff-display: 'Inter', sans-serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+  
+  --radius: 0.5rem;
+  
+  --color-primary: hsl(var(--primary));
+  --color-background: hsl(var(--background));
+}
+```
+
+### Component Variants
+```typescript
+// Using class-variance-authority for variants
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors", 
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline: "border border-input hover:bg-accent hover:text-accent-foreground",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
 );
 ```
 
 ## Performance Optimizations
 
-### Component-Level Optimizations
-
-#### Memoization
+### Memoization
 ```typescript
-// Memoize expensive computations
-const filteredData = useMemo(() => 
-  data.filter(item => item.status === 'active'),
-  [data]
-);
+// Memoize expensive components
+const ExpensiveComponent = memo(({ data }) => {
+  // Expensive rendering logic
+  return <div>{/* content */}</div>;
+});
 ```
 
-#### Lazy Loading
+### Lazy Loading
 ```typescript
-// Lazy load heavy components
-const HeavyComponent = lazy(() => import('./HeavyComponent'));
+// Lazy load route components
+const Component = lazy(() => import('./Component'));
 ```
 
-#### Callback Optimization
+### Callback Optimization
 ```typescript
-// Stable function references
+// Stable callback references
 const handleClick = useCallback(() => {
-  // handle click logic
-}, []);
+  // Handle click
+}, [dependencies]);
 ```
 
-### Bundle Optimization
+## Testing Patterns
 
-#### Dynamic Imports
+### Component Testing
 ```typescript
-// Route-based code splitting
-const Dashboard = lazy(() => import('./pages/Dashboard'));
+// Using React Testing Library
+import { render, screen, fireEvent } from '@testing-library/react';
+
+test('renders component correctly', () => {
+  render(<MyComponent />);
+  expect(screen.getByText('Expected Text')).toBeInTheDocument();
+});
 ```
 
-#### Component Libraries
-- Tree-shakable imports from Radix UI
-- Optimized bundle with Vite
-- CSS-in-JS elimination with Tailwind
+### Hook Testing
+```typescript
+// Testing custom hooks
+import { renderHook } from '@testing-library/react';
+
+test('hook returns correct data', () => {
+  const { result } = renderHook(() => useCustomHook());
+  expect(result.current.data).toEqual(expectedData);
+});
+```
 
 ## Accessibility
 
-### ARIA Compliance
+### ARIA Patterns
 - Semantic HTML elements
 - Proper ARIA labels and roles
 - Keyboard navigation support
@@ -431,9 +380,4 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 - Focus trapping in modals
 - Skip links for navigation
 
-### Color and Contrast
-- WCAG compliant color ratios
-- Dark mode support
-- High contrast mode compatibility
-
-This component architecture provides a solid foundation for building complex HR management features with consistency, performance, and accessibility in mind.
+This component architecture provides a scalable, maintainable foundation for the HR management system with consistent patterns and best practices.

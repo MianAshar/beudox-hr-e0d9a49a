@@ -1,305 +1,314 @@
 <!--
 generated_by: tessera
-source_sha: 1cec2ce393d8f182112788746e7935917c082ccd
-generated_at: 2026-04-07T21:17:04.205Z
+source_sha: 8e11b5d7fe7d65cb4672bc4879a4a7d4c01dc9e0
+generated_at: 2026-04-07T22:34:23.180Z
 action: create
 -->
 
-# Beudox HR - Routing & Navigation
+# Beudox HR - Routing Structure
 
-## Route Structure
+## Overview
 
-Beudox HR uses React Router v6 for client-side routing with role-based access control. The application has 30+ routes organized by feature areas.
+Beudox HR uses React Router DOM v6 for client-side routing with a comprehensive route structure that supports role-based access control and protected routes.
 
-### Public Routes
+## Route Architecture
 
+### Router Setup
+- **Base Router**: `BrowserRouter` in `src/App.tsx`
+- **Route Protection**: `ProtectedRoute` component wraps authenticated routes
+- **Authentication Handling**: `AuthProvider` manages auth state
+- **Role-Based Access**: `canAccess` utility for permission checks
+
+### Route Categories
+
+#### Public Routes (No Authentication Required)
 ```typescript
-/login                    // Authentication
-/forgot-password          // Password reset
+/
+/login
+/forgot-password
 ```
 
-### Protected Routes (Role-Based Access)
+#### Protected Routes (Authentication Required)
+All routes under authentication require valid session and appropriate role permissions.
 
-#### Dashboard & Core
-```typescript
-/dashboard               // Main dashboard (all roles)
-/settings                // System settings (HR, Finance, CEO)
-```
+### Core Application Routes
+
+#### Dashboard
+- **Path**: `/dashboard`
+- **Access**: All authenticated users
+- **Purpose**: Main application dashboard with overview widgets
 
 #### Employee Management
-```typescript
-/employees               // Employee list (HR, Finance, CEO)
-/employees/new           // Add employee (HR, CEO)
-/employees/:id           // Employee profile (HR, Finance, CEO)
-/employees/:id/edit      // Edit employee (HR, CEO)
-```
+- **List**: `/employees`
+- **Create**: `/employees/new`
+- **Profile**: `/employees/:id`
+- **Edit**: `/employees/:id/edit`
+- **Access**: HR Manager, CEO (full access); Team Lead, Employee (limited)
 
 #### Project Management
-```typescript
-/projects                // Project list (Employee, HR, Finance, Team Lead, CEO)
-/projects/new            // Create project (HR, CEO)
-/projects/:id            // Project details (Employee, HR, Finance, Team Lead, CEO)
-/projects/:id/edit       // Edit project (HR, CEO)
-```
+- **List**: `/projects`
+- **Create**: `/projects/new`
+- **Detail**: `/projects/:id`
+- **Edit**: `/projects/:id/edit`
+- **Access**: All authenticated users with project-specific permissions
 
 #### Client Management
-```typescript
-/clients                 // Client list (HR, CEO)
-/clients/:id             // Client details (HR, CEO)
-```
+- **List**: `/clients`
+- **Detail**: `/clients/:id`
+- **Access**: HR Manager, CEO
 
-#### Financial Management
-```typescript
-/invoices                // Invoice list (Finance, CEO)
-/invoices/new            // Create invoice (Finance, CEO)
-/invoices/:id            // Invoice details (Finance, CEO)
-/invoices/:id/edit       // Edit invoice (Finance, CEO)
-/payroll                 // Payroll management (Finance, CEO)
-```
-
-#### HR Operations
-```typescript
-/evaluations             // Quarterly evaluations (Employee, HR, Team Lead, CEO)
-/evaluations/new         // Create evaluation (HR, CEO)
-/evaluations/:id         // Evaluation details (Employee, HR, Team Lead, CEO)
-/evaluations/:id/edit    // Edit evaluation (HR, CEO)
-/evaluations/daily       // Daily evaluations (Employee, HR, Team Lead, CEO)
-/evaluations/daily/new   // Create daily evaluation (Employee, HR, Team Lead, CEO)
-/evaluations/daily/:id   // Daily evaluation details (Employee, HR, Team Lead, CEO)
-```
+#### Invoice Management
+- **List**: `/invoices`
+- **Create**: `/invoices/new`
+- **Detail**: `/invoices/:id`
+- **Edit**: `/invoices/:id/edit`
+- **Access**: HR Manager, CEO
 
 #### HR Policies
-```typescript
-/hr-policies             // Policy list (all roles)
-/hr-policies/new         // Create policy (HR, CEO)
-/hr-policies/:id         // Policy details (all roles)
-/hr-policies/:id/edit    // Edit policy (HR, CEO)
-```
+- **List**: `/hr-policies`
+- **Create**: `/hr-policies/new`
+- **Detail**: `/hr-policies/:id`
+- **Edit**: `/hr-policies/:id/edit`
+- **Access**: HR Manager, CEO
 
-#### Other Features
-```typescript
-/holidays                // Public holidays (HR, CEO)
-/loans                   // Loan management (Employee, HR, Finance, CEO)
-/my-payslip              // Personal payslip (Employee, HR, Finance, Team Lead, CEO)
-```
+#### Evaluations
+- **Quarterly List**: `/evaluations`
+- **Quarterly Create**: `/evaluations/new`
+- **Quarterly Detail**: `/evaluations/:id`
+- **Quarterly Edit**: `/evaluations/:id/edit`
+- **Daily List**: `/evaluations/daily`
+- **Daily Create**: `/evaluations/daily/new`
+- **Daily Detail**: `/evaluations/daily/:id`
+- **Access**: Role-based visibility (managers see more than employees)
 
-## Role-Based Access Control
+#### Loans
+- **List**: `/loans`
+- **Access**: HR Manager, CEO
 
-### Access Matrix
+#### Payroll
+- **Management**: `/payroll`
+- **My Payslip**: `/my-payslip`
+- **Access**: HR Manager, CEO (management); All users (own payslip)
 
-| Route Pattern | Employee | Team Lead | HR Manager | Finance Manager | CEO |
-|---------------|----------|-----------|------------|-----------------|-----|
-| `/dashboard` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/employees*` | ❌ | ❌ | ✅ | ✅ | ✅ |
-| `/projects*` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/clients*` | ❌ | ❌ | ✅ | ❌ | ✅ |
-| `/invoices*` | ❌ | ❌ | ❌ | ✅ | ✅ |
-| `/payroll` | ❌ | ❌ | ❌ | ✅ | ✅ |
-| `/evaluations*` | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `/hr-policies*` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/settings` | ❌ | ❌ | ✅ | ✅ | ✅ |
-| `/loans` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/my-payslip` | ✅ | ✅ | ✅ | ✅ | ✅ |
+#### Finance
+- **Dashboard**: `/finance`
+- **Access**: HR Manager, CEO
 
-### Access Control Logic
+#### Settings
+- **Main**: `/settings`
+- **Access**: HR Manager, CEO
 
-```typescript
-// src/lib/role-access.ts
-export type AppRole = 'employee' | 'hr_manager' | 'finance_manager' | 'team_lead' | 'ceo';
+#### Holidays
+- **Management**: `/holidays`
+- **Access**: HR Manager, CEO
 
-const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
-  employee: [
-    '/dashboard', '/attendance', '/projects', '/evaluations',
-    '/evaluations/daily', '/hr-policies', '/loans', '/my-payslip', '/notifications'
-  ],
-  hr_manager: [
-    '/dashboard', '/employees', '/attendance', '/holidays', '/leave',
-    '/projects', '/clients', '/evaluations', '/evaluations/daily',
-    '/hr-policies', '/loans', '/my-payslip', '/notifications', '/settings'
-  ],
-  finance_manager: [
-    '/dashboard', '/employees', '/attendance', '/payroll', '/invoices',
-    '/finance', '/loans', '/expenses', '/outsourcing', '/hr-policies',
-    '/my-payslip', '/notifications', '/settings'
-  ],
-  team_lead: [
-    '/dashboard', '/attendance', '/projects', '/evaluations',
-    '/evaluations/daily', '/hr-policies', '/loans', '/my-payslip', '/notifications'
-  ]
-};
-
-export function canAccess(role: string | null | undefined, path: string): boolean {
-  if (!role) return false;
-  if (role === 'ceo') return true;
-
-  const allowed = roleRoutes[role as Exclude<AppRole, 'ceo'>];
-  if (!allowed) return false;
-
-  return allowed.some(r => path === r || path.startsWith(r + '/'));
-}
-```
-
-## Navigation Components
-
-### AppSidebar Navigation
-
-The sidebar navigation adapts based on user role, showing only accessible routes:
-
-```typescript
-// src/components/layout/AppSidebar.tsx
-const navigationItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: Home },
-  // Conditionally show based on role
-  ...(canAccess(role, '/employees') ? [{ path: '/employees', label: 'Employees' }] : []),
-  ...(canAccess(role, '/projects') ? [{ path: '/projects', label: 'Projects' }] : []),
-  // ... more items
-];
-```
-
-### Breadcrumb Navigation
-
-Dynamic breadcrumbs show the current page hierarchy:
-
-```typescript
-// Example breadcrumb generation
-const breadcrumbs = [
-  { label: 'Employees', path: '/employees' },
-  { label: employee.name, path: `/employees/${id}` },
-  { label: 'Edit', path: `/employees/${id}/edit` }
-];
-```
-
-## Route Protection
+## Route Protection Logic
 
 ### ProtectedRoute Component
-
 ```typescript
-// src/App.tsx
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, loading, passwordMode, clearPasswordMode, employee } = useAuth();
-  const location = useLocation();
-
-  // 1. Loading state - show spinner
+const ProtectedRoute = ({ children }) => {
+  const { session, loading, passwordMode, employee } = useAuth();
+  
+  // 1. Show loading spinner during auth check
   if (loading || (session && !employee)) {
     return <LoadingSpinner />;
   }
-
-  // 2. Handle password setup for new users
+  
+  // 2. Handle password setup for new invites
   if (session && passwordMode) {
-    return <SetPassword mode={passwordMode} onComplete={clearPasswordMode} />;
+    return <SetPassword />;
   }
-
+  
   // 3. Redirect to login if not authenticated
   if (!session) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" />;
   }
-
+  
   // 4. Check role-based access
   if (!canAccess(employee?.role_name, location.pathname)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" />;
   }
-
+  
   // 5. Render protected content
   return <AppLayout>{children}</AppLayout>;
 };
 ```
 
-## Route Organization
+### Role-Based Access Control
 
-### Feature-Based Grouping
+#### Permission Levels
+- **CEO**: Full system access
+- **HR Manager**: HR operations, employee management, settings
+- **Team Lead**: Team management, evaluations for team members
+- **Employee**: Personal data, limited evaluations, own payslip
 
-Routes are organized by business domain:
-
-- **Authentication**: Login, password reset
-- **Core HR**: Employees, evaluations, policies
-- **Project Management**: Projects, clients
-- **Finance**: Invoices, payroll
-- **Self-Service**: Personal dashboard, payslips
-
-### URL Patterns
-
-Consistent URL patterns across features:
-
-- List: `/{resource}` (e.g., `/employees`)
-- Create: `/{resource}/new` (e.g., `/employees/new`)
-- Detail: `/{resource}/{id}` (e.g., `/employees/123`)
-- Edit: `/{resource}/{id}/edit` (e.g., `/employees/123/edit`)
-
-### Nested Routes
-
-Some features use nested routing for related functionality:
-
-- Evaluations: `/evaluations` (quarterly) vs `/evaluations/daily`
-- Projects: `/projects/{id}` with potential sub-routes for tasks, time tracking
-
-## Navigation UX Patterns
-
-### Active State Indication
-
+#### canAccess Function
 ```typescript
-// src/components/NavLink.tsx
-const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
-  ({ className, activeClassName, pendingClassName, to, ...props }, ref) => {
-    return (
-      <RouterNavLink
-        ref={ref}
-        to={to}
-        className={({ isActive, isPending }) =>
-          cn(className, isActive && activeClassName, isPending && pendingClassName)
-        }
-        {...props}
-      />
-    );
-  }
-);
+// src/lib/role-access.ts
+export const canAccess = (role: string, path: string): boolean => {
+  const roleHierarchy = {
+    'ceo': 4,
+    'hr_manager': 3,
+    'team_lead': 2,
+    'employee': 1,
+  };
+  
+  const userLevel = roleHierarchy[role] || 0;
+  const requiredLevel = getRequiredLevel(path);
+  
+  return userLevel >= requiredLevel;
+};
 ```
 
-### Loading States
+## Navigation Structure
 
-Routes show loading indicators during navigation:
-
-```typescript
-// Page-level loading
-if (isLoading) {
-  return <Skeleton className="h-8 w-48" />;
-}
-```
-
-### Error Boundaries
-
-Route-level error boundaries catch and handle navigation errors:
+### Sidebar Navigation
+The sidebar dynamically shows menu items based on user role:
 
 ```typescript
-// src/components/ErrorBoundary.tsx
-class ErrorBoundary extends Component {
-  // Handle route errors gracefully
-}
+// CEO & HR Manager see all items
+const fullMenu = [
+  'Dashboard',
+  'Employees',
+  'Projects',
+  'Clients',
+  'Invoices',
+  'HR Policies',
+  'Evaluations',
+  'Loans',
+  'Payroll',
+  'Finance',
+  'Settings',
+  'Holidays',
+];
+
+// Team Lead sees limited items
+const teamLeadMenu = [
+  'Dashboard',
+  'Employees',
+  'Evaluations',
+  'My Payslip',
+];
+
+// Employee sees minimal items
+const employeeMenu = [
+  'Dashboard',
+  'My Profile',
+  'Evaluations',
+  'My Payslip',
+];
 ```
+
+### Breadcrumb Navigation
+- Automatic breadcrumb generation based on route
+- Context-aware navigation links
+- Mobile-responsive breadcrumb display
+
+## Route Components
+
+### Page Organization
+Each route corresponds to a page component in `src/pages/`:
+
+```
+src/pages/
+├── Login.tsx
+├── Dashboard.tsx
+├── Employees.tsx
+├── EmployeeProfile.tsx
+├── EmployeeForm.tsx
+├── Projects.tsx
+├── ProjectForm.tsx
+├── ProjectDetail.tsx
+├── Clients.tsx
+├── ClientDetail.tsx
+├── Invoices.tsx
+├── InvoiceForm.tsx
+├── InvoiceDetail.tsx
+├── HrPolicies.tsx
+├── HrPolicyForm.tsx
+├── HrPolicyDetail.tsx
+├── Evaluations.tsx
+├── EvaluationForm.tsx
+├── EvaluationDetail.tsx
+├── DailyEvaluations.tsx
+├── DailyEvaluationForm.tsx
+├── DailyEvaluationDetail.tsx
+├── Loans.tsx
+├── Payroll.tsx
+├── MyPayslip.tsx
+├── FinanceSheet.tsx
+├── Settings.tsx
+├── PublicHolidays.tsx
+└── NotFound.tsx
+```
+
+### Component Patterns
+
+#### List Pages
+- Data fetching with React Query
+- Search and filtering capabilities
+- Pagination for large datasets
+- Create new item actions
+
+#### Form Pages
+- React Hook Form with Zod validation
+- Create vs Edit modes
+- Success/error handling
+- Navigation after submission
+
+#### Detail Pages
+- Data fetching for specific item
+- Edit/delete actions (role-based)
+- Related data display
+- Breadcrumb navigation
+
+## URL Patterns
+
+### RESTful URL Structure
+- **List**: `/resource` (e.g., `/employees`)
+- **Create**: `/resource/new` (e.g., `/employees/new`)
+- **Detail**: `/resource/:id` (e.g., `/employees/123`)
+- **Edit**: `/resource/:id/edit` (e.g., `/employees/123/edit`)
+
+### Special Routes
+- **Daily Evaluations**: `/evaluations/daily` (nested under evaluations)
+- **My Payslip**: `/my-payslip` (personal route)
+- **Settings**: `/settings` (single page with tabs)
+
+## Route Guards and Redirects
+
+### Authentication Redirects
+- Unauthenticated users → `/login`
+- Authenticated users on `/` → `/dashboard`
+- Insufficient permissions → `/dashboard`
+
+### Password Setup Flow
+- New user invites trigger password setup
+- Intercepts navigation until password is set
+- Redirects to intended destination after completion
 
 ## Performance Considerations
 
 ### Code Splitting
+- Route-based lazy loading for page components
+- Reduces initial bundle size
+- Faster application startup
 
-Routes are lazy-loaded for better performance:
+### Preloading
+- Critical route preloading
+- Data prefetching for likely navigation paths
 
-```typescript
-// src/App.tsx
-const Employees = lazy(() => import('./pages/Employees'));
-const Projects = lazy(() => import('./pages/Projects'));
-// ... other pages
-```
+## Testing Route Behavior
 
-### Route Preloading
+### Route Testing
+- Authentication state testing
+- Role-based access testing
+- Navigation flow testing
+- Error state handling
 
-Critical routes can be preloaded:
+### Integration Testing
+- End-to-end user journey testing
+- Form submission and navigation
+- Permission boundary testing
 
-```typescript
-// Preload dashboard data
-<Router>
-  <Routes>
-    <Route path="/dashboard" element={<Dashboard />} />
-  </Routes>
-</Router>
-```
-
-This routing architecture provides a secure, scalable, and user-friendly navigation experience with proper access control and performance optimizations.
+This routing structure provides a secure, scalable foundation for the HR management system with clear separation of concerns and comprehensive access control.
