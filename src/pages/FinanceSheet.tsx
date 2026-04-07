@@ -190,6 +190,93 @@ const FinanceSheet = () => {
   const editCategory = (categories || []).find(c => c.id === editCategoryId);
   const editLineItems = editCategoryId ? (lineItems || []).filter(li => li.category_id === editCategoryId) : [];
 
+  // ─── EXCEL EXPORT ───
+  const handleExportExcel = useCallback(() => {
+    const rows: any[][] = [];
+    const boldRows: number[] = [];
+
+    // Payroll header
+    const payrollHeaders = ['Employee', 'Basic', 'Allowance', 'OT Hrs', 'OT Amt', 'Bonus', 'Dinner', 'Loan Ded.', 'Final Pmt'];
+    boldRows.push(rows.length);
+    rows.push(['PAYROLL SUMMARY']);
+    rows.push(payrollHeaders);
+    boldRows.push(rows.length - 1);
+
+    departments.forEach(dept => {
+      boldRows.push(rows.length);
+      rows.push([dept, '', '', '', '', '', '', '', '']);
+      const records = payrollByDept[dept];
+      records.forEach((r: any) => {
+        rows.push([
+          r.employee?.full_name || '',
+          Number(r.basic_salary) || 0,
+          Number(r.allowance) || 0,
+          Number((Number(r.regular_ot_hours) + Number(r.holiday_ot_hours)).toFixed(1)),
+          Number(r.regular_ot_amount) + Number(r.holiday_ot_amount),
+          Number(r.bonus) || 0,
+          Number(r.dinner_expense) || 0,
+          Number(r.loan_deduction) || 0,
+          Number(r.final_payment) || 0,
+        ]);
+      });
+      boldRows.push(rows.length);
+      rows.push([`${dept} Subtotal`, '', '', '', '', '', '', '', deptSubtotal(records)]);
+    });
+
+    boldRows.push(rows.length);
+    rows.push(['Total Payroll', '', '', '', '', '', '', '', payrollGrandTotal]);
+    rows.push([]); // blank row
+
+    // Expenses header
+    boldRows.push(rows.length);
+    rows.push(['EXPENSES SUMMARY']);
+    rows.push(['Description', 'Amount (PKR)']);
+    boldRows.push(rows.length - 1);
+
+    (categories || []).forEach(cat => {
+      boldRows.push(rows.length);
+      rows.push([cat.name, '']);
+      const items = (lineItems || []).filter(li => li.category_id === cat.id);
+      items.forEach(li => {
+        rows.push([li.description, getExpenseAmount(li.id)]);
+      });
+      boldRows.push(rows.length);
+      rows.push([`${cat.name} Subtotal`, getCategoryTotal(cat.id)]);
+    });
+
+    boldRows.push(rows.length);
+    rows.push(['Total Expenses', expensesGrandTotal]);
+    rows.push([]);
+
+    boldRows.push(rows.length);
+    rows.push(['Grand Total (Payroll + Expenses)', '', '', '', '', '', '', '', payrollGrandTotal + expensesGrandTotal]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Bold formatting
+    boldRows.forEach(r => {
+      const row = rows[r];
+      if (!row) return;
+      for (let c = 0; c < row.length; c++) {
+        const addr = XLSX.utils.encode_cell({ r, c });
+        if (ws[addr]) {
+          if (!ws[addr].s) ws[addr].s = {};
+          ws[addr].s.font = { bold: true };
+        }
+      }
+    });
+
+    // Column widths
+    ws['!cols'] = [
+      { wch: 28 }, { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 14 },
+      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 16 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `Finance Sheet - ${monthLabel} ${selectedYear}`);
+    XLSX.writeFile(wb, `Finance_Sheet_${monthLabel}_${selectedYear}.xlsx`);
+  }, [departments, payrollByDept, payrollGrandTotal, categories, lineItems, monthlyExpenses, monthLabel, selectedYear, expensesGrandTotal]);
+
   const isLoading = payrollLoading || expensesLoading;
 
   return (
