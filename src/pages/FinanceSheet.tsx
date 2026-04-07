@@ -613,6 +613,7 @@ const FinanceSheet = () => {
             <DialogTitle>Edit {editCategory?.name} — {monthLabel} {selectedYear}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
+            {/* Recurring line items */}
             {editLineItems.map(li => (
               <div key={li.id} className="flex items-center justify-between gap-4">
                 <span className="text-sm flex-1" style={{ fontFamily: 'var(--ff-body)' }}>{li.description}</span>
@@ -632,6 +633,59 @@ const FinanceSheet = () => {
                 />
               </div>
             ))}
+
+            {/* One-time items */}
+            {oneTimeItems.length > 0 && (
+              <div className="border-t pt-3 mt-3">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">One-time Items</span>
+              </div>
+            )}
+            {oneTimeItems.map(ot => (
+              <div key={ot.tempId} className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="Description"
+                  className="flex-1 text-sm h-9"
+                  value={ot.description}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setOneTimeItems(prev => prev.map(i => i.tempId === ot.tempId ? { ...i, description: val } : i));
+                  }}
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  className="w-[120px] text-right text-sm font-mono h-9"
+                  value={ot.amount}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setOneTimeItems(prev => prev.map(i => i.tempId === ot.tempId ? { ...i, amount: val } : i));
+                  }}
+                  onBlur={e => {
+                    const num = Math.max(0, parseFloat(e.target.value) || 0);
+                    setOneTimeItems(prev => prev.map(i => i.tempId === ot.tempId ? { ...i, amount: String(num) } : i));
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 shrink-0 text-destructive hover:text-destructive"
+                  onClick={() => removeOneTimeItem(ot.tempId)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-2"
+              onClick={addOneTimeItem}
+            >
+              <Plus className="h-4 w-4 mr-1" /> Add Line Item
+            </Button>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditCategoryId(null)} disabled={saving}>Cancel</Button>
