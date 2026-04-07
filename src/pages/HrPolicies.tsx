@@ -53,7 +53,6 @@ const HrPolicies = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">HR Policies</h1>
           <p className="text-sm text-muted-foreground">Company policies and guidelines</p>
         </div>
         {isManager && (
