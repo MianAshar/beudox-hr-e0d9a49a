@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SearchableEmployeeSelect from '@/components/SearchableEmployeeSelect';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -222,23 +223,12 @@ const DailyEvaluationForm = () => {
         <CardContent className="pt-6 space-y-4">
           <div className="space-y-2">
             <Label>{isJunior ? 'Select Team Lead to Evaluate' : 'Select Employee to Evaluate'} *</Label>
-            <Select value={revieweeId} onValueChange={setRevieweeId}>
-              <SelectTrigger><SelectValue placeholder="Select person" /></SelectTrigger>
-              <SelectContent>
-                {(selectableEmployees || []).map((emp: any) => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={emp.avatar_url || ''} />
-                        <AvatarFallback className="text-[10px]">{emp.full_name?.slice(0, 2)}</AvatarFallback>
-                      </Avatar>
-                      <span>{emp.full_name}</span>
-                      {emp.designation && <span className="text-muted-foreground text-xs">— {emp.designation}</span>}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableEmployeeSelect
+              employees={selectableEmployees || []}
+              value={revieweeId}
+              onValueChange={setRevieweeId}
+              placeholder="Select person"
+            />
           </div>
 
           <div className="space-y-2">
