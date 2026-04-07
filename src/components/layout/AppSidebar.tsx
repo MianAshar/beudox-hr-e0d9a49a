@@ -7,7 +7,7 @@ import { formatRole } from '@/lib/format-role';
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
-  FolderKanban, ClipboardCheck, FileText, Settings, Bell, FileSpreadsheet,
+  FolderKanban, ClipboardCheck, ClipboardList, FileText, Settings, Bell, FileSpreadsheet,
   LogOut, ChevronLeft, ChevronRight, Briefcase,
 } from 'lucide-react';
 
@@ -44,7 +44,7 @@ const navSections = [
       { title: 'Projects', icon: FolderKanban, path: '/projects' },
       { title: 'Clients', icon: Briefcase, path: '/clients' },
       { title: 'Evaluations', icon: ClipboardCheck, path: '/evaluations' },
-      { title: 'Daily Evaluations', icon: ClipboardCheck, path: '/evaluations/daily' },
+      { title: 'Daily Evaluations', icon: ClipboardList, path: '/evaluations/daily' },
       { title: 'HR Policies', icon: FileText, path: '/hr-policies' },
     ],
   },
