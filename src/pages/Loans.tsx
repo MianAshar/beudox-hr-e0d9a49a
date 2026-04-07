@@ -232,6 +232,26 @@ const Loans = () => {
         .eq('id', confirmAction.id)
         .eq('company_id', companyId!);
       if (error) throw error;
+
+      // Send loan_settled notification
+      if (confirmAction.status === 'settled') {
+        // Find the loan to get employee_id
+        const loan = (loans || []).find((l: any) => l.id === confirmAction.id);
+        if (loan) {
+          const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
+          const recipients = uniqueRecipients(loan.employee_id, mgrs);
+          sendNotification({
+            companyId: companyId!,
+            recipientIds: recipients,
+            type: 'loan_settled',
+            title: 'Loan Settled',
+            message: 'Your loan has been fully repaid.',
+            referenceType: 'loan',
+            referenceId: confirmAction.id,
+          });
+        }
+      }
+
       toast.success(`Loan marked as ${statusLabel[confirmAction.status]?.toLowerCase()}`);
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ['loans'] });

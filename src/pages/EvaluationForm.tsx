@@ -213,7 +213,22 @@ const EvaluationForm = () => {
         return data.id;
       }
     },
-    onSuccess: (evalId) => {
+    onSuccess: async (evalId) => {
+      // Send evaluation_submitted notification (only for new evaluations)
+      if (!isEdit && companyId && employeeId) {
+        const finalPeriod = period === 'Custom' ? customPeriod : period;
+        const mgrs = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
+        const recipients = uniqueRecipients(employeeId, mgrs);
+        sendNotification({
+          companyId,
+          recipientIds: recipients,
+          type: 'evaluation_submitted',
+          title: 'New Evaluation',
+          message: `Your ${finalPeriod} evaluation has been submitted.`,
+          referenceType: 'evaluation',
+          referenceId: evalId,
+        });
+      }
       toast.success('Evaluation saved successfully');
       queryClient.invalidateQueries({ queryKey: ['evaluations'] });
       navigate(`/evaluations/${evalId}`);
