@@ -241,6 +241,20 @@ const Payroll = () => {
         }
       }
 
+      // Send payroll_paid notification
+      const monthLabel = MONTHS.find(m => m.value === selectedMonth)?.label || selectedMonth;
+      const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
+      const recipients = uniqueRecipients(paidModal.employee_id, mgrs);
+      sendNotification({
+        companyId: companyId!,
+        recipientIds: recipients,
+        type: 'payroll_paid',
+        title: 'Payroll Paid',
+        message: `Your ${monthLabel} ${selectedYear} salary has been processed.`,
+        referenceType: 'payroll',
+        referenceId: paidModal.id,
+      });
+
       toast.success('Marked as paid');
       setPaidModal(null);
       fetchExisting();
