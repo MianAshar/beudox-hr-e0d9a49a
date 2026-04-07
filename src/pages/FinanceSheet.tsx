@@ -276,6 +276,34 @@ const FinanceSheet = () => {
   const editCategory = (categories || []).find(c => c.id === editCategoryId);
   const editLineItems = editCategoryId ? (lineItems || []).filter(li => li.category_id === editCategoryId) : [];
 
+  // ─── IMAGE COMPRESSION ───
+  const compressImage = (file: File, maxDim = 1200, quality = 0.7): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Canvas not supported'));
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          blob => blob ? resolve(blob) : reject(new Error('Compression failed')),
+          'image/jpeg',
+          quality,
+        );
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   // ─── RECEIPT UPLOAD / DELETE ───
   const triggerReceiptUpload = (type: 'recurring' | 'onetime', id: string) => {
     setPendingUploadTarget({ type, id });
@@ -297,13 +325,25 @@ const FinanceSheet = () => {
 
     setUploadingReceipt(id);
     try {
-      const ext = file.name.split('.').pop() || 'bin';
+      const isImage = file.type.startsWith('image/');
+      let uploadBlob: Blob | File = file;
+      let ext = 'jpg';
+
+      if (isImage && file.size > 300 * 1024) {
+        uploadBlob = await compressImage(file);
+        ext = 'jpg'; // always jpeg after compression
+      } else if (isImage) {
+        ext = file.name.split('.').pop() || 'jpg';
+      } else {
+        ext = 'pdf';
+      }
+
       const safeName = type === 'recurring' ? id : id.replace(/[^a-zA-Z0-9-_]/g, '_');
       const filePath = `${companyId}/${monthYear}/${safeName}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from('expense-receipts')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, uploadBlob, { upsert: true, contentType: isImage ? 'image/jpeg' : 'application/pdf' });
       if (uploadError) throw uploadError;
 
       // Get signed URL (private bucket)
@@ -327,6 +367,7 @@ const FinanceSheet = () => {
         }
         setOneTimeItems(prev => prev.map(i => i.tempId === id ? { ...i, receiptUrl: url } : i));
       }
+      await qc.invalidateQueries({ queryKey: ['monthly-expenses', companyId, monthYear] });
       toast.success('Receipt uploaded');
     } catch {
       toast.error('Failed to upload receipt');
