@@ -365,7 +365,7 @@ const FinanceSheet = () => {
             </div>
 
             {/* ═══ HALF 1: PAYROLL ═══ */}
-            <div className="mb-8">
+            <div className="mb-8 fs-section">
               <h2 className="text-base font-semibold mb-3" style={{ fontFamily: 'var(--ff-display)' }}>
                 Payroll Summary
               </h2>
