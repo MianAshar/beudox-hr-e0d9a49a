@@ -1,50 +1,39 @@
 <!--
 generated_by: tessera
-source_sha: 34ed6905e2c8ad286ba7d5831009dd122904a9d4
-generated_at: 2026-04-07T21:13:44.718Z
+source_sha: c987c6b27d379c55b62aa248e56c96dd8eef51f1
+generated_at: 2026-04-07T21:14:26.399Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with tools to manage employees, projects, clients, evaluations, payroll, and HR policies in a unified platform.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, project tracking, client relations, invoicing, policy management, performance evaluations, and payroll processing.
 
 ## Features
 
-### Core HR Management
 - **Employee Management**: Complete employee profiles, onboarding, and organizational structure
-- **Role-Based Access Control**: Secure access with different permission levels (CEO, HR Manager, Team Lead, Employee)
 - **Project Management**: Track projects, assign team members, and monitor progress
 - **Client Management**: Maintain client relationships and project associations
-
-### Performance & Evaluation
-- **Quarterly Evaluations**: Comprehensive performance reviews with scoring and recommendations
-- **Daily Evaluations**: Real-time feedback and performance tracking
-- **Evaluation Timeline**: Historical view of all evaluations for employees
-
-### Financial Management
-- **Payroll Processing**: Automated payroll generation with attendance tracking
-- **Invoice Management**: Create and manage client invoices
+- **Invoicing System**: Generate and manage invoices with PDF export
+- **HR Policies**: Create and manage company policies with rich text editing
+- **Performance Evaluations**: Quarterly and daily evaluation systems with timeline tracking
+- **Payroll Management**: Automated payroll generation and payslip distribution
 - **Loan Management**: Track employee loans and repayments
-- **Payslip Generation**: Automated payslip creation and distribution
-
-### HR Operations
-- **HR Policies**: Rich text policy documents with full formatting support
-- **Public Holidays**: Company-wide holiday management
-- **Settings Management**: Configurable company settings, departments, roles, and parameters
+- **Role-Based Access Control**: Secure access based on user roles (HR Manager, CEO, Team Lead, Employee)
 
 ## Technology Stack
 
 - **Frontend**: React 18, TypeScript, Vite
+- **UI Framework**: Tailwind CSS, shadcn/ui (Radix UI components)
 - **Routing**: React Router DOM
-- **UI Components**: Shadcn/ui (Radix UI primitives), Tailwind CSS
-- **State Management**: TanStack Query (React Query)
+- **State Management**: React Query (TanStack Query) for server state
 - **Authentication**: Supabase Auth
 - **Database**: Supabase (PostgreSQL)
 - **Rich Text Editing**: Tiptap
 - **Charts**: Recharts
 - **Forms**: React Hook Form with Zod validation
-- **Icons**: Lucide React
+- **Testing**: Vitest, Playwright
+- **Build Tools**: Vite, ESLint, TypeScript
 
 ## Getting Started
 
@@ -52,7 +41,6 @@ A comprehensive Human Resources Management System built with modern web technolo
 
 - Node.js 18+
 - npm or bun package manager
-- Supabase account and project
 
 ### Installation
 
@@ -75,7 +63,7 @@ A comprehensive Human Resources Management System built with modern web technolo
    ```env
    VITE_SUPABASE_PROJECT_ID=your_project_id
    VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_URL=your_supabase_url
    ```
 
 4. Start the development server:
@@ -87,71 +75,68 @@ A comprehensive Human Resources Management System built with modern web technolo
 
 5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Database Setup
+### Build for Production
 
-The application uses Supabase as its backend. You'll need to:
+```bash
+npm run build
+```
 
-1. Create a Supabase project
-2. Run the database migrations located in `supabase/migrations/`
-3. Configure authentication settings
-4. Set up storage buckets if needed
+### Run Tests
 
-## Available Scripts
+```bash
+npm run test
+```
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests with Vitest
-- `npm run test:watch` - Run tests in watch mode
+### Run E2E Tests
+
+```bash
+npx playwright test
+```
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # Shadcn/ui components
+│   ├── ui/             # shadcn/ui components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── settings/       # Settings-specific components
-│   └── [feature]/      # Feature-specific components
+│   ├── settings/       # Settings-related components
+│   └── ...             # Feature-specific components
 ├── pages/              # Page components (routes)
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations (Supabase)
-└── types/              # TypeScript type definitions
+└── test/               # Test files
 ```
 
-## Architecture
+## Database Schema
 
-### Frontend Architecture
-- **Single Page Application** with client-side routing
-- **Component-based architecture** using React functional components
-- **Custom hooks** for business logic separation
-- **Type-safe** development with TypeScript
+The application uses Supabase with the following main tables:
+- `employees` - Employee information and profiles
+- `companies` - Company/organization data
+- `projects` - Project management
+- `clients` - Client information
+- `invoices` - Invoice management
+- `evaluations` - Quarterly performance evaluations
+- `daily_evaluations` - Daily feedback system
+- `hr_policies` - Company policies
+- `payroll` - Payroll records
+- `loans` - Employee loans
 
-### Data Flow
-- **TanStack Query** for server state management
-- **Supabase client** for database operations
-- **Real-time subscriptions** for live updates
-- **Optimistic updates** for better UX
+## Authentication & Authorization
 
-### Authentication & Authorization
-- **Supabase Auth** for user authentication
-- **Role-based access control** with route protection
-- **Session management** with automatic token refresh
+- **Authentication**: Supabase Auth with email/password
+- **Roles**: hr_manager, ceo, team_lead, employee
+- **Access Control**: Route-level protection with role-based permissions
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Make your changes and add tests
-4. Run the linter: `npm run lint`
-5. Run tests: `npm run test`
-6. Commit your changes: `git commit -am 'Add your feature'`
-7. Push to the branch: `git push origin feature/your-feature`
-8. Submit a pull request
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## License
 
-This project is private and proprietary to Beudox.
+This project is private and proprietary.
