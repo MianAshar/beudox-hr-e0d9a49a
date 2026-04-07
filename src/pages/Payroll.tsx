@@ -411,11 +411,16 @@ const Payroll = () => {
       {!loading && generated && departments.length > 0 && (
         <div className="space-y-6">
           <Tabs defaultValue={departments[0]} className="w-full">
-            <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1">
+            <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
               {departments.map(dept => (
-                <TabsTrigger key={dept} value={dept} className="text-sm">
+                <TabsTrigger
+                  key={dept}
+                  value={dept}
+                  className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+                  style={{ fontFamily: 'var(--ff-body)' }}
+                >
                   {dept}
-                  <span className="ml-1.5 text-xs text-muted-foreground">({grouped[dept].length})</span>
+                  <span className="ml-1.5 text-xs opacity-60">({grouped[dept].length})</span>
                 </TabsTrigger>
               ))}
             </TabsList>
