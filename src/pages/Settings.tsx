@@ -3,6 +3,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import CompanyTab from '@/components/settings/CompanyTab';
 import AttendanceTab from '@/components/settings/AttendanceTab';
 import DepartmentsTab from '@/components/settings/DepartmentsTab';
+import EvaluationParametersTab from '@/components/settings/EvaluationParametersTab';
 import RolesTab from '@/components/settings/RolesTab';
 import DangerZoneTab from '@/components/settings/DangerZoneTab';
 
@@ -33,6 +34,7 @@ const Settings = () => {
             { value: 'company', label: 'Company' },
             { value: 'attendance', label: 'Attendance' },
             { value: 'departments', label: 'Departments' },
+            { value: 'eval-params', label: 'Evaluation Parameters' },
             { value: 'roles', label: 'Roles' },
             { value: 'danger', label: 'Danger Zone' },
           ].map(tab => (
@@ -55,6 +57,9 @@ const Settings = () => {
         </TabsContent>
         <TabsContent value="departments" className="mt-6">
           <DepartmentsTab />
+        </TabsContent>
+        <TabsContent value="eval-params" className="mt-6">
+          <EvaluationParametersTab />
         </TabsContent>
         <TabsContent value="roles" className="mt-6">
           <RolesTab />
