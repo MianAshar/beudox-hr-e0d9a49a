@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: d3ee89c6c673118cacc5e2e71f75043ea1d53924
-generated_at: 2026-04-07T12:49:30.818Z
+source_sha: 22fa1c17bfe3173b442f8fe4a0a5481ab1484547
+generated_at: 2026-04-07T12:52:20.707Z
 action: create
 -->
 
@@ -9,117 +9,76 @@ action: create
 
 ## Repository Overview
 
-**Repository**: MianAshar/beudox-hr-e0d9a49a  
-**Type**: Frontend React Application  
-**Primary Language**: TypeScript  
-**Framework**: Vite + React 18  
-**Backend**: Supabase (PostgreSQL)  
-**Size**: 158 files, 1.5MB  
+This is a baseline analysis of the Beudox HR repository, a comprehensive HR management system frontend application. The codebase consists of 158 files (1476KB) with TypeScript as the primary language, utilizing modern React patterns and Supabase for backend services.
 
-## Key Findings
+## Key Discoveries
 
 ### Application Purpose
-Beudox HR is a comprehensive Human Resources Management System designed for small to medium-sized businesses. It provides end-to-end HR functionality including employee management, performance evaluations, project tracking, financial operations, and document management.
+Beudox HR is a full-featured HR management platform that handles:
+- Employee profile and organizational management
+- Performance evaluation systems (quarterly and daily)
+- HR policy documentation with rich text editing
+- Company settings and configuration
+- Role-based access control with hierarchical permissions
 
 ### Architecture Insights
+- **Frontend Framework**: React 18 with TypeScript, built with Vite
+- **UI System**: shadcn/ui component library with Tailwind CSS
+- **Backend Integration**: Supabase for database, authentication, and serverless functions
+- **Routing**: React Router with a pages-based structure
+- **State Management**: React Query for server state, local state for UI
 
-**Frontend Architecture:**
-- Modern React SPA with TypeScript for type safety
-- Component-based architecture using shadcn/ui design system
-- Client-side routing with React Router and role-based access control
-- Server state management via React Query (TanStack Query)
-- Form handling with React Hook Form and Zod validation
+### Component Architecture
+The application follows a modular component structure:
+- **Layout Components**: AppLayout, AppSidebar, TopBar for consistent navigation
+- **Feature Components**: Specialized components for evaluations, policies, and settings
+- **UI Primitives**: Complete shadcn/ui implementation with 40+ components
+- **Business Logic**: Separated into hooks and utility functions
 
-**Backend Integration:**
-- Supabase as backend-as-a-service platform
-- PostgreSQL database with Row Level Security (RLS)
-- Real-time capabilities via Supabase subscriptions
-- File storage for documents and images
-- Serverless functions for PDF generation and email sending
-
-### Business Logic Complexity
-
-**Multi-tenant Design:** Supports multiple companies with isolated data
-**Role-based Permissions:** 5 distinct user roles with granular access control
-**Complex Workflows:** Approval processes for evaluations, leave requests, expenses
-**Financial Calculations:** Automated payroll, invoicing, and loan management
-**Performance Tracking:** Dual evaluation system (quarterly formal + daily informal)
+### Database & Data Flow
+- **Schema**: 17 Supabase migrations defining employees, evaluations, policies, and settings tables
+- **Evaluation System**: Dual-track system with quarterly formal reviews and daily peer feedback
+- **Access Control**: Role-based permissions (employee → team_lead → hr_manager → ceo)
+- **Real-time Features**: Supabase real-time subscriptions for live updates
 
 ### Technical Highlights
+- **Type Safety**: Comprehensive TypeScript usage with generated Supabase types
+- **Rich Text Editing**: Tiptap integration for policy document creation
+- **Search Functionality**: Advanced employee search with avatar support
+- **Timeline Views**: Unified evaluation timeline with filtering and pagination
+- **Responsive Design**: Mobile-first approach with consistent design system
 
-**Modern Tech Stack:** Latest versions of React, TypeScript, and build tools
-**Type Safety:** Comprehensive TypeScript usage with generated database types
-**UI/UX:** Professional design system with consistent components
-**Developer Experience:** Hot reload, testing frameworks, and linting
-**Scalability:** Modular architecture supporting feature expansion
+## Important Files Identified
 
-## Major Components Discovered
+### Core Application
+- `src/main.tsx`: Application entry point
+- `src/pages/Index.tsx`: Main routing component
+- `src/components/layout/AppLayout.tsx`: Primary layout wrapper
 
-### Core Features
-1. **Employee Management**: Complete CRUD operations with profile management
-2. **Evaluation System**: Quarterly and daily performance tracking
-3. **Project Management**: Client projects with team assignments
-4. **Financial Operations**: Invoicing, payroll, expenses, and loans
-5. **Time Management**: Attendance tracking and leave management
-6. **Document Management**: HR policies and document library
+### Key Features
+- `src/components/evaluations/EvaluationTimeline.tsx`: Complex evaluation display logic
+- `src/components/hr-policies/RichTextEditor.tsx`: Rich text editing capabilities
+- `src/components/SearchableEmployeeSelect.tsx`: Advanced search component
 
-### User Roles & Access
-- **Employee**: Basic access to personal data and evaluations
-- **Team Lead**: Team evaluation capabilities
-- **HR Manager**: Full employee and evaluation management
-- **Finance Manager**: Financial operations and payroll
-- **CEO**: Complete system access
+### Configuration
+- `package.json`: Dependencies and scripts
+- `vite.config.ts`: Build configuration
+- `supabase/config.toml`: Backend configuration
+- `.env`: Environment variables template
 
-### Database Schema
-- **40+ tables** covering all HR functions
-- **Complex relationships** between employees, projects, evaluations
-- **Multi-company support** with proper data isolation
-- **Audit trails** for changes and approvals
+## Development Environment
 
-## Key Architectural Patterns
+The project is set up for modern development with:
+- **Package Manager**: npm/bun support
+- **Testing**: Vitest for unit tests, Playwright for E2E
+- **Linting**: ESLint configuration
+- **Type Checking**: Multiple TypeScript configs for different environments
 
-1. **Protected Routes**: Authentication and authorization guards
-2. **Custom Hooks**: Encapsulated business logic (useAuth, useToast)
-3. **Component Composition**: Reusable UI components with consistent APIs
-4. **Optimistic Updates**: React Query for seamless user experience
-5. **Type-safe Database**: Generated types from Supabase schema
-6. **Feature-based Organization**: Components grouped by functionality
+## Security & Best Practices
 
-## Notable Implementation Details
+- Environment variables properly configured for Supabase credentials
+- Role-based access control implemented throughout
+- Type-safe database operations with generated types
+- Modern security practices with Supabase Auth
 
-**Evaluation System:**
-- Dual evaluation types with different visibility rules
-- Parameter-based scoring with configurable criteria
-- Timeline view combining all evaluation history
-
-**Financial Complexity:**
-- Automated payroll calculations with overtime
-- Invoice generation with PDF output
-- Multi-currency support for international clients
-
-**User Experience:**
-- Responsive design for mobile and desktop
-- Real-time notifications and updates
-- Rich text editing for policies and documents
-- Search and filter capabilities throughout
-
-## Development Quality Indicators
-
-- **Comprehensive Testing**: Unit tests with Vitest, E2E with Playwright
-- **Code Quality**: ESLint configuration and TypeScript strict mode
-- **Modern Tooling**: Vite for fast development, Bun for package management
-- **Documentation**: Well-structured component organization
-- **Performance**: Optimized queries and lazy loading
-
-## Business Value
-
-This is a production-ready HR management system that could serve as a complete solution for small to medium businesses looking to digitize their HR operations. The comprehensive feature set covers all major HR functions with professional-grade implementation quality.
-
-## Recommendations for Future Development
-
-1. **API Documentation**: Add OpenAPI/Swagger specs for backend endpoints
-2. **Testing Coverage**: Expand unit and integration test coverage
-3. **Performance Monitoring**: Add analytics and error tracking
-4. **Mobile App**: Consider React Native companion app
-5. **Multi-language**: Internationalization support for global expansion
-6. **Advanced Analytics**: Dashboard with HR metrics and insights
+This analysis provides a comprehensive foundation for understanding the Beudox HR system's architecture, features, and development practices.

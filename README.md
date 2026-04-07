@@ -1,79 +1,35 @@
 <!--
 generated_by: tessera
-source_sha: d3ee89c6c673118cacc5e2e71f75043ea1d53924
-generated_at: 2026-04-07T12:49:30.817Z
+source_sha: 22fa1c17bfe3173b442f8fe4a0a5481ab1484547
+generated_at: 2026-04-07T12:52:20.707Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies to streamline HR operations for small to medium-sized businesses.
+A comprehensive HR management system built with React, TypeScript, and Supabase. This application provides tools for employee management, performance evaluations, policy management, and organizational settings.
 
 ## Features
 
-### Core HR Management
-- **Employee Management**: Complete employee profiles with personal details, employment history, and organizational structure
-- **Role-Based Access Control**: Granular permissions system with 5 user roles (Employee, HR Manager, Finance Manager, Team Lead, CEO)
-- **Company Settings**: Multi-company support with customizable settings, departments, and policies
+- **Employee Management**: Searchable employee selection, profile management, and organizational hierarchy
+- **Performance Evaluations**: Quarterly and daily evaluations with timeline tracking
+- **HR Policies**: Rich text editor for creating and managing company policies
+- **Settings Management**: Configure departments, roles, attendance, expense categories, and company information
+- **Role-Based Access**: Different permissions for employees, team leads, HR managers, and CEOs
+- **Responsive UI**: Modern interface built with shadcn/ui components
 
-### Performance & Evaluation
-- **Quarterly Evaluations**: Structured performance reviews with customizable parameters and scoring
-- **Daily Evaluations**: Real-time feedback system for continuous performance tracking
-- **Evaluation Parameters**: Configurable evaluation criteria with min/max scores and display ordering
+## Tech Stack
 
-### Project Management
-- **Project Tracking**: Full project lifecycle management with client assignments and deadlines
-- **Resource Allocation**: Employee assignment to projects with time tracking
-- **Client Management**: Client database with contact information and billing details
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Framework**: Tailwind CSS, shadcn/ui components
+- **Routing**: React Router
+- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
+- **Rich Text Editing**: Tiptap
+- **State Management**: React Query for server state
+- **Testing**: Vitest, Playwright
+- **Build Tools**: Vite, ESLint, TypeScript
 
-### Financial Management
-- **Invoice Generation**: Automated invoice creation with PDF generation and email delivery
-- **Payroll Processing**: Comprehensive payroll system with salary calculations, overtime, and deductions
-- **Expense Tracking**: Office expense management with approval workflows
-- **Loan Management**: Employee loan tracking with monthly deductions
-
-### Time & Attendance
-- **Attendance Tracking**: Automated check-in/check-out with import capabilities
-- **Leave Management**: Leave request system with approval workflows and balance tracking
-- **Public Holidays**: Configurable holiday calendar management
-
-### Document Management
-- **HR Policies**: Rich text policy documents with version control
-- **Document Library**: Centralized storage for HR documents and policies
-
-## Technology Stack
-
-### Frontend
-- **React 18** with TypeScript for type-safe development
-- **Vite** for fast development and optimized production builds
-- **React Router** for client-side routing
-- **React Query** for efficient server state management
-- **shadcn/ui** component library built on Radix UI primitives
-- **Tailwind CSS** for styling with custom design system
-- **TipTap** rich text editor for policy documents
-- **React Hook Form** with Zod validation for forms
-
-### Backend & Database
-- **Supabase** (PostgreSQL) for backend-as-a-service
-- **Row Level Security (RLS)** for data access control
-- **Real-time subscriptions** for live updates
-- **Supabase Auth** for user authentication
-- **Supabase Storage** for file uploads
-
-### Development Tools
-- **ESLint** for code linting
-- **TypeScript** for type checking
-- **Vitest** for unit testing
-- **Playwright** for end-to-end testing
-- **Bun** as package manager
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+ or Bun
-- Supabase account and project
-
-### Installation
+## Setup
 
 1. **Clone the repository**
    ```bash
@@ -83,49 +39,35 @@ A comprehensive Human Resources Management System built with modern web technolo
 
 2. **Install dependencies**
    ```bash
+   npm install
+   # or
    bun install
    ```
 
-3. **Environment Setup**
+3. **Environment variables**
    
-   Copy the `.env` file and configure your Supabase credentials:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables:
+   Copy `.env` and configure your Supabase credentials:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_project_id
    ```
 
-4. **Database Setup**
+4. **Run database migrations**
    
-   The database schema is automatically managed through Supabase migrations. The application expects the following tables to be present (see `supabase/migrations/` for the complete schema):
-   
-   - Core: `companies`, `employees`, `roles`, `employee_roles`
-   - Evaluations: `evaluations`, `daily_evaluations`, `evaluation_parameters`
-   - Projects: `projects`, `clients`, `project_assignments`
-   - Finance: `invoices`, `payroll_records`, `loans`, `office_expenses`
-   - Time: `attendance_records`, `leave_requests`, `public_holidays`
-   - Documents: `hr_documents`
+   The Supabase migrations are included in the `supabase/migrations/` directory. Apply them to your Supabase project.
 
-5. **Development Server**
+5. **Start the development server**
    ```bash
+   npm run dev
+   # or
    bun run dev
    ```
-   
-   The application will be available at `http://localhost:5173`
 
-6. **Build for Production**
+6. **Build for production**
    ```bash
-   bun run build
+   npm run build
    ```
-
-### Testing
-
-- **Unit Tests**: `bun run test`
-- **E2E Tests**: Configure Playwright and run `npx playwright test`
 
 ## Project Structure
 
@@ -133,32 +75,22 @@ A comprehensive Human Resources Management System built with modern web technolo
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── settings/       # Settings page components
-│   ├── evaluations/    # Evaluation-related components
-│   └── hr-policies/    # HR policy components
+│   ├── layout/         # App layout components
+│   ├── settings/       # Settings tabs
+│   └── ...
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
-├── lib/                # Utilities and configurations
+├── lib/                # Utilities and helpers
 ├── integrations/       # External service integrations
-└── types/              # TypeScript type definitions
+└── ...
+supabase/
+├── migrations/         # Database schema migrations
+└── functions/          # Edge functions
 ```
-
-## User Roles & Permissions
-
-1. **Employee**: Basic access to personal data, evaluations, and policies
-2. **Team Lead**: Employee access plus team evaluation capabilities
-3. **HR Manager**: Full employee management, evaluations, and HR operations
-4. **Finance Manager**: Financial operations, payroll, and invoicing
-5. **CEO**: Full system access with all permissions
 
 ## Contributing
 
 1. Follow the existing code style and TypeScript conventions
 2. Write tests for new features
 3. Update documentation as needed
-4. Use conventional commit messages
-
-## License
-
-This project is proprietary software. All rights reserved.
+4. Ensure all tests pass before submitting PRs
