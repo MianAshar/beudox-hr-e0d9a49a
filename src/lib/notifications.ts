@@ -34,20 +34,27 @@ export async function sendNotification(params: SendNotificationParams) {
 
 /**
  * Get employee IDs by role name(s) for a given company.
- * Uses service-side queries via the current user's session.
+ * Queries employee_roles joined with roles to find matching employees.
  */
 export async function getEmployeeIdsByRole(companyId: string, roleNames: string[]): Promise<string[]> {
-  const { data } = await supabase
+  // First get role IDs matching the names
+  const { data: roles } = await supabase
+    .from('roles' as any)
+    .select('id')
+    .eq('company_id', companyId)
+    .in('name', roleNames);
+
+  if (!roles || roles.length === 0) return [];
+
+  const roleIds = roles.map((r: any) => r.id);
+
+  const { data: empRoles } = await supabase
     .from('employee_roles')
-    .select('employee_id, roles!employee_roles_role_id_fkey(name)')
-    .in('roles.name', roleNames);
+    .select('employee_id')
+    .in('role_id', roleIds);
 
-  if (!data) return [];
-
-  // Filter out rows where the join didn't match (roles is null)
-  return data
-    .filter((row: any) => row.roles?.name)
-    .map((row: any) => row.employee_id);
+  if (!empRoles) return [];
+  return [...new Set(empRoles.map((r: any) => r.employee_id))];
 }
 
 /** Helper to collect unique recipient IDs from multiple sources. */
