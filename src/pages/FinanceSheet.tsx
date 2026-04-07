@@ -262,7 +262,7 @@ const FinanceSheet = () => {
   }, [editCategoryId, editAmounts, lineItems, monthlyExpenses, companyId, monthYear, qc, oneTimeItems]);
 
   const addOneTimeItem = () => {
-    setOneTimeItems(prev => [...prev, { tempId: crypto.randomUUID(), description: '', amount: '0' }]);
+    setOneTimeItems(prev => [...prev, { tempId: crypto.randomUUID(), description: '', amount: '0', receiptUrl: null }]);
   };
 
   const removeOneTimeItem = (tempId: string) => {
@@ -271,6 +271,126 @@ const FinanceSheet = () => {
 
   const editCategory = (categories || []).find(c => c.id === editCategoryId);
   const editLineItems = editCategoryId ? (lineItems || []).filter(li => li.category_id === editCategoryId) : [];
+
+  // ─── RECEIPT UPLOAD / DELETE ───
+  const triggerReceiptUpload = (type: 'recurring' | 'onetime', id: string) => {
+    setPendingUploadTarget({ type, id });
+    fileInputRef.current?.click();
+  };
+
+  const handleReceiptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingUploadTarget || !companyId || !editCategoryId) return;
+    const { type, id } = pendingUploadTarget;
+    setPendingUploadTarget(null);
+    e.target.value = '';
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only JPG, PNG, WebP, or PDF files are allowed');
+      return;
+    }
+
+    setUploadingReceipt(id);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const safeName = type === 'recurring' ? id : id.replace(/[^a-zA-Z0-9-_]/g, '_');
+      const filePath = `${companyId}/${monthYear}/${safeName}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('expense-receipts')
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      // Get signed URL (private bucket)
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('expense-receipts')
+        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
+      if (signedError) throw signedError;
+      const url = signedData.signedUrl;
+
+      // Save to DB immediately if expense record exists
+      if (type === 'recurring') {
+        const existing = (monthlyExpenses || []).find((ex: any) => ex.line_item_id === id);
+        if (existing) {
+          await supabase.from('monthly_expenses').update({ receipt_url: url }).eq('id', existing.id);
+        }
+        setEditReceipts(prev => ({ ...prev, [id]: url }));
+      } else {
+        const ot = oneTimeItems.find(i => i.tempId === id);
+        if (ot?.existingId) {
+          await supabase.from('monthly_expenses').update({ receipt_url: url }).eq('id', ot.existingId);
+        }
+        setOneTimeItems(prev => prev.map(i => i.tempId === id ? { ...i, receiptUrl: url } : i));
+      }
+      toast.success('Receipt uploaded');
+    } catch {
+      toast.error('Failed to upload receipt');
+    } finally {
+      setUploadingReceipt(null);
+    }
+  };
+
+  const removeReceipt = async (type: 'recurring' | 'onetime', id: string, currentUrl: string) => {
+    if (!companyId) return;
+    setUploadingReceipt(id);
+    try {
+      // Extract file path from signed URL
+      const bucketPath = currentUrl.split('/expense-receipts/')[1]?.split('?')[0];
+      if (bucketPath) {
+        await supabase.storage.from('expense-receipts').remove([decodeURIComponent(bucketPath)]);
+      }
+      if (type === 'recurring') {
+        const existing = (monthlyExpenses || []).find((ex: any) => ex.line_item_id === id);
+        if (existing) {
+          await supabase.from('monthly_expenses').update({ receipt_url: null }).eq('id', existing.id);
+        }
+        setEditReceipts(prev => ({ ...prev, [id]: null }));
+      } else {
+        const ot = oneTimeItems.find(i => i.tempId === id);
+        if (ot?.existingId) {
+          await supabase.from('monthly_expenses').update({ receipt_url: null }).eq('id', ot.existingId);
+        }
+        setOneTimeItems(prev => prev.map(i => i.tempId === id ? { ...i, receiptUrl: null } : i));
+      }
+      await qc.invalidateQueries({ queryKey: ['monthly-expenses', companyId, monthYear] });
+      toast.success('Receipt removed');
+    } catch {
+      toast.error('Failed to remove receipt');
+    } finally {
+      setUploadingReceipt(null);
+    }
+  };
+
+  const isImageUrl = (url: string) => /\.(jpe?g|png|webp)/i.test(url.split('?')[0]);
+
+  const ReceiptIndicator = ({ url, type, id }: { url: string | null | undefined; type: 'recurring' | 'onetime'; id: string }) => {
+    const isUploading = uploadingReceipt === id;
+    if (isUploading) {
+      return <div className="h-9 w-9 flex items-center justify-center"><div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+    }
+    if (url) {
+      return (
+        <div className="flex items-center gap-1 shrink-0">
+          <a href={url} target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-md border hover:bg-muted" title="View receipt">
+            {isImageUrl(url) ? (
+              <img src={url} alt="Receipt" className="h-7 w-7 object-cover rounded" />
+            ) : (
+              <FileText className="h-4 w-4 text-primary" />
+            )}
+          </a>
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" title="Remove receipt" onClick={() => removeReceipt(type, id, url)}>
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      );
+    }
+    return (
+      <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-primary" title="Upload receipt" onClick={() => triggerReceiptUpload(type, id)}>
+        <Upload className="h-4 w-4" />
+      </Button>
+    );
+  };
 
   // ─── EXCEL EXPORT ───
   const handleExportExcel = useCallback(() => {
