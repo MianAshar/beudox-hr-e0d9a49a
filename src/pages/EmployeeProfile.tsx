@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatRole } from '@/lib/format-role';
+import EvaluationTimeline from '@/components/evaluations/EvaluationTimeline';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -501,6 +502,11 @@ const EmployeeProfile = () => {
             </Dialog>
           </div>
         </div>
+      )}
+
+      {/* Evaluation Timeline */}
+      {emp && companyId && (
+        <EvaluationTimeline employeeId={emp.id} companyId={companyId} />
       )}
     </div>
   );
