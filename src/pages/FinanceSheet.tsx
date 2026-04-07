@@ -353,7 +353,7 @@ const FinanceSheet = () => {
         ) : (
           <div id="finance-sheet-print">
             {/* Print header */}
-            <div className="hidden print:!block mb-4 text-center">
+            <div className="hidden fs-print-header mb-4 text-center">
               {employee?.company_logo_url && (
                 <img src={employee.company_logo_url} alt="Logo" className="h-10 mx-auto mb-2" style={{ maxWidth: 140 }} />
               )}
