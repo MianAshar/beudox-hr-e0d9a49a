@@ -599,239 +599,255 @@ const FinanceSheet = () => {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-          </div>
-        ) : (
-          <div id="finance-sheet-print">
-            {/* Print header */}
-            <div className="hidden fs-print-header mb-4 text-center">
-              {employee?.company_logo_url && (
-                <img src={employee.company_logo_url} alt="Logo" className="h-10 mx-auto mb-2" style={{ maxWidth: 140 }} />
-              )}
-              <div className="text-sm font-semibold" style={{ fontFamily: 'Outfit, sans-serif' }}>{employee?.company_name}</div>
-              <div className="text-lg font-bold mt-1" style={{ fontFamily: 'Outfit, sans-serif', color: '#5B3FF8' }}>
-                Finance Sheet — {monthLabel} {selectedYear}
-              </div>
-              <hr className="mt-2 mb-4" style={{ borderColor: '#5B3FF8', borderWidth: 2 }} />
-            </div>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start no-print" style={{ borderColor: 'hsl(var(--border))' }}>
+            {[
+              { value: 'payroll', label: 'Payroll' },
+              { value: 'expenses', label: 'Expenses' },
+            ].map(tab => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+                style={{ fontFamily: 'var(--ff-body)' }}
+              >
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-            {/* ═══ HALF 1: PAYROLL ═══ */}
-            <div className="mb-8 fs-section">
-              <h2 className="text-base font-semibold mb-3" style={{ fontFamily: 'var(--ff-display)' }}>
-                Payroll Summary
-              </h2>
-              <div className="rounded-[14px] border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Employee</TableHead>
-                      <TableHead className="text-right">Basic</TableHead>
-                      <TableHead className="text-right">Allowance</TableHead>
-                      <TableHead className="text-right">OT Hrs</TableHead>
-                      <TableHead className="text-right">OT Amt</TableHead>
-                      <TableHead className="text-right">Bonus</TableHead>
-                      <TableHead className="text-right">Dinner</TableHead>
-                      <TableHead className="text-right">Loan Ded.</TableHead>
-                      <TableHead className="text-right">Final Pmt</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {departments.map(dept => {
-                      const records = payrollByDept[dept];
-                      const subtotal = deptSubtotal(records);
-                      return (
-                        <> 
-                          <TableRow key={`dept-${dept}`}>
-                            <TableCell colSpan={9} className="py-2 font-semibold text-[12px] uppercase tracking-wider"
-                              style={{ background: 'hsl(var(--muted))', fontFamily: 'var(--ff-display)' }}>
-                              {dept}
-                            </TableCell>
-                          </TableRow>
-                          {records.map((r: any) => (
-                            <TableRow key={r.id}>
-                              <TableCell className="text-[13px] font-medium" style={{ fontFamily: 'var(--ff-body)' }}>
-                                {r.employee?.full_name}
-                              </TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">{Number(r.basic_salary).toLocaleString()}</TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">{Number(r.allowance).toLocaleString()}</TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">
-                                {(Number(r.regular_ot_hours) + Number(r.holiday_ot_hours)).toFixed(1)}
-                              </TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">
-                                {(Number(r.regular_ot_amount) + Number(r.holiday_ot_amount)).toLocaleString()}
-                              </TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">{Number(r.bonus).toLocaleString()}</TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">{Number(r.dinner_expense).toLocaleString()}</TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">{Number(r.loan_deduction).toLocaleString()}</TableCell>
-                              <TableCell className="text-right text-[12px] font-mono font-semibold">{Number(r.final_payment).toLocaleString()}</TableCell>
-                            </TableRow>
-                          ))}
-                          <TableRow key={`sub-${dept}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
-                            <TableCell colSpan={8} className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
-                              {dept} Subtotal
-                            </TableCell>
-                            <TableCell className="text-right text-[13px] font-bold font-mono">{subtotal.toLocaleString()}</TableCell>
-                          </TableRow>
-                        </>
-                      );
-                    })}
-                    <TableRow className="fs-grand-row" style={{ background: '#5B3FF8' }}>
-                      <TableCell colSpan={8} className="text-right text-[13px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
-                        Total Payroll
-                      </TableCell>
-                      <TableCell className="text-right text-[14px] font-bold font-mono text-white">
-                        {fmtPKR(payrollGrandTotal)}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
+          {isLoading ? (
+            <div className="space-y-3 pt-4">
+              {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
+          ) : (
+            <div id="finance-sheet-print">
+              {/* Print header */}
+              <div className="hidden fs-print-header mb-4 text-center">
+                {employee?.company_logo_url && (
+                  <img src={employee.company_logo_url} alt="Logo" className="h-10 mx-auto mb-2" style={{ maxWidth: 140 }} />
+                )}
+                <div className="text-sm font-semibold" style={{ fontFamily: 'Outfit, sans-serif' }}>{employee?.company_name}</div>
+                <div className="text-lg font-bold mt-1" style={{ fontFamily: 'Outfit, sans-serif', color: '#5B3FF8' }}>
+                  Finance Sheet — {monthLabel} {selectedYear}
+                </div>
+                <hr className="mt-2 mb-4" style={{ borderColor: '#5B3FF8', borderWidth: 2 }} />
+              </div>
 
-            {/* ═══ HALF 2: EXPENSES ═══ */}
-            <div className="mb-8 fs-section">
-              <h2 className="text-base font-semibold mb-3" style={{ fontFamily: 'var(--ff-display)' }}>
-                Expenses Summary
-              </h2>
-              <div className="rounded-[14px] border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-right w-[180px]">Amount (PKR)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(categories || []).map(cat => {
-                      const items = (lineItems || []).filter(li => li.category_id === cat.id);
-                      const catTotal = getCategoryTotal(cat.id);
-                      return (
-                        <>
-                          {/* Category header with Edit button */}
-                          <TableRow key={`cat-${cat.id}`}>
-                            <TableCell colSpan={2} className="py-2"
-                              style={{ background: 'hsl(var(--muted))' }}>
-                              <div className="flex items-center justify-between">
-                                <span className="font-semibold text-[12px] uppercase tracking-wider" style={{ fontFamily: 'var(--ff-display)' }}>
-                                  {cat.name}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 px-2 text-xs no-print"
-                                  onClick={() => openEditModal(cat.id)}
-                                >
-                                  <Pencil className="h-3 w-3 mr-1" /> Edit
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                          {items.map(li => {
-                            const expRow = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
-                            const receiptUrl = expRow?.receipt_url;
-                            return (
-                              <TableRow key={li.id}>
-                                <TableCell className="text-[13px]" style={{ fontFamily: 'var(--ff-body)' }}>
-                                  {li.description}
-                                </TableCell>
-                                <TableCell className="text-right text-[12px] font-mono">
-                                  <span className="inline-flex items-center gap-1.5 justify-end">
-                                    {getExpenseAmount(li.id).toLocaleString()}
-                                    {receiptUrl && (
-                                      isImageUrl(receiptUrl) ? (
-                                        <Popover>
-                                          <PopoverTrigger asChild>
-                                            <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
-                                              <Paperclip className="h-3.5 w-3.5" />
-                                            </button>
-                                          </PopoverTrigger>
-                                          <PopoverContent className="w-64 p-2" side="left">
-                                            <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
-                                          </PopoverContent>
-                                        </Popover>
-                                      ) : (
-                                        <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
-                                          <Paperclip className="h-3.5 w-3.5" />
-                                        </a>
-                                      )
-                                    )}
-                                  </span>
+              {/* ═══ PAYROLL TAB ═══ */}
+              <TabsContent value="payroll" className="mt-4">
+                <div className="fs-section">
+                  <div className="rounded-[14px] border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Employee</TableHead>
+                          <TableHead className="text-right">Basic</TableHead>
+                          <TableHead className="text-right">Allowance</TableHead>
+                          <TableHead className="text-right">OT Hrs</TableHead>
+                          <TableHead className="text-right">OT Amt</TableHead>
+                          <TableHead className="text-right">Bonus</TableHead>
+                          <TableHead className="text-right">Dinner</TableHead>
+                          <TableHead className="text-right">Loan Ded.</TableHead>
+                          <TableHead className="text-right">Final Pmt</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {departments.map(dept => {
+                          const records = payrollByDept[dept];
+                          const subtotal = deptSubtotal(records);
+                          return (
+                            <> 
+                              <TableRow key={`dept-${dept}`}>
+                                <TableCell colSpan={9} className="py-2 font-semibold text-[12px] uppercase tracking-wider"
+                                  style={{ background: 'hsl(var(--muted))', fontFamily: 'var(--ff-display)' }}>
+                                  {dept}
                                 </TableCell>
                               </TableRow>
-                            );
-                          })}
-                          {getOneTimeExpenses(cat.id).map((ot: any) => {
-                            const receiptUrl = ot.receipt_url;
-                            return (
-                              <TableRow key={ot.id}>
-                                <TableCell className="text-[13px] italic" style={{ fontFamily: 'var(--ff-body)' }}>
-                                  {ot.description}
+                              {records.map((r: any) => (
+                                <TableRow key={r.id}>
+                                  <TableCell className="text-[13px] font-medium" style={{ fontFamily: 'var(--ff-body)' }}>
+                                    {r.employee?.full_name}
+                                  </TableCell>
+                                  <TableCell className="text-right text-[12px] font-mono">{Number(r.basic_salary).toLocaleString()}</TableCell>
+                                  <TableCell className="text-right text-[12px] font-mono">{Number(r.allowance).toLocaleString()}</TableCell>
+                                  <TableCell className="text-right text-[12px] font-mono">
+                                    {(Number(r.regular_ot_hours) + Number(r.holiday_ot_hours)).toFixed(1)}
+                                  </TableCell>
+                                  <TableCell className="text-right text-[12px] font-mono">
+                                    {(Number(r.regular_ot_amount) + Number(r.holiday_ot_amount)).toLocaleString()}
+                                  </TableCell>
+                                  <TableCell className="text-right text-[12px] font-mono">{Number(r.bonus).toLocaleString()}</TableCell>
+                                  <TableCell className="text-right text-[12px] font-mono">{Number(r.dinner_expense).toLocaleString()}</TableCell>
+                                  <TableCell className="text-right text-[12px] font-mono">{Number(r.loan_deduction).toLocaleString()}</TableCell>
+                                  <TableCell className="text-right text-[12px] font-mono font-semibold">{Number(r.final_payment).toLocaleString()}</TableCell>
+                                </TableRow>
+                              ))}
+                              <TableRow key={`sub-${dept}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
+                                <TableCell colSpan={8} className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
+                                  {dept} Subtotal
                                 </TableCell>
-                                <TableCell className="text-right text-[12px] font-mono">
-                                  <span className="inline-flex items-center gap-1.5 justify-end">
-                                    {Number(ot.amount).toLocaleString()}
-                                    {receiptUrl && (
-                                      isImageUrl(receiptUrl) ? (
-                                        <Popover>
-                                          <PopoverTrigger asChild>
-                                            <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
-                                              <Paperclip className="h-3.5 w-3.5" />
-                                            </button>
-                                          </PopoverTrigger>
-                                          <PopoverContent className="w-64 p-2" side="left">
-                                            <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
-                                          </PopoverContent>
-                                        </Popover>
-                                      ) : (
-                                        <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
-                                          <Paperclip className="h-3.5 w-3.5" />
-                                        </a>
-                                      )
-                                    )}
-                                  </span>
+                                <TableCell className="text-right text-[13px] font-bold font-mono">{subtotal.toLocaleString()}</TableCell>
+                              </TableRow>
+                            </>
+                          );
+                        })}
+                        <TableRow className="fs-grand-row" style={{ background: '#5B3FF8' }}>
+                          <TableCell colSpan={8} className="text-right text-[13px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
+                            Total Payroll
+                          </TableCell>
+                          <TableCell className="text-right text-[14px] font-bold font-mono text-white">
+                            {fmtPKR(payrollGrandTotal)}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* ═══ EXPENSES TAB ═══ */}
+              <TabsContent value="expenses" className="mt-4">
+                <div className="fs-section">
+                  <div className="rounded-[14px] border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Description</TableHead>
+                          <TableHead className="text-right w-[180px]">Amount (PKR)</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(categories || []).map(cat => {
+                          const items = (lineItems || []).filter(li => li.category_id === cat.id);
+                          const catTotal = getCategoryTotal(cat.id);
+                          return (
+                            <>
+                              <TableRow key={`cat-${cat.id}`}>
+                                <TableCell colSpan={2} className="py-2"
+                                  style={{ background: 'hsl(var(--muted))' }}>
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-[12px] uppercase tracking-wider" style={{ fontFamily: 'var(--ff-display)' }}>
+                                      {cat.name}
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 px-2 text-xs no-print"
+                                      onClick={() => openEditModal(cat.id)}
+                                    >
+                                      <Pencil className="h-3 w-3 mr-1" /> Edit
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </TableRow>
-                            );
-                          })}
-                          <TableRow key={`catsub-${cat.id}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
-                            <TableCell className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
-                              {cat.name} Subtotal
-                            </TableCell>
-                            <TableCell className="text-right text-[13px] font-bold font-mono">
-                              {catTotal.toLocaleString()}
-                            </TableCell>
-                          </TableRow>
-                        </>
-                      );
-                    })}
-                    <TableRow className="fs-grand-row" style={{ background: '#5B3FF8' }}>
-                      <TableCell className="text-right text-[13px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
-                        Total Expenses
-                      </TableCell>
-                      <TableCell className="text-right text-[14px] font-bold font-mono text-white">
-                        {fmtPKR(expensesGrandTotal)}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+                              {items.map(li => {
+                                const expRow = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
+                                const receiptUrl = expRow?.receipt_url;
+                                return (
+                                  <TableRow key={li.id}>
+                                    <TableCell className="text-[13px]" style={{ fontFamily: 'var(--ff-body)' }}>
+                                      {li.description}
+                                    </TableCell>
+                                    <TableCell className="text-right text-[12px] font-mono">
+                                      <span className="inline-flex items-center gap-1.5 justify-end">
+                                        {getExpenseAmount(li.id).toLocaleString()}
+                                        {receiptUrl && (
+                                          isImageUrl(receiptUrl) ? (
+                                            <Popover>
+                                              <PopoverTrigger asChild>
+                                                <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                                  <Paperclip className="h-3.5 w-3.5" />
+                                                </button>
+                                              </PopoverTrigger>
+                                              <PopoverContent className="w-64 p-2" side="left">
+                                                <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
+                                              </PopoverContent>
+                                            </Popover>
+                                          ) : (
+                                            <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
+                                              <Paperclip className="h-3.5 w-3.5" />
+                                            </a>
+                                          )
+                                        )}
+                                      </span>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                              {getOneTimeExpenses(cat.id).map((ot: any) => {
+                                const receiptUrl = ot.receipt_url;
+                                return (
+                                  <TableRow key={ot.id}>
+                                    <TableCell className="text-[13px] italic" style={{ fontFamily: 'var(--ff-body)' }}>
+                                      {ot.description}
+                                    </TableCell>
+                                    <TableCell className="text-right text-[12px] font-mono">
+                                      <span className="inline-flex items-center gap-1.5 justify-end">
+                                        {Number(ot.amount).toLocaleString()}
+                                        {receiptUrl && (
+                                          isImageUrl(receiptUrl) ? (
+                                            <Popover>
+                                              <PopoverTrigger asChild>
+                                                <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                                  <Paperclip className="h-3.5 w-3.5" />
+                                                </button>
+                                              </PopoverTrigger>
+                                              <PopoverContent className="w-64 p-2" side="left">
+                                                <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
+                                              </PopoverContent>
+                                            </Popover>
+                                          ) : (
+                                            <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
+                                              <Paperclip className="h-3.5 w-3.5" />
+                                            </a>
+                                          )
+                                        )}
+                                      </span>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                              <TableRow key={`catsub-${cat.id}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
+                                <TableCell className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
+                                  {cat.name} Subtotal
+                                </TableCell>
+                                <TableCell className="text-right text-[13px] font-bold font-mono">
+                                  {catTotal.toLocaleString()}
+                                </TableCell>
+                              </TableRow>
+                            </>
+                          );
+                        })}
+                        <TableRow className="fs-grand-row" style={{ background: '#5B3FF8' }}>
+                          <TableCell className="text-right text-[13px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
+                            Total Expenses
+                          </TableCell>
+                          <TableCell className="text-right text-[14px] font-bold font-mono text-white">
+                            {fmtPKR(expensesGrandTotal)}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </TabsContent>
 
-            {/* ═══ GRAND TOTAL ═══ */}
-            <div className="rounded-[14px] overflow-hidden fs-grand-total-bar" style={{ background: '#1A1240' }}>
-              <div className="flex items-center justify-between px-6 py-4">
-                <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
-                  Grand Total (Payroll + Expenses)
-                </span>
-                <span className="text-[20px] font-bold font-mono text-white">
-                  {fmtPKR(payrollGrandTotal + expensesGrandTotal)}
-                </span>
+              {/* ═══ GRAND TOTAL (always visible) ═══ */}
+              <div className="rounded-[14px] overflow-hidden fs-grand-total-bar mt-6" style={{ background: '#1A1240' }}>
+                <div className="flex items-center justify-between px-6 py-4">
+                  <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
+                    Grand Total (Payroll + Expenses)
+                  </span>
+                  <span className="text-[20px] font-bold font-mono text-white">
+                    {fmtPKR(payrollGrandTotal + expensesGrandTotal)}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </Tabs>
       </div>
 
       {/* Hidden file input for receipt uploads */}
