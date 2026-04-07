@@ -42,10 +42,14 @@ const statusLabel: Record<string, string> = {
 
 const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
+const MANAGER_ROLES = ['finance_manager', 'ceo'];
+
 const Loans = () => {
   const { employee } = useAuth();
   const qc = useQueryClient();
   const companyId = employee?.company_id;
+  const role = employee?.role_name;
+  const isManager = MANAGER_ROLES.includes(role || '');
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -69,13 +73,18 @@ const Loans = () => {
   const [confirming, setConfirming] = useState(false);
 
   const { data: loans, isLoading } = useQuery({
-    queryKey: ['loans', companyId, statusFilter],
+    queryKey: ['loans', companyId, statusFilter, isManager],
     queryFn: async () => {
       let query = supabase
         .from('loans')
         .select('*, employees!loans_employee_id_fkey(id, full_name, avatar_url), granter:employees!loans_granted_by_fkey(full_name)')
         .eq('company_id', companyId!)
         .order('granted_date', { ascending: false });
+
+      // Non-managers only see their own loans (RLS also enforces this)
+      if (!isManager) {
+        query = query.eq('employee_id', employee!.employee_id);
+      }
 
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
@@ -99,7 +108,7 @@ const Loans = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!companyId,
+    enabled: !!companyId && isManager,
   });
 
   const filtered = loans?.filter(loan => {
@@ -220,26 +229,32 @@ const Loans = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>Loans</h1>
+          <h1 className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+            {isManager ? 'Loans' : 'My Loans'}
+          </h1>
           <p className="text-sm text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
             {loans ? `${loans.length} loan${loans.length !== 1 ? 's' : ''}` : 'Loading…'}
           </p>
         </div>
-        <Button onClick={openAdd}>
-          <Plus className="h-4 w-4 mr-2" /> Add Loan
-        </Button>
+        {isManager && (
+          <Button onClick={openAdd}>
+            <Plus className="h-4 w-4 mr-2" /> Add Loan
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
-        <div className="relative max-w-sm flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by employee name…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        {isManager && (
+          <div className="relative max-w-sm flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by employee name…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        )}
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
@@ -265,7 +280,7 @@ const Loans = () => {
             {search || statusFilter !== 'all' ? 'No matching loans' : 'No loans yet'}
           </p>
           <p className="text-sm mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
-            {search || statusFilter !== 'all' ? 'Try different filters' : 'Add the first loan to get started'}
+            {search || statusFilter !== 'all' ? 'Try different filters' : isManager ? 'Add the first loan to get started' : 'You have no loans on record'}
           </p>
         </div>
       ) : (
@@ -273,13 +288,13 @@ const Loans = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Employee</TableHead>
+                {isManager && <TableHead>Employee</TableHead>}
                 <TableHead className="text-right">Total Amount</TableHead>
                 <TableHead className="text-right">Monthly Deduction</TableHead>
                 <TableHead className="text-right">Remaining Balance</TableHead>
                 <TableHead>Granted Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {isManager && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -291,17 +306,19 @@ const Loans = () => {
 
                 return (
                   <TableRow key={loan.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={emp?.avatar_url || ''} />
-                          <AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
-                            {initials(emp?.full_name || '?')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium text-sm">{emp?.full_name || '—'}</span>
-                      </div>
-                    </TableCell>
+                    {isManager && (
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={emp?.avatar_url || ''} />
+                            <AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
+                              {initials(emp?.full_name || '?')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-sm">{emp?.full_name || '—'}</span>
+                        </div>
+                      </TableCell>
+                    )}
                     <TableCell className="text-right font-mono text-sm">
                       PKR {totalAmt.toLocaleString()}
                     </TableCell>
@@ -322,35 +339,37 @@ const Loans = () => {
                         {statusLabel[loan.status] || loan.status}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEdit(loan)}>
-                            <Pencil className="h-4 w-4 mr-2" /> Edit
-                          </DropdownMenuItem>
-                          {loan.status !== 'settled' && (
-                            <DropdownMenuItem onClick={() => openConfirm(loan.id, 'settled', emp?.full_name || '')}>
-                              <CheckCircle className="h-4 w-4 mr-2" /> Mark Settled
+                    {isManager && (
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEdit(loan)}>
+                              <Pencil className="h-4 w-4 mr-2" /> Edit
                             </DropdownMenuItem>
-                          )}
-                          {loan.status !== 'on_hold' && loan.status !== 'settled' && (
-                            <DropdownMenuItem onClick={() => openConfirm(loan.id, 'on_hold', emp?.full_name || '')}>
-                              <PauseCircle className="h-4 w-4 mr-2" /> Mark On Hold
-                            </DropdownMenuItem>
-                          )}
-                          {loan.status === 'on_hold' && (
-                            <DropdownMenuItem onClick={() => openConfirm(loan.id, 'active', emp?.full_name || '')}>
-                              <CheckCircle className="h-4 w-4 mr-2" /> Reactivate
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                            {loan.status !== 'settled' && (
+                              <DropdownMenuItem onClick={() => openConfirm(loan.id, 'settled', emp?.full_name || '')}>
+                                <CheckCircle className="h-4 w-4 mr-2" /> Mark Settled
+                              </DropdownMenuItem>
+                            )}
+                            {loan.status !== 'on_hold' && loan.status !== 'settled' && (
+                              <DropdownMenuItem onClick={() => openConfirm(loan.id, 'on_hold', emp?.full_name || '')}>
+                                <PauseCircle className="h-4 w-4 mr-2" /> Mark On Hold
+                              </DropdownMenuItem>
+                            )}
+                            {loan.status === 'on_hold' && (
+                              <DropdownMenuItem onClick={() => openConfirm(loan.id, 'active', emp?.full_name || '')}>
+                                <CheckCircle className="h-4 w-4 mr-2" /> Reactivate
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
@@ -359,118 +378,122 @@ const Loans = () => {
         </div>
       )}
 
-      {/* Add / Edit Loan Modal */}
-      <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) { setModalOpen(false); resetForm(); } }}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{editingLoan ? 'Edit Loan' : 'Add Loan'}</DialogTitle>
-            <DialogDescription>
-              {editingLoan ? 'Update the loan details below.' : 'Create a new employee loan.'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <Label>Employee <span className="text-destructive">*</span></Label>
-              <div className="mt-1">
-                <SearchableEmployeeSelect
-                  employees={activeEmployees || []}
-                  value={formEmployeeId}
-                  onValueChange={setFormEmployeeId}
-                  placeholder="Select employee"
-                  disabled={!!editingLoan}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+      {/* Add / Edit Loan Modal — managers only */}
+      {isManager && (
+        <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) { setModalOpen(false); resetForm(); } }}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{editingLoan ? 'Edit Loan' : 'Add Loan'}</DialogTitle>
+              <DialogDescription>
+                {editingLoan ? 'Update the loan details below.' : 'Create a new employee loan.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
               <div>
-                <Label>Total Amount (PKR) <span className="text-destructive">*</span></Label>
-                <Input
-                  type="number"
-                  min="0"
-                  className="mt-1"
-                  value={formAmount}
-                  onChange={e => setFormAmount(e.target.value)}
-                  placeholder="e.g. 50000"
-                />
-              </div>
-              <div>
-                <Label>Monthly Deduction (PKR) <span className="text-destructive">*</span></Label>
-                <Input
-                  type="number"
-                  min="0"
-                  className="mt-1"
-                  value={formDeduction}
-                  onChange={e => setFormDeduction(e.target.value)}
-                  placeholder="e.g. 5000"
-                />
-              </div>
-            </div>
-            <div>
-              <Label>Granted Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn("w-full mt-1 justify-start text-left font-normal", !formDate && "text-muted-foreground")}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formDate ? format(formDate, 'PPP') : 'Pick a date'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formDate}
-                    onSelect={(d) => d && setFormDate(d)}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
+                <Label>Employee <span className="text-destructive">*</span></Label>
+                <div className="mt-1">
+                  <SearchableEmployeeSelect
+                    employees={activeEmployees || []}
+                    value={formEmployeeId}
+                    onValueChange={setFormEmployeeId}
+                    placeholder="Select employee"
+                    disabled={!!editingLoan}
                   />
-                </PopoverContent>
-              </Popover>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Total Amount (PKR) <span className="text-destructive">*</span></Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    className="mt-1"
+                    value={formAmount}
+                    onChange={e => setFormAmount(e.target.value)}
+                    placeholder="e.g. 50000"
+                  />
+                </div>
+                <div>
+                  <Label>Monthly Deduction (PKR) <span className="text-destructive">*</span></Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    className="mt-1"
+                    value={formDeduction}
+                    onChange={e => setFormDeduction(e.target.value)}
+                    placeholder="e.g. 5000"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Granted Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn("w-full mt-1 justify-start text-left font-normal", !formDate && "text-muted-foreground")}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formDate ? format(formDate, 'PPP') : 'Pick a date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formDate}
+                      onSelect={(d) => d && setFormDate(d)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Reason</Label>
+                <Input className="mt-1" value={formReason} onChange={e => setFormReason(e.target.value)} placeholder="Optional" />
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Textarea className="mt-1" value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Optional" rows={3} />
+              </div>
             </div>
-            <div>
-              <Label>Reason</Label>
-              <Input className="mt-1" value={formReason} onChange={e => setFormReason(e.target.value)} placeholder="Optional" />
-            </div>
-            <div>
-              <Label>Notes</Label>
-              <Textarea className="mt-1" value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Optional" rows={3} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setModalOpen(false); resetForm(); }}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              {editingLoan ? 'Update Loan' : 'Add Loan'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setModalOpen(false); resetForm(); }}>Cancel</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                {editingLoan ? 'Update Loan' : 'Add Loan'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
-      {/* Confirm Status Change Dialog */}
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {confirmAction?.status === 'settled' ? 'Mark Loan as Settled' : confirmAction?.status === 'on_hold' ? 'Mark Loan as On Hold' : 'Reactivate Loan'}
-            </DialogTitle>
-            <DialogDescription>
-              {confirmAction?.status === 'settled'
-                ? `Are you sure you want to mark ${confirmAction?.name}'s loan as settled? This indicates the loan has been fully repaid.`
-                : confirmAction?.status === 'on_hold'
-                ? `Put ${confirmAction?.name}'s loan on hold? Monthly deductions will be paused.`
-                : `Reactivate ${confirmAction?.name}'s loan? Monthly deductions will resume.`}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
-            <Button onClick={handleConfirmAction} disabled={confirming}>
-              {confirming && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Confirm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Confirm Status Change Dialog — managers only */}
+      {isManager && (
+        <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {confirmAction?.status === 'settled' ? 'Mark Loan as Settled' : confirmAction?.status === 'on_hold' ? 'Mark Loan as On Hold' : 'Reactivate Loan'}
+              </DialogTitle>
+              <DialogDescription>
+                {confirmAction?.status === 'settled'
+                  ? `Are you sure you want to mark ${confirmAction?.name}'s loan as settled? This indicates the loan has been fully repaid.`
+                  : confirmAction?.status === 'on_hold'
+                  ? `Put ${confirmAction?.name}'s loan on hold? Monthly deductions will be paused.`
+                  : `Reactivate ${confirmAction?.name}'s loan? Monthly deductions will resume.`}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+              <Button onClick={handleConfirmAction} disabled={confirming}>
+                {confirming && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                Confirm
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
