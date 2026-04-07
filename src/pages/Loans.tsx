@@ -174,7 +174,7 @@ const Loans = () => {
         if (error) throw error;
         toast.success('Loan updated');
       } else {
-        const { error } = await supabase
+        const { data: newLoan, error } = await supabase
           .from('loans')
           .insert({
             company_id: companyId!,
@@ -187,8 +187,24 @@ const Loans = () => {
             reason: formReason || null,
             notes: formNotes || null,
             granted_by: employee?.employee_id || null,
-          });
+          })
+          .select('id')
+          .single();
         if (error) throw error;
+
+        // Send loan_granted notification
+        const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
+        const recipients = uniqueRecipients(formEmployeeId, mgrs);
+        sendNotification({
+          companyId: companyId!,
+          recipientIds: recipients,
+          type: 'loan_granted',
+          title: 'Loan Granted',
+          message: `A loan of PKR ${totalAmount.toLocaleString()} has been granted to you.`,
+          referenceType: 'loan',
+          referenceId: newLoan?.id,
+        });
+
         toast.success('Loan added');
       }
       setModalOpen(false);
