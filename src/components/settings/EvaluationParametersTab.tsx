@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, DragEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ArrowUp, ArrowDown, Plus } from 'lucide-react';
+import { GripVertical, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ParamSectionProps {
@@ -19,6 +19,8 @@ interface ParamSectionProps {
 const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSectionProps) => {
   const queryClient = useQueryClient();
   const [newName, setNewName] = useState('');
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   const queryKey = ['eval-params-settings', companyId, evaluationType, direction || 'none'];
 
@@ -73,29 +75,45 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
-  const reorderMutation = useMutation({
-    mutationFn: async ({ id, newOrder }: { id: string; newOrder: number }) => {
-      const { error } = await supabase.from('evaluation_parameters')
-        .update({ display_order: newOrder })
-        .eq('id', id)
-        .eq('company_id', companyId);
-      if (error) throw error;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
-  });
+  const sorted = [...(parameters || [])].sort((a: any, b: any) => a.display_order - b.display_order);
 
-  const handleReorder = (paramId: string, dir: 'up' | 'down') => {
-    const sorted = [...(parameters || [])].sort((a: any, b: any) => a.display_order - b.display_order);
-    const idx = sorted.findIndex((p: any) => p.id === paramId);
-    if ((dir === 'up' && idx === 0) || (dir === 'down' && idx === sorted.length - 1)) return;
-    const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
-    const orderA = sorted[idx].display_order;
-    const orderB = sorted[swapIdx].display_order;
-    reorderMutation.mutate({ id: sorted[idx].id, newOrder: orderB });
-    reorderMutation.mutate({ id: sorted[swapIdx].id, newOrder: orderA });
+  const handleDragStart = (e: DragEvent, id: string) => {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const sorted = [...(parameters || [])].sort((a: any, b: any) => a.display_order - b.display_order);
+  const handleDragOver = (e: DragEvent, id: string) => {
+    if (dragId === id) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverId(id);
+  };
+
+  const handleDrop = async (e: DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!dragId || dragId === targetId) return;
+    const fromIdx = sorted.findIndex(p => p.id === dragId);
+    const toIdx = sorted.findIndex(p => p.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+
+    const updates = reordered.map((p, i) => ({ id: p.id, display_order: i }));
+    setDragId(null);
+    setDragOverId(null);
+
+    await Promise.all(updates.map(u =>
+      supabase.from('evaluation_parameters').update({ display_order: u.display_order }).eq('id', u.id).eq('company_id', companyId)
+    ));
+    queryClient.invalidateQueries({ queryKey });
+  };
+
+  const handleDragEnd = () => {
+    setDragId(null);
+    setDragOverId(null);
+  };
 
   return (
     <div className="space-y-3">
@@ -103,16 +121,19 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
         {title}
       </h4>
       <div className="space-y-2">
-        {sorted.map((p: any, idx: number) => (
-          <div key={p.id} className="flex items-center justify-between gap-3 py-2 px-3 bg-muted/50 rounded-lg">
+        {sorted.map((p: any) => (
+          <div
+            key={p.id}
+            className={`flex items-center justify-between gap-3 py-2 px-3 bg-muted/50 rounded-lg transition-colors ${dragOverId === p.id && dragId !== p.id ? 'ring-1 ring-primary/30 bg-primary/5' : ''} ${dragId === p.id ? 'opacity-50' : ''}`}
+            draggable
+            onDragStart={(e) => handleDragStart(e, p.id)}
+            onDragOver={(e) => handleDragOver(e, p.id)}
+            onDrop={(e) => handleDrop(e, p.id)}
+            onDragEnd={handleDragEnd}
+          >
             <div className="flex items-center gap-3 flex-1">
-              <div className="flex flex-col gap-0.5">
-                <button onClick={() => handleReorder(p.id, 'up')} disabled={idx === 0} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
-                  <ArrowUp className="h-3 w-3" />
-                </button>
-                <button onClick={() => handleReorder(p.id, 'down')} disabled={idx === sorted.length - 1} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
-                  <ArrowDown className="h-3 w-3" />
-                </button>
+              <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
+                <GripVertical className="h-4 w-4" />
               </div>
               <span className={`text-sm ${p.is_active ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
                 {p.name}
@@ -153,7 +174,6 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
     </div>
   );
 };
-
 const EvaluationParametersTab = () => {
   const { employee } = useAuth();
   const companyId = employee?.company_id;
