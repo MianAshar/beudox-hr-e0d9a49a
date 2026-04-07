@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+import NotificationBell from './NotificationBell';
 
 const getPageTitle = (pathname: string): string => {
   if (pathname === '/employees/new') return 'Add Employee';
