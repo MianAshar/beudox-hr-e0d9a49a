@@ -1553,6 +1553,64 @@ export type Database = {
           },
         ]
       }
+      monthly_expenses: {
+        Row: {
+          amount: number
+          category_id: string
+          company_id: string
+          created_at: string | null
+          description: string
+          id: string
+          line_item_id: string | null
+          month_year: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          category_id: string
+          company_id: string
+          created_at?: string | null
+          description: string
+          id?: string
+          line_item_id?: string | null
+          month_year: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          category_id?: string
+          company_id?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          line_item_id?: string | null
+          month_year?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_expenses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_expenses_line_item_id_fkey"
+            columns: ["line_item_id"]
+            isOneToOne: false
+            referencedRelation: "expense_line_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           company_id: string
