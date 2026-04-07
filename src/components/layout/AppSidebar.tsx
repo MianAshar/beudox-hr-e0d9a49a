@@ -7,7 +7,7 @@ import { formatRole } from '@/lib/format-role';
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
-  FolderKanban, ClipboardCheck, FileText, Settings, Bell, FileSpreadsheet,
+  FolderKanban, ClipboardCheck, ClipboardList, FileText, Settings, Bell, FileSpreadsheet,
   LogOut, ChevronLeft, ChevronRight, Briefcase,
 } from 'lucide-react';
 
@@ -44,6 +44,7 @@ const navSections = [
       { title: 'Projects', icon: FolderKanban, path: '/projects' },
       { title: 'Clients', icon: Briefcase, path: '/clients' },
       { title: 'Evaluations', icon: ClipboardCheck, path: '/evaluations' },
+      { title: 'Daily Evaluations', icon: ClipboardList, path: '/evaluations/daily' },
       { title: 'HR Policies', icon: FileText, path: '/hr-policies' },
     ],
   },
@@ -61,7 +62,12 @@ const AppSidebar = () => {
   const location = useLocation();
   const { employee, signOut } = useAuth();
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    // Exact match for paths that have sub-paths sharing prefixes
+    if (path === '/evaluations') return location.pathname === '/evaluations' || (location.pathname.startsWith('/evaluations/') && !location.pathname.startsWith('/evaluations/daily'));
+    if (path === '/evaluations/daily') return location.pathname.startsWith('/evaluations/daily');
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
   const width = collapsed ? 64 : 240;
   const companyLogo = employee?.company_logo_url || null;
 
