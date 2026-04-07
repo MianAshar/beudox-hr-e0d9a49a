@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -528,6 +529,7 @@ const FinanceSheet = () => {
     XLSX.writeFile(wb, `Finance_Sheet_${monthLabel}_${selectedYear}.xlsx`);
   }, [departments, payrollByDept, payrollGrandTotal, categories, lineItems, monthlyExpenses, monthLabel, selectedYear, expensesGrandTotal]);
 
+  const [activeTab, setActiveTab] = useState('payroll');
   const isLoading = payrollLoading || expensesLoading;
 
   return (
