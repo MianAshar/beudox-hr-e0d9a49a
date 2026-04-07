@@ -39,6 +39,9 @@ const FinanceSheet = () => {
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
   const [editAmounts, setEditAmounts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  // One-time line items added in the modal
+  type OneTimeItem = { tempId: string; description: string; amount: string; existingId?: string };
+  const [oneTimeItems, setOneTimeItems] = useState<OneTimeItem[]>([]);
 
   // ─── PAYROLL DATA ───
   const { data: payrollData, isLoading: payrollLoading } = useQuery({
