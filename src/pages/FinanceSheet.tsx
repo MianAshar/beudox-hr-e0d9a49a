@@ -232,7 +232,7 @@ const FinanceSheet = () => {
         if (ot.existingId) {
           const { error } = await supabase
             .from('monthly_expenses')
-            .update({ description: desc || 'Untitled', amount, updated_at: new Date().toISOString() })
+            .update({ description: desc || 'Untitled', amount, receipt_url: ot.receiptUrl || null, updated_at: new Date().toISOString() })
             .eq('id', ot.existingId)
             .eq('company_id', companyId);
           if (error) throw error;
@@ -247,6 +247,7 @@ const FinanceSheet = () => {
               category_id: editCategoryId,
               description: desc || 'Untitled',
               amount,
+              receipt_url: ot.receiptUrl || null,
             });
           if (error) throw error;
         }
