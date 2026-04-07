@@ -8,7 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Printer, Pencil, FileSpreadsheet, Plus, Trash2, Upload, FileText, X, ExternalLink } from 'lucide-react';
+import { Printer, Pencil, FileSpreadsheet, Plus, Trash2, Upload, FileText, X, ExternalLink, Paperclip } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
@@ -275,6 +276,34 @@ const FinanceSheet = () => {
   const editCategory = (categories || []).find(c => c.id === editCategoryId);
   const editLineItems = editCategoryId ? (lineItems || []).filter(li => li.category_id === editCategoryId) : [];
 
+  // ─── IMAGE COMPRESSION ───
+  const compressImage = (file: File, maxDim = 1200, quality = 0.7): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Canvas not supported'));
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          blob => blob ? resolve(blob) : reject(new Error('Compression failed')),
+          'image/jpeg',
+          quality,
+        );
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   // ─── RECEIPT UPLOAD / DELETE ───
   const triggerReceiptUpload = (type: 'recurring' | 'onetime', id: string) => {
     setPendingUploadTarget({ type, id });
@@ -296,13 +325,25 @@ const FinanceSheet = () => {
 
     setUploadingReceipt(id);
     try {
-      const ext = file.name.split('.').pop() || 'bin';
+      const isImage = file.type.startsWith('image/');
+      let uploadBlob: Blob | File = file;
+      let ext = 'jpg';
+
+      if (isImage && file.size > 300 * 1024) {
+        uploadBlob = await compressImage(file);
+        ext = 'jpg'; // always jpeg after compression
+      } else if (isImage) {
+        ext = file.name.split('.').pop() || 'jpg';
+      } else {
+        ext = 'pdf';
+      }
+
       const safeName = type === 'recurring' ? id : id.replace(/[^a-zA-Z0-9-_]/g, '_');
       const filePath = `${companyId}/${monthYear}/${safeName}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from('expense-receipts')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, uploadBlob, { upsert: true, contentType: isImage ? 'image/jpeg' : 'application/pdf' });
       if (uploadError) throw uploadError;
 
       // Get signed URL (private bucket)
@@ -326,6 +367,7 @@ const FinanceSheet = () => {
         }
         setOneTimeItems(prev => prev.map(i => i.tempId === id ? { ...i, receiptUrl: url } : i));
       }
+      await qc.invalidateQueries({ queryKey: ['monthly-expenses', companyId, monthYear] });
       toast.success('Receipt uploaded');
     } catch {
       toast.error('Failed to upload receipt');
@@ -684,26 +726,73 @@ const FinanceSheet = () => {
                               </div>
                             </TableCell>
                           </TableRow>
-                          {items.map(li => (
-                            <TableRow key={li.id}>
-                              <TableCell className="text-[13px]" style={{ fontFamily: 'var(--ff-body)' }}>
-                                {li.description}
-                              </TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">
-                                {getExpenseAmount(li.id).toLocaleString()}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                          {getOneTimeExpenses(cat.id).map((ot: any) => (
-                            <TableRow key={ot.id}>
-                              <TableCell className="text-[13px] italic" style={{ fontFamily: 'var(--ff-body)' }}>
-                                {ot.description}
-                              </TableCell>
-                              <TableCell className="text-right text-[12px] font-mono">
-                                {Number(ot.amount).toLocaleString()}
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {items.map(li => {
+                            const expRow = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
+                            const receiptUrl = expRow?.receipt_url;
+                            return (
+                              <TableRow key={li.id}>
+                                <TableCell className="text-[13px]" style={{ fontFamily: 'var(--ff-body)' }}>
+                                  {li.description}
+                                </TableCell>
+                                <TableCell className="text-right text-[12px] font-mono">
+                                  <span className="inline-flex items-center gap-1.5 justify-end">
+                                    {getExpenseAmount(li.id).toLocaleString()}
+                                    {receiptUrl && (
+                                      isImageUrl(receiptUrl) ? (
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                              <Paperclip className="h-3.5 w-3.5" />
+                                            </button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-64 p-2" side="left">
+                                            <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
+                                          </PopoverContent>
+                                        </Popover>
+                                      ) : (
+                                        <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
+                                          <Paperclip className="h-3.5 w-3.5" />
+                                        </a>
+                                      )
+                                    )}
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                          {getOneTimeExpenses(cat.id).map((ot: any) => {
+                            const receiptUrl = ot.receipt_url;
+                            return (
+                              <TableRow key={ot.id}>
+                                <TableCell className="text-[13px] italic" style={{ fontFamily: 'var(--ff-body)' }}>
+                                  {ot.description}
+                                </TableCell>
+                                <TableCell className="text-right text-[12px] font-mono">
+                                  <span className="inline-flex items-center gap-1.5 justify-end">
+                                    {Number(ot.amount).toLocaleString()}
+                                    {receiptUrl && (
+                                      isImageUrl(receiptUrl) ? (
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                              <Paperclip className="h-3.5 w-3.5" />
+                                            </button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-64 p-2" side="left">
+                                            <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
+                                          </PopoverContent>
+                                        </Popover>
+                                      ) : (
+                                        <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
+                                          <Paperclip className="h-3.5 w-3.5" />
+                                        </a>
+                                      )
+                                    )}
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                           <TableRow key={`catsub-${cat.id}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
                             <TableCell className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
                               {cat.name} Subtotal
