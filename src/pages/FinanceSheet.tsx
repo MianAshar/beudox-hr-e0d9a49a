@@ -8,8 +8,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Printer, Pencil } from 'lucide-react';
+import { Printer, Pencil, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 const MONTHS = [
   { value: '01', label: 'January' }, { value: '02', label: 'February' },
@@ -189,6 +190,93 @@ const FinanceSheet = () => {
   const editCategory = (categories || []).find(c => c.id === editCategoryId);
   const editLineItems = editCategoryId ? (lineItems || []).filter(li => li.category_id === editCategoryId) : [];
 
+  // ─── EXCEL EXPORT ───
+  const handleExportExcel = useCallback(() => {
+    const rows: any[][] = [];
+    const boldRows: number[] = [];
+
+    // Payroll header
+    const payrollHeaders = ['Employee', 'Basic', 'Allowance', 'OT Hrs', 'OT Amt', 'Bonus', 'Dinner', 'Loan Ded.', 'Final Pmt'];
+    boldRows.push(rows.length);
+    rows.push(['PAYROLL SUMMARY']);
+    rows.push(payrollHeaders);
+    boldRows.push(rows.length - 1);
+
+    departments.forEach(dept => {
+      boldRows.push(rows.length);
+      rows.push([dept, '', '', '', '', '', '', '', '']);
+      const records = payrollByDept[dept];
+      records.forEach((r: any) => {
+        rows.push([
+          r.employee?.full_name || '',
+          Number(r.basic_salary) || 0,
+          Number(r.allowance) || 0,
+          Number((Number(r.regular_ot_hours) + Number(r.holiday_ot_hours)).toFixed(1)),
+          Number(r.regular_ot_amount) + Number(r.holiday_ot_amount),
+          Number(r.bonus) || 0,
+          Number(r.dinner_expense) || 0,
+          Number(r.loan_deduction) || 0,
+          Number(r.final_payment) || 0,
+        ]);
+      });
+      boldRows.push(rows.length);
+      rows.push([`${dept} Subtotal`, '', '', '', '', '', '', '', deptSubtotal(records)]);
+    });
+
+    boldRows.push(rows.length);
+    rows.push(['Total Payroll', '', '', '', '', '', '', '', payrollGrandTotal]);
+    rows.push([]); // blank row
+
+    // Expenses header
+    boldRows.push(rows.length);
+    rows.push(['EXPENSES SUMMARY']);
+    rows.push(['Description', 'Amount (PKR)']);
+    boldRows.push(rows.length - 1);
+
+    (categories || []).forEach(cat => {
+      boldRows.push(rows.length);
+      rows.push([cat.name, '']);
+      const items = (lineItems || []).filter(li => li.category_id === cat.id);
+      items.forEach(li => {
+        rows.push([li.description, getExpenseAmount(li.id)]);
+      });
+      boldRows.push(rows.length);
+      rows.push([`${cat.name} Subtotal`, getCategoryTotal(cat.id)]);
+    });
+
+    boldRows.push(rows.length);
+    rows.push(['Total Expenses', expensesGrandTotal]);
+    rows.push([]);
+
+    boldRows.push(rows.length);
+    rows.push(['Grand Total (Payroll + Expenses)', '', '', '', '', '', '', '', payrollGrandTotal + expensesGrandTotal]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Bold formatting
+    boldRows.forEach(r => {
+      const row = rows[r];
+      if (!row) return;
+      for (let c = 0; c < row.length; c++) {
+        const addr = XLSX.utils.encode_cell({ r, c });
+        if (ws[addr]) {
+          if (!ws[addr].s) ws[addr].s = {};
+          ws[addr].s.font = { bold: true };
+        }
+      }
+    });
+
+    // Column widths
+    ws['!cols'] = [
+      { wch: 28 }, { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 14 },
+      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 16 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `Finance Sheet - ${monthLabel} ${selectedYear}`);
+    XLSX.writeFile(wb, `Finance_Sheet_${monthLabel}_${selectedYear}.xlsx`);
+  }, [departments, payrollByDept, payrollGrandTotal, categories, lineItems, monthlyExpenses, monthLabel, selectedYear, expensesGrandTotal]);
+
   const isLoading = payrollLoading || expensesLoading;
 
   return (
@@ -196,11 +284,11 @@ const FinanceSheet = () => {
       {/* Print styles */}
       <style>{`
         @media print {
-          @page { size: A4 landscape; margin: 16px; }
+          @page { size: A4 landscape; margin: 12mm; }
           body * { visibility: hidden !important; }
           #finance-sheet-print, #finance-sheet-print * { visibility: visible !important; }
           #finance-sheet-print {
-            position: fixed !important;
+            position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
@@ -208,12 +296,26 @@ const FinanceSheet = () => {
             font-size: 10px !important;
           }
           .no-print { display: none !important; }
-          #finance-sheet-print table { font-size: 10px !important; }
+          #finance-sheet-print table {
+            font-size: 10px !important;
+            page-break-inside: auto !important;
+          }
+          #finance-sheet-print table tr {
+            page-break-inside: avoid !important;
+          }
+          #finance-sheet-print .fs-section {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
           #finance-sheet-print th { background: #1A1240 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .fs-subtotal-row { background: #F6F5FF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .fs-grand-row { background: #5B3FF8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .fs-total-row { background: #1A1240 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .hidden.print\\:!block { display: block !important; visibility: visible !important; }
+          .fs-print-header { display: block !important; visibility: visible !important; }
+          #finance-sheet-print .fs-grand-total-bar {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
         }
       `}</style>
 
@@ -234,9 +336,14 @@ const FinanceSheet = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-2" /> Print / Export
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer className="h-4 w-4 mr-2" /> Export as PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportExcel}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" /> Export as Excel
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -246,7 +353,7 @@ const FinanceSheet = () => {
         ) : (
           <div id="finance-sheet-print">
             {/* Print header */}
-            <div className="hidden print:!block mb-4 text-center">
+            <div className="hidden fs-print-header mb-4 text-center">
               {employee?.company_logo_url && (
                 <img src={employee.company_logo_url} alt="Logo" className="h-10 mx-auto mb-2" style={{ maxWidth: 140 }} />
               )}
@@ -258,7 +365,7 @@ const FinanceSheet = () => {
             </div>
 
             {/* ═══ HALF 1: PAYROLL ═══ */}
-            <div className="mb-8">
+            <div className="mb-8 fs-section">
               <h2 className="text-base font-semibold mb-3" style={{ fontFamily: 'var(--ff-display)' }}>
                 Payroll Summary
               </h2>
@@ -331,7 +438,7 @@ const FinanceSheet = () => {
             </div>
 
             {/* ═══ HALF 2: EXPENSES ═══ */}
-            <div className="mb-8">
+            <div className="mb-8 fs-section">
               <h2 className="text-base font-semibold mb-3" style={{ fontFamily: 'var(--ff-display)' }}>
                 Expenses Summary
               </h2>
@@ -403,7 +510,7 @@ const FinanceSheet = () => {
             </div>
 
             {/* ═══ GRAND TOTAL ═══ */}
-            <div className="rounded-[14px] overflow-hidden" style={{ background: '#1A1240' }}>
+            <div className="rounded-[14px] overflow-hidden fs-grand-total-bar" style={{ background: '#1A1240' }}>
               <div className="flex items-center justify-between px-6 py-4">
                 <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
                   Grand Total (Payroll + Expenses)
