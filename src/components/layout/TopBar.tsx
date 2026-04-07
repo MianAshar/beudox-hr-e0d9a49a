@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+import NotificationBell from './NotificationBell';
 
 const getPageTitle = (pathname: string): string => {
   if (pathname === '/employees/new') return 'Add Employee';
@@ -38,7 +39,7 @@ const TopBar = () => {
       className="h-16 bg-card border-b flex items-center px-6"
       style={{ borderColor: '#D5D2EB' }}
     >
-      <div>
+      <div className="flex-1">
         <h1
           className="text-[26px] font-bold text-foreground leading-tight"
           style={{ fontFamily: 'var(--ff-display)' }}
@@ -46,6 +47,7 @@ const TopBar = () => {
           {title}
         </h1>
       </div>
+      <NotificationBell />
     </header>
   );
 };

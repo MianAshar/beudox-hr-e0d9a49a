@@ -3,6 +3,7 @@ import SearchableEmployeeSelect from '@/components/SearchableEmployeeSelect';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sendNotification, getEmployeeIdsByRole, uniqueRecipients } from '@/lib/notifications';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -212,7 +213,22 @@ const EvaluationForm = () => {
         return data.id;
       }
     },
-    onSuccess: (evalId) => {
+    onSuccess: async (evalId) => {
+      // Send evaluation_submitted notification (only for new evaluations)
+      if (!isEdit && companyId && employeeId) {
+        const finalPeriod = period === 'Custom' ? customPeriod : period;
+        const mgrs = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
+        const recipients = uniqueRecipients(employeeId, mgrs);
+        sendNotification({
+          companyId,
+          recipientIds: recipients,
+          type: 'evaluation_submitted',
+          title: 'New Evaluation',
+          message: `Your ${finalPeriod} evaluation has been submitted.`,
+          referenceType: 'evaluation',
+          referenceId: evalId,
+        });
+      }
       toast.success('Evaluation saved successfully');
       queryClient.invalidateQueries({ queryKey: ['evaluations'] });
       navigate(`/evaluations/${evalId}`);

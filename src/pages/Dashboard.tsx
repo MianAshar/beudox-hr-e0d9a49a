@@ -1,8 +1,10 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
+import { format, addDays, isBefore, parseISO, subDays } from 'date-fns';
 import { Users, CalendarCheck, DollarSign, FolderKanban } from 'lucide-react';
+import { sendNotification, getEmployeeIdsByRole, uniqueRecipients } from '@/lib/notifications';
+import { useEffect, useRef } from 'react';
 
 const getGreeting = () => {
   const h = new Date().getHours();
@@ -166,6 +168,78 @@ const Dashboard = () => {
     },
     enabled: !!companyId,
   });
+
+  // Increment due check — runs once per dashboard load for HR/CEO
+  const incrementCheckRan = useRef(false);
+  useEffect(() => {
+    if (!companyId || !isHrOrCeo || incrementCheckRan.current) return;
+    incrementCheckRan.current = true;
+
+    (async () => {
+      try {
+        // Find employees with increment_rule whose joining anniversary is within 30 days
+        const { data: employees } = await supabase
+          .from('employees')
+          .select('id, full_name, joining_date, increment_rule')
+          .eq('company_id', companyId)
+          .eq('status', 'active')
+          .not('joining_date', 'is', null);
+
+        if (!employees || employees.length === 0) return;
+
+        const now = new Date();
+        const thirtyDaysFromNow = addDays(now, 30);
+        const sevenDaysAgo = subDays(now, 7);
+
+        const dueEmployees: { id: string; full_name: string; reviewDate: Date }[] = [];
+        for (const emp of employees) {
+          if (!emp.joining_date) continue;
+          const joinDate = parseISO(emp.joining_date);
+          // Calculate next review date (anniversary this year or next)
+          const thisYearAnniversary = new Date(now.getFullYear(), joinDate.getMonth(), joinDate.getDate());
+          const reviewDate = isBefore(thisYearAnniversary, now)
+            ? new Date(now.getFullYear() + 1, joinDate.getMonth(), joinDate.getDate())
+            : thisYearAnniversary;
+
+          if (isBefore(reviewDate, thirtyDaysFromNow)) {
+            dueEmployees.push({ id: emp.id, full_name: emp.full_name, reviewDate });
+          }
+        }
+
+        if (dueEmployees.length === 0) return;
+
+        // Check which ones already have a recent increment_due notification (last 7 days)
+        const { data: existingNotifs } = await supabase
+          .from('notifications')
+          .select('reference_id')
+          .eq('company_id', companyId)
+          .eq('type', 'increment_due')
+          .gte('created_at', sevenDaysAgo.toISOString());
+
+        const alreadyNotified = new Set((existingNotifs || []).map((n: any) => n.reference_id));
+        const toNotify = dueEmployees.filter((e) => !alreadyNotified.has(e.id));
+
+        if (toNotify.length === 0) return;
+
+        const mgrs = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
+        if (mgrs.length === 0) return;
+
+        for (const emp of toNotify) {
+          sendNotification({
+            companyId,
+            recipientIds: mgrs,
+            type: 'increment_due',
+            title: 'Salary Review Due',
+            message: `${emp.full_name} is due for a salary review on ${format(emp.reviewDate, 'dd MMM yyyy')}.`,
+            referenceType: 'employee',
+            referenceId: emp.id,
+          });
+        }
+      } catch (err) {
+        console.error('Increment due check failed:', err);
+      }
+    })();
+  }, [companyId, isHrOrCeo]);
 
   if (authLoading) {
     return (

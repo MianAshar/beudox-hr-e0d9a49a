@@ -2,6 +2,7 @@ import { useState } from 'react';
 import SearchableEmployeeSelect from '@/components/SearchableEmployeeSelect';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sendNotification, getEmployeeIdsByRole, uniqueRecipients } from '@/lib/notifications';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -173,7 +174,7 @@ const Loans = () => {
         if (error) throw error;
         toast.success('Loan updated');
       } else {
-        const { error } = await supabase
+        const { data: newLoan, error } = await supabase
           .from('loans')
           .insert({
             company_id: companyId!,
@@ -186,8 +187,24 @@ const Loans = () => {
             reason: formReason || null,
             notes: formNotes || null,
             granted_by: employee?.employee_id || null,
-          });
+          })
+          .select('id')
+          .single();
         if (error) throw error;
+
+        // Send loan_granted notification
+        const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
+        const recipients = uniqueRecipients(formEmployeeId, mgrs);
+        sendNotification({
+          companyId: companyId!,
+          recipientIds: recipients,
+          type: 'loan_granted',
+          title: 'Loan Granted',
+          message: `A loan of PKR ${totalAmount.toLocaleString()} has been granted to you.`,
+          referenceType: 'loan',
+          referenceId: newLoan?.id,
+        });
+
         toast.success('Loan added');
       }
       setModalOpen(false);
@@ -215,6 +232,26 @@ const Loans = () => {
         .eq('id', confirmAction.id)
         .eq('company_id', companyId!);
       if (error) throw error;
+
+      // Send loan_settled notification
+      if (confirmAction.status === 'settled') {
+        // Find the loan to get employee_id
+        const loan = (loans || []).find((l: any) => l.id === confirmAction.id);
+        if (loan) {
+          const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
+          const recipients = uniqueRecipients(loan.employee_id, mgrs);
+          sendNotification({
+            companyId: companyId!,
+            recipientIds: recipients,
+            type: 'loan_settled',
+            title: 'Loan Settled',
+            message: 'Your loan has been fully repaid.',
+            referenceType: 'loan',
+            referenceId: confirmAction.id,
+          });
+        }
+      }
+
       toast.success(`Loan marked as ${statusLabel[confirmAction.status]?.toLowerCase()}`);
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ['loans'] });

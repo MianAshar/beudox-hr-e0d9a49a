@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { sendNotification, getEmployeeIdsByRole, uniqueRecipients } from '@/lib/notifications';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -179,6 +180,25 @@ const Payroll = () => {
         })
         .in('id', draftIds);
       if (error) throw error;
+
+      // Send notifications for approved payroll
+      const monthLabel = MONTHS.find(m => m.value === selectedMonth)?.label || selectedMonth;
+      const approvedRecords = records.filter(r => r.status === 'draft');
+      const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
+      for (const rec of approvedRecords) {
+        const empId = rec.employee_id;
+        const recipients = uniqueRecipients(empId, mgrs);
+        sendNotification({
+          companyId: companyId!,
+          recipientIds: recipients,
+          type: 'payroll_approved',
+          title: 'Payroll Approved',
+          message: `Your ${monthLabel} ${selectedYear} payroll has been approved.`,
+          referenceType: 'payroll',
+          referenceId: rec.id,
+        });
+      }
+
       toast.success('Payroll approved');
       setApproveOpen(false);
       fetchExisting();
@@ -220,6 +240,20 @@ const Payroll = () => {
           await supabase.from('loans').update(updates).eq('id', loan.id);
         }
       }
+
+      // Send payroll_paid notification
+      const monthLabel = MONTHS.find(m => m.value === selectedMonth)?.label || selectedMonth;
+      const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
+      const recipients = uniqueRecipients(paidModal.employee_id, mgrs);
+      sendNotification({
+        companyId: companyId!,
+        recipientIds: recipients,
+        type: 'payroll_paid',
+        title: 'Payroll Paid',
+        message: `Your ${monthLabel} ${selectedYear} salary has been processed.`,
+        referenceType: 'payroll',
+        referenceId: paidModal.id,
+      });
 
       toast.success('Marked as paid');
       setPaidModal(null);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sendNotification, getEmployeeIdsByRole, uniqueRecipients } from '@/lib/notifications';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -209,7 +210,22 @@ const InvoiceDetail = () => {
         .eq('company_id', companyId!);
       if (updateError) throw updateError;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Send invoice_payment_received notification
+      if (companyId && invoice) {
+        const mgrs = await getEmployeeIdsByRole(companyId, ['finance_manager', 'ceo']);
+        if (mgrs.length > 0) {
+          sendNotification({
+            companyId,
+            recipientIds: mgrs,
+            type: 'invoice_payment_received',
+            title: 'Payment Received',
+            message: `A payment of ${invoice.currency} ${Number(payAmount).toLocaleString()} has been recorded for invoice ${invoice.invoice_number}.`,
+            referenceType: 'invoice',
+            referenceId: id,
+          });
+        }
+      }
       toast.success('Payment recorded');
       setPaymentOpen(false);
       setPayAmount('');
