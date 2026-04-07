@@ -1,92 +1,135 @@
 <!--
 generated_by: tessera
-source_sha: 1cec2ce393d8f182112788746e7935917c082ccd
-generated_at: 2026-04-07T21:17:57.033Z
+source_sha: b4b241cfd7371f23914eb092aaa2d645364c636e
+generated_at: 2026-04-07T21:23:43.753Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Management System
 
-Beudox HR is a comprehensive human resources management application built for modern companies. It provides tools for employee management, performance evaluations, HR policy administration, payroll processing, and organizational settings.
+A comprehensive Human Resources management platform built with modern web technologies. Beudox HR streamlines employee management, performance evaluations, payroll processing, project tracking, and organizational workflows.
 
 ## Features
 
-- **Employee Management**: Searchable employee selection, profile management, and organizational hierarchy
-- **Performance Evaluations**: Quarterly and daily evaluation system with timeline tracking
-- **HR Policies**: Rich text editor for creating and managing company policies
-- **Settings Management**: Configure company details, departments, roles, attendance rules, expense categories, and more
-- **Payroll & Invoicing**: Automated payroll generation and invoice PDF creation
-- **User Roles & Permissions**: Role-based access control (CEO, HR Manager, Team Lead, Employee)
+### Core HR Management
+- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
+- **Role-Based Access Control**: Granular permissions system with multiple user roles (CEO, HR Manager, Team Lead, Employee)
+- **Company Settings**: Configure departments, roles, evaluation parameters, and expense categories
+
+### Performance & Evaluations
+- **Quarterly Evaluations**: Structured performance reviews with scoring and recommendations
+- **Daily Evaluations**: Real-time feedback system for continuous improvement
+- **Evaluation Timeline**: Historical view of all evaluations with filtering and visibility controls
+
+### Financial Management
+- **Payroll Processing**: Automated payroll generation with attendance tracking
+- **Invoice Management**: Client invoicing with PDF generation and email delivery
+- **Loan Management**: Employee loan tracking and management
+- **Expense Categories**: Configurable expense tracking for reimbursement
+
+### Project & Client Management
+- **Project Tracking**: Full project lifecycle management with team assignments
+- **Client Management**: Client relationship management with detailed profiles
+- **Time Tracking**: Integration with attendance and payroll systems
+
+### Policy & Compliance
+- **HR Policies**: Rich text policy documents with version control
+- **Public Holidays**: Configurable holiday calendar management
+- **Document Management**: Secure document storage and access
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Routing**: React Router DOM
-- **UI Components**: shadcn/ui (Radix UI primitives)
-- **Styling**: Tailwind CSS
-- **State Management**: TanStack Query (React Query)
-- **Backend**: Supabase (PostgreSQL database, Edge Functions)
-- **Authentication**: Supabase Auth
-- **Testing**: Vitest (unit tests), Playwright (E2E tests)
-- **Package Manager**: Bun
+### Frontend
+- **React 18** with TypeScript for type-safe development
+- **Vite** for fast development and optimized builds
+- **React Router** for client-side routing
+- **React Query** for efficient server state management
+- **shadcn/ui + Radix UI** for accessible, customizable components
+- **Tailwind CSS** for utility-first styling
+- **Tiptap** for rich text editing
+- **React Hook Form + Zod** for robust form handling and validation
+
+### Backend & Database
+- **Supabase** for backend-as-a-service
+  - PostgreSQL database with Row Level Security (RLS)
+  - Real-time subscriptions
+  - Built-in authentication
+  - File storage
+  - Edge functions for business logic
+
+### Development & Testing
+- **Vitest** for unit testing
+- **Playwright** for end-to-end testing
+- **ESLint** for code quality
+- **TypeScript** for type checking
+
+### UI/UX
+- **Custom Design System**: Beudox-branded components with consistent theming
+- **Responsive Design**: Mobile-first approach with adaptive layouts
+- **Accessibility**: WCAG compliant components
+- **Dark/Light Mode**: Theme switching capability
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
-- Bun package manager
+- npm or bun package manager
 - Supabase account and project
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
+   npm install
+   # or
    bun install
    ```
 
-3. Set up environment variables:
+3. **Environment Setup**
    
-   Copy `.env` and update the Supabase configuration:
+   Copy the environment template:
    ```bash
    cp .env .env.local
    ```
    
-   Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+   Configure your Supabase credentials in `.env.local`:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   ```
 
-4. Run database migrations:
+4. **Database Setup**
    
-   The SQL migrations are located in `supabase/migrations/`. Apply them to your Supabase database.
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   
+   Key tables include:
+   - `companies` - Company information
+   - `employees` - Employee records
+   - `roles` - User roles and permissions
+   - `evaluations` - Performance reviews
+   - `daily_evaluations` - Daily feedback
+   - `projects` - Project management
+   - `invoices` - Client invoicing
+   - `payroll` - Payroll records
 
-5. Start the development server:
+5. **Start Development Server**
    ```bash
+   npm run dev
+   # or
    bun run dev
    ```
 
-6. Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-### Building for Production
-
-```bash
-bun run build
-```
-
-The built files will be in the `dist` directory.
-
-### Running Tests
-
-- Unit tests: `bun run test`
-- E2E tests: `bun run test:e2e`
+6. **Build for Production**
+   ```bash
+   npm run build
+   npm run preview
+   ```
 
 ## Project Structure
 
@@ -94,26 +137,88 @@ The built files will be in the `dist` directory.
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, TopBar)
-│   ├── settings/       # Settings tab components
-│   └── ...
-├── pages/              # Page components
+│   ├── layout/         # App layout components
+│   ├── settings/       # Settings page components
+│   └── evaluations/    # Evaluation components
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
-└── ...
+├── lib/                # Utilities and configurations
+├── integrations/       # External service integrations
+└── types/              # TypeScript type definitions
+
 supabase/
 ├── migrations/         # Database schema migrations
-└── functions/          # Edge Functions for server-side logic
+├── functions/          # Edge functions
+└── config.toml         # Supabase configuration
 ```
+
+## Key Components
+
+### Authentication Flow
+- Email/password authentication with Supabase Auth
+- Password reset and account recovery
+- Role-based route protection
+- Session management with automatic refresh
+
+### Data Management
+- React Query for caching and synchronization
+- Optimistic updates for better UX
+- Real-time subscriptions for live data
+- Type-safe database operations
+
+### Form Handling
+- React Hook Form for performance
+- Zod schemas for validation
+- Accessible form components
+- File upload with image cropping
+
+## Development
+
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run test` - Run unit tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run lint` - Run ESLint
+
+### Code Quality
+- TypeScript for type safety
+- ESLint for code consistency
+- Prettier for code formatting
+- Husky for git hooks
+
+### Testing
+- Unit tests with Vitest
+- E2E tests with Playwright
+- Component testing with React Testing Library
+
+## Deployment
+
+The application is designed to be deployed to any static hosting service:
+
+1. Build the application: `npm run build`
+2. Deploy the `dist/` directory to your hosting provider
+3. Configure environment variables in your hosting platform
+
+### Recommended Hosting
+- Vercel
+- Netlify
+- AWS S3 + CloudFront
+- Supabase Hosting
 
 ## Contributing
 
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure all tests pass before submitting a pull request
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Ensure all tests pass
+6. Submit a pull request
 
 ## License
 
-This project is private and proprietary to Beudox.
+This project is proprietary software. All rights reserved.
+
+## Support
+
+For support and questions, please contact the development team or create an issue in the repository.
