@@ -9,8 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Printer, Pencil, FileSpreadsheet, Plus, Trash2, Upload, FileText, X, ExternalLink, Paperclip } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Printer, Pencil, FileSpreadsheet, Plus, Trash2, Upload, FileText, X, ExternalLink, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
@@ -754,22 +753,9 @@ const FinanceSheet = () => {
                                       <span className="inline-flex items-center gap-1.5 justify-end">
                                         {getExpenseAmount(li.id).toLocaleString()}
                                         {receiptUrl && (
-                                          isImageUrl(receiptUrl) ? (
-                                            <Popover>
-                                              <PopoverTrigger asChild>
-                                                <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
-                                                  <Paperclip className="h-3.5 w-3.5" />
-                                                </button>
-                                              </PopoverTrigger>
-                                              <PopoverContent className="w-64 p-2" side="left">
-                                                <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
-                                              </PopoverContent>
-                                            </Popover>
-                                          ) : (
-                                            <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
-                                              <Paperclip className="h-3.5 w-3.5" />
-                                            </a>
-                                          )
+                                          <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                            {isImageUrl(receiptUrl) ? <ImageIcon className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+                                          </a>
                                         )}
                                       </span>
                                     </TableCell>
@@ -787,22 +773,9 @@ const FinanceSheet = () => {
                                       <span className="inline-flex items-center gap-1.5 justify-end">
                                         {Number(ot.amount).toLocaleString()}
                                         {receiptUrl && (
-                                          isImageUrl(receiptUrl) ? (
-                                            <Popover>
-                                              <PopoverTrigger asChild>
-                                                <button className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
-                                                  <Paperclip className="h-3.5 w-3.5" />
-                                                </button>
-                                              </PopoverTrigger>
-                                              <PopoverContent className="w-64 p-2" side="left">
-                                                <img src={receiptUrl} alt="Receipt" className="w-full rounded" />
-                                              </PopoverContent>
-                                            </Popover>
-                                          ) : (
-                                            <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View PDF receipt">
-                                              <Paperclip className="h-3.5 w-3.5" />
-                                            </a>
-                                          )
+                                          <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                            {isImageUrl(receiptUrl) ? <ImageIcon className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+                                          </a>
                                         )}
                                       </span>
                                     </TableCell>
