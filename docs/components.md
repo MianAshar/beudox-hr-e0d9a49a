@@ -1,257 +1,203 @@
 <!--
 generated_by: tessera
-source_sha: c146e39c807c2d7590e3e1eb1fcb10f3b06bbef7
-generated_at: 2026-04-07T11:17:15.541Z
+source_sha: 5ad27002d46dd144b4404dd6446fd9fca6cca7e0
+generated_at: 2026-04-07T20:51:03.221Z
 action: create
 -->
 
-# Beudox HR - Component Architecture
+# Beudox HR - Component Documentation
 
-## Component Library Overview
-
-Beudox HR uses a comprehensive component system built on shadcn/ui and Radix UI primitives, providing consistent, accessible, and reusable UI elements.
-
-## Core UI Components (shadcn/ui)
-
-### Layout Components
-- **Accordion** - Collapsible content sections
-- **AspectRatio** - Maintains consistent aspect ratios
-- **Resizable** - Resizable panel layouts
-- **ScrollArea** - Custom scrollbars with momentum
-- **Separator** - Visual content separators
-- **Tabs** - Tabbed interface navigation
-
-### Form Components
-- **Button** - Various button variants and sizes
-- **Checkbox** - Form checkbox inputs
-- **Input** - Text input fields
-- **Label** - Accessible form labels
-- **RadioGroup** - Radio button groups
-- **Select** - Dropdown select components
-- **Switch** - Toggle switch inputs
-- **Textarea** - Multi-line text inputs
-- **Form** - Form wrapper with validation
-
-### Data Display
-- **Avatar** - User avatar displays
-- **Badge** - Status and category indicators
-- **Card** - Content containers with headers/footers
-- **Table** - Data tables with sorting/pagination
-- **Chart** - Data visualization components
-
-### Feedback Components
-- **Alert** - Status messages and notifications
-- **Dialog** - Modal dialogs and confirmations
-- **Drawer** - Slide-out panels
-- **Popover** - Floating content containers
-- **Sheet** - Side panel overlays
-- **Skeleton** - Loading state placeholders
-- **Toast** - Non-intrusive notifications
-- **Tooltip** - Contextual help text
-
-### Navigation Components
-- **Breadcrumb** - Navigation hierarchy display
-- **Command** - Search and command interfaces
-- **ContextMenu** - Right-click context menus
-- **DropdownMenu** - Dropdown navigation menus
-- **Menubar** - Desktop-style menu bars
-- **NavigationMenu** - Site navigation menus
-- **Pagination** - Page navigation controls
-
-## Feature-Specific Components
+## Core Components
 
 ### Layout Components
 
-#### AppLayout (`src/components/layout/AppLayout.tsx`)
-Main application layout wrapper:
-- Provides sidebar and top bar structure
-- Responsive margins that adapt to sidebar state
-- Maximum content width (1280px) for optimal reading
-- Flex layout for full-height application
-
-#### AppSidebar (`src/components/layout/AppSidebar.tsx`)
-Collapsible navigation sidebar:
-- Role-based menu item visibility
-- Expandable/collapsible functionality
-- Logo display with variant switching
-- Active route highlighting
-
-#### TopBar (`src/components/layout/TopBar.tsx`)
-Top navigation bar:
-- User profile menu
-- Notification center
-- Search functionality
+#### AppLayout
+**Location**: `src/components/layout/AppLayout.tsx`
+**Purpose**: Main application wrapper providing consistent layout structure
+**Features**:
+- Responsive sidebar navigation
+- Top bar with user menu
+- Content area with proper spacing
 - Mobile-responsive design
 
-### Evaluation Components
+#### AppSidebar
+**Location**: `src/components/layout/AppSidebar.tsx`
+**Purpose**: Navigation sidebar with role-based menu items
+**Features**:
+- Collapsible navigation
+- Role-based menu visibility
+- Active route highlighting
+- Company branding
 
-#### EvaluationTimeline (`src/components/evaluations/EvaluationTimeline.tsx`)
-Complex evaluation display component:
-- Fetches and combines quarterly/daily evaluations
-- Role-based visibility filtering
-- Unified timeline with sorting
-- Loading states with skeleton UI
-- Responsive card-based layout
-- Interactive evaluation links
+#### TopBar
+**Location**: `src/components/layout/TopBar.tsx`
+**Purpose**: Application header with user controls
+**Features**:
+- User avatar and profile menu
+- Notification center
+- Quick actions
+- Responsive behavior
 
-### HR Policy Components
+### UI Components
 
-#### RichTextEditor (`src/components/hr-policies/RichTextEditor.tsx`)
-TipTap-based rich text editor:
-- Full formatting toolbar
-- HTML content management
-- Link insertion functionality
-- Keyboard accessibility
-- Content synchronization
-
-### Settings Components
-
-#### Settings Tab Components
-Located in `src/components/settings/`:
-- **CompanyTab** - Company information management
-- **DepartmentsTab** - Department CRUD operations
-- **RolesTab** - Role configuration
-- **AttendanceTab** - Attendance policy settings
-- **DangerZoneTab** - Critical operations (deletion, etc.)
-
-### Utility Components
-
-#### BeudoxLogo (`src/components/BeudoxLogo.tsx`)
-Flexible logo component:
-- Multiple display variants (default, sidebar)
-- Configurable size and wordmark visibility
+#### BeudoxLogo
+**Location**: `src/components/BeudoxLogo.tsx`
+**Purpose**: Configurable logo component for branding
+**Props**:
+- `variant`: 'default' | 'sidebar' - Logo style variant
+- `showWordmark`: boolean - Whether to show text alongside icon
+- `size`: number - Logo dimensions in pixels
+**Features**:
+- Theme-aware variants (light/dark)
+- Responsive sizing
 - SVG-based for crisp rendering
 
-#### NavLink (`src/components/NavLink.tsx`)
-Enhanced navigation link:
-- React Router integration
-- Active state styling
-- Accessibility attributes
-- TypeScript forwardRef pattern
+#### NavLink
+**Location**: `src/components/NavLink.tsx`
+**Purpose**: Enhanced navigation link with active state styling
+**Props**:
+- Extends React Router NavLinkProps
+- `activeClassName`: string - CSS class for active state
+- `pendingClassName`: string - CSS class for pending state
+**Features**:
+- Active route detection
+- Custom styling support
+- TypeScript compatibility
 
-## Component Patterns
+### Business Components
 
-### Composition Pattern
-Components use React's composition pattern for flexibility:
-```tsx
-<Card>
-  <CardHeader>
-    <CardTitle>Employee Details</CardTitle>
-  </CardHeader>
-  <CardContent>
-    {/* Content */}
-  </CardContent>
-</Card>
-```
-
-### forwardRef Pattern
-Many components use `forwardRef` for proper ref forwarding:
-```tsx
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => (
-    <button
-      className={cn(buttonVariants({ variant, size }), className)}
-      ref={ref}
-      {...props}
-    />
-  )
-);
-```
-
-### Variant Pattern
-Components support multiple variants through class variance authority:
-```tsx
-const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground",
-        destructive: "bg-destructive text-destructive-foreground",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-      },
-    },
-  }
-);
-```
-
-### Custom Hook Integration
-Components integrate with custom hooks for state management:
-```tsx
-const { toast } = useToast();
-const { data, isLoading } = useQuery({
-  queryKey: ['employees'],
-  queryFn: fetchEmployees,
-});
-```
-
-## Accessibility Features
-
-### ARIA Attributes
-- Proper ARIA labels and descriptions
-- Screen reader support
+#### SearchableEmployeeSelect
+**Location**: `src/components/SearchableEmployeeSelect.tsx`
+**Purpose**: Advanced employee selection component with search functionality
+**Props**:
+- `employees`: EmployeeOption[] - List of available employees
+- `value`: string - Currently selected employee ID
+- `onValueChange`: (id: string) => void - Selection change handler
+- `placeholder`: string - Input placeholder text
+- `disabled`: boolean - Disable interaction
+- `allowAll`: boolean - Include "All Employees" option
+- `allLabel`: string - Label for "All" option
+**Features**:
+- Real-time search filtering
+- Avatar display with initials fallback
 - Keyboard navigation
+- Accessible design
+
+#### EvaluationTimeline
+**Location**: `src/components/evaluations/EvaluationTimeline.tsx`
+**Purpose**: Chronological display of employee evaluations
+**Props**:
+- `employeeId`: string - Target employee ID
+- `companyId`: string - Company context
+**Features**:
+- Quarterly and daily evaluation display
+- Role-based visibility filtering
+- Interactive timeline with links
+- Score visualization with star ratings
+- Responsive card-based layout
+
+#### RichTextEditor
+**Location**: `src/components/hr-policies/RichTextEditor.tsx`
+**Purpose**: Full-featured rich text editor for HR policy documents
+**Props**:
+- `content`: string - HTML content
+- `onChange`: (html: string) => void - Content change handler
+**Features**:
+- Formatting toolbar (bold, italic, underline, headings, lists)
+- Link insertion and editing
+- HTML output
+- ProseMirror-based editing
+- Accessible keyboard navigation
+
+### UI Primitive Components
+
+The application includes a comprehensive set of reusable UI components built on Radix UI:
+
+#### Form Controls
+- `Button`: Action buttons with variants (primary, secondary, outline, ghost)
+- `Input`: Text input fields
+- `Textarea`: Multi-line text input
+- `Select`: Dropdown selection
+- `Checkbox`: Boolean selection
+- `RadioGroup`: Single selection from options
+- `Switch`: Toggle control
+
+#### Layout Components
+- `Card`: Content containers with headers and footers
+- `Tabs`: Tabbed interface organization
+- `Accordion`: Collapsible content sections
+- `Collapsible`: Expandable content areas
+- `Separator`: Visual content separation
+
+#### Feedback Components
+- `Toast`: Non-intrusive notifications
+- `Alert`: Important information display
+- `Dialog`: Modal dialogs for confirmations
+- `AlertDialog`: Destructive action confirmations
+- `Sheet`: Slide-out panels
+- `Popover`: Floating content containers
+
+#### Data Display
+- `Table`: Data tables with sorting and pagination
+- `Chart`: Data visualization (using Recharts)
+- `Avatar`: User profile images with fallbacks
+- `Badge`: Status and category indicators
+- `Progress`: Progress bars and indicators
+
+#### Navigation
+- `NavigationMenu`: Complex navigation structures
+- `Breadcrumb`: Location context display
+- `Pagination`: Data pagination controls
+
+### Component Patterns
+
+#### Controlled Components
+Most form components follow controlled patterns:
+- Props for value and onChange
+- Validation state handling
+- Accessibility attributes
+- Consistent API design
+
+#### Compound Components
+Complex components use compound patterns:
+- `Popover` with `PopoverTrigger` and `PopoverContent`
+- `Command` with `CommandInput`, `CommandList`, `CommandItem`
+- `Form` with `FormField`, `FormLabel`, `FormControl`
+
+#### Custom Hooks Integration
+Components integrate with custom hooks:
+- `useAuth` for authentication state
+- `useToast` for notifications
+- React Query hooks for data fetching
+
+### Styling Approach
+
+#### Design System
+- **Tailwind CSS**: Utility-first styling
+- **CSS Variables**: Theme customization
+- **Component Variants**: Consistent visual variants
+- **Responsive Design**: Mobile-first approach
+
+#### Theme Support
+- Light/dark mode support
+- Consistent color palette
+- Typography scale
+- Spacing system
+
+### Accessibility
+
+All components follow accessibility best practices:
+- ARIA attributes and roles
+- Keyboard navigation support
+- Screen reader compatibility
 - Focus management
+- Color contrast compliance
 
-### Semantic HTML
-- Correct heading hierarchy
-- Semantic form elements
-- Proper button and link usage
+### Performance Considerations
 
-### Color Contrast
-- WCAG compliant color ratios
-- Dark mode support
-- High contrast mode compatibility
+- **Lazy Loading**: Components loaded on demand
+- **Memoization**: Expensive computations cached
+- **Virtualization**: Large lists optimized
+- **Bundle Splitting**: Code split by routes
 
-## Responsive Design
-
-### Mobile-First Approach
-- Mobile-optimized layouts
-- Touch-friendly interaction targets
-- Responsive typography
-- Adaptive navigation patterns
-
-### Breakpoint System
-- Tailwind CSS responsive utilities
-- Component-specific responsive behavior
-- Sidebar collapse on mobile
-- Table responsiveness
-
-## Performance Optimizations
-
-### Lazy Loading
-- Component code splitting
-- Image lazy loading
-- Route-based chunking
-
-### Memoization
-- React.memo for expensive components
-- useMemo for computed values
-- useCallback for event handlers
-
-### Bundle Optimization
-- Tree shaking of unused components
-- Dynamic imports for large libraries
-- Asset optimization
-
-## Development Patterns
-
-### TypeScript Integration
-- Strict typing for all component props
-- Generic type support
-- Interface definitions for complex props
-
-### Testing Support
-- Data attributes for testing
-- Consistent component APIs
-- Mock-friendly component design
-
-### Documentation
-- Prop interface documentation
-- Usage examples
-- Accessibility notes
-
-This component architecture provides a solid foundation for building complex user interfaces with consistency, accessibility, and maintainability at its core.
+This component architecture provides a solid foundation for building complex HR management interfaces with consistent UX and maintainable code.

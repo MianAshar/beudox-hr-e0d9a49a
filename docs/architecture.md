@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: c146e39c807c2d7590e3e1eb1fcb10f3b06bbef7
-generated_at: 2026-04-07T11:17:15.541Z
+source_sha: 5ad27002d46dd144b4404dd6446fd9fca6cca7e0
+generated_at: 2026-04-07T20:51:03.221Z
 action: create
 -->
 
@@ -9,194 +9,167 @@ action: create
 
 ## Application Structure
 
-Beudox HR follows a modern React application architecture with clear separation of concerns and modular component design.
-
 ### Routing Architecture
 
-The application uses React Router DOM v6 with a hierarchical routing structure:
+The application uses React Router DOM with a hierarchical routing structure:
 
 ```
 /
-├── /login - Authentication page
-├── /forgot-password - Password recovery
-├── /dashboard - Main dashboard (protected)
-├── /employees - Employee management (protected)
-│   ├── /new - Create new employee
-│   ├── /:id - Employee profile view
-│   └── /:id/edit - Edit employee
-├── /projects - Project management (protected)
-│   ├── /new - Create new project
-│   ├── /:id - Project details
-│   └── /:id/edit - Edit project
-├── /clients - Client management (protected)
-│   └── /:id - Client details
-├── /invoices - Invoice management (protected)
-│   ├── /new - Create new invoice
-│   ├── /:id - Invoice details
-│   └── /:id/edit - Edit invoice
-├── /hr-policies - Policy management (protected)
-│   ├── /new - Create new policy
-│   ├── /:id - Policy details
-│   └── /:id/edit - Edit policy
-├── /evaluations - Quarterly evaluations (protected)
-│   ├── /new - Create new evaluation
-│   ├── /:id - Evaluation details
-│   └── /:id/edit - Edit evaluation
-├── /evaluations/daily - Daily evaluations (protected)
-│   ├── /new - Create new daily evaluation
-│   └── /:id - Daily evaluation details
-├── /holidays - Public holidays (protected)
-├── /settings - Application settings (protected)
-└── * - 404 Not Found page
+├── /login
+├── /forgot-password
+├── /dashboard (protected)
+├── /employees (protected)
+│   ├── /employees/new
+│   ├── /employees/:id
+│   └── /employees/:id/edit
+├── /projects (protected)
+│   ├── /projects/new
+│   ├── /projects/:id
+│   └── /projects/:id/edit
+├── /clients (protected)
+│   └── /clients/:id
+├── /invoices (protected)
+│   ├── /invoices/new
+│   ├── /invoices/:id
+│   └── /invoices/:id/edit
+├── /hr-policies (protected)
+│   ├── /hr-policies/new
+│   ├── /hr-policies/:id
+│   └── /hr-policies/:id/edit
+├── /evaluations (protected)
+│   ├── /evaluations/new
+│   ├── /evaluations/:id
+│   └── /evaluations/:id/edit
+├── /evaluations/daily (protected)
+│   ├── /evaluations/daily/new
+│   └── /evaluations/daily/:id
+├── /loans (protected)
+├── /payroll (protected)
+├── /my-payslip (protected)
+├── /holidays (protected)
+└── /settings (protected)
 ```
 
-### Component Hierarchy
+### Route Protection
+
+All business routes are protected with role-based access control:
+
+- **Authentication Check**: Redirects unauthenticated users to `/login`
+- **Role Authorization**: Uses `canAccess()` function to check permissions
+- **Password Reset Flow**: Handles invite acceptance and password setting
+- **Loading States**: Shows spinner during authentication checks
+
+### Component Architecture
 
 #### Layout Components
-- **AppLayout**: Main application wrapper providing sidebar and top navigation
-- **AppSidebar**: Collapsible navigation sidebar with menu items
-- **TopBar**: Top navigation bar with user menu and notifications
+- **AppLayout**: Main application wrapper with sidebar and topbar
+- **AppSidebar**: Navigation sidebar with role-based menu items
+- **TopBar**: Application header with user menu and notifications
 
-#### Page Components
-Each route corresponds to a page component in `src/pages/` that handles the specific feature logic.
+#### UI Component Library
+The application uses a comprehensive UI component library built on Radix UI:
+
+- Form controls (Button, Input, Select, Checkbox, etc.)
+- Layout components (Card, Tabs, Accordion, etc.)
+- Feedback components (Toast, Alert, Dialog, etc.)
+- Data display (Table, Chart, Avatar, etc.)
 
 #### Feature Components
-- **Evaluation Components**: Timeline display, evaluation forms, and detail views
-- **HR Policy Components**: Rich text editor for policy documents
-- **Settings Components**: Tabbed interface for different configuration areas
-- **UI Components**: 40+ reusable components from shadcn/ui library
+- **EvaluationTimeline**: Displays chronological evaluation history with filtering
+- **SearchableEmployeeSelect**: Employee selection with search and avatar display
+- **RichTextEditor**: Full-featured editor for HR policy documents
+- **BeudoxLogo**: Configurable logo component with theme variants
 
 ### State Management
 
 #### Server State (TanStack React Query)
-- API data fetching and caching
-- Background refetching and synchronization
+- Caching and synchronization of API data
 - Optimistic updates for better UX
+- Background refetching for data freshness
 - Error handling and retry logic
 
-#### Client State (React Context)
-- Authentication state (user session, employee data)
-- Theme preferences
-- Form state (handled by React Hook Form)
+#### Client State (Custom Hooks)
+- **useAuth**: Authentication state and user profile management
+- Toast notifications for user feedback
+- Form state management with React Hook Form
 
-#### Local Component State
-- UI interaction state (modals, dropdowns, form inputs)
-- Loading states and error states
+### Data Flow
 
-## Core Components
-
-### AppLayout (`src/components/layout/AppLayout.tsx`)
-Provides the main application structure:
-- Sidebar navigation (collapsible)
-- Main content area with responsive margins
-- Top bar integration
-- Maximum width container (1280px) for content
-
-### EvaluationTimeline (`src/components/evaluations/EvaluationTimeline.tsx`)
-Complex component handling evaluation display:
-- Fetches quarterly and daily evaluations via React Query
-- Implements role-based visibility filtering
-- Combines multiple data sources into unified timeline
-- Handles loading states with skeleton components
-- Responsive design with proper mobile layout
-
-### RichTextEditor (`src/components/hr-policies/RichTextEditor.tsx`)
-TipTap-based rich text editing component:
-- Full formatting toolbar (bold, italic, headings, lists, links)
-- Content synchronization with parent component
-- HTML output for storage and display
-- Accessible keyboard navigation
-
-### BeudoxLogo (`src/components/BeudoxLogo.tsx`)
-Flexible logo component:
-- Multiple variants (default, sidebar)
-- Configurable size and wordmark display
-- SVG assets for crisp rendering at all sizes
-
-## Data Flow
-
-### Authentication Flow
+#### Authentication Flow
 1. User submits login credentials
 2. Supabase authenticates and returns session
-3. AuthProvider stores session in context
-4. Employee data fetched via React Query
-5. Route protection checks user permissions
-6. Authorized users access protected routes
+3. Application fetches employee profile data
+4. Route protection checks permissions
+5. User is redirected to appropriate dashboard
 
-### Evaluation Data Flow
-1. EvaluationTimeline component mounts
-2. React Query fetches quarterly evaluations
-3. React Query fetches daily evaluations (received and given)
-4. Data filtered based on user role and permissions
-5. Timeline items sorted by date (newest first)
-6. Component renders with proper loading/error states
+#### CRUD Operations
+1. User interacts with form or action
+2. React Hook Form validates data
+3. Supabase mutation executes database operation
+4. React Query invalidates related caches
+5. UI updates with new data
 
-### Form Submission Flow
-1. User interacts with form (React Hook Form)
-2. Zod validation runs on field changes
-3. Form submission triggers API call via React Query
-4. Optimistic updates for immediate UI feedback
-5. Success/error handling with toast notifications
-6. Form reset and navigation on success
+#### Real-time Updates
+1. Supabase real-time subscription active
+2. Database change triggers event
+3. React Query cache updated
+4. Components re-render with new data
 
-## Security Architecture
+### Database Integration
 
-### Authentication
-- Supabase Auth handles secure authentication
-- JWT tokens managed automatically
-- Session persistence without localStorage (security)
-- Automatic token refresh
+#### Supabase Services Used
+- **Authentication**: User login, registration, password reset
+- **Database**: PostgreSQL with Row Level Security
+- **Real-time**: Live subscriptions for collaborative features
+- **Storage**: File uploads for avatars and documents
+- **Edge Functions**: Serverless backend logic
 
-### Authorization
-- Role-based access control (RBAC)
-- Route-level protection via ProtectedRoute
-- Component-level permission checks
-- Database-level RLS policies
+#### Data Relationships
+- Companies → Employees (hierarchical)
+- Employees → Evaluations (performance tracking)
+- Projects → Employees (resource allocation)
+- Invoices → Clients/Projects (financial tracking)
+- HR Policies → Company-wide documents
 
-### Data Protection
-- Input sanitization via Zod schemas
-- XSS prevention through React's built-in escaping
-- CSRF protection via Supabase
-- Secure file uploads with storage policies
+### Security Model
 
-## Performance Considerations
+#### Role-Based Access Control
+- **CEO**: Full system access
+- **HR Manager**: Employee management, evaluations, policies
+- **Team Lead**: Team evaluations, project management
+- **Employee**: Personal data, limited views
 
-### Build Optimization
-- Vite's fast development server
-- SWC compiler for quick TypeScript builds
-- Tree shaking for smaller bundles
-- Code splitting by routes
+#### Data Visibility Rules
+- Evaluation data filtered based on user role and relationships
+- Personal information protected by ownership checks
+- Financial data restricted to authorized roles
 
-### Runtime Performance
-- React Query caching reduces API calls
-- Lazy loading for components and routes
-- Optimized re-renders with proper memoization
-- Image optimization and responsive loading
+### Performance Optimizations
 
-### Database Performance
-- Supabase query optimization
-- Proper indexing on frequently queried fields
-- Pagination for large datasets
-- Real-time subscriptions for live updates
+- **Code Splitting**: Vite handles automatic code splitting
+- **Image Optimization**: Lazy loading and responsive images
+- **Caching**: React Query reduces API calls
+- **Bundle Optimization**: Tree shaking and minification
+- **Build Performance**: SWC compiler for fast TypeScript compilation
 
-## Development Architecture
+### Development Workflow
 
-### Code Organization
-- Feature-based folder structure
-- Clear separation of concerns
-- Reusable component library
-- TypeScript for type safety
+#### Build System
+- **Vite**: Fast development server and optimized builds
+- **TypeScript**: Strict type checking and IntelliSense
+- **ESLint**: Code quality and consistency
+- **Hot Reload**: Instant updates during development
 
-### Tooling
-- ESLint for code quality
-- Vitest for unit testing
-- Playwright for E2E testing
-- Vite for build optimization
+#### Testing Strategy
+- **Unit Tests**: Vitest for component and utility testing
+- **E2E Tests**: Playwright for user journey testing
+- **Component Testing**: React Testing Library for interaction testing
 
-### Environment Configuration
-- Environment variables for Supabase
-- Development vs production builds
-- Hot reload for fast development
-- Component tagging for debugging
+### Deployment Architecture
 
-This architecture provides a solid foundation for a scalable, maintainable HR management system with modern React patterns and best practices.
+- **Static Site**: Built as static files for CDN deployment
+- **Environment Configuration**: Separate configs for dev/staging/prod
+- **API Integration**: Supabase handles backend scaling
+- **Monitoring**: Error tracking and performance monitoring ready
+
+This architecture provides a solid foundation for a scalable, maintainable HR management system with modern web development best practices.
