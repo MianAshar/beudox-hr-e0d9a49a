@@ -127,9 +127,16 @@ const FinanceSheet = () => {
     return row ? Number(row.amount) : 0;
   };
 
+  // Get one-time expenses for a category (line_item_id is null)
+  const getOneTimeExpenses = (categoryId: string) => {
+    return (monthlyExpenses || []).filter((e: any) => e.category_id === categoryId && !e.line_item_id);
+  };
+
   const getCategoryTotal = (categoryId: string) => {
     const items = (lineItems || []).filter(li => li.category_id === categoryId);
-    return items.reduce((sum, li) => sum + getExpenseAmount(li.id), 0);
+    const recurringTotal = items.reduce((sum, li) => sum + getExpenseAmount(li.id), 0);
+    const oneTimeTotal = getOneTimeExpenses(categoryId).reduce((sum, e: any) => sum + Number(e.amount), 0);
+    return recurringTotal + oneTimeTotal;
   };
 
   const expensesGrandTotal = (categories || []).reduce(
