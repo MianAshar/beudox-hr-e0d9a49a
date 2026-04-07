@@ -151,6 +151,14 @@ const FinanceSheet = () => {
       amounts[li.id] = String(getExpenseAmount(li.id));
     });
     setEditAmounts(amounts);
+    // Load existing one-time items for this category
+    const existingOneTime = getOneTimeExpenses(categoryId);
+    setOneTimeItems(existingOneTime.map((e: any) => ({
+      tempId: e.id,
+      description: e.description,
+      amount: String(Number(e.amount)),
+      existingId: e.id,
+    })));
     setEditCategoryId(categoryId);
   };
 
