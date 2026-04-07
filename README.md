@@ -1,68 +1,64 @@
 <!--
 generated_by: tessera
-source_sha: 158feb4bcbe81b9d3ed3b4a958eb8f2112e60653
-generated_at: 2026-04-07T22:13:01.498Z
+source_sha: 5151392f5fe8986d95c2273f1a1fe20370854997
+generated_at: 2026-04-07T22:19:37.690Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources management application built with modern web technologies. This frontend application provides a complete HR solution for managing employees, projects, evaluations, payroll, and organizational policies.
+A comprehensive Human Resources management application built with modern web technologies. This frontend application provides a complete HR suite for managing employees, projects, evaluations, payroll, and more.
 
 ## Features
 
-### Core HR Functionality
-- **Employee Management**: Complete employee lifecycle management including profiles, onboarding, and organizational structure
-- **Project Management**: Track projects, assign team members, and monitor project progress
+### Core HR Management
+- **Employee Management**: Complete employee profiles, onboarding, and directory
+- **Project Management**: Track projects, assign team members, and monitor progress
 - **Client Management**: Manage client relationships and project associations
-- **Invoice Management**: Generate and track invoices for projects and services
-- **Payroll Processing**: Automated payroll calculations and payslip generation
-- **Loan Management**: Track employee loans and repayment schedules
-- **Finance Dashboard**: Comprehensive financial reporting and analytics
+- **Invoice Management**: Generate and track invoices for projects
 
 ### Performance & Evaluation
-- **Quarterly Evaluations**: Formal performance reviews with structured feedback
-- **Daily Evaluations**: Continuous feedback system for team members
+- **Quarterly Evaluations**: Comprehensive performance reviews with scoring and recommendations
+- **Daily Evaluations**: Real-time feedback and performance tracking
 - **Evaluation Timeline**: Historical view of all evaluations for employees
 
-### HR Policies & Compliance
-- **HR Policy Management**: Create and maintain company policies with rich text editing
-- **Public Holidays**: Manage company-wide holiday schedules
-- **Settings Management**: Configure company settings, departments, roles, and evaluation parameters
+### Financial Management
+- **Payroll Processing**: Automated payroll generation with allowances and deductions
+- **Loan Management**: Track employee loans and repayments
+- **Finance Dashboard**: Comprehensive financial reporting and analytics
+- **Payslip Access**: Secure employee access to personal payslips
 
-### User Roles & Access Control
-- **CEO**: Full system access
-- **HR Manager**: Employee management, evaluations, policies, and settings
-- **Finance Manager**: Payroll, invoices, finance, and financial reporting
-- **Team Lead**: Project management and team evaluations
-- **Employee**: Personal dashboard, evaluations, and basic HR functions
+### HR Operations
+- **HR Policies**: Rich text policy documents with full formatting support
+- **Public Holidays**: Centralized holiday management
+- **Settings Management**: Configurable company settings, roles, and parameters
+
+### Security & Access Control
+- **Role-Based Access**: Five distinct user roles (Employee, Team Lead, HR Manager, Finance Manager, CEO)
+- **Secure Authentication**: Supabase-powered authentication with password recovery
+- **Protected Routes**: Granular access control for all application features
 
 ## Technology Stack
 
-### Frontend
-- **React 18** with TypeScript for type-safe development
-- **Vite** for fast development and optimized builds
-- **React Router** for client-side routing
-- **Tailwind CSS** for styling with custom design system
-- **shadcn/ui** component library built on Radix UI primitives
-- **React Query** for efficient server state management
-- **React Hook Form** with Zod validation for form handling
-
-### Backend & Database
-- **Supabase** for backend-as-a-service (authentication, database, real-time subscriptions)
-- **PostgreSQL** database with Row Level Security
-
-### Additional Libraries
-- **Tiptap** for rich text editing in HR policies
-- **Recharts** for data visualization in dashboards
-- **date-fns** for date manipulation
-- **Lucide React** for consistent iconography
-- **React Image Crop** for avatar management
+- **Frontend Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Routing**: React Router DOM
+- **UI Components**: Radix UI primitives with custom styling
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: React Query for server state, React hooks for local state
+- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
+- **Rich Text Editing**: Tiptap editor
+- **Charts & Data Visualization**: Recharts
+- **Form Handling**: React Hook Form with Zod validation
+- **Testing**: Vitest with React Testing Library
+- **E2E Testing**: Playwright
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm/yarn/bun
+
+- Node.js 18+
+- npm or bun package manager
 - Supabase account and project
 
 ### Installation
@@ -76,8 +72,6 @@ A comprehensive Human Resources management application built with modern web tec
 2. **Install dependencies**
    ```bash
    npm install
-   # or
-   yarn install
    # or
    bun install
    ```
@@ -98,39 +92,37 @@ A comprehensive Human Resources management application built with modern web tec
 4. **Database Setup**
    
    The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
-   
-   You can use the Supabase CLI:
-   ```bash
-   supabase db reset
-   ```
 
-5. **Start Development Server**
+5. **Start the development server**
    ```bash
    npm run dev
    # or
-   yarn dev
-   # or
-   bun dev
+   bun run dev
    ```
+
+6. **Open your browser**
    
-   The application will be available at `http://localhost:5173`
+   Navigate to `http://localhost:5173`
 
-### Build for Production
+### Available Scripts
 
-```bash
-npm run build
-npm run preview
-```
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests with Vitest
+- `npm run test:watch` - Run tests in watch mode
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
+│   ├── ui/             # Base UI components (shadcn/ui)
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
 │   ├── settings/       # Settings-specific components
-│   └── [feature]/      # Feature-specific components
+│   └── ...             # Feature-specific components
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
@@ -138,56 +130,15 @@ src/
 └── types/              # TypeScript type definitions
 ```
 
-## Key Components
+## User Roles & Permissions
 
-### Layout Components
-- **AppLayout**: Main application layout with sidebar navigation
-- **AppSidebar**: Responsive sidebar with role-based menu items
-- **TopBar**: Header with user menu and notifications
+The application supports five user roles with different access levels:
 
-### Core Components
-- **BeudoxLogo**: Company logo component with variant support
-- **SearchableEmployeeSelect**: Employee selection with search and filtering
-- **EvaluationTimeline**: Timeline view of employee evaluations
-- **RichTextEditor**: WYSIWYG editor for HR policies
-
-## Authentication & Authorization
-
-The application uses Supabase Authentication with custom role-based access control:
-
-- Authentication is handled via Supabase Auth
-- User roles are stored in the database and cached in the application
-- Route protection is implemented with `ProtectedRoute` component
-- Access control logic is centralized in `src/lib/role-access.ts`
-
-## Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests with Vitest
-- `npm run test:watch` - Run tests in watch mode
-
-### Testing
-
-The project uses Vitest for unit testing and Playwright for end-to-end testing:
-
-```bash
-# Unit tests
-npm run test
-
-# E2E tests
-npx playwright test
-```
-
-### Code Quality
-
-- **ESLint** for code linting
-- **TypeScript** for type checking
-- **Prettier** integration (via ESLint)
+- **Employee**: Basic access to personal data, evaluations, and projects
+- **Team Lead**: Employee access plus team management capabilities
+- **HR Manager**: Full HR operations including employee management and settings
+- **Finance Manager**: Financial operations including payroll and invoicing
+- **CEO**: Full system access to all features
 
 ## Contributing
 
@@ -200,7 +151,3 @@ npx playwright test
 ## License
 
 This project is proprietary software. All rights reserved.
-
-## Support
-
-For support or questions, please contact the development team.
