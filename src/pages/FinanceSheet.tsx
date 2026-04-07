@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Printer, Pencil, FileSpreadsheet } from 'lucide-react';
+import { Printer, Pencil, FileSpreadsheet, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
@@ -39,6 +39,9 @@ const FinanceSheet = () => {
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
   const [editAmounts, setEditAmounts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  // One-time line items added in the modal
+  type OneTimeItem = { tempId: string; description: string; amount: string; existingId?: string };
+  const [oneTimeItems, setOneTimeItems] = useState<OneTimeItem[]>([]);
 
   // ─── PAYROLL DATA ───
   const { data: payrollData, isLoading: payrollLoading } = useQuery({
@@ -124,9 +127,16 @@ const FinanceSheet = () => {
     return row ? Number(row.amount) : 0;
   };
 
+  // Get one-time expenses for a category (line_item_id is null)
+  const getOneTimeExpenses = (categoryId: string) => {
+    return (monthlyExpenses || []).filter((e: any) => e.category_id === categoryId && !e.line_item_id);
+  };
+
   const getCategoryTotal = (categoryId: string) => {
     const items = (lineItems || []).filter(li => li.category_id === categoryId);
-    return items.reduce((sum, li) => sum + getExpenseAmount(li.id), 0);
+    const recurringTotal = items.reduce((sum, li) => sum + getExpenseAmount(li.id), 0);
+    const oneTimeTotal = getOneTimeExpenses(categoryId).reduce((sum, e: any) => sum + Number(e.amount), 0);
+    return recurringTotal + oneTimeTotal;
   };
 
   const expensesGrandTotal = (categories || []).reduce(
@@ -141,6 +151,14 @@ const FinanceSheet = () => {
       amounts[li.id] = String(getExpenseAmount(li.id));
     });
     setEditAmounts(amounts);
+    // Load existing one-time items for this category
+    const existingOneTime = getOneTimeExpenses(categoryId);
+    setOneTimeItems(existingOneTime.map((e: any) => ({
+      tempId: e.id,
+      description: e.description,
+      amount: String(Number(e.amount)),
+      existingId: e.id,
+    })));
     setEditCategoryId(categoryId);
   };
 
@@ -150,6 +168,7 @@ const FinanceSheet = () => {
     const items = (lineItems || []).filter(li => li.category_id === editCategoryId);
 
     try {
+      // Save recurring line item amounts
       for (const li of items) {
         const amount = Math.max(0, parseFloat(editAmounts[li.id] || '0') || 0);
         const existing = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
@@ -177,15 +196,68 @@ const FinanceSheet = () => {
           if (error) throw error;
         }
       }
+
+      // Delete removed one-time items
+      const currentOneTimeIds = oneTimeItems.filter(ot => ot.existingId).map(ot => ot.existingId!);
+      const previousOneTime = getOneTimeExpenses(editCategoryId);
+      for (const prev of previousOneTime) {
+        if (!currentOneTimeIds.includes(prev.id)) {
+          const { error } = await supabase
+            .from('monthly_expenses')
+            .delete()
+            .eq('id', prev.id)
+            .eq('company_id', companyId);
+          if (error) throw error;
+        }
+      }
+
+      // Save one-time items (update existing, insert new)
+      for (const ot of oneTimeItems) {
+        const amount = Math.max(0, parseFloat(ot.amount || '0') || 0);
+        const desc = ot.description.trim();
+        if (!desc && amount === 0) continue;
+
+        if (ot.existingId) {
+          const { error } = await supabase
+            .from('monthly_expenses')
+            .update({ description: desc || 'Untitled', amount, updated_at: new Date().toISOString() })
+            .eq('id', ot.existingId)
+            .eq('company_id', companyId);
+          if (error) throw error;
+        } else {
+          if (amount === 0 && !desc) continue;
+          const { error } = await supabase
+            .from('monthly_expenses')
+            .insert({
+              company_id: companyId,
+              month_year: monthYear,
+              line_item_id: null,
+              category_id: editCategoryId,
+              description: desc || 'Untitled',
+              amount,
+            });
+          if (error) throw error;
+        }
+      }
+
       await qc.invalidateQueries({ queryKey: ['monthly-expenses', companyId, monthYear] });
       toast.success('Expenses saved');
       setEditCategoryId(null);
+      setOneTimeItems([]);
     } catch {
       toast.error('Failed to save expenses');
     } finally {
       setSaving(false);
     }
-  }, [editCategoryId, editAmounts, lineItems, monthlyExpenses, companyId, monthYear, qc]);
+  }, [editCategoryId, editAmounts, lineItems, monthlyExpenses, companyId, monthYear, qc, oneTimeItems]);
+
+  const addOneTimeItem = () => {
+    setOneTimeItems(prev => [...prev, { tempId: crypto.randomUUID(), description: '', amount: '0' }]);
+  };
+
+  const removeOneTimeItem = (tempId: string) => {
+    setOneTimeItems(prev => prev.filter(i => i.tempId !== tempId));
+  };
 
   const editCategory = (categories || []).find(c => c.id === editCategoryId);
   const editLineItems = editCategoryId ? (lineItems || []).filter(li => li.category_id === editCategoryId) : [];
@@ -239,6 +311,10 @@ const FinanceSheet = () => {
       const items = (lineItems || []).filter(li => li.category_id === cat.id);
       items.forEach(li => {
         rows.push([li.description, getExpenseAmount(li.id)]);
+      });
+      // One-time items
+      getOneTimeExpenses(cat.id).forEach((ot: any) => {
+        rows.push([ot.description, Number(ot.amount)]);
       });
       boldRows.push(rows.length);
       rows.push([`${cat.name} Subtotal`, getCategoryTotal(cat.id)]);
@@ -485,6 +561,16 @@ const FinanceSheet = () => {
                               </TableCell>
                             </TableRow>
                           ))}
+                          {getOneTimeExpenses(cat.id).map((ot: any) => (
+                            <TableRow key={ot.id}>
+                              <TableCell className="text-[13px] italic" style={{ fontFamily: 'var(--ff-body)' }}>
+                                {ot.description}
+                              </TableCell>
+                              <TableCell className="text-right text-[12px] font-mono">
+                                {Number(ot.amount).toLocaleString()}
+                              </TableCell>
+                            </TableRow>
+                          ))}
                           <TableRow key={`catsub-${cat.id}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
                             <TableCell className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
                               {cat.name} Subtotal
@@ -531,6 +617,7 @@ const FinanceSheet = () => {
             <DialogTitle>Edit {editCategory?.name} — {monthLabel} {selectedYear}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
+            {/* Recurring line items */}
             {editLineItems.map(li => (
               <div key={li.id} className="flex items-center justify-between gap-4">
                 <span className="text-sm flex-1" style={{ fontFamily: 'var(--ff-body)' }}>{li.description}</span>
@@ -550,6 +637,59 @@ const FinanceSheet = () => {
                 />
               </div>
             ))}
+
+            {/* One-time items */}
+            {oneTimeItems.length > 0 && (
+              <div className="border-t pt-3 mt-3">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">One-time Items</span>
+              </div>
+            )}
+            {oneTimeItems.map(ot => (
+              <div key={ot.tempId} className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="Description"
+                  className="flex-1 text-sm h-9"
+                  value={ot.description}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setOneTimeItems(prev => prev.map(i => i.tempId === ot.tempId ? { ...i, description: val } : i));
+                  }}
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  className="w-[120px] text-right text-sm font-mono h-9"
+                  value={ot.amount}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setOneTimeItems(prev => prev.map(i => i.tempId === ot.tempId ? { ...i, amount: val } : i));
+                  }}
+                  onBlur={e => {
+                    const num = Math.max(0, parseFloat(e.target.value) || 0);
+                    setOneTimeItems(prev => prev.map(i => i.tempId === ot.tempId ? { ...i, amount: String(num) } : i));
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 shrink-0 text-destructive hover:text-destructive"
+                  onClick={() => removeOneTimeItem(ot.tempId)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-2"
+              onClick={addOneTimeItem}
+            >
+              <Plus className="h-4 w-4 mr-1" /> Add Line Item
+            </Button>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditCategoryId(null)} disabled={saving}>Cancel</Button>
