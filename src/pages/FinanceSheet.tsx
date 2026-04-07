@@ -312,6 +312,10 @@ const FinanceSheet = () => {
       items.forEach(li => {
         rows.push([li.description, getExpenseAmount(li.id)]);
       });
+      // One-time items
+      getOneTimeExpenses(cat.id).forEach((ot: any) => {
+        rows.push([ot.description, Number(ot.amount)]);
+      });
       boldRows.push(rows.length);
       rows.push([`${cat.name} Subtotal`, getCategoryTotal(cat.id)]);
     });
