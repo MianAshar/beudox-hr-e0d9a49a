@@ -804,6 +804,95 @@ export type Database = {
           },
         ]
       }
+      expense_categories: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_line_items: {
+        Row: {
+          category_id: string
+          company_id: string
+          created_at: string | null
+          description: string
+          display_order: number
+          id: string
+          is_active: boolean
+          is_recurring: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          category_id: string
+          company_id: string
+          created_at?: string | null
+          description: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_recurring?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string
+          company_id?: string
+          created_at?: string | null
+          description?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_recurring?: boolean
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_line_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_line_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hr_documents: {
         Row: {
           company_id: string
