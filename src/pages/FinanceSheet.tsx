@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Printer } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Printer, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MONTHS = [
@@ -32,6 +33,11 @@ const FinanceSheet = () => {
   const [selectedYear, setSelectedYear] = useState(String(now.getFullYear()));
   const monthYear = `${selectedYear}-${selectedMonth}`;
   const monthLabel = MONTHS.find(m => m.value === selectedMonth)?.label || '';
+
+  // Edit modal state
+  const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
+  const [editAmounts, setEditAmounts] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   // ─── PAYROLL DATA ───
   const { data: payrollData, isLoading: payrollLoading } = useQuery({
@@ -126,36 +132,62 @@ const FinanceSheet = () => {
     (sum, cat) => sum + getCategoryTotal(cat.id), 0
   );
 
-  // ─── UPSERT EXPENSE ───
-  const handleExpenseBlur = useCallback(async (
-    lineItemId: string, categoryId: string, description: string, value: string
-  ) => {
-    const amount = parseFloat(value) || 0;
-    const existing = (monthlyExpenses || []).find((e: any) => e.line_item_id === lineItemId);
+  // ─── EDIT MODAL HANDLERS ───
+  const openEditModal = (categoryId: string) => {
+    const items = (lineItems || []).filter(li => li.category_id === categoryId);
+    const amounts: Record<string, string> = {};
+    items.forEach(li => {
+      amounts[li.id] = String(getExpenseAmount(li.id));
+    });
+    setEditAmounts(amounts);
+    setEditCategoryId(categoryId);
+  };
 
-    if (existing) {
-      if (Number(existing.amount) === amount) return;
-      const { error } = await supabase
-        .from('monthly_expenses')
-        .update({ amount, updated_at: new Date().toISOString() })
-        .eq('id', existing.id)
-        .eq('company_id', companyId!);
-      if (error) { toast.error('Failed to save expense'); return; }
-    } else {
-      const { error } = await supabase
-        .from('monthly_expenses')
-        .insert({
-          company_id: companyId!,
-          month_year: monthYear,
-          line_item_id: lineItemId,
-          category_id: categoryId,
-          description,
-          amount,
-        });
-      if (error) { toast.error('Failed to save expense'); return; }
+  const handleSaveExpenses = useCallback(async () => {
+    if (!editCategoryId || !companyId) return;
+    setSaving(true);
+    const items = (lineItems || []).filter(li => li.category_id === editCategoryId);
+
+    try {
+      for (const li of items) {
+        const amount = Math.max(0, parseFloat(editAmounts[li.id] || '0') || 0);
+        const existing = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
+
+        if (existing) {
+          if (Number(existing.amount) === amount) continue;
+          const { error } = await supabase
+            .from('monthly_expenses')
+            .update({ amount, updated_at: new Date().toISOString() })
+            .eq('id', existing.id)
+            .eq('company_id', companyId);
+          if (error) throw error;
+        } else {
+          if (amount === 0) continue;
+          const { error } = await supabase
+            .from('monthly_expenses')
+            .insert({
+              company_id: companyId,
+              month_year: monthYear,
+              line_item_id: li.id,
+              category_id: editCategoryId,
+              description: li.description,
+              amount,
+            });
+          if (error) throw error;
+        }
+      }
+      await qc.invalidateQueries({ queryKey: ['monthly-expenses', companyId, monthYear] });
+      toast.success('Expenses saved');
+      setEditCategoryId(null);
+    } catch {
+      toast.error('Failed to save expenses');
+    } finally {
+      setSaving(false);
     }
-    qc.invalidateQueries({ queryKey: ['monthly-expenses', companyId, monthYear] });
-  }, [monthlyExpenses, companyId, monthYear, qc]);
+  }, [editCategoryId, editAmounts, lineItems, monthlyExpenses, companyId, monthYear, qc]);
+
+  const editCategory = (categories || []).find(c => c.id === editCategoryId);
+  const editLineItems = editCategoryId ? (lineItems || []).filter(li => li.category_id === editCategoryId) : [];
 
   const isLoading = payrollLoading || expensesLoading;
 
@@ -181,6 +213,7 @@ const FinanceSheet = () => {
           .fs-subtotal-row { background: #F6F5FF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .fs-grand-row { background: #5B3FF8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .fs-total-row { background: #1A1240 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .hidden.print\\:!block { display: block !important; visibility: visible !important; }
         }
       `}</style>
 
@@ -250,7 +283,6 @@ const FinanceSheet = () => {
                       const subtotal = deptSubtotal(records);
                       return (
                         <> 
-                          {/* Department header */}
                           <TableRow key={`dept-${dept}`}>
                             <TableCell colSpan={9} className="py-2 font-semibold text-[12px] uppercase tracking-wider"
                               style={{ background: 'hsl(var(--muted))', fontFamily: 'var(--ff-display)' }}>
@@ -276,7 +308,6 @@ const FinanceSheet = () => {
                               <TableCell className="text-right text-[12px] font-mono font-semibold">{Number(r.final_payment).toLocaleString()}</TableCell>
                             </TableRow>
                           ))}
-                          {/* Department subtotal */}
                           <TableRow key={`sub-${dept}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
                             <TableCell colSpan={8} className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
                               {dept} Subtotal
@@ -286,7 +317,6 @@ const FinanceSheet = () => {
                         </>
                       );
                     })}
-                    {/* Payroll grand total */}
                     <TableRow className="fs-grand-row" style={{ background: '#5B3FF8' }}>
                       <TableCell colSpan={8} className="text-right text-[13px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
                         Total Payroll
@@ -319,11 +349,23 @@ const FinanceSheet = () => {
                       const catTotal = getCategoryTotal(cat.id);
                       return (
                         <>
-                          {/* Category header */}
+                          {/* Category header with Edit button */}
                           <TableRow key={`cat-${cat.id}`}>
-                            <TableCell colSpan={2} className="py-2 font-semibold text-[12px] uppercase tracking-wider"
-                              style={{ background: 'hsl(var(--muted))', fontFamily: 'var(--ff-display)' }}>
-                              {cat.name}
+                            <TableCell colSpan={2} className="py-2"
+                              style={{ background: 'hsl(var(--muted))' }}>
+                              <div className="flex items-center justify-between">
+                                <span className="font-semibold text-[12px] uppercase tracking-wider" style={{ fontFamily: 'var(--ff-display)' }}>
+                                  {cat.name}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs no-print"
+                                  onClick={() => openEditModal(cat.id)}
+                                >
+                                  <Pencil className="h-3 w-3 mr-1" /> Edit
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                           {items.map(li => (
@@ -331,22 +373,11 @@ const FinanceSheet = () => {
                               <TableCell className="text-[13px]" style={{ fontFamily: 'var(--ff-body)' }}>
                                 {li.description}
                               </TableCell>
-                              <TableCell className="text-right">
-                                <Input
-                                  type="number"
-                                  className="w-[140px] ml-auto text-right text-[12px] font-mono h-8 no-print-input"
-                                  defaultValue={getExpenseAmount(li.id) || ''}
-                                  placeholder="0"
-                                  onBlur={e => handleExpenseBlur(li.id, cat.id, li.description, e.target.value)}
-                                />
-                                {/* Print-only static value */}
-                                <span className="hidden print:!inline text-[12px] font-mono">
-                                  {getExpenseAmount(li.id).toLocaleString()}
-                                </span>
+                              <TableCell className="text-right text-[12px] font-mono">
+                                {getExpenseAmount(li.id).toLocaleString()}
                               </TableCell>
                             </TableRow>
                           ))}
-                          {/* Category subtotal */}
                           <TableRow key={`catsub-${cat.id}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
                             <TableCell className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
                               {cat.name} Subtotal
@@ -358,7 +389,6 @@ const FinanceSheet = () => {
                         </>
                       );
                     })}
-                    {/* Expenses grand total */}
                     <TableRow className="fs-grand-row" style={{ background: '#5B3FF8' }}>
                       <TableCell className="text-right text-[13px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
                         Total Expenses
@@ -387,14 +417,41 @@ const FinanceSheet = () => {
         )}
       </div>
 
-      {/* Additional print styles for inputs */}
-      <style>{`
-        @media print {
-          .no-print-input { display: none !important; }
-          .hidden.print\\:!inline { display: inline !important; visibility: visible !important; }
-          .hidden.print\\:!block { display: block !important; visibility: visible !important; }
-        }
-      `}</style>
+      {/* ─── EDIT EXPENSES MODAL ─── */}
+      <Dialog open={!!editCategoryId} onOpenChange={open => { if (!open) setEditCategoryId(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit {editCategory?.name} — {monthLabel} {selectedYear}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
+            {editLineItems.map(li => (
+              <div key={li.id} className="flex items-center justify-between gap-4">
+                <span className="text-sm flex-1" style={{ fontFamily: 'var(--ff-body)' }}>{li.description}</span>
+                <Input
+                  type="number"
+                  min="0"
+                  className="w-[140px] text-right text-sm font-mono h-9"
+                  value={editAmounts[li.id] ?? '0'}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setEditAmounts(prev => ({ ...prev, [li.id]: val }));
+                  }}
+                  onBlur={e => {
+                    const num = Math.max(0, parseFloat(e.target.value) || 0);
+                    setEditAmounts(prev => ({ ...prev, [li.id]: String(num) }));
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditCategoryId(null)} disabled={saving}>Cancel</Button>
+            <Button onClick={handleSaveExpenses} disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
