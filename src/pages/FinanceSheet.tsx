@@ -8,7 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Printer, Pencil, FileSpreadsheet, Plus, Trash2, Upload, FileText, X, ExternalLink } from 'lucide-react';
+import { Printer, Pencil, FileSpreadsheet, Plus, Trash2, Upload, FileText, X, ExternalLink, Paperclip } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
