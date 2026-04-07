@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: 9a53aff35a3b0098be861aa00c86917edd260b64
-generated_at: 2026-04-07T11:45:42.666Z
+source_sha: 942ac75d0a0aa3497bc07e272fa632f05056e732
+generated_at: 2026-04-07T11:54:22.799Z
 action: update
 -->
 
@@ -12,100 +12,95 @@ A comprehensive Human Resources Management System built with modern web technolo
 ## Features
 
 ### Core HR Functionality
-- **Employee Management**: Complete employee profiles, onboarding, and organizational structure
-- **Performance Evaluations**: Quarterly and daily evaluation systems with customizable parameters
-- **Project Management**: Track projects, assign team members, and monitor progress
-- **Client & Invoice Management**: Manage client relationships and generate invoices
-- **HR Policies**: Create and manage company policies with rich text editing
-- **Loan Management**: Track employee loans and repayments
-- **Settings**: Configure company information, departments, roles, and evaluation parameters
+- **Employee Management**: Complete CRUD operations for employee records, profiles, and organizational structure
+- **Role-Based Access Control**: Hierarchical permissions system (CEO, HR Manager, Team Lead, Employee)
+- **Performance Evaluations**: Quarterly and daily evaluation systems with detailed feedback and recommendations
+- **HR Policies**: Rich text policy documents with full formatting capabilities
 
-### User Experience
-- **Role-Based Access Control**: Different permissions for employees, team leads, HR managers, and CEOs
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Real-time Updates**: Live data synchronization with Supabase
-- **Intuitive UI**: Clean, modern interface built with shadcn/ui components
+### Business Operations
+- **Project Management**: Track projects, assign team members, and monitor progress
+- **Client Management**: Maintain client relationships and project associations
+- **Invoicing System**: Generate and manage invoices with PDF export functionality
+- **Loan Management**: Track employee loans and repayment schedules
+
+### Administrative Features
+- **Company Settings**: Configure company information, departments, and roles
+- **Attendance Tracking**: Monitor and manage employee attendance
+- **Public Holidays**: Manage company-wide holiday schedules
+- **Settings Dashboard**: Centralized configuration for all system parameters
 
 ## Technology Stack
 
 ### Frontend
 - **React 18** with TypeScript for type-safe development
-- **Vite** for fast development and optimized builds
+- **Vite** for fast development and optimized production builds
 - **React Router** for client-side routing
-- **React Query** for efficient data fetching and caching
-- **Tailwind CSS** for styling with custom design system
+- **Tailwind CSS** for utility-first styling
 - **shadcn/ui** component library built on Radix UI primitives
 
-### Backend & Database
-- **Supabase** for authentication, real-time database, and serverless functions
-- **PostgreSQL** database with Row Level Security (RLS)
-- **Supabase Edge Functions** for business logic and integrations
+### Backend & Data
+- **Supabase** for authentication, database, and serverless functions
+- **PostgreSQL** database with real-time capabilities
+- **TanStack Query** for efficient data fetching and caching
 
 ### Development Tools
-- **ESLint** for code linting
+- **ESLint** and **TypeScript** for code quality
 - **Vitest** for unit testing
 - **Playwright** for end-to-end testing
-- **TypeScript** for type safety
+- **React Hook Form** with **Zod** validation for form handling
+
+### Rich Content
+- **Tiptap** rich text editor for policy documents
+- **React Image Crop** for avatar management
+- **Recharts** for data visualization
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm/yarn/pnpm
-- A Supabase project (sign up at [supabase.com](https://supabase.com))
+- Node.js 18+
+- npm or bun package manager
+- Supabase account and project
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
-   cd beudox-hr-e0d9a49a
+   git clone <repository-url>
+   cd beudox-hr
    ```
 
 2. **Install dependencies**
    ```bash
    npm install
    # or
-   yarn install
-   # or
-   pnpm install
+   bun install
    ```
 
-3. **Environment Setup**
+3. **Environment Configuration**
    
    Copy the `.env` file and configure your Supabase credentials:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables in `.env.local`:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+   VITE_SUPABASE_URL=https://your-project.supabase.co
    ```
 
 4. **Database Setup**
    
-   Run the Supabase migrations to set up your database schema:
-   ```bash
-   # If using Supabase CLI
-   supabase db push
-   ```
-   
-   Or apply the SQL migrations manually in your Supabase dashboard from the `supabase/migrations/` directory.
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
 
-5. **Start the development server**
+5. **Development Server**
    ```bash
    npm run dev
+   # or
+   bun run dev
    ```
-   
-   The application will be available at `http://localhost:8080`
 
-### Build for Production
-
-```bash
-npm run build
-npm run preview
-```
+6. **Build for Production**
+   ```bash
+   npm run build
+   npm run preview
+   ```
 
 ## Project Structure
 
@@ -113,47 +108,55 @@ npm run preview
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # App layout components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── settings/       # Settings-specific components
 │   └── [feature]/      # Feature-specific components
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
-├── lib/                # Utilities and configurations
-├── integrations/       # External service integrations
-└── test/               # Test files
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations (Supabase)
+└── types/              # TypeScript type definitions
 
 supabase/
 ├── migrations/         # Database schema migrations
-├── functions/          # Edge functions
-└── config.toml         # Supabase configuration
+└── functions/          # Edge functions for PDF generation, emails, etc.
 ```
-
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
 
 ## Authentication & Authorization
 
-The application uses Supabase Auth for user authentication with role-based access control:
+The system implements role-based access control with the following roles:
 
-- **Employee**: Basic access to personal data and assigned tasks
-- **Team Lead**: Additional access to team member evaluations and project management
-- **HR Manager**: Full HR functionality including employee management and policy administration
-- **CEO**: Complete system access including company settings and financial data
+- **CEO**: Full system access
+- **HR Manager**: HR operations and employee management
+- **Team Lead**: Team management and evaluations
+- **Employee**: Limited access to personal data and basic features
+
+Authentication is handled through Supabase Auth with email/password and invite-based registration.
+
+## API Integration
+
+The frontend communicates with Supabase through:
+- **REST API** for CRUD operations
+- **Real-time subscriptions** for live updates
+- **Edge Functions** for PDF generation and email sending
+
+## Testing
+
+```bash
+# Unit tests
+npm run test
+
+# End-to-end tests
+npx playwright test
+```
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Follow the existing code style and TypeScript conventions
+2. Write tests for new features
+3. Update documentation as needed
+4. Use conventional commit messages
 
 ## License
 
-This project is private and proprietary to Beudox.
+This project is proprietary software. All rights reserved.
