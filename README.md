@@ -1,95 +1,109 @@
 <!--
 generated_by: tessera
-source_sha: e4666b393eb5ebe6bd89896a1cb544c156007f6a
-generated_at: 2026-04-07T11:10:51.223Z
+source_sha: c146e39c807c2d7590e3e1eb1fcb10f3b06bbef7
+generated_at: 2026-04-07T11:17:15.541Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Management System
 
-Beudox HR is a comprehensive Human Resources management platform designed to streamline employee evaluations, policy management, and organizational settings. Built as a modern web application, it provides tools for conducting quarterly and daily performance evaluations, managing HR policies with rich text editing, and configuring company-wide settings including departments, roles, and attendance policies.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, performance evaluations, project tracking, and organizational operations.
 
 ## Features
 
-- **Employee Evaluations**: Conduct quarterly performance reviews and daily feedback sessions with role-based visibility controls
-- **HR Policies**: Create and manage company policies using a rich text editor with formatting options
-- **Organizational Settings**: Configure company information, departments, roles, evaluation parameters, and attendance rules
-- **User Management**: Role-based access control for HR managers, CEOs, team leads, and employees
-- **Dashboard**: Centralized interface with sidebar navigation and responsive design
+### Core HR Functionality
+- **Employee Management**: Complete CRUD operations for employee records, profiles, and organizational hierarchy
+- **Performance Evaluations**: Quarterly and daily evaluation systems with detailed feedback and scoring
+- **HR Policies**: Rich text policy documents with full formatting capabilities
+- **Role-Based Access Control**: Granular permissions for employees, team leads, HR managers, and CEOs
+
+### Project & Client Management
+- **Project Tracking**: Create, manage, and track project progress with team assignments
+- **Client Management**: Maintain client relationships and project associations
+- **Invoice Management**: Generate and manage project invoices with PDF export
+
+### Organizational Tools
+- **Settings Management**: Configure company details, departments, roles, and attendance policies
+- **Public Holidays**: Manage organizational holiday schedules
+- **Dashboard**: Centralized view of key metrics and recent activities
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui component library
-- **Routing**: React Router
-- **State Management**: TanStack Query for server state
-- **Backend**: Supabase (PostgreSQL database with real-time capabilities)
-- **Authentication**: Supabase Auth
-- **Package Manager**: Bun
-- **Testing**: Vitest and Playwright
-- **Linting**: ESLint
+### Frontend
+- **React 18** with TypeScript for type-safe development
+- **Vite** for fast development and optimized production builds
+- **React Router DOM** for client-side routing with protected routes
+- **Tailwind CSS** for responsive, utility-first styling
+- **shadcn/ui** component library built on Radix UI primitives
+
+### State Management & Data
+- **TanStack React Query** for server state management and caching
+- **Supabase** for backend services (PostgreSQL database, authentication, real-time)
+- **React Hook Form** with Zod validation for robust form handling
+
+### Rich Content & UI
+- **TipTap** rich text editor for policy documents
+- **Recharts** for data visualization
+- **Lucide React** for consistent iconography
+- **React Image Crop** for profile picture management
+
+### Development & Testing
+- **Vitest** for unit testing
+- **Playwright** for end-to-end testing
+- **ESLint** with TypeScript support for code quality
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js 18+ or Bun
+- Node.js 18+ and npm/yarn/bun
 - Supabase account and project
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
-   cd beudox-hr-e0d9a49a
+   git clone <repository-url>
+   cd beudox-hr
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
+   npm install
+   # or
+   yarn install
+   # or
    bun install
    ```
 
-3. Set up environment variables:
+3. **Environment Setup**
    
-   Copy `.env` and update the Supabase configuration:
+   Copy the environment template and configure your Supabase credentials:
    ```bash
    cp .env .env.local
    ```
    
-   Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
-
-4. Run database migrations (if using local Supabase):
-   ```bash
-   supabase db reset
+   Update `.env.local` with your Supabase project details:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
    ```
 
-5. Start the development server:
+4. **Database Setup**
+   
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+
+5. **Start Development Server**
    ```bash
-   bun run dev
+   npm run dev
    ```
+   
+   The application will be available at `http://localhost:8080`
 
-6. Open [http://localhost:5173](http://localhost:5173) in your browser
-
-### Building for Production
-
-```bash
-bun run build
-```
-
-### Running Tests
+### Build for Production
 
 ```bash
-bun run test
-```
-
-### Running E2E Tests
-
-```bash
-bun run test:e2e
+npm run build
+npm run preview
 ```
 
 ## Project Structure
@@ -98,30 +112,56 @@ bun run test:e2e
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # App layout components
-│   ├── evaluations/    # Evaluation-related components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, TopBar)
+│   ├── evaluations/    # Evaluation-specific components
 │   ├── hr-policies/    # Policy management components
-│   └── settings/       # Settings configuration components
-├── pages/              # Page components
+│   └── settings/       # Settings page components
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-├── integrations/       # External service integrations
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations (Supabase)
 └── test/               # Test files
-
-supabase/
-├── migrations/         # Database schema migrations
-├── functions/          # Edge functions
-└── config.toml         # Supabase configuration
 ```
+
+## Authentication & Authorization
+
+The application implements role-based access control with the following roles:
+
+- **Employee**: Basic access to personal profile and limited evaluations
+- **Team Lead**: Can view team member evaluations and manage team projects
+- **HR Manager**: Full access to employee management, evaluations, and settings
+- **CEO**: Complete system access including sensitive operations
+
+## API Integration
+
+Beudox HR integrates with Supabase for:
+- User authentication and session management
+- Real-time data synchronization
+- File storage for profile pictures and documents
+- Serverless functions for email notifications and PDF generation
+
+## Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run unit tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run lint` - Run ESLint
+
+### Code Quality
+
+The project uses ESLint with TypeScript support and follows React best practices. All components are typed with TypeScript for better developer experience and runtime safety.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests
-5. Submit a pull request
+1. Follow the existing code style and TypeScript conventions
+2. Write tests for new features
+3. Ensure all linting passes
+4. Test across different screen sizes for responsive design
 
 ## License
 
-This project is private and proprietary.
+This project is proprietary software. All rights reserved.
