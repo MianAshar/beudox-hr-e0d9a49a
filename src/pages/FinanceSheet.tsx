@@ -197,11 +197,11 @@ const FinanceSheet = () => {
       {/* Print styles */}
       <style>{`
         @media print {
-          @page { size: A4 landscape; margin: 16px; }
+          @page { size: A4 landscape; margin: 12mm; }
           body * { visibility: hidden !important; }
           #finance-sheet-print, #finance-sheet-print * { visibility: visible !important; }
           #finance-sheet-print {
-            position: fixed !important;
+            position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
@@ -209,12 +209,26 @@ const FinanceSheet = () => {
             font-size: 10px !important;
           }
           .no-print { display: none !important; }
-          #finance-sheet-print table { font-size: 10px !important; }
+          #finance-sheet-print table {
+            font-size: 10px !important;
+            page-break-inside: auto !important;
+          }
+          #finance-sheet-print table tr {
+            page-break-inside: avoid !important;
+          }
+          #finance-sheet-print .fs-section {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
           #finance-sheet-print th { background: #1A1240 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .fs-subtotal-row { background: #F6F5FF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .fs-grand-row { background: #5B3FF8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .fs-total-row { background: #1A1240 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .hidden.print\\:!block { display: block !important; visibility: visible !important; }
+          .fs-print-header { display: block !important; visibility: visible !important; }
+          #finance-sheet-print .fs-grand-total-bar {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
         }
       `}</style>
 
