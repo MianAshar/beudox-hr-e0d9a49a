@@ -1,83 +1,138 @@
 <!--
 generated_by: tessera
-source_sha: d4441c5f44692ecc6e3310ebe3bcbd68681eafc3
-generated_at: 2026-04-07T11:10:38.964Z
+source_sha: e4666b393eb5ebe6bd89896a1cb544c156007f6a
+generated_at: 2026-04-07T11:10:51.223Z
 action: create
 -->
 
-# Beudox HR Frontend Application - Analysis Summary
+# Beudox HR - Code Analysis Summary
 
 ## Repository Overview
 
-This is a baseline analysis of the Beudox HR management system frontend application. The repository contains a modern React/TypeScript single-page application built with Vite, designed to provide comprehensive HR management capabilities for companies.
+**Repository**: MianAshar/beudox-hr-e0d9a49a  
+**Type**: Frontend React Application  
+**Primary Language**: TypeScript  
+**Lines of Code**: ~152 files, 1.4MB  
+**Key Technologies**: React, TypeScript, Vite, Supabase, Tailwind CSS, shadcn/ui
 
-## Key Findings
+## What I Discovered
 
-### Application Purpose
-Beudox HR is a full-featured human resources management platform that handles:
-- Employee lifecycle management
-- Attendance and leave tracking
-- Payroll and financial operations
-- Project and client management
-- HR policy administration
-- Company-wide notifications and settings
+This is a comprehensive HR management SaaS application called "Beudox HR" that provides tools for employee performance evaluations, HR policy management, and organizational configuration. The application serves different user roles (employees, team leads, HR managers, CEOs) with appropriate access controls and visibility rules.
 
-### Technical Architecture
+### Core Features Identified
+
+1. **Employee Evaluation System**
+   - Quarterly performance reviews with scores, comments, and recommendations
+   - Daily feedback sessions with positive/constructive direction
+   - Timeline view aggregating both evaluation types
+   - Role-based visibility (hierarchical access control)
+
+2. **HR Policy Management**
+   - Rich text editor for creating and editing policies
+   - HTML content storage with formatting support
+   - Integrated document creation workflow
+
+3. **Organizational Settings**
+   - Company information configuration
+   - Department and role management
+   - Evaluation parameters and attendance policies
+   - Administrative controls with danger zone options
+
+4. **User Interface & Navigation**
+   - Responsive sidebar navigation
+   - Top bar with user context
+   - Component-based architecture using shadcn/ui
+   - Consistent design system with Tailwind CSS
+
+## Key Architectural Insights
+
+### Technology Stack Analysis
 - **Frontend Framework**: React 18 with TypeScript for type safety
 - **Build System**: Vite for fast development and optimized production builds
-- **UI Framework**: shadcn/ui components built on Radix UI primitives
-- **Styling**: Tailwind CSS for utility-first styling
-- **Routing**: React Router for client-side navigation
-- **Backend**: Supabase (PostgreSQL + real-time features + serverless functions)
-- **Rich Text**: Tiptap editor for policy documents
+- **Backend Integration**: Supabase for database, authentication, and real-time features
+- **State Management**: TanStack Query for server state, React Context for auth
+- **UI Library**: shadcn/ui components built on Radix UI primitives
+- **Styling**: Tailwind CSS with custom design tokens
 
-### Codebase Structure
-- **146 files** across TypeScript, SQL, JSON, and configuration files
-- **178 symbols** (169 public) indicating a well-structured codebase
-- **Modular component architecture** with clear separation between UI primitives and feature components
-- **Role-based access control** implemented throughout the navigation and features
+### Component Architecture
+- **Layout System**: AppLayout provides consistent structure with sidebar and main content
+- **Feature Organization**: Components grouped by domain (evaluations, hr-policies, settings)
+- **UI Components**: Extensive use of shadcn/ui for buttons, forms, dialogs, etc.
+- **Custom Components**: Specialized components like EvaluationTimeline and RichTextEditor
 
-### Notable Components Analyzed
-- **AppSidebar**: Comprehensive navigation with 5 main sections and collapsible functionality
-- **RichTextEditor**: Full-featured WYSIWYG editor for HR policy creation
-- **AppLayout**: Responsive layout system with sidebar and main content areas
-- **BeudoxLogo**: Flexible logo component with multiple display variants
-- **40+ UI Components**: Complete shadcn/ui component library integration
+### Data Flow Patterns
+- **Query Management**: TanStack Query handles all API calls with caching
+- **Authentication**: Supabase Auth with role-based access control
+- **Real-time Updates**: Supabase subscriptions for live data synchronization
+- **Type Safety**: Generated TypeScript types from database schema
+
+## Important Files and Their Roles
+
+### Application Structure
+- `src/main.tsx`: Entry point initializing the React application
+- `src/App.tsx`: Root component with routing configuration
+- `src/pages/Index.tsx`: Main page component
+
+### Core Components
+- `src/components/layout/AppLayout.tsx`: Main application layout with sidebar integration
+- `src/components/evaluations/EvaluationTimeline.tsx`: Complex evaluation display with filtering and role-based visibility
+- `src/components/hr-policies/RichTextEditor.tsx`: Rich text editing component using Tiptap
+- `src/components/BeudoxLogo.tsx`: Logo component with variant support
+- `src/components/NavLink.tsx`: Navigation link wrapper with active state handling
+
+### Configuration Files
+- `package.json`: Project dependencies and scripts
+- `vite.config.ts`: Build configuration
+- `tailwind.config.ts`: Styling configuration
+- `supabase/config.toml`: Backend configuration
+- `.env`: Environment variables for Supabase connection
 
 ### Database Integration
-- **13 SQL migrations** indicating a mature database schema
-- **Supabase functions** for complex operations (employee management, PDF generation, email sending)
-- **Real-time capabilities** for live updates and notifications
+- `src/integrations/supabase/client.ts`: Supabase client setup
+- `src/integrations/supabase/types.ts`: Generated TypeScript types
+- `supabase/migrations/`: SQL migration files for database schema
 
-### Development Infrastructure
-- **Testing Setup**: Vitest for unit tests, Playwright for E2E testing
-- **Code Quality**: ESLint configuration and TypeScript strict mode
-- **Build Optimization**: Vite configuration for development and production
+## Business Logic Insights
 
-## Architectural Insights
+### Role-Based Access Control
+The application implements a hierarchical permission system:
+- **Employees**: Can view their own evaluations and basic information
+- **Team Leads**: Can see evaluations they submitted or received from their team
+- **HR Managers**: Full access to all evaluations and settings
+- **CEOs**: Complete administrative access including recommendations
 
-1. **Component-Based Design**: Clean separation between reusable UI components and domain-specific features
-2. **Role-Based Security**: Access control integrated into navigation and component rendering
-3. **Responsive Design**: Mobile-first approach with collapsible sidebar and adaptive layouts
-4. **Modern Tooling**: Latest versions of React, TypeScript, and build tools for optimal developer experience
-5. **Scalable Backend**: Serverless architecture with Supabase providing database, auth, and real-time features
+### Evaluation Workflow
+- **Quarterly Evaluations**: Formal reviews with structured feedback
+- **Daily Evaluations**: Quick feedback with directional guidance
+- **Timeline Aggregation**: Unified view combining both evaluation types
+- **Visibility Filtering**: Dynamic content based on user role and relationships
 
-## Key Files Identified
-- `src/main.tsx`: Application entry point
-- `src/components/layout/AppLayout.tsx`: Main layout structure
-- `src/components/layout/AppSidebar.tsx`: Navigation and access control
-- `src/components/hr-policies/RichTextEditor.tsx`: Rich text editing functionality
-- `src/components/BeudoxLogo.tsx`: Branding component
-- `package.json`: Dependency and script management
-- `vite.config.ts`: Build configuration
-- `supabase/config.toml`: Backend configuration
+### Content Management
+- **Policy Creation**: Rich text editing with formatting toolbar
+- **HTML Storage**: Content persisted as formatted HTML
+- **Rendering**: ProseMirror-based display with consistent styling
+
+## Development Environment
+
+- **Package Manager**: Bun for fast dependency management
+- **Testing**: Vitest for unit tests, Playwright for E2E testing
+- **Linting**: ESLint for code quality
+- **Version Control**: Git with conventional commit structure
+
+## Database Schema Understanding
+
+From the migration files, the application manages:
+- **Core Entities**: companies, employees, users
+- **Evaluation Data**: evaluations (quarterly), daily_evaluations
+- **Configuration**: departments, roles, settings, attendance policies
+- **Content**: hr_policies with rich text content
 
 ## Recommendations for Future Development
 
-1. **Documentation**: Expand API documentation for Supabase functions and data models
-2. **Testing**: Increase test coverage, especially for business logic components
-3. **Performance**: Implement code splitting and lazy loading for better bundle optimization
-4. **Accessibility**: Continue leveraging Radix UI primitives for WCAG compliance
-5. **Monitoring**: Add error tracking and performance monitoring in production
+1. **Documentation**: Expand API documentation for Supabase functions
+2. **Testing**: Increase test coverage for complex components like EvaluationTimeline
+3. **Performance**: Implement virtualization for large evaluation lists
+4. **Accessibility**: Add ARIA labels and keyboard navigation support
+5. **Internationalization**: Prepare for multi-language support
 
-This analysis provides a comprehensive understanding of the Beudox HR application's architecture, features, and technical implementation, serving as a foundation for ongoing development and maintenance.
+This analysis provides a comprehensive understanding of the Beudox HR application's architecture, features, and technical implementation based on the provided codebase.

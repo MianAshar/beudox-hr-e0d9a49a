@@ -1,32 +1,21 @@
 <!--
 generated_by: tessera
-source_sha: d4441c5f44692ecc6e3310ebe3bcbd68681eafc3
-generated_at: 2026-04-07T11:10:38.964Z
+source_sha: e4666b393eb5ebe6bd89896a1cb544c156007f6a
+generated_at: 2026-04-07T11:10:51.223Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-Beudox HR is a comprehensive human resources management application designed to streamline HR operations for companies. It provides tools for employee management, attendance tracking, payroll processing, leave management, and more.
+Beudox HR is a comprehensive Human Resources management platform designed to streamline employee evaluations, policy management, and organizational settings. Built as a modern web application, it provides tools for conducting quarterly and daily performance evaluations, managing HR policies with rich text editing, and configuring company-wide settings including departments, roles, and attendance policies.
 
 ## Features
 
-### Core Modules
-
-- **Dashboard**: Overview of key HR metrics and activities
-- **Employee Management**: Add, edit, and manage employee information
-- **Attendance Tracking**: Monitor employee attendance and working hours
-- **Leave Management**: Handle vacation requests and approvals
-- **Payroll Processing**: Calculate and manage employee salaries
-- **Finance Management**: Track invoices, expenses, loans, and financial reports
-- **Project Management**: Manage projects, clients, and evaluations
-- **HR Policies**: Create and maintain company policies with rich text editing
-- **Notifications**: System-wide notification management
-- **Settings**: Configure company settings, departments, roles, and more
-
-### User Roles & Access Control
-
-The application supports role-based access control with different permission levels for various user types (admin, manager, employee, etc.).
+- **Employee Evaluations**: Conduct quarterly performance reviews and daily feedback sessions with role-based visibility controls
+- **HR Policies**: Create and manage company policies using a rich text editor with formatting options
+- **Organizational Settings**: Configure company information, departments, roles, evaluation parameters, and attendance rules
+- **User Management**: Role-based access control for HR managers, CEOs, team leads, and employees
+- **Dashboard**: Centralized interface with sidebar navigation and responsive design
 
 ## Technology Stack
 
@@ -34,18 +23,18 @@ The application supports role-based access control with different permission lev
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with shadcn/ui component library
 - **Routing**: React Router
-- **Rich Text Editing**: Tiptap editor
-- **Backend**: Supabase (PostgreSQL database + real-time features)
-- **Icons**: Lucide React
-- **State Management**: React hooks and context
-- **Testing**: Vitest + Playwright for E2E testing
+- **State Management**: TanStack Query for server state
+- **Backend**: Supabase (PostgreSQL database with real-time capabilities)
+- **Authentication**: Supabase Auth
+- **Package Manager**: Bun
+- **Testing**: Vitest and Playwright
+- **Linting**: ESLint
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- npm or bun package manager
+- Node.js 18+ or Bun
 - Supabase account and project
 
 ### Installation
@@ -58,47 +47,49 @@ The application supports role-based access control with different permission lev
 
 2. Install dependencies:
    ```bash
-   npm install
-   # or
    bun install
    ```
 
-3. Configure environment variables:
+3. Set up environment variables:
    
    Copy `.env` and update the Supabase configuration:
-   ```env
-   VITE_SUPABASE_PROJECT_ID="your-project-id"
-   VITE_SUPABASE_PUBLISHABLE_KEY="your-publishable-key"
-   VITE_SUPABASE_URL="your-supabase-url"
+   ```bash
+   cp .env .env.local
+   ```
+   
+   Update the following variables in `.env.local`:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
+   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+
+4. Run database migrations (if using local Supabase):
+   ```bash
+   supabase db reset
    ```
 
-4. Start the development server:
+5. Start the development server:
    ```bash
-   npm run dev
-   # or
    bun run dev
    ```
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser
+6. Open [http://localhost:5173](http://localhost:5173) in your browser
 
-### Database Setup
+### Building for Production
 
-The application uses Supabase for backend services. Database migrations are included in the `supabase/migrations/` directory. To set up the database:
-
-1. Install Supabase CLI
-2. Link your project: `supabase link --project-ref your-project-ref`
-3. Run migrations: `supabase db push`
-
-### Testing
-
-Run unit tests:
 ```bash
-npm run test
+bun run build
 ```
 
-Run E2E tests:
+### Running Tests
+
 ```bash
-npm run test:e2e
+bun run test
+```
+
+### Running E2E Tests
+
+```bash
+bun run test:e2e
 ```
 
 ## Project Structure
@@ -107,31 +98,30 @@ npm run test:e2e
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, AppSidebar, TopBar)
-│   ├── settings/       # Settings-related components
-│   └── hr-policies/    # HR policies components
+│   ├── layout/         # App layout components
+│   ├── evaluations/    # Evaluation-related components
+│   ├── hr-policies/    # Policy management components
+│   └── settings/       # Settings configuration components
 ├── pages/              # Page components
 ├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
+├── lib/                # Utility functions
+├── integrations/       # External service integrations
 └── test/               # Test files
+
+supabase/
+├── migrations/         # Database schema migrations
+├── functions/          # Edge functions
+└── config.toml         # Supabase configuration
 ```
-
-## Key Components
-
-- **AppLayout**: Main application layout with sidebar and content area
-- **AppSidebar**: Collapsible navigation sidebar with role-based menu items
-- **RichTextEditor**: WYSIWYG editor for creating HR policies
-- **BeudoxLogo**: Logo component with multiple variants
-- **NavLink**: Enhanced navigation link component
 
 ## Contributing
 
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure all tests pass before submitting PRs
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
 
 ## License
 
-This project is proprietary software owned by Beudox.
+This project is private and proprietary.
