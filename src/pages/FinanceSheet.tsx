@@ -40,8 +40,13 @@ const FinanceSheet = () => {
   const [editAmounts, setEditAmounts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   // One-time line items added in the modal
-  type OneTimeItem = { tempId: string; description: string; amount: string; existingId?: string };
+  type OneTimeItem = { tempId: string; description: string; amount: string; existingId?: string; receiptUrl?: string | null };
   const [oneTimeItems, setOneTimeItems] = useState<OneTimeItem[]>([]);
+  // Receipt URLs for recurring items: keyed by line_item_id
+  const [editReceipts, setEditReceipts] = useState<Record<string, string | null>>({});
+  const [uploadingReceipt, setUploadingReceipt] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingUploadTarget, setPendingUploadTarget] = useState<{ type: 'recurring' | 'onetime'; id: string } | null>(null);
 
   // ─── PAYROLL DATA ───
   const { data: payrollData, isLoading: payrollLoading } = useQuery({
