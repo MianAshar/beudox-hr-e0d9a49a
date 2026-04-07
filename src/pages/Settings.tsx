@@ -41,12 +41,6 @@ const Settings = () => {
 
   return (
     <div className="space-y-6">
-      <h1
-        className="text-[22px] font-bold text-foreground"
-        style={{ fontFamily: 'var(--ff-display)' }}
-      >
-        Settings
-      </h1>
 
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
