@@ -168,6 +168,7 @@ const FinanceSheet = () => {
     const items = (lineItems || []).filter(li => li.category_id === editCategoryId);
 
     try {
+      // Save recurring line item amounts
       for (const li of items) {
         const amount = Math.max(0, parseFloat(editAmounts[li.id] || '0') || 0);
         const existing = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
@@ -195,15 +196,68 @@ const FinanceSheet = () => {
           if (error) throw error;
         }
       }
+
+      // Delete removed one-time items
+      const currentOneTimeIds = oneTimeItems.filter(ot => ot.existingId).map(ot => ot.existingId!);
+      const previousOneTime = getOneTimeExpenses(editCategoryId);
+      for (const prev of previousOneTime) {
+        if (!currentOneTimeIds.includes(prev.id)) {
+          const { error } = await supabase
+            .from('monthly_expenses')
+            .delete()
+            .eq('id', prev.id)
+            .eq('company_id', companyId);
+          if (error) throw error;
+        }
+      }
+
+      // Save one-time items (update existing, insert new)
+      for (const ot of oneTimeItems) {
+        const amount = Math.max(0, parseFloat(ot.amount || '0') || 0);
+        const desc = ot.description.trim();
+        if (!desc && amount === 0) continue;
+
+        if (ot.existingId) {
+          const { error } = await supabase
+            .from('monthly_expenses')
+            .update({ description: desc || 'Untitled', amount, updated_at: new Date().toISOString() })
+            .eq('id', ot.existingId)
+            .eq('company_id', companyId);
+          if (error) throw error;
+        } else {
+          if (amount === 0 && !desc) continue;
+          const { error } = await supabase
+            .from('monthly_expenses')
+            .insert({
+              company_id: companyId,
+              month_year: monthYear,
+              line_item_id: null,
+              category_id: editCategoryId,
+              description: desc || 'Untitled',
+              amount,
+            });
+          if (error) throw error;
+        }
+      }
+
       await qc.invalidateQueries({ queryKey: ['monthly-expenses', companyId, monthYear] });
       toast.success('Expenses saved');
       setEditCategoryId(null);
+      setOneTimeItems([]);
     } catch {
       toast.error('Failed to save expenses');
     } finally {
       setSaving(false);
     }
-  }, [editCategoryId, editAmounts, lineItems, monthlyExpenses, companyId, monthYear, qc]);
+  }, [editCategoryId, editAmounts, lineItems, monthlyExpenses, companyId, monthYear, qc, oneTimeItems]);
+
+  const addOneTimeItem = () => {
+    setOneTimeItems(prev => [...prev, { tempId: crypto.randomUUID(), description: '', amount: '0' }]);
+  };
+
+  const removeOneTimeItem = (tempId: string) => {
+    setOneTimeItems(prev => prev.filter(i => i.tempId !== tempId));
+  };
 
   const editCategory = (categories || []).find(c => c.id === editCategoryId);
   const editLineItems = editCategoryId ? (lineItems || []).filter(li => li.category_id === editCategoryId) : [];
