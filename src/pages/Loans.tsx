@@ -370,16 +370,15 @@ const Loans = () => {
           <div className="space-y-4 py-2">
             <div>
               <Label>Employee <span className="text-destructive">*</span></Label>
-              <Select value={formEmployeeId} onValueChange={setFormEmployeeId} disabled={!!editingLoan}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select employee" />
-                </SelectTrigger>
-                <SelectContent>
-                  {activeEmployees?.map(emp => (
-                    <SelectItem key={emp.id} value={emp.id}>{emp.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="mt-1">
+                <SearchableEmployeeSelect
+                  employees={activeEmployees || []}
+                  value={formEmployeeId}
+                  onValueChange={setFormEmployeeId}
+                  placeholder="Select employee"
+                  disabled={!!editingLoan}
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

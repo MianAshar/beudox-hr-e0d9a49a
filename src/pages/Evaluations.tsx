@@ -110,15 +110,15 @@ const Evaluations = () => {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         {isManager && (
-          <Select value={filterEmployee} onValueChange={setFilterEmployee}>
-            <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Employees" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Employees</SelectItem>
-              {(employees || []).map((emp: any) => (
-                <SelectItem key={emp.id} value={emp.id}>{emp.full_name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableEmployeeSelect
+            employees={employees || []}
+            value={filterEmployee}
+            onValueChange={setFilterEmployee}
+            placeholder="All Employees"
+            allowAll
+            allLabel="All Employees"
+            className="w-[200px]"
+          />
         )}
         <Select value={filterPeriod} onValueChange={setFilterPeriod}>
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Periods" /></SelectTrigger>
