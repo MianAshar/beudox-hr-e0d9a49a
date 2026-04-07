@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Printer, Pencil, FileSpreadsheet, Plus, Trash2 } from 'lucide-react';
+import { Printer, Pencil, FileSpreadsheet, Plus, Trash2, Upload, FileText, X, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
@@ -40,8 +40,13 @@ const FinanceSheet = () => {
   const [editAmounts, setEditAmounts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   // One-time line items added in the modal
-  type OneTimeItem = { tempId: string; description: string; amount: string; existingId?: string };
+  type OneTimeItem = { tempId: string; description: string; amount: string; existingId?: string; receiptUrl?: string | null };
   const [oneTimeItems, setOneTimeItems] = useState<OneTimeItem[]>([]);
+  // Receipt URLs for recurring items: keyed by line_item_id
+  const [editReceipts, setEditReceipts] = useState<Record<string, string | null>>({});
+  const [uploadingReceipt, setUploadingReceipt] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingUploadTarget, setPendingUploadTarget] = useState<{ type: 'recurring' | 'onetime'; id: string } | null>(null);
 
   // ─── PAYROLL DATA ───
   const { data: payrollData, isLoading: payrollLoading } = useQuery({
@@ -147,10 +152,14 @@ const FinanceSheet = () => {
   const openEditModal = (categoryId: string) => {
     const items = (lineItems || []).filter(li => li.category_id === categoryId);
     const amounts: Record<string, string> = {};
+    const receipts: Record<string, string | null> = {};
     items.forEach(li => {
       amounts[li.id] = String(getExpenseAmount(li.id));
+      const expRow = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
+      receipts[li.id] = expRow?.receipt_url || null;
     });
     setEditAmounts(amounts);
+    setEditReceipts(receipts);
     // Load existing one-time items for this category
     const existingOneTime = getOneTimeExpenses(categoryId);
     setOneTimeItems(existingOneTime.map((e: any) => ({
@@ -158,6 +167,7 @@ const FinanceSheet = () => {
       description: e.description,
       amount: String(Number(e.amount)),
       existingId: e.id,
+      receiptUrl: e.receipt_url || null,
     })));
     setEditCategoryId(categoryId);
   };
@@ -174,10 +184,11 @@ const FinanceSheet = () => {
         const existing = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
 
         if (existing) {
-          if (Number(existing.amount) === amount) continue;
+          const receiptUrl = editReceipts[li.id] !== undefined ? editReceipts[li.id] : existing.receipt_url;
+          if (Number(existing.amount) === amount && existing.receipt_url === receiptUrl) continue;
           const { error } = await supabase
             .from('monthly_expenses')
-            .update({ amount, updated_at: new Date().toISOString() })
+            .update({ amount, receipt_url: receiptUrl, updated_at: new Date().toISOString() })
             .eq('id', existing.id)
             .eq('company_id', companyId);
           if (error) throw error;
@@ -192,6 +203,7 @@ const FinanceSheet = () => {
               category_id: editCategoryId,
               description: li.description,
               amount,
+              receipt_url: editReceipts[li.id] || null,
             });
           if (error) throw error;
         }
@@ -220,7 +232,7 @@ const FinanceSheet = () => {
         if (ot.existingId) {
           const { error } = await supabase
             .from('monthly_expenses')
-            .update({ description: desc || 'Untitled', amount, updated_at: new Date().toISOString() })
+            .update({ description: desc || 'Untitled', amount, receipt_url: ot.receiptUrl || null, updated_at: new Date().toISOString() })
             .eq('id', ot.existingId)
             .eq('company_id', companyId);
           if (error) throw error;
@@ -235,6 +247,7 @@ const FinanceSheet = () => {
               category_id: editCategoryId,
               description: desc || 'Untitled',
               amount,
+              receipt_url: ot.receiptUrl || null,
             });
           if (error) throw error;
         }
@@ -252,7 +265,7 @@ const FinanceSheet = () => {
   }, [editCategoryId, editAmounts, lineItems, monthlyExpenses, companyId, monthYear, qc, oneTimeItems]);
 
   const addOneTimeItem = () => {
-    setOneTimeItems(prev => [...prev, { tempId: crypto.randomUUID(), description: '', amount: '0' }]);
+    setOneTimeItems(prev => [...prev, { tempId: crypto.randomUUID(), description: '', amount: '0', receiptUrl: null }]);
   };
 
   const removeOneTimeItem = (tempId: string) => {
@@ -261,6 +274,126 @@ const FinanceSheet = () => {
 
   const editCategory = (categories || []).find(c => c.id === editCategoryId);
   const editLineItems = editCategoryId ? (lineItems || []).filter(li => li.category_id === editCategoryId) : [];
+
+  // ─── RECEIPT UPLOAD / DELETE ───
+  const triggerReceiptUpload = (type: 'recurring' | 'onetime', id: string) => {
+    setPendingUploadTarget({ type, id });
+    fileInputRef.current?.click();
+  };
+
+  const handleReceiptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingUploadTarget || !companyId || !editCategoryId) return;
+    const { type, id } = pendingUploadTarget;
+    setPendingUploadTarget(null);
+    e.target.value = '';
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only JPG, PNG, WebP, or PDF files are allowed');
+      return;
+    }
+
+    setUploadingReceipt(id);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const safeName = type === 'recurring' ? id : id.replace(/[^a-zA-Z0-9-_]/g, '_');
+      const filePath = `${companyId}/${monthYear}/${safeName}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('expense-receipts')
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      // Get signed URL (private bucket)
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('expense-receipts')
+        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
+      if (signedError) throw signedError;
+      const url = signedData.signedUrl;
+
+      // Save to DB immediately if expense record exists
+      if (type === 'recurring') {
+        const existing = (monthlyExpenses || []).find((ex: any) => ex.line_item_id === id);
+        if (existing) {
+          await supabase.from('monthly_expenses').update({ receipt_url: url }).eq('id', existing.id);
+        }
+        setEditReceipts(prev => ({ ...prev, [id]: url }));
+      } else {
+        const ot = oneTimeItems.find(i => i.tempId === id);
+        if (ot?.existingId) {
+          await supabase.from('monthly_expenses').update({ receipt_url: url }).eq('id', ot.existingId);
+        }
+        setOneTimeItems(prev => prev.map(i => i.tempId === id ? { ...i, receiptUrl: url } : i));
+      }
+      toast.success('Receipt uploaded');
+    } catch {
+      toast.error('Failed to upload receipt');
+    } finally {
+      setUploadingReceipt(null);
+    }
+  };
+
+  const removeReceipt = async (type: 'recurring' | 'onetime', id: string, currentUrl: string) => {
+    if (!companyId) return;
+    setUploadingReceipt(id);
+    try {
+      // Extract file path from signed URL
+      const bucketPath = currentUrl.split('/expense-receipts/')[1]?.split('?')[0];
+      if (bucketPath) {
+        await supabase.storage.from('expense-receipts').remove([decodeURIComponent(bucketPath)]);
+      }
+      if (type === 'recurring') {
+        const existing = (monthlyExpenses || []).find((ex: any) => ex.line_item_id === id);
+        if (existing) {
+          await supabase.from('monthly_expenses').update({ receipt_url: null }).eq('id', existing.id);
+        }
+        setEditReceipts(prev => ({ ...prev, [id]: null }));
+      } else {
+        const ot = oneTimeItems.find(i => i.tempId === id);
+        if (ot?.existingId) {
+          await supabase.from('monthly_expenses').update({ receipt_url: null }).eq('id', ot.existingId);
+        }
+        setOneTimeItems(prev => prev.map(i => i.tempId === id ? { ...i, receiptUrl: null } : i));
+      }
+      await qc.invalidateQueries({ queryKey: ['monthly-expenses', companyId, monthYear] });
+      toast.success('Receipt removed');
+    } catch {
+      toast.error('Failed to remove receipt');
+    } finally {
+      setUploadingReceipt(null);
+    }
+  };
+
+  const isImageUrl = (url: string) => /\.(jpe?g|png|webp)/i.test(url.split('?')[0]);
+
+  const ReceiptIndicator = ({ url, type, id }: { url: string | null | undefined; type: 'recurring' | 'onetime'; id: string }) => {
+    const isUploading = uploadingReceipt === id;
+    if (isUploading) {
+      return <div className="h-9 w-9 flex items-center justify-center"><div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+    }
+    if (url) {
+      return (
+        <div className="flex items-center gap-1 shrink-0">
+          <a href={url} target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-md border hover:bg-muted" title="View receipt">
+            {isImageUrl(url) ? (
+              <img src={url} alt="Receipt" className="h-7 w-7 object-cover rounded" />
+            ) : (
+              <FileText className="h-4 w-4 text-primary" />
+            )}
+          </a>
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" title="Remove receipt" onClick={() => removeReceipt(type, id, url)}>
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      );
+    }
+    return (
+      <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-primary" title="Upload receipt" onClick={() => triggerReceiptUpload(type, id)}>
+        <Upload className="h-4 w-4" />
+      </Button>
+    );
+  };
 
   // ─── EXCEL EXPORT ───
   const handleExportExcel = useCallback(() => {
@@ -610,21 +743,30 @@ const FinanceSheet = () => {
         )}
       </div>
 
+      {/* Hidden file input for receipt uploads */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        className="hidden"
+        onChange={handleReceiptFileChange}
+      />
+
       {/* ─── EDIT EXPENSES MODAL ─── */}
       <Dialog open={!!editCategoryId} onOpenChange={open => { if (!open) setEditCategoryId(null); }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit {editCategory?.name} — {monthLabel} {selectedYear}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
             {/* Recurring line items */}
             {editLineItems.map(li => (
-              <div key={li.id} className="flex items-center justify-between gap-4">
-                <span className="text-sm flex-1" style={{ fontFamily: 'var(--ff-body)' }}>{li.description}</span>
+              <div key={li.id} className="flex items-center justify-between gap-2">
+                <span className="text-sm flex-1 min-w-0 truncate" style={{ fontFamily: 'var(--ff-body)' }}>{li.description}</span>
                 <Input
                   type="number"
                   min="0"
-                  className="w-[140px] text-right text-sm font-mono h-9"
+                  className="w-[130px] text-right text-sm font-mono h-9"
                   value={editAmounts[li.id] ?? '0'}
                   onChange={e => {
                     const val = e.target.value;
@@ -635,6 +777,7 @@ const FinanceSheet = () => {
                     setEditAmounts(prev => ({ ...prev, [li.id]: String(num) }));
                   }}
                 />
+                <ReceiptIndicator url={editReceipts[li.id]} type="recurring" id={li.id} />
               </div>
             ))}
 
@@ -660,7 +803,7 @@ const FinanceSheet = () => {
                   type="number"
                   min="0"
                   placeholder="0"
-                  className="w-[120px] text-right text-sm font-mono h-9"
+                  className="w-[110px] text-right text-sm font-mono h-9"
                   value={ot.amount}
                   onChange={e => {
                     const val = e.target.value;
@@ -671,6 +814,7 @@ const FinanceSheet = () => {
                     setOneTimeItems(prev => prev.map(i => i.tempId === ot.tempId ? { ...i, amount: String(num) } : i));
                   }}
                 />
+                <ReceiptIndicator url={ot.receiptUrl} type="onetime" id={ot.tempId} />
                 <Button
                   variant="ghost"
                   size="icon"
