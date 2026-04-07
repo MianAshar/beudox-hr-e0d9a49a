@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
       const bonus = 0;
       const dinnerExpense = 0;
 
-      const totalSalary = basicSalary + allowance + regularOtAmount + holidayOtAmount + bonus - loanDeduction;
+      const totalSalary = Math.max(0, basicSalary + allowance + regularOtAmount + holidayOtAmount + bonus - loanDeduction);
       const finalPayment = Math.ceil(totalSalary / 50) * 50;
 
       const record: any = {

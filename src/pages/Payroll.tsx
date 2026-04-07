@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -54,11 +54,9 @@ const Payroll = () => {
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);
 
-  // Approve dialog
   const [approveOpen, setApproveOpen] = useState(false);
   const [approving, setApproving] = useState(false);
 
-  // Mark paid modal
   const [paidModal, setPaidModal] = useState<PayrollRecord | null>(null);
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
@@ -84,13 +82,11 @@ const Payroll = () => {
     }
   }, [companyId, monthYear]);
 
-  // Load existing on month/year change
   const handleMonthYearChange = (month: string, year: string) => {
     setSelectedMonth(month);
     setSelectedYear(year);
     setRecords([]);
     setGenerated(false);
-    // Fetch existing after state updates
     setTimeout(async () => {
       const my = `${year}-${month}`;
       if (!companyId) return;
@@ -130,7 +126,6 @@ const Payroll = () => {
     }
   };
 
-  // Inline edit handlers (bonus, dinner_expense)
   const handleFieldBlur = async (record: PayrollRecord, field: 'bonus' | 'dinner_expense', value: string) => {
     const numVal = parseFloat(value) || 0;
     if (numVal === Number(record[field])) return;
@@ -143,10 +138,9 @@ const Payroll = () => {
     const bonus = field === 'bonus' ? numVal : Number(record.bonus);
     const dinnerExpense = field === 'dinner_expense' ? numVal : Number(record.dinner_expense);
 
-    const totalSalary = basicSalary + allowance + regularOtAmount + holidayOtAmount + bonus + dinnerExpense - loanDeduction;
+    const totalSalary = Math.max(0, basicSalary + allowance + regularOtAmount + holidayOtAmount + bonus + dinnerExpense - loanDeduction);
     const finalPayment = Math.ceil(totalSalary / 50) * 50;
 
-    // Optimistic update
     setRecords(prev => prev.map(r =>
       r.id === record.id
         ? { ...r, [field]: numVal, total_salary: totalSalary, final_payment: finalPayment }
@@ -210,7 +204,6 @@ const Payroll = () => {
         .eq('id', paidModal.id);
       if (error) throw error;
 
-      // Update loan balance
       const loanDed = Number(paidModal.loan_deduction);
       if (loanDed > 0) {
         const { data: loans } = await supabase
@@ -239,15 +232,135 @@ const Payroll = () => {
   };
 
   // Group records by department
-  const grouped = records.reduce<Record<string, PayrollRecord[]>>((acc, r) => {
-    const dept = (r.employees as any)?.department || 'Uncategorized';
-    if (!acc[dept]) acc[dept] = [];
-    acc[dept].push(r);
-    return acc;
-  }, {});
+  const grouped = useMemo(() => {
+    return records.reduce<Record<string, PayrollRecord[]>>((acc, r) => {
+      const dept = (r.employees as any)?.department || 'Uncategorized';
+      if (!acc[dept]) acc[dept] = [];
+      acc[dept].push(r);
+      return acc;
+    }, {});
+  }, [records]);
+
+  const departments = useMemo(() => Object.keys(grouped).sort(), [grouped]);
 
   const hasDrafts = records.some(r => r.status === 'draft');
   const allApprovedOrPaid = records.length > 0 && records.every(r => r.status === 'approved' || r.status === 'paid');
+
+  const renderDeptTable = (recs: PayrollRecord[]) => (
+    <div className="overflow-x-auto rounded-lg border bg-card">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="min-w-[160px]">Employee</TableHead>
+            <TableHead className="text-right min-w-[90px]">Basic</TableHead>
+            <TableHead className="text-right min-w-[90px]">Allowance</TableHead>
+            <TableHead className="text-right min-w-[80px]">Reg OT hrs</TableHead>
+            <TableHead className="text-right min-w-[80px]">Hol OT hrs</TableHead>
+            <TableHead className="text-right min-w-[100px]">OT Amount</TableHead>
+            <TableHead className="text-right min-w-[90px]">Bonus</TableHead>
+            <TableHead className="text-right min-w-[90px]">Dinner Exp</TableHead>
+            <TableHead className="text-right min-w-[90px]">Loan Ded.</TableHead>
+            <TableHead className="text-right min-w-[110px]">Total Salary</TableHead>
+            <TableHead className="text-right min-w-[110px]">Final Payment</TableHead>
+            <TableHead className="min-w-[100px]">Status</TableHead>
+            {allApprovedOrPaid && <TableHead className="min-w-[100px]">Action</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {recs.map(rec => {
+            const emp = rec.employees as any;
+            const isDirector = emp?.employment_type === 'director';
+            const isDraft = rec.status === 'draft';
+            const isApproved = rec.status === 'approved';
+            const style = statusStyles[rec.status] || statusStyles.draft;
+
+            return (
+              <TableRow key={rec.id}>
+                <TableCell className="font-medium text-sm">{emp?.full_name || '—'}</TableCell>
+                <TableCell className="text-right font-mono text-sm">{Number(rec.basic_salary).toLocaleString()}</TableCell>
+                <TableCell className="text-right font-mono text-sm">{Number(rec.allowance).toLocaleString()}</TableCell>
+                <TableCell className="text-right font-mono text-sm">
+                  {isDirector ? '—' : Number(rec.regular_ot_hours).toFixed(1)}
+                </TableCell>
+                <TableCell className="text-right font-mono text-sm">
+                  {isDirector ? '—' : Number(rec.holiday_ot_hours).toFixed(1)}
+                </TableCell>
+                <TableCell className="text-right font-mono text-sm">
+                  {isDirector ? '—' : (Number(rec.regular_ot_amount) + Number(rec.holiday_ot_amount)).toLocaleString()}
+                </TableCell>
+                <TableCell className="text-right">
+                  {isDraft ? (
+                    <Input
+                      type="number"
+                      min="0"
+                      className="w-20 text-right font-mono text-sm h-8"
+                      defaultValue={Number(rec.bonus)}
+                      onBlur={e => handleFieldBlur(rec, 'bonus', e.target.value)}
+                    />
+                  ) : (
+                    <span className="font-mono text-sm">{Number(rec.bonus).toLocaleString()}</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  {isDraft && !isDirector ? (
+                    <Input
+                      type="number"
+                      min="0"
+                      className="w-20 text-right font-mono text-sm h-8"
+                      defaultValue={Number(rec.dinner_expense)}
+                      onBlur={e => handleFieldBlur(rec, 'dinner_expense', e.target.value)}
+                    />
+                  ) : (
+                    <span className="font-mono text-sm">{isDirector ? '—' : Number(rec.dinner_expense).toLocaleString()}</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right font-mono text-sm">
+                  {isDirector ? '—' : Number(rec.loan_deduction).toLocaleString()}
+                </TableCell>
+                <TableCell className="text-right font-mono text-sm font-semibold">
+                  {Number(rec.total_salary).toLocaleString()}
+                </TableCell>
+                <TableCell className="text-right font-mono text-sm font-semibold">
+                  {Number(rec.final_payment).toLocaleString()}
+                </TableCell>
+                <TableCell>
+                  <span
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    style={{ backgroundColor: style.bg, color: style.text }}
+                  >
+                    {rec.status.charAt(0).toUpperCase() + rec.status.slice(1)}
+                  </span>
+                </TableCell>
+                {allApprovedOrPaid && (
+                  <TableCell>
+                    {isApproved && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setPaidModal(rec);
+                          setPaymentDate(new Date());
+                          setPaymentMethod('bank_transfer');
+                        }}
+                      >
+                        Mark Paid
+                      </Button>
+                    )}
+                    {rec.status === 'paid' && (
+                      <span className="text-xs text-muted-foreground">
+                        <CheckCircle2 className="h-4 w-4 inline mr-1" />
+                        Paid
+                      </span>
+                    )}
+                  </TableCell>
+                )}
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
 
   return (
     <div className="p-6 space-y-6">
@@ -279,7 +392,6 @@ const Payroll = () => {
         </Button>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -288,146 +400,32 @@ const Payroll = () => {
         </div>
       )}
 
-      {/* Empty state */}
       {!loading && !generated && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <DollarSign className="h-12 w-12 mb-4 opacity-40" />
-          <p className="text-lg font-medium" style={{ fontFamily: 'var(--ff-display)' }}>
-            No payroll data
-          </p>
-          <p className="text-sm mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
-            Select a month and click "Generate Payroll" to start.
-          </p>
+          <p className="text-lg font-medium">No payroll data</p>
+          <p className="text-sm mt-1">Select a month and click "Generate Payroll" to start.</p>
         </div>
       )}
 
-      {/* Payroll table grouped by department */}
-      {!loading && generated && Object.keys(grouped).length > 0 && (
+      {!loading && generated && departments.length > 0 && (
         <div className="space-y-6">
-          {Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([dept, recs]) => (
-            <div key={dept} className="rounded-lg border bg-card overflow-hidden">
-              <div className="px-4 py-3 border-b bg-muted/30">
-                <h3 className="text-sm font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+          <Tabs defaultValue={departments[0]} className="w-full">
+            <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1">
+              {departments.map(dept => (
+                <TabsTrigger key={dept} value={dept} className="text-sm">
                   {dept}
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[160px]">Employee</TableHead>
-                      <TableHead className="text-right min-w-[90px]">Basic</TableHead>
-                      <TableHead className="text-right min-w-[90px]">Allowance</TableHead>
-                      <TableHead className="text-right min-w-[80px]">Reg OT hrs</TableHead>
-                      <TableHead className="text-right min-w-[80px]">Hol OT hrs</TableHead>
-                      <TableHead className="text-right min-w-[100px]">OT Amount</TableHead>
-                      <TableHead className="text-right min-w-[90px]">Bonus</TableHead>
-                      <TableHead className="text-right min-w-[90px]">Dinner Exp</TableHead>
-                      <TableHead className="text-right min-w-[90px]">Loan Ded.</TableHead>
-                      <TableHead className="text-right min-w-[110px]">Total Salary</TableHead>
-                      <TableHead className="text-right min-w-[110px]">Final Payment</TableHead>
-                      <TableHead className="min-w-[100px]">Status</TableHead>
-                      {allApprovedOrPaid && <TableHead className="min-w-[100px]">Action</TableHead>}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recs.map(rec => {
-                      const emp = rec.employees as any;
-                      const isDirector = emp?.employment_type === 'director';
-                      const isDraft = rec.status === 'draft';
-                      const isApproved = rec.status === 'approved';
-                      const style = statusStyles[rec.status] || statusStyles.draft;
+                  <span className="ml-1.5 text-xs text-muted-foreground">({grouped[dept].length})</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {departments.map(dept => (
+              <TabsContent key={dept} value={dept}>
+                {renderDeptTable(grouped[dept])}
+              </TabsContent>
+            ))}
+          </Tabs>
 
-                      return (
-                        <TableRow key={rec.id}>
-                          <TableCell className="font-medium text-sm">{emp?.full_name || '—'}</TableCell>
-                          <TableCell className="text-right font-mono text-sm">{Number(rec.basic_salary).toLocaleString()}</TableCell>
-                          <TableCell className="text-right font-mono text-sm">{Number(rec.allowance).toLocaleString()}</TableCell>
-                          <TableCell className="text-right font-mono text-sm">
-                            {isDirector ? '—' : Number(rec.regular_ot_hours).toFixed(1)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm">
-                            {isDirector ? '—' : Number(rec.holiday_ot_hours).toFixed(1)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm">
-                            {isDirector ? '—' : (Number(rec.regular_ot_amount) + Number(rec.holiday_ot_amount)).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {isDraft ? (
-                              <Input
-                                type="number"
-                                min="0"
-                                className="w-20 text-right font-mono text-sm h-8"
-                                defaultValue={Number(rec.bonus)}
-                                onBlur={e => handleFieldBlur(rec, 'bonus', e.target.value)}
-                              />
-                            ) : (
-                              <span className="font-mono text-sm">{Number(rec.bonus).toLocaleString()}</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {isDraft && !isDirector ? (
-                              <Input
-                                type="number"
-                                min="0"
-                                className="w-20 text-right font-mono text-sm h-8"
-                                defaultValue={Number(rec.dinner_expense)}
-                                onBlur={e => handleFieldBlur(rec, 'dinner_expense', e.target.value)}
-                              />
-                            ) : (
-                              <span className="font-mono text-sm">{isDirector ? '—' : Number(rec.dinner_expense).toLocaleString()}</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm">
-                            {isDirector ? '—' : Number(rec.loan_deduction).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm font-semibold">
-                            {Number(rec.total_salary).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm font-semibold">
-                            {Number(rec.final_payment).toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            <span
-                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                              style={{ backgroundColor: style.bg, color: style.text }}
-                            >
-                              {rec.status.charAt(0).toUpperCase() + rec.status.slice(1)}
-                            </span>
-                          </TableCell>
-                          {allApprovedOrPaid && (
-                            <TableCell>
-                              {isApproved && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setPaidModal(rec);
-                                    setPaymentDate(new Date());
-                                    setPaymentMethod('bank_transfer');
-                                  }}
-                                >
-                                  Mark Paid
-                                </Button>
-                              )}
-                              {rec.status === 'paid' && (
-                                <span className="text-xs text-muted-foreground">
-                                  <CheckCircle2 className="h-4 w-4 inline mr-1" />
-                                  Paid
-                                </span>
-                              )}
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          ))}
-
-          {/* Approve button */}
           {hasDrafts && (
             <div className="flex justify-end">
               <Button onClick={() => setApproveOpen(true)} className="px-6">
