@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: 7b605e9472f6b8c714de14d5769583c23a81c06a
-generated_at: 2026-04-07T21:29:46.483Z
+source_sha: 0750a0f91d657ac84947a7b3427876080d9d0667
+generated_at: 2026-04-07T21:30:19.220Z
 action: create
 -->
 
@@ -12,121 +12,138 @@ action: create
 **Repository**: MianAshar/beudox-hr-e0d9a49a  
 **Type**: Frontend Application (React SPA)  
 **Primary Language**: TypeScript (119 files)  
-**Total Files**: 162  
-**Total Size**: 1.5MB
+**Total Files**: 162 (1.5MB)  
+**Lines of Code**: ~25,000+  
 
-## Technology Stack Analysis
+## Architecture & Technology Stack
 
-### Core Framework
-- **React 18** with TypeScript for type-safe component development
-- **Vite** as build tool with SWC compiler for fast development
-- **React Router DOM v6** for client-side routing
-
-### UI & Styling
-- **Tailwind CSS** with custom design system
-- **shadcn/ui** component library (40+ components)
-- Custom fonts: Outfit (display), DM Sans (body)
-- Dark mode support with CSS custom properties
-
-### State Management & Data
-- **React Query (TanStack Query)** for server state management
-- **Supabase** for backend (database, auth, edge functions)
-- **React Hook Form + Zod** for form validation
-
-### Additional Libraries
-- **Tiptap** for rich text editing
-- **Recharts** for data visualization
-- **Lucide React** for icons
-- **Date-fns** for date manipulation
-- **Sonner** for toast notifications
-
-## Application Architecture
-
-### Component Structure
-- **119 TypeScript files** organized in feature-based directories
-- **Modular component design** with clear separation of concerns
-- **Reusable UI components** following shadcn/ui patterns
-- **Feature-specific components** (evaluations, hr-policies, settings)
+### Core Technologies
+- **Frontend**: React 18 + TypeScript + Vite
+- **Routing**: React Router DOM v6
+- **UI Framework**: Radix UI (shadcn/ui) + Tailwind CSS
+- **State Management**: TanStack Query + React Context
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **Build Tool**: Vite with SWC
+- **Testing**: Vitest + Playwright
 
 ### Key Architectural Patterns
-- **Protected Routes** with role-based access control
-- **Layout Components** (AppLayout, AppSidebar, TopBar)
-- **Custom Hooks** for shared logic (useAuth, useToast)
-- **Utility Functions** in lib/ directory
-- **Type Definitions** for Supabase integration
+- **Component-Based Architecture**: Modular, reusable components
+- **Protected Routes**: Authentication and role-based access control
+- **Server State Management**: TanStack Query for API data
+- **Custom Hooks**: Business logic abstracted into reusable hooks
+- **Type Safety**: Full TypeScript coverage with strict mode
 
-## Feature Analysis
+## Application Features
 
-### Core Features Identified
-1. **Employee Management** - Profiles, forms, organizational structure
-2. **Project Management** - CRUD operations, team assignment
-3. **Client Management** - Relationships, project associations
-4. **Invoicing System** - Generation, PDF export, email sending
-5. **HR Policies** - Rich text content management
-6. **Performance Evaluations** - Quarterly and daily feedback system
-7. **Payroll Processing** - Automated calculations, payslip generation
-8. **Loan Management** - Tracking and repayment
-9. **Settings Management** - Company configuration, departments, roles
+### HR Core Functionality
+1. **Employee Management**: Complete CRUD operations with profile management
+2. **Performance Evaluations**: Dual system (quarterly formal + daily feedback)
+3. **Payroll Processing**: Automated salary calculation and payslip generation
+4. **Project Management**: Team assignments and progress tracking
+5. **Client & Invoice Management**: Billing system with PDF export
+6. **HR Policies**: Rich text policy creation and management
+7. **Loan Tracking**: Employee loan management
+8. **Holiday Management**: Company-wide holiday scheduling
 
-### Authentication & Security
-- **Supabase Auth** integration
-- **Role-based access control** (CEO, HR Manager, Team Lead, Employee)
-- **Protected routes** with authorization checks
-- **Row Level Security** in database
+### User Roles & Permissions
+- **CEO**: Full system access
+- **HR Manager**: Employee and evaluation management
+- **Team Lead**: Team oversight and evaluations
+- **Employee**: Limited personal access
+
+## Codebase Structure Analysis
+
+### Directory Organization
+```
+src/
+├── components/ (70+ components)
+│   ├── ui/ (40+ shadcn/ui components)
+│   ├── layout/ (AppLayout, Sidebar, TopBar)
+│   ├── [feature]/ (domain-specific components)
+├── pages/ (25+ route components)
+├── hooks/ (custom React hooks)
+├── lib/ (utilities, configs, helpers)
+├── integrations/supabase/ (database client, types)
+└── types/ (TypeScript definitions)
+```
+
+### Key Files & Components
+
+#### Core Components
+- `AppLayout.tsx`: Main application wrapper with navigation
+- `AppSidebar.tsx`: Collapsible sidebar navigation
+- `TopBar.tsx`: Header with user controls
+- `EvaluationTimeline.tsx`: Performance history visualization
+- `SearchableEmployeeSelect.tsx`: Employee selection component
+- `RichTextEditor.tsx`: Policy editing interface
+
+#### Configuration Files
+- `vite.config.ts`: Build configuration with path aliases
+- `tailwind.config.ts`: Styling with custom fonts (Outfit, DM Sans)
+- `package.json`: 70+ dependencies, modern tooling
+
+#### Authentication System
+- `useAuth.ts`: Authentication context and state management
+- `role-access.ts`: Permission checking logic
+- Protected route wrapper with role validation
 
 ## Database Integration
 
-### Supabase Usage
-- **18 SQL migration files** indicating complex schema
-- **Edge Functions** for business logic (payroll, invoices, employee management)
-- **Real-time subscriptions** (implied by React Query usage)
-- **File storage** for avatars and documents
+### Supabase Setup
+- **Database**: PostgreSQL with 18 migration files
+- **Authentication**: Email/password with invite system
+- **Storage**: File uploads for avatars and documents
+- **Edge Functions**: Server-side PDF generation and email sending
 
-### Data Flow
-- **React Query** for optimistic updates and caching
-- **Type-safe database operations** via generated types
-- **Server-side processing** via Edge Functions for complex calculations
+### Data Flow Patterns
+- **Queries**: TanStack Query with structured key patterns
+- **Mutations**: Optimistic updates with cache invalidation
+- **Real-time**: Supabase subscriptions for live updates
+- **Type Safety**: Generated TypeScript types from database schema
 
-## Development Infrastructure
+## Development Insights
 
-### Testing Setup
-- **Vitest** for unit testing
-- **Playwright** for end-to-end testing
-- **Testing Library** for component testing
-- **Test configuration** with setup files
+### Code Quality
+- **TypeScript**: Strict configuration, comprehensive typing
+- **Linting**: ESLint with React-specific rules
+- **Testing**: Unit tests with Vitest, E2E with Playwright
+- **Code Organization**: Clear separation of concerns
 
-### Build & Deployment
-- **Vite configuration** with development server on port 8080
-- **ESLint + TypeScript** for code quality
-- **Path aliases** (@/ for src/)
-- **Environment configuration** via .env files
+### Performance Optimizations
+- **Build Tool**: Vite for fast development and optimized production builds
+- **Code Splitting**: Automatic route-based splitting
+- **Caching**: Intelligent query caching and background updates
+- **Bundle Size**: Optimized with tree shaking
 
-## Key Findings
+### UI/UX Design
+- **Design System**: Consistent component library with custom theming
+- **Accessibility**: Radix UI primitives ensure WCAG compliance
+- **Responsive Design**: Mobile-first approach with Tailwind
+- **Dark Mode**: Built-in theme switching capability
 
-### Strengths
-- **Modern tech stack** with latest React patterns
-- **Comprehensive feature set** covering full HR lifecycle
-- **Type safety** throughout with TypeScript
-- **Scalable architecture** with clear component boundaries
-- **Professional UI/UX** with consistent design system
-- **Robust testing strategy** with multiple testing layers
+## Key Architectural Decisions
 
-### Notable Components
-- **EvaluationTimeline**: Complex component with role-based visibility filtering
-- **SearchableEmployeeSelect**: Sophisticated combobox with avatar display
-- **RichTextEditor**: Full-featured WYSIWYG editor
-- **AppLayout**: Flexible layout system with sidebar navigation
+1. **SPA Architecture**: Single-page application for smooth user experience
+2. **Serverless Backend**: Supabase for scalability and reduced infrastructure management
+3. **Component Library**: shadcn/ui for consistent, accessible UI components
+4. **Type Safety**: Full TypeScript adoption for maintainability
+5. **Query Management**: TanStack Query for robust server state handling
+6. **Role-Based Security**: Client-side permission checks with server validation
 
-### Architecture Insights
-- **Role-based rendering** affects data visibility and UI elements
-- **Unified timeline view** combining quarterly and daily evaluations
-- **Modular settings system** with tabbed interface
-- **Responsive design** with mobile-friendly components
+## Notable Implementation Details
 
-## Documentation Generated
+- **Evaluation System**: Sophisticated dual-track evaluation system with visibility controls
+- **Rich Text Editing**: Tiptap integration for policy management
+- **PDF Generation**: Server-side document creation for invoices and payslips
+- **Real-time Updates**: Live evaluation timelines and notifications
+- **Form Management**: React Hook Form with Zod validation throughout
+- **Image Handling**: Avatar uploads with cropping functionality
 
-- **README.md**: Comprehensive project overview, setup instructions, and feature list
-- **llms.txt**: Detailed technical context for AI assistants
-- **SUMMARY.md**: This analysis summary
+## Development Workflow
 
-The codebase represents a production-ready, enterprise-grade HR management system with modern development practices and comprehensive functionality.
+- **Local Development**: `npm run dev` starts Vite dev server on port 8080
+- **Building**: `npm run build` creates optimized production bundle
+- **Testing**: Comprehensive test suite with unit and E2E coverage
+- **Deployment**: Static hosting compatible (Vercel, Netlify, etc.)
+
+This analysis reveals a well-architected, modern HR management system with strong foundations in React ecosystem best practices, comprehensive feature coverage, and attention to developer experience.

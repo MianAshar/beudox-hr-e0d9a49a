@@ -1,46 +1,48 @@
 <!--
 generated_by: tessera
-source_sha: 7b605e9472f6b8c714de14d5769583c23a81c06a
-generated_at: 2026-04-07T21:29:46.483Z
+source_sha: 0750a0f91d657ac84947a7b3427876080d9d0667
+generated_at: 2026-04-07T21:30:19.220Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Management System
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, project tracking, client relations, invoicing, policy management, performance evaluations, and payroll processing.
+A comprehensive Human Resources management application built with modern web technologies. Beudox HR provides organizations with tools to manage employees, projects, clients, payroll, evaluations, and HR policies in a unified, user-friendly interface.
 
 ## Features
 
-- **Employee Management**: Complete employee profiles, onboarding, and organizational structure
-- **Project Management**: Track projects, assign team members, and monitor progress
+### Core HR Management
+- **Employee Management**: Complete employee lifecycle management including profiles, onboarding, and organizational structure
+- **Role-Based Access Control**: Granular permissions system with roles like HR Manager, CEO, Team Lead, and Employee
+- **Performance Evaluations**: Both quarterly formal evaluations and daily feedback mechanisms
+- **Payroll Management**: Automated payroll processing, payslip generation, and salary management
+
+### Project & Client Management
+- **Project Tracking**: Create and manage projects with team assignments and progress tracking
 - **Client Management**: Maintain client relationships and project associations
-- **Invoicing System**: Generate and manage invoices with PDF export
+- **Invoice Management**: Generate and manage invoices with PDF export capabilities
+
+### HR Operations
 - **HR Policies**: Create and manage company policies with rich text editing
-- **Performance Evaluations**: Quarterly and daily evaluation system with detailed feedback
-- **Payroll Management**: Automated payroll processing and payslip generation
 - **Loan Management**: Track employee loans and repayments
-- **Role-Based Access Control**: Secure access based on user roles (CEO, HR Manager, Team Lead, Employee)
-- **Responsive Design**: Modern, mobile-friendly interface
+- **Public Holidays**: Manage company-wide holiday schedules
+- **Settings**: Configure company information, departments, roles, and evaluation parameters
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with custom design system
-- **UI Components**: shadcn/ui (Radix UI primitives)
+- **Frontend**: React 18 + TypeScript + Vite
 - **Routing**: React Router DOM
-- **State Management**: React Query for server state
-- **Authentication**: Supabase Auth
-- **Database**: Supabase (PostgreSQL)
+- **UI Components**: Radix UI (shadcn/ui)
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: TanStack Query for server state
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
 - **Rich Text Editing**: Tiptap
-- **Forms**: React Hook Form with Zod validation
 - **Charts**: Recharts
 - **Testing**: Vitest + Playwright
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
 - npm or bun
 
@@ -59,43 +61,30 @@ A comprehensive Human Resources Management System built with modern web technolo
    bun install
    ```
 
-3. Create environment file:
+3. Set up environment variables:
    ```bash
-   cp .env.example .env
+   cp .env .env.local
    ```
+   
+   Update the following variables in `.env.local`:
+   - `VITE_SUPABASE_PROJECT_ID`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+   - `VITE_SUPABASE_URL`
 
-4. Configure environment variables in `.env`:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
-   ```
-
-5. Start the development server:
+4. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
 
-6. Open [http://localhost:8080](http://localhost:8080) in your browser
+   The application will be available at `http://localhost:8080`
 
 ### Build for Production
 
 ```bash
 npm run build
-```
-
-### Run Tests
-
-```bash
-npm run test
-```
-
-### End-to-End Testing
-
-```bash
-npx playwright install
-npx playwright test
+npm run preview
 ```
 
 ## Project Structure
@@ -104,42 +93,48 @@ npx playwright test
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, TopBar)
-│   ├── settings/       # Settings-related components
-│   ├── evaluations/    # Evaluation components
-│   └── hr-policies/    # HR policy components
-├── pages/              # Page components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   └── [feature]/      # Feature-specific components
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and configurations
+├── lib/                # Utilities and configurations
 ├── integrations/       # External service integrations (Supabase)
 └── types/              # TypeScript type definitions
 ```
 
-## Key Components
+## Authentication
 
-- **AppLayout**: Main application layout with sidebar navigation
-- **EvaluationTimeline**: Displays evaluation history for employees
-- **SearchableEmployeeSelect**: Employee selection component with search
-- **RichTextEditor**: WYSIWYG editor for policies and content
-- **BeudoxLogo**: Brand logo component with variants
+The application uses Supabase Auth with email/password authentication. New employees are invited via email with temporary passwords that must be changed on first login.
 
-## Authentication & Authorization
+## Authorization
 
-The application uses Supabase for authentication and implements role-based access control:
-
+Role-based permissions control access to different features:
 - **CEO**: Full access to all features
-- **HR Manager**: Access to HR functions, evaluations, payroll
-- **Team Lead**: Limited access to team management and evaluations
-- **Employee**: Access to personal data and basic features
+- **HR Manager**: Employee management, evaluations, payroll
+- **Team Lead**: Team member evaluations, project management
+- **Employee**: Limited access to personal data and basic features
+
+## Database
+
+The application uses Supabase with PostgreSQL. Database migrations are located in the `supabase/migrations/` directory.
+
+## Testing
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npx playwright test
+```
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests
-5. Submit a pull request
+1. Follow the existing code style and conventions
+2. Write tests for new features
+3. Update documentation as needed
+4. Ensure all tests pass before submitting PRs
 
 ## License
 
-This project is private and proprietary to Beudox.
+This project is proprietary software owned by Beudox.
