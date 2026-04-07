@@ -438,7 +438,7 @@ const FinanceSheet = () => {
             </div>
 
             {/* ═══ HALF 2: EXPENSES ═══ */}
-            <div className="mb-8">
+            <div className="mb-8 fs-section">
               <h2 className="text-base font-semibold mb-3" style={{ fontFamily: 'var(--ff-display)' }}>
                 Expenses Summary
               </h2>
@@ -510,7 +510,7 @@ const FinanceSheet = () => {
             </div>
 
             {/* ═══ GRAND TOTAL ═══ */}
-            <div className="rounded-[14px] overflow-hidden" style={{ background: '#1A1240' }}>
+            <div className="rounded-[14px] overflow-hidden fs-grand-total-bar" style={{ background: '#1A1240' }}>
               <div className="flex items-center justify-between px-6 py-4">
                 <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
                   Grand Total (Payroll + Expenses)
