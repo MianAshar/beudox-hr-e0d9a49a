@@ -170,8 +170,7 @@ const DailyEvaluations = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Daily Evaluations</h1>
-          <p className="text-sm text-muted-foreground mt-1">Two-way evaluations between Team Leads and Employees</p>
+          <p className="text-sm text-muted-foreground">Two-way evaluations between Team Leads and Employees</p>
         </div>
         <Button onClick={() => navigate('/evaluations/daily/new')}>
           <Plus className="h-4 w-4 mr-2" /> Submit Evaluation

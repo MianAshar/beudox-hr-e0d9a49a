@@ -178,8 +178,7 @@ const PublicHolidays = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Public Holidays</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground">
             {isLoading ? '...' : `${holidays.length} holiday${holidays.length !== 1 ? 's' : ''} in ${selectedYear}`}
           </p>
         </div>

@@ -187,13 +187,10 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1
-          className="font-display font-bold text-[32px] text-foreground leading-tight"
-          style={{ fontFamily: "'Outfit', sans-serif" }}
-        >
+        <p className="text-lg font-medium text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
           {getGreeting()}, {firstName}
-        </h1>
-        <p className="text-muted-foreground mt-1" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+        </p>
+        <p className="text-muted-foreground text-sm" style={{ fontFamily: "'DM Sans', sans-serif" }}>
           {today} · {employee?.company_name}
         </p>
       </div>
