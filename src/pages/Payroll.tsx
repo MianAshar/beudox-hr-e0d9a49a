@@ -251,19 +251,19 @@ const Payroll = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="min-w-[160px]">Employee</TableHead>
-            <TableHead className="text-right min-w-[90px]">Basic</TableHead>
-            <TableHead className="text-right min-w-[90px]">Allowance</TableHead>
-            <TableHead className="text-right min-w-[80px]">Reg OT hrs</TableHead>
-            <TableHead className="text-right min-w-[80px]">Hol OT hrs</TableHead>
-            <TableHead className="text-right min-w-[100px]">OT Amount</TableHead>
-            <TableHead className="text-right min-w-[90px]">Bonus</TableHead>
-            <TableHead className="text-right min-w-[90px]">Dinner Exp</TableHead>
-            <TableHead className="text-right min-w-[90px]">Loan Ded.</TableHead>
-            <TableHead className="text-right min-w-[110px]">Total Salary</TableHead>
-            <TableHead className="text-right min-w-[110px]">Final Payment</TableHead>
-            <TableHead className="min-w-[100px]">Status</TableHead>
-            {allApprovedOrPaid && <TableHead className="min-w-[100px]">Action</TableHead>}
+            <TableHead>Employee</TableHead>
+            <TableHead className="text-right">Basic</TableHead>
+            <TableHead className="text-right">Allowance</TableHead>
+            <TableHead className="text-right">Reg OT hrs</TableHead>
+            <TableHead className="text-right">Hol OT hrs</TableHead>
+            <TableHead className="text-right">OT Amount</TableHead>
+            <TableHead className="text-right">Bonus</TableHead>
+            <TableHead className="text-right">Dinner Exp</TableHead>
+            <TableHead className="text-right">Loan Ded.</TableHead>
+            <TableHead className="text-right">Total Salary</TableHead>
+            <TableHead className="text-right">Final Pmt</TableHead>
+            <TableHead>Status</TableHead>
+            {allApprovedOrPaid && <TableHead>Action</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
