@@ -740,21 +740,30 @@ const FinanceSheet = () => {
         )}
       </div>
 
+      {/* Hidden file input for receipt uploads */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        className="hidden"
+        onChange={handleReceiptFileChange}
+      />
+
       {/* ─── EDIT EXPENSES MODAL ─── */}
       <Dialog open={!!editCategoryId} onOpenChange={open => { if (!open) setEditCategoryId(null); }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit {editCategory?.name} — {monthLabel} {selectedYear}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
             {/* Recurring line items */}
             {editLineItems.map(li => (
-              <div key={li.id} className="flex items-center justify-between gap-4">
-                <span className="text-sm flex-1" style={{ fontFamily: 'var(--ff-body)' }}>{li.description}</span>
+              <div key={li.id} className="flex items-center justify-between gap-2">
+                <span className="text-sm flex-1 min-w-0 truncate" style={{ fontFamily: 'var(--ff-body)' }}>{li.description}</span>
                 <Input
                   type="number"
                   min="0"
-                  className="w-[140px] text-right text-sm font-mono h-9"
+                  className="w-[130px] text-right text-sm font-mono h-9"
                   value={editAmounts[li.id] ?? '0'}
                   onChange={e => {
                     const val = e.target.value;
@@ -765,6 +774,7 @@ const FinanceSheet = () => {
                     setEditAmounts(prev => ({ ...prev, [li.id]: String(num) }));
                   }}
                 />
+                <ReceiptIndicator url={editReceipts[li.id]} type="recurring" id={li.id} />
               </div>
             ))}
 
@@ -790,7 +800,7 @@ const FinanceSheet = () => {
                   type="number"
                   min="0"
                   placeholder="0"
-                  className="w-[120px] text-right text-sm font-mono h-9"
+                  className="w-[110px] text-right text-sm font-mono h-9"
                   value={ot.amount}
                   onChange={e => {
                     const val = e.target.value;
@@ -801,6 +811,7 @@ const FinanceSheet = () => {
                     setOneTimeItems(prev => prev.map(i => i.tempId === ot.tempId ? { ...i, amount: String(num) } : i));
                   }}
                 />
+                <ReceiptIndicator url={ot.receiptUrl} type="onetime" id={ot.tempId} />
                 <Button
                   variant="ghost"
                   size="icon"
