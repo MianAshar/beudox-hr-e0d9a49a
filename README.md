@@ -1,33 +1,53 @@
 <!--
 generated_by: tessera
-source_sha: c146e39c807c2d7590e3e1eb1fcb10f3b06bbef7
-generated_at: 2026-04-07T11:18:49.166Z
+source_sha: 515930ff3a33e7977abd9ba55d1f7267034c26cd
+generated_at: 2026-04-07T11:38:47.773Z
 action: update
 -->
 
 # Beudox HR
 
-Beudox HR is a comprehensive Human Resources management application built as a modern React frontend. It provides tools for employee evaluations, HR policy management, organizational settings, and more.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with tools to manage employees, track performance through evaluations, maintain HR policies, handle projects and clients, and manage invoicing.
 
 ## Features
 
-- **Employee Evaluations**: Quarterly and daily performance evaluations with role-based visibility
-- **HR Policies**: Rich text editor for creating and managing company policies
-- **Organizational Management**: Settings for departments, roles, attendance, and company information
-- **User Interface**: Modern UI built with shadcn/ui components and Tailwind CSS
-- **Authentication**: Integrated with Supabase for user management and data storage
+### Core HR Management
+- **Employee Management**: Complete employee profiles, onboarding, and personnel tracking
+- **Role-Based Access Control**: Hierarchical permissions for HR managers, CEOs, team leads, and employees
+- **Company Settings**: Configure departments, roles, attendance policies, and company information
+
+### Performance & Evaluations
+- **Quarterly Evaluations**: Formal performance reviews with scoring, comments, and recommendations
+- **Daily Evaluations**: Real-time feedback system for continuous performance tracking
+- **Evaluation Timeline**: Comprehensive view of all evaluations with role-based visibility controls
+
+### HR Policies & Documentation
+- **Rich Text Policy Editor**: Create and manage HR policies with full formatting support
+- **Policy Management**: Organize and maintain company policies and procedures
+
+### Project & Client Management
+- **Project Tracking**: Manage project lifecycle, assignments, and progress
+- **Client Management**: Maintain client relationships and project associations
+- **Invoice Management**: Generate and track invoices with PDF export capabilities
+
+### Additional Features
+- **Public Holidays**: Configure and manage company holiday schedules
+- **Loan Management**: Track employee loans and repayments
+- **Dashboard**: Centralized overview of key HR metrics and activities
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **State Management**: React Query for server state
-- **Routing**: React Router
-- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
-- **Rich Text Editing**: Tiptap
-- **Testing**: Vitest and Playwright
+- **Styling**: Tailwind CSS with shadcn/ui component library
+- **State Management**: TanStack Query for server state
+- **Routing**: React Router DOM
+- **Authentication**: Supabase Auth
+- **Database**: Supabase (PostgreSQL)
+- **Rich Text Editing**: TipTap
+- **Charts**: Recharts
+- **Forms**: React Hook Form with Zod validation
+- **Testing**: Vitest with Playwright for E2E
 
 ## Getting Started
 
@@ -35,7 +55,6 @@ Beudox HR is a comprehensive Human Resources management application built as a m
 
 - Node.js 18+
 - npm or bun package manager
-- Supabase account and project
 
 ### Installation
 
@@ -53,37 +72,29 @@ Beudox HR is a comprehensive Human Resources management application built as a m
    ```
 
 3. Set up environment variables:
+   
    Copy `.env` and configure your Supabase credentials:
    ```env
    VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
    ```
 
 4. Start the development server:
    ```bash
    npm run dev
-   # or
-   bun run dev
    ```
 
 5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Database Setup
+### Available Scripts
 
-The application uses Supabase migrations for database schema. Run migrations in your Supabase project dashboard or using the Supabase CLI.
-
-### Testing
-
-Run unit tests:
-```bash
-npm run test
-```
-
-Run E2E tests:
-```bash
-npm run test:e2e
-```
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
 
 ## Project Structure
 
@@ -91,22 +102,24 @@ npm run test:e2e
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # App layout components
-│   ├── settings/       # Settings-related components
-│   └── ...
-├── pages/              # Page components
-├── integrations/       # External service integrations
+│   ├── layout/         # Layout components (AppLayout, Sidebar, TopBar)
+│   ├── evaluations/    # Evaluation-specific components
+│   ├── hr-policies/    # HR policy components
+│   └── settings/       # Settings components
+├── pages/              # Page components and routing
 ├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-└── ...
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations (Supabase)
+└── test/               # Test files
 ```
 
 ## Contributing
 
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure all tests pass before submitting PRs
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 

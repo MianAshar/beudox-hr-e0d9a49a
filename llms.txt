@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: c146e39c807c2d7590e3e1eb1fcb10f3b06bbef7
-generated_at: 2026-04-07T11:18:49.167Z
+source_sha: 515930ff3a33e7977abd9ba55d1f7267034c26cd
+generated_at: 2026-04-07T11:38:47.773Z
 action: create
 -->
 
@@ -9,117 +9,129 @@ action: create
 
 ## Architecture Overview
 
-Beudox HR is a single-page React application built with modern web technologies. It follows a component-based architecture with clear separation of concerns.
+Beudox HR is a modern React-based frontend application built with TypeScript, using Vite as the build tool. It follows a component-based architecture with clear separation of concerns:
 
-### Core Technologies
-- **React 18** with TypeScript for type-safe component development
-- **Vite** for fast development and optimized production builds
-- **Tailwind CSS** for utility-first styling
-- **shadcn/ui** for consistent, accessible UI components
-- **React Query** for efficient server state management and caching
-- **React Router** for client-side routing
-- **Supabase** for backend services (database, authentication, real-time subscriptions)
+- **Frontend Framework**: React 18 with TypeScript for type safety
+- **Build System**: Vite for fast development and optimized production builds
+- **Styling**: Tailwind CSS with shadcn/ui component library for consistent UI
+- **State Management**: TanStack Query for server state management and caching
+- **Routing**: React Router DOM with protected routes and role-based access control
+- **Backend Integration**: Supabase for authentication, database, and serverless functions
 
-### Key Architectural Decisions
+## Key Architectural Patterns
 
-1. **Component Organization**: Components are organized by feature (evaluations, settings, layout) with shared UI components in a separate directory.
-
-2. **State Management**: Uses React Query for server state, with local component state for UI concerns. No global state management library is used to keep complexity low.
-
-3. **Styling Approach**: Utility-first CSS with Tailwind, combined with CSS custom properties for theming and design tokens.
-
-4. **Type Safety**: Full TypeScript coverage with strict type checking enabled.
-
-## Key Files and Their Purposes
-
-### Core Application Files
-- `src/main.tsx`: Application entry point, renders the root React component
-- `src/App.tsx`: Main application component (currently minimal)
-- `src/pages/Index.tsx`: Main page component
-
-### Component Architecture
-- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and topbar
-- `src/components/layout/AppSidebar.tsx`: Collapsible sidebar navigation
-- `src/components/layout/TopBar.tsx`: Top navigation bar
-- `src/components/BeudoxLogo.tsx`: Logo component with variant support
-- `src/components/NavLink.tsx`: Enhanced NavLink with active state styling
-
-### Feature Components
-- `src/components/evaluations/EvaluationTimeline.tsx`: Displays evaluation history with role-based filtering
-- `src/components/hr-policies/RichTextEditor.tsx`: Rich text editor for policy documents using Tiptap
-- `src/components/settings/`: Various settings tabs for HR configuration
-
-### Integrations
-- `src/integrations/supabase/`: Supabase client configuration and type definitions
-- Database schema defined through migrations in `supabase/migrations/`
-
-### Utilities
-- `src/lib/utils.ts`: Common utility functions (cn for class merging)
-- `src/lib/role-access.ts`: Role-based access control logic
-- `src/hooks/`: Custom hooks for authentication, toasts, etc.
-
-## Business Logic and Data Flow
+### Component Structure
+- **Layout Components**: AppLayout provides consistent sidebar navigation and top bar
+- **Page Components**: Each route has a dedicated page component in `/pages`
+- **UI Components**: Extensive use of shadcn/ui components in `/components/ui`
+- **Feature Components**: Domain-specific components (evaluations, HR policies, settings)
 
 ### Authentication & Authorization
-- Uses Supabase Auth for user authentication
-- Role-based access control with roles: employee, team_lead, hr_manager, ceo
-- Different permission levels for viewing/editing evaluations and settings
+- **Auth Provider**: Custom AuthProvider using Supabase Auth
+- **Protected Routes**: Route-level protection with role-based access control
+- **Role Hierarchy**: hr_manager > ceo > team_lead > employee
+- **Access Control**: `canAccess()` function checks permissions based on role and route
 
-### Evaluations System
-- **Quarterly Evaluations**: Comprehensive performance reviews with scores, comments, and recommendations
-- **Daily Evaluations**: Quick feedback with direction (positive/constructive) and remarks
-- Timeline view shows both types with filtering based on user role and relationship to the evaluated employee
+### Data Flow
+- **API Integration**: Supabase client for database operations
+- **Query Management**: TanStack Query for data fetching, caching, and synchronization
+- **Real-time Updates**: Supabase subscriptions for live data updates
 
-### Data Relationships
-- Companies have multiple employees
-- Employees belong to departments and have roles
-- Evaluations link employees as evaluators/evaluators and reviewees
-- HR policies are company-wide documents
+## Business Logic & Features
 
-### UI/UX Patterns
-- Card-based layout with rounded corners and subtle shadows
-- Consistent color scheme with light/dark mode support
-- Loading states with skeleton components
-- Toast notifications for user feedback
-- Responsive design with mobile-first approach
+### Employee Management
+- Complete CRUD operations for employee records
+- Profile management with avatar support
+- Role assignment and department management
 
-## Configuration and Environment
+### Evaluation System
+- **Quarterly Evaluations**: Formal performance reviews with:
+  - Overall score (1-5 scale)
+  - Comments and recommendations
+  - Evaluator tracking
+  - Role-based visibility (managers see recommendations, employees don't)
+- **Daily Evaluations**: Continuous feedback with:
+  - Direction tracking (received/given)
+  - Real-time performance monitoring
+  - Team lead and manager visibility controls
+- **Timeline View**: Unified evaluation history with filtering and pagination
 
-### Build Configuration
-- `vite.config.ts`: Vite configuration with React plugin
-- `tsconfig.json`: TypeScript configuration
-- `tailwind.config.ts`: Tailwind CSS configuration with custom theme
+### HR Policies
+- Rich text editing with TipTap editor
+- Full formatting support (headings, lists, links, etc.)
+- Policy versioning and management
 
-### Environment Variables
-- `VITE_SUPABASE_URL`: Supabase project URL
-- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public Supabase API key
-- `VITE_SUPABASE_PROJECT_ID`: Supabase project identifier
+### Project & Financial Management
+- Project lifecycle management
+- Client relationship tracking
+- Invoice generation with PDF export
+- Loan management system
 
-### Testing Setup
-- `vitest.config.ts`: Unit testing configuration
-- `playwright.config.ts`: End-to-end testing configuration
-- Test files located in `src/test/`
+## Database Schema (Inferred from Code)
+
+### Core Tables
+- `employees`: User profiles, roles, departments
+- `evaluations`: Quarterly performance reviews
+- `daily_evaluations`: Daily feedback records
+- `hr_policies`: Company policies and procedures
+- `projects`: Project management
+- `clients`: Client information
+- `invoices`: Billing and invoicing
+- `loans`: Employee loan tracking
+
+### Key Relationships
+- Employees belong to companies and departments
+- Evaluations link employees to evaluators
+- Daily evaluations track reviewer-reviewee pairs
+- Projects associate with clients and employees
+
+## Key Files & Their Purposes
+
+### Entry Points
+- `src/main.tsx`: Application bootstrap with React rendering
+- `src/App.tsx`: Main routing configuration and providers
+
+### Core Components
+- `src/components/layout/AppLayout.tsx`: Main application layout with sidebar
+- `src/components/layout/AppSidebar.tsx`: Navigation sidebar with role-based menu items
+- `src/components/evaluations/EvaluationTimeline.tsx`: Complex evaluation display with filtering
+- `src/components/hr-policies/RichTextEditor.tsx`: Rich text editing for policies
+
+### Utilities
+- `src/lib/role-access.ts`: Role-based permission checking
+- `src/lib/utils.ts`: Common utility functions (cn for class merging)
+- `src/hooks/useAuth.ts`: Authentication state management
+
+### Configuration
+- `vite.config.ts`: Build configuration
+- `tailwind.config.ts`: Styling configuration
+- `supabase/config.toml`: Supabase project configuration
 
 ## Development Workflow
 
-1. Component development follows atomic design principles
-2. TypeScript ensures type safety throughout
-3. ESLint and Prettier maintain code quality
-4. Tests are written for critical business logic
-5. Supabase migrations handle database schema changes
-6. Git hooks (via Husky) enforce pre-commit checks
+- **Local Development**: `npm run dev` starts Vite dev server
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
+- **Linting**: ESLint with React-specific rules
+- **Build**: `npm run build` creates optimized production bundle
 
-## Performance Considerations
+## Environment Configuration
 
-- React Query caches API responses to reduce unnecessary requests
-- Lazy loading for heavy components
-- Optimized bundle splitting with Vite
-- Efficient re-renders through proper key usage and memoization
-- Database queries use proper indexing and limiting
+Required environment variables:
+- `VITE_SUPABASE_URL`: Supabase project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public Supabase API key
 
-## Security Notes
+## Deployment Considerations
 
-- All API calls go through Supabase with Row Level Security (RLS) policies
-- Environment variables keep sensitive keys out of source code
-- Role-based access controls prevent unauthorized data access
-- Input validation on both client and server sides
+- Static site deployment (Vite builds to static files)
+- Supabase handles backend services
+- Environment variables must be configured for production
+- Database migrations managed through Supabase
+
+## Code Quality & Standards
+
+- TypeScript for type safety
+- ESLint for code quality
+- Component composition over inheritance
+- Custom hooks for shared logic
+- Consistent naming conventions
+- Accessibility considerations with Radix UI components
