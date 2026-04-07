@@ -180,6 +180,25 @@ const Payroll = () => {
         })
         .in('id', draftIds);
       if (error) throw error;
+
+      // Send notifications for approved payroll
+      const monthLabel = MONTHS.find(m => m.value === selectedMonth)?.label || selectedMonth;
+      const approvedRecords = records.filter(r => r.status === 'draft');
+      const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
+      for (const rec of approvedRecords) {
+        const empId = rec.employee_id;
+        const recipients = uniqueRecipients(empId, mgrs);
+        sendNotification({
+          companyId: companyId!,
+          recipientIds: recipients,
+          type: 'payroll_approved',
+          title: 'Payroll Approved',
+          message: `Your ${monthLabel} ${selectedYear} payroll has been approved.`,
+          referenceType: 'payroll',
+          referenceId: rec.id,
+        });
+      }
+
       toast.success('Payroll approved');
       setApproveOpen(false);
       fetchExisting();
