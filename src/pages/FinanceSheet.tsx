@@ -557,6 +557,16 @@ const FinanceSheet = () => {
                               </TableCell>
                             </TableRow>
                           ))}
+                          {getOneTimeExpenses(cat.id).map((ot: any) => (
+                            <TableRow key={ot.id}>
+                              <TableCell className="text-[13px] italic" style={{ fontFamily: 'var(--ff-body)' }}>
+                                {ot.description}
+                              </TableCell>
+                              <TableCell className="text-right text-[12px] font-mono">
+                                {Number(ot.amount).toLocaleString()}
+                              </TableCell>
+                            </TableRow>
+                          ))}
                           <TableRow key={`catsub-${cat.id}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
                             <TableCell className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
                               {cat.name} Subtotal
