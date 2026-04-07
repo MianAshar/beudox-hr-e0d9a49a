@@ -1,142 +1,178 @@
 <!--
 generated_by: tessera
-source_sha: 5ad27002d46dd144b4404dd6446fd9fca6cca7e0
-generated_at: 2026-04-07T20:51:03.221Z
+source_sha: 34ed6905e2c8ad286ba7d5831009dd122904a9d4
+generated_at: 2026-04-07T21:13:44.718Z
 action: create
 -->
 
-# Beudox HR Management System - Technical Context
+# Beudox HR - Technical Context for AI Assistants
 
-## Architecture Overview
+## Project Overview
+Beudox HR is a comprehensive Human Resources Management System built as a React TypeScript single-page application. It provides organizations with tools to manage employees, projects, evaluations, payroll, and HR policies through a modern web interface.
 
-Beudox HR is a modern React-based frontend application built with TypeScript, serving as the user interface for a comprehensive HR management system. The application follows a component-based architecture with feature-driven organization.
+## Architecture & Technology Stack
 
-### Technology Decisions
+### Frontend Framework
+- **React 18** with functional components and hooks
+- **TypeScript** for type safety
+- **Vite** as build tool and development server
+- **React Router DOM** for client-side routing
 
-**Frontend Framework**: React 18 with TypeScript for type safety and modern development experience
-**Build Tool**: Vite for fast development server and optimized production builds
-**Styling**: Tailwind CSS with Radix UI primitives for consistent, accessible design
-**State Management**: TanStack React Query for server state, custom hooks for client state
-**Routing**: React Router DOM with protected routes and role-based access control
-**Forms**: React Hook Form with Zod schema validation
-**Backend**: Supabase (PostgreSQL + Auth + Real-time + Edge Functions)
+### UI & Styling
+- **Shadcn/ui** component library built on Radix UI primitives
+- **Tailwind CSS** for utility-first styling
+- **Lucide React** for icons
+- **Responsive design** with mobile-first approach
 
-## Key Files and Architecture
+### State Management & Data Fetching
+- **TanStack Query (React Query)** for server state management
+- **Supabase client** for database operations and real-time subscriptions
+- **React Hook Form** with Zod validation for forms
 
-### Application Entry Points
-- `src/main.tsx`: React application bootstrap, renders App component
-- `src/App.tsx`: Main application component with routing configuration
-- `src/pages/Index.tsx`: Root page component (currently minimal)
+### Rich Text & Advanced Features
+- **Tiptap** for rich text editing in HR policies
+- **Recharts** for data visualization
+- **React Image Crop** for profile picture management
+- **Date-fns** for date manipulation
 
-### Core Architecture Patterns
+## Application Structure
 
-**Component Organization**:
-- `src/components/ui/`: Reusable UI primitives (buttons, forms, dialogs, etc.)
-- `src/components/layout/`: Application layout components (AppLayout, AppSidebar, TopBar)
-- `src/components/[feature]/`: Feature-specific components (evaluations, hr-policies, etc.)
+### Routing & Pages
+The application uses a protected route system with role-based access control:
 
-**Routing & Navigation**:
-- Protected routes with role-based access control via `canAccess()` function
-- Hierarchical routing structure for CRUD operations
-- Authentication flow handling (login, password reset, invite acceptance)
+- **Public Routes**: `/login`, `/forgot-password`
+- **Protected Routes**: All other routes require authentication
+- **Role-based Access**: Different user roles (ceo, hr_manager, team_lead, employee) have different permissions
 
-**Data Flow**:
-- Supabase client initialized in `src/integrations/supabase/client.ts`
-- React Query for caching and synchronization
-- Custom hooks for authentication state (`useAuth`)
-- Real-time subscriptions for live updates
+Key page routes:
+- `/dashboard` - Main dashboard
+- `/employees` - Employee management
+- `/projects` - Project management
+- `/evaluations` - Performance evaluations
+- `/payroll` - Payroll processing
+- `/hr-policies` - HR policy documents
+- `/settings` - System configuration
 
-### Business Logic
+### Component Architecture
 
-**Authentication & Authorization**:
-- Supabase Auth for user management
-- Role-based permissions (ceo, hr_manager, team_lead, employee)
-- Route protection with automatic redirects
-- Password reset and invite flows
+#### Layout Components
+- **AppLayout**: Main application layout with sidebar navigation
+- **AppSidebar**: Navigation sidebar with role-based menu items
+- **TopBar**: Top navigation bar with user menu and notifications
 
-**Employee Management**:
-- Full CRUD operations for employee records
-- Profile management with avatar support
-- Organizational hierarchy and reporting structure
+#### Feature Components
+- **EvaluationTimeline**: Displays historical evaluation data
+- **SearchableEmployeeSelect**: Employee selection with search functionality
+- **RichTextEditor**: WYSIWYG editor for policy documents
+- **Settings Tabs**: Modular settings management (Company, Departments, Roles, etc.)
 
-**Performance Management**:
-- Quarterly evaluations with customizable parameters
-- Daily feedback system with peer reviews
-- Evaluation timeline with visibility controls
-- Score-based assessments (1-5 star system)
+#### UI Components
+Extensive use of shadcn/ui components:
+- Form controls (Input, Select, Button, etc.)
+- Layout components (Card, Tabs, Dialog, etc.)
+- Data display (Table, Badge, Avatar, etc.)
+- Feedback (Toast, Alert, Skeleton, etc.)
 
-**HR Operations**:
-- Rich text policy documents using Tiptap editor
-- Payroll processing with automated calculations
-- Loan management and tracking
-- Public holiday configuration
+## Data Model & Business Logic
 
-**Project & Financial Management**:
-- Project lifecycle management
-- Client relationship management
-- Invoice generation and tracking
-- Resource allocation and time tracking
+### Core Entities
+- **Employees**: User profiles with roles, departments, contact info
+- **Companies**: Multi-tenant organization data
+- **Projects**: Project management with team assignments
+- **Clients**: Client relationship management
+- **Evaluations**: Performance reviews (quarterly and daily)
+- **Payroll**: Salary processing and payslip generation
+- **Invoices**: Client billing and payment tracking
+- **HR Policies**: Document management with rich text content
 
-### Database Schema Insights
+### Authentication & Authorization
+- **Supabase Auth** for user authentication
+- **Role-based permissions** implemented in `src/lib/role-access.ts`
+- **Route protection** with automatic redirects based on user roles
+- **Session management** with loading states and error handling
 
-Based on the SQL migrations, the system manages:
-- User authentication and profiles
-- Company and departmental structure
-- Employee relationships and hierarchies
-- Evaluation systems (quarterly and daily)
-- Project and client data
-- Financial records (invoices, payroll, loans)
-- HR policies and documents
-- Configuration settings
+### Data Flow Patterns
+- **Server State**: Managed by TanStack Query with caching and background updates
+- **Real-time Updates**: Supabase subscriptions for live data synchronization
+- **Optimistic Updates**: Immediate UI feedback for better user experience
+- **Error Handling**: Comprehensive error boundaries and user feedback
+
+## Key Files & Directories
+
+### Entry Points
+- `src/main.tsx`: Application bootstrap
+- `src/App.tsx`: Main application component with routing
+
+### Core Logic
+- `src/hooks/useAuth.ts`: Authentication state management
+- `src/lib/role-access.ts`: Permission checking logic
+- `src/lib/utils.ts`: Utility functions (cn for class merging)
+- `src/integrations/supabase/`: Database client and type definitions
+
+### Configuration
+- `vite.config.ts`: Build configuration
+- `tailwind.config.ts`: Styling configuration
+- `tsconfig.json`: TypeScript configuration
+- `package.json`: Dependencies and scripts
+
+### Testing
+- `src/test/`: Unit tests with Vitest
+- `playwright.config.ts`: E2E testing configuration
+
+## Development Patterns
 
 ### Component Patterns
+- **Functional components** with TypeScript interfaces
+- **Custom hooks** for reusable logic
+- **Compound components** for complex UI elements
+- **Forward refs** for imperative APIs
 
-**UI Components**:
-- Extensive use of Radix UI for accessibility
-- Consistent design system with Tailwind CSS
-- Reusable form components with validation
-- Data display components (tables, charts, timelines)
+### Data Fetching
+- **Query keys** following TanStack Query conventions
+- **Enabled conditions** to prevent unnecessary requests
+- **Error handling** with user-friendly messages
+- **Loading states** with skeleton components
 
-**Business Components**:
-- `EvaluationTimeline`: Complex component handling multiple evaluation types with filtering
-- `SearchableEmployeeSelect`: Advanced search and selection component
-- `RichTextEditor`: Full-featured editor for policy documents
-- `BeudoxLogo`: Configurable logo component with variants
+### Form Handling
+- **React Hook Form** for form state management
+- **Zod schemas** for validation
+- **Controlled components** with proper TypeScript types
+- **Form submission** with loading states and error handling
 
-### Development Workflow
+## Database Schema
 
-**Build & Development**:
-- Vite dev server on port 8080
-- Hot module replacement for fast development
-- TypeScript compilation with strict checking
-- ESLint for code quality
+The application uses Supabase (PostgreSQL) with the following key tables:
+- `employees` - User profiles and organizational data
+- `companies` - Multi-tenant organization information
+- `evaluations` - Quarterly performance reviews
+- `daily_evaluations` - Daily feedback and ratings
+- `projects` - Project management data
+- `clients` - Client relationship data
+- `invoices` - Billing and payment records
+- `payroll` - Salary processing data
+- `hr_policies` - Policy document storage
 
-**Testing Strategy**:
-- Vitest for unit tests
-- Playwright for E2E testing
-- Component testing with React Testing Library
+## Performance Considerations
 
-**Deployment**:
-- Static site generation for production
-- Environment-based configuration
-- Supabase integration for backend services
+- **Code splitting** with Vite's dynamic imports
+- **Lazy loading** for route components
+- **Query caching** with TanStack Query
+- **Image optimization** with proper sizing and formats
+- **Bundle analysis** for optimizing build size
 
-## Key Technical Insights
+## Security
 
-1. **Role-Based Visibility**: Evaluation data visibility varies by user role and relationship to the evaluated employee
-2. **Real-time Features**: Supabase real-time subscriptions for live updates across the application
-3. **Type Safety**: Comprehensive TypeScript usage with generated Supabase types
-4. **Performance**: React Query caching and optimistic updates for smooth UX
-5. **Accessibility**: Radix UI primitives ensure WCAG compliance
-6. **Responsive Design**: Mobile-first approach with Tailwind CSS breakpoints
-7. **Form Validation**: Zod schemas integrated with React Hook Form for robust validation
-8. **Rich Text Editing**: Tiptap editor with custom extensions for HR policy management
+- **Row Level Security (RLS)** in Supabase database
+- **Authentication required** for all protected routes
+- **Role-based access control** at component and route levels
+- **Input validation** with Zod schemas
+- **Secure environment variables** for API keys
 
-## Data Flow Patterns
+## Deployment
 
-- **Authentication Flow**: Login → Supabase Auth → Employee data fetch → Route protection
-- **CRUD Operations**: Form submission → Supabase mutation → React Query invalidation → UI update
-- **Real-time Updates**: Supabase subscription → React Query cache update → Component re-render
-- **File Uploads**: Client upload → Supabase storage → URL generation → Database storage
+- **Static site generation** with Vite build
+- **CDN deployment** (Vercel, Netlify, etc.)
+- **Environment-specific builds** with Vite modes
+- **Database migrations** managed through Supabase
 
-This architecture provides a scalable, maintainable foundation for HR management with modern web development best practices.
+This technical context provides the foundation for understanding the codebase structure, patterns, and implementation details of the Beudox HR application.
