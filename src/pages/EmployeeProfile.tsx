@@ -505,8 +505,8 @@ const EmployeeProfile = () => {
       )}
 
       {/* Evaluation Timeline */}
-      {emp && companyId && (
-        <EvaluationTimeline employeeId={emp.id} companyId={companyId} />
+      {emp && authEmployee?.company_id && (
+        <EvaluationTimeline employeeId={emp.id} companyId={authEmployee.company_id} />
       )}
     </div>
   );
