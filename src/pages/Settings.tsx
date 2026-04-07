@@ -6,18 +6,38 @@ import DepartmentsTab from '@/components/settings/DepartmentsTab';
 import EvaluationParametersTab from '@/components/settings/EvaluationParametersTab';
 import RolesTab from '@/components/settings/RolesTab';
 import DangerZoneTab from '@/components/settings/DangerZoneTab';
+import ExpenseCategoriesTab from '@/components/settings/ExpenseCategoriesTab';
 
 const Settings = () => {
   const { employee } = useAuth();
-  const isCeo = employee?.role_name === 'ceo';
+  const role = employee?.role_name;
+  const isCeo = role === 'ceo';
+  const isFinance = role === 'finance_manager';
 
-  if (!isCeo) {
+  // Finance managers only see the Expense Categories tab
+  if (!isCeo && !isFinance) {
     return (
       <div className="text-muted-foreground text-sm" style={{ fontFamily: 'var(--ff-body)' }}>
-        Settings are only accessible to the CEO.
+        Settings are only accessible to the CEO and Finance Manager.
       </div>
     );
   }
+
+  const tabs = [
+    ...(isCeo
+      ? [
+          { value: 'company', label: 'Company' },
+          { value: 'attendance', label: 'Attendance' },
+          { value: 'departments', label: 'Departments' },
+          { value: 'eval-params', label: 'Evaluation Parameters' },
+          { value: 'roles', label: 'Roles' },
+        ]
+      : []),
+    { value: 'expense-categories', label: 'Expense Categories' },
+    ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
+  ];
+
+  const defaultTab = isCeo ? 'company' : 'expense-categories';
 
   return (
     <div className="space-y-6">
@@ -28,16 +48,9 @@ const Settings = () => {
         Settings
       </h1>
 
-      <Tabs defaultValue="company" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
-          {[
-            { value: 'company', label: 'Company' },
-            { value: 'attendance', label: 'Attendance' },
-            { value: 'departments', label: 'Departments' },
-            { value: 'eval-params', label: 'Evaluation Parameters' },
-            { value: 'roles', label: 'Roles' },
-            { value: 'danger', label: 'Danger Zone' },
-          ].map(tab => (
+          {tabs.map(tab => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
@@ -49,24 +62,21 @@ const Settings = () => {
           ))}
         </TabsList>
 
-        <TabsContent value="company" className="mt-6">
-          <CompanyTab />
+        {isCeo && (
+          <>
+            <TabsContent value="company" className="mt-6"><CompanyTab /></TabsContent>
+            <TabsContent value="attendance" className="mt-6"><AttendanceTab /></TabsContent>
+            <TabsContent value="departments" className="mt-6"><DepartmentsTab /></TabsContent>
+            <TabsContent value="eval-params" className="mt-6"><EvaluationParametersTab /></TabsContent>
+            <TabsContent value="roles" className="mt-6"><RolesTab /></TabsContent>
+          </>
+        )}
+        <TabsContent value="expense-categories" className="mt-6">
+          <ExpenseCategoriesTab />
         </TabsContent>
-        <TabsContent value="attendance" className="mt-6">
-          <AttendanceTab />
-        </TabsContent>
-        <TabsContent value="departments" className="mt-6">
-          <DepartmentsTab />
-        </TabsContent>
-        <TabsContent value="eval-params" className="mt-6">
-          <EvaluationParametersTab />
-        </TabsContent>
-        <TabsContent value="roles" className="mt-6">
-          <RolesTab />
-        </TabsContent>
-        <TabsContent value="danger" className="mt-6">
-          <DangerZoneTab />
-        </TabsContent>
+        {isCeo && (
+          <TabsContent value="danger" className="mt-6"><DangerZoneTab /></TabsContent>
+        )}
       </Tabs>
     </div>
   );
