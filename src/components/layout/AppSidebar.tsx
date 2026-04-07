@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
   FolderKanban, ClipboardCheck, ClipboardList, FileText, Settings, Bell, FileSpreadsheet,
-  LogOut, ChevronLeft, ChevronRight, Briefcase,
+  LogOut, ChevronLeft, ChevronRight, Briefcase, Wallet,
 } from 'lucide-react';
 
 const navSections = [
@@ -51,6 +51,7 @@ const navSections = [
   {
     label: 'SYSTEM',
     items: [
+      { title: 'My Payslip', icon: Wallet, path: '/my-payslip' },
       { title: 'Notifications', icon: Bell, path: '/notifications' },
       { title: 'Settings', icon: Settings, path: '/settings' },
     ],

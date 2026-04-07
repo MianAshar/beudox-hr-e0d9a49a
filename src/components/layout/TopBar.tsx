@@ -14,6 +14,7 @@ const pageTitles: Record<string, string> = {
   '/holidays': 'Public Holidays',
   '/leave': 'Leave Management',
   '/payroll': 'Payroll',
+  '/my-payslip': 'My Payslip',
   '/finance': 'Finance Sheet',
   '/loans': 'Loans',
   '/expenses': 'Office Expenses',
