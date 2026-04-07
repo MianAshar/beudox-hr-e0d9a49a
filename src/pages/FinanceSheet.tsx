@@ -184,10 +184,11 @@ const FinanceSheet = () => {
         const existing = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
 
         if (existing) {
-          if (Number(existing.amount) === amount) continue;
+          const receiptUrl = editReceipts[li.id] !== undefined ? editReceipts[li.id] : existing.receipt_url;
+          if (Number(existing.amount) === amount && existing.receipt_url === receiptUrl) continue;
           const { error } = await supabase
             .from('monthly_expenses')
-            .update({ amount, updated_at: new Date().toISOString() })
+            .update({ amount, receipt_url: receiptUrl, updated_at: new Date().toISOString() })
             .eq('id', existing.id)
             .eq('company_id', companyId);
           if (error) throw error;
@@ -202,6 +203,7 @@ const FinanceSheet = () => {
               category_id: editCategoryId,
               description: li.description,
               amount,
+              receipt_url: editReceipts[li.id] || null,
             });
           if (error) throw error;
         }
