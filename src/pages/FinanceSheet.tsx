@@ -152,10 +152,14 @@ const FinanceSheet = () => {
   const openEditModal = (categoryId: string) => {
     const items = (lineItems || []).filter(li => li.category_id === categoryId);
     const amounts: Record<string, string> = {};
+    const receipts: Record<string, string | null> = {};
     items.forEach(li => {
       amounts[li.id] = String(getExpenseAmount(li.id));
+      const expRow = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
+      receipts[li.id] = expRow?.receipt_url || null;
     });
     setEditAmounts(amounts);
+    setEditReceipts(receipts);
     // Load existing one-time items for this category
     const existingOneTime = getOneTimeExpenses(categoryId);
     setOneTimeItems(existingOneTime.map((e: any) => ({
@@ -163,6 +167,7 @@ const FinanceSheet = () => {
       description: e.description,
       amount: String(Number(e.amount)),
       existingId: e.id,
+      receiptUrl: e.receipt_url || null,
     })));
     setEditCategoryId(categoryId);
   };
