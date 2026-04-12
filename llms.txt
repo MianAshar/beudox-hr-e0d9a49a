@@ -1,223 +1,138 @@
 <!--
 generated_by: tessera
-source_sha: 49578b573e25d88fc3ae0c98825cf24c1b2dc383
-generated_at: 2026-04-12T19:55:08.983Z
+source_sha: 80efe2046d217f238257691701ebade568760af2
+generated_at: 2026-04-12T19:59:55.824Z
 action: create
 -->
 
-# Beudox HR - Technical Context for AI Assistants
+# Beudox HR Management System - Technical Context
 
 ## Architecture Overview
 
-Beudox HR is a modern React-based HR management system built with TypeScript, featuring a component-driven architecture with clear separation of concerns. The application follows a single-page application (SPA) pattern with client-side routing.
+This is a modern React-based HR management system built with TypeScript and Vite. The application follows a component-driven architecture with clear separation of concerns.
 
-### Technology Stack
-- **Frontend Framework**: React 18 with TypeScript
-- **Build Tool**: Vite with SWC for fast compilation
-- **Styling**: Tailwind CSS with CSS variables for theming
-- **UI Components**: Radix UI primitives via shadcn/ui
+### Tech Stack Details
+- **Frontend Framework**: React 18 with TypeScript for type safety
+- **Build System**: Vite for fast development and optimized production builds
+- **Styling**: Tailwind CSS with shadcn/ui for consistent, accessible components
 - **State Management**: TanStack Query for server state, React Context for global state
-- **Routing**: React Router v6 with protected routes
-- **Forms**: React Hook Form with Zod schema validation
-- **Backend**: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
-- **Rich Text**: Tiptap editor for policy documents
-- **Charts**: Recharts for data visualization
+- **Routing**: React Router DOM with protected routes and role-based access
+- **Forms**: React Hook Form with Zod validation
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time, Edge Functions)
+- **Rich Text**: TipTap editor for policy documents
+- **Charts**: Recharts for financial and analytics visualizations
 
-## Key Architectural Decisions
+## Key Architectural Patterns
 
 ### Component Organization
 - **Atomic Design**: UI components follow atomic design principles (atoms, molecules, organisms)
-- **Feature-based Structure**: Components are organized by feature/domain (evaluations, leave, employees)
-- **Shared UI Library**: Common UI components in `src/components/ui/` using shadcn/ui
-- **Layout Components**: AppLayout provides consistent structure with sidebar navigation
+- **Feature-based Structure**: Components grouped by feature (evaluations/, leave/, settings/)
+- **Layout Components**: AppLayout provides consistent navigation and structure
+- **Shared UI Library**: shadcn/ui components in `src/components/ui/`
 
-### State Management Strategy
-- **Server State**: TanStack Query handles all API data fetching, caching, and synchronization
-- **Local State**: React useState/useReducer for component-specific state
-- **Global State**: React Context for authentication and user data
-- **Form State**: React Hook Form manages form state with validation
+### Data Flow
+- **Server State**: TanStack Query manages API calls with caching and synchronization
+- **Local State**: React hooks for component-specific state
+- **Global State**: Auth context for user session and permissions
+- **Real-time Updates**: Supabase subscriptions for live data updates
 
-### Authentication & Authorization
-- **Auth Provider**: Custom AuthProvider manages Supabase authentication state
-- **Role-based Access**: Route-level protection with role-based permissions
-- **Session Management**: Automatic token refresh and session persistence
-- **Protected Routes**: Higher-order component pattern for route protection
+### Authentication & Security
+- **Supabase Auth**: JWT-based authentication with session management
+- **Role-based Access**: Permission checks at route and component levels
+- **Protected Routes**: Automatic redirects based on authentication and permissions
+- **Password Management**: Invite/recovery flow with secure password setting
 
-### Data Flow Patterns
-- **API Layer**: Supabase client provides type-safe database operations
-- **Query Layer**: TanStack Query provides declarative data fetching
-- **Mutation Layer**: Optimistic updates for better UX
-- **Error Handling**: Global error boundaries and toast notifications
+## Core Business Logic
+
+### Employee Management
+- **Profile System**: Comprehensive employee profiles with personal and professional data
+- **Organizational Structure**: Departments, roles, and reporting hierarchies
+- **Onboarding**: Automated employee setup and welcome processes
+
+### Performance Management
+- **Quarterly Evaluations**: Formal performance reviews with ratings and recommendations
+- **Daily Evaluations**: Continuous feedback system with peer and manager reviews
+- **Timeline Views**: Historical evaluation tracking with filtering by role permissions
+
+### Leave Management
+- **Leave Types**: Configurable leave categories (vacation, sick, personal)
+- **Balance Tracking**: Automatic calculation of leave balances and usage
+- **Approval Workflows**: Multi-level approval processes based on organizational hierarchy
+
+### Payroll & Finance
+- **Automated Payroll**: Calculation based on attendance, overtime, and allowances
+- **Payslip Generation**: PDF generation with detailed salary breakdowns
+- **Financial Reporting**: Comprehensive finance sheets and analytics
+
+### Policy Management
+- **Rich Text Policies**: HTML-based policy documents with formatting
+- **Version Control**: Policy history and updates tracking
+- **Access Control**: Role-based visibility of HR policies
+
+## Database Schema Highlights
+
+### Core Tables
+- **employees**: User profiles with role assignments and organizational data
+- **evaluations**: Quarterly performance reviews with scores and feedback
+- **daily_evaluations**: Continuous feedback entries with peer reviews
+- **leave_requests**: Leave applications with approval workflows
+- **payroll**: Salary calculations and payment records
+- **hr_policies**: Company policies and procedures
+- **projects**: Project management with team assignments
+- **invoices**: Client billing and payment tracking
+
+### Key Relationships
+- Employees belong to companies and departments
+- Evaluations link employees to evaluators with scores and comments
+- Leave requests have approval chains based on organizational hierarchy
+- Projects connect employees, clients, and financial data
 
 ## Key Files and Their Purposes
 
-### Core Application Files
-- `src/main.tsx`: Application entry point, renders root App component
-- `src/App.tsx`: Main application component with routing configuration
-- `src/index.css`: Global styles and Tailwind imports
+### Entry Points
+- `src/main.tsx`: Application bootstrap and React root rendering
+- `src/App.tsx`: Main application component with routing and providers
 
-### Authentication & Authorization
-- `src/hooks/useAuth.ts`: Authentication state management hook
-- `src/lib/role-access.ts`: Role-based access control logic
-- `src/integrations/supabase/client.ts`: Supabase client configuration
+### Core Components
+- `src/components/layout/AppLayout.tsx`: Main layout with sidebar navigation
+- `src/components/layout/AppSidebar.tsx`: Navigation menu with role-based items
+- `src/components/layout/TopBar.tsx`: Header with notifications and user menu
 
-### Layout & Navigation
-- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and topbar
-- `src/components/layout/AppSidebar.tsx`: Collapsible sidebar navigation
-- `src/components/layout/TopBar.tsx`: Top navigation bar with user menu
+### Business Logic
+- `src/lib/role-access.ts`: Permission checking functions
+- `src/lib/leave-utils.ts`: Leave balance calculations and utilities
+- `src/lib/notifications.ts`: Notification sending and recipient logic
+- `src/hooks/useAuth.ts`: Authentication state management
 
-### UI Components
-- `src/components/ui/`: shadcn/ui component library (50+ components)
-- `src/components/BeudoxLogo.tsx`: Logo component with variant support
-- `src/components/NavLink.tsx`: Navigation link wrapper for React Router
+### Configuration
+- `vite.config.ts`: Build configuration and plugins
+- `tailwind.config.ts`: Styling configuration with custom theme
+- `supabase/config.toml`: Database and edge function configuration
 
-### Feature Components
-- `src/components/evaluations/EvaluationTimeline.tsx`: Performance evaluation timeline
-- `src/components/hr-policies/RichTextEditor.tsx`: Rich text editor for policies
-- `src/components/SearchableEmployeeSelect.tsx`: Employee selection component
+## Development Workflow
 
-### Utility Libraries
-- `src/lib/utils.ts`: Common utility functions (cn for class merging)
-- `src/lib/leave-utils.ts`: Leave management business logic
-- `src/lib/role-access.ts`: Permission checking utilities
-- `src/lib/notifications.ts`: Notification system utilities
+### Code Quality
+- **TypeScript**: Strict type checking enabled
+- **ESLint**: Code linting with React-specific rules
+- **Testing**: Unit tests with Vitest, E2E with Playwright
+- **Git Hooks**: Pre-commit hooks for quality checks
 
-### Page Components
-- `src/pages/`: Route-based page components (Dashboard, Employees, etc.)
-- Each page corresponds to a route in App.tsx routing configuration
-
-## Database Schema & Relationships
-
-### Core Entities
-- **employees**: User profiles with role assignments
-- **companies**: Multi-tenant company data
-- **evaluations**: Quarterly performance reviews
-- **daily_evaluations**: Daily feedback entries
-- **leave_requests**: Employee leave management
-- **payroll**: Salary and payroll data
-- **projects**: Project management
-- **clients**: Client relationship management
-- **invoices**: Billing and invoicing
-- **hr_policies**: Company policy documents
-
-### Key Relationships
-- Employees belong to companies
-- Evaluations link employees to evaluators
-- Daily evaluations have reviewer-reviewee relationships
-- Leave requests reference employees and leave types
-- Projects have employee assignments
-- Invoices link to clients and projects
-
-## Business Logic & Data Flow
-
-### Employee Onboarding Flow
-1. User invited via email (Supabase Auth)
-2. Password set on first login
-3. Profile completion with role assignment
-4. Access granted based on role permissions
-
-### Evaluation Process
-1. Quarterly evaluations created by managers
-2. Daily evaluations for continuous feedback
-3. Role-based visibility (managers see all, employees see their own)
-4. Timeline view shows evaluation history
-
-### Leave Management
-1. Employee submits leave request
-2. Manager approval workflow
-3. Balance tracking and validation
-4. Calendar integration for scheduling
-
-### Payroll Processing
-1. Automated payroll generation (Supabase Edge Function)
-2. Payslip PDF generation
-3. Email delivery to employees
-4. Financial reporting integration
-
-## Configuration & Environment
-
-### Build Configuration
-- `vite.config.ts`: Vite configuration with React SWC plugin
-- `tsconfig.json`: TypeScript configuration
-- `tailwind.config.ts`: Tailwind CSS configuration
-- `eslint.config.js`: ESLint configuration
-
-### Environment Variables
-- `VITE_SUPABASE_URL`: Supabase project URL
-- `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase anonymous key
-
-### Development Setup
-- Port 8080 for development server
-- Hot module replacement enabled
-- Component tagging for development
+### Deployment
+- **Build Process**: Vite optimizes for production with code splitting
+- **Environment Variables**: Supabase configuration via environment
+- **Static Assets**: Optimized images and fonts in public directory
 
 ## Performance Considerations
 
-### Optimization Strategies
-- **Code Splitting**: Route-based code splitting with React.lazy
-- **Bundle Optimization**: Vite's tree shaking and minification
-- **Image Optimization**: Lazy loading and responsive images
-- **Caching**: TanStack Query caching with stale-while-revalidate
-- **Database Optimization**: Supabase RLS policies and indexes
-
-### Monitoring & Debugging
-- React Query DevTools for development
-- Error boundaries for production error handling
-- Toast notifications for user feedback
-- Console logging for debugging
+- **Code Splitting**: Route-based code splitting for faster initial loads
+- **Query Optimization**: TanStack Query caching and background updates
+- **Image Optimization**: Responsive images with lazy loading
+- **Bundle Analysis**: Vite build analyzer for optimization opportunities
 
 ## Security Measures
 
-### Authentication Security
-- Supabase Auth with JWT tokens
-- Automatic token refresh
-- Session persistence in localStorage
-- Password reset functionality
-
-### Data Security
-- Row Level Security (RLS) policies in Supabase
-- Type-safe database operations
-- Input validation with Zod schemas
-- XSS protection with React's built-in sanitization
-
-### Access Control
-- Role-based route protection
-- Database-level RLS policies
-- API-level permission checks
-- Audit logging for sensitive operations
-
-## Testing Strategy
-
-### Unit Testing
-- Vitest for fast unit tests
-- React Testing Library for component testing
-- Mock Service Worker for API mocking
-
-### Integration Testing
-- Playwright for end-to-end testing
-- Supabase test database setup
-- CI/CD pipeline integration
-
-### Test Coverage
-- Component logic testing
-- Hook testing
-- Utility function testing
-- API integration testing
-
-## Deployment & DevOps
-
-### Build Process
-- Vite production build optimization
-- Asset optimization and minification
-- Source map generation for debugging
-
-### Environment Management
-- Environment-specific configuration
-- Supabase environment separation
-- Database migration management
-
-### Monitoring & Maintenance
-- Error tracking and reporting
-- Performance monitoring
-- Database backup and recovery
-- Regular dependency updates
+- **Authentication**: Supabase handles secure authentication
+- **Authorization**: Client-side permission checks with server-side validation
+- **Data Validation**: Zod schemas for input validation
+- **CSRF Protection**: Supabase handles cross-site request forgery prevention
+- **Secure Headers**: Vite configures appropriate security headers
