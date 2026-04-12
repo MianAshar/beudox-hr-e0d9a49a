@@ -158,14 +158,16 @@ const ApplyLeaveTab = () => {
       // Send notification to HR and CEO
       const hrIds = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
       const recipients = uniqueRecipients(hrIds);
-      sendNotification({
-        companyId,
-        recipientIds: recipients,
-        type: 'leave_submitted',
-        title: 'Leave Request Submitted',
-        message: `${empName} has requested ${daysRequested} day(s) of ${lt.name} from ${s} to ${e}.`,
-        referenceType: 'leave',
-      });
+      if (recipients.length > 0) {
+        sendNotification({
+          companyId,
+          recipientIds: recipients,
+          type: 'leave_submitted',
+          title: 'Leave Request Submitted',
+          message: `${empName} has requested ${daysRequested} day(s) of ${lt.name} from ${s} to ${e}.`,
+          referenceType: 'leave',
+        });
+      }
 
       toast.success('Leave request submitted');
       // Reset form
