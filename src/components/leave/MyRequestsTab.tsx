@@ -5,10 +5,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { List, CalendarDays } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { List, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameMonth, isWeekend } from 'date-fns';
 import { toast } from 'sonner';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   pending: { bg: '#FEF3C7', text: '#92400E' },
@@ -16,6 +15,8 @@ const statusStyles: Record<string, { bg: string; text: string }> = {
   rejected: { bg: '#FEE2E2', text: '#991B1B' },
   cancelled: { bg: '#F3F4F6', text: '#374151' },
 };
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const MyRequestsTab = () => {
   const { employee } = useAuth();
@@ -40,13 +41,19 @@ const MyRequestsTab = () => {
     },
   });
 
+  // Fetch public holidays for calendar muted style
+  const { data: publicHolidays = [] } = useQuery({
+    queryKey: ['public-holidays-my', companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data } = await supabase.from('public_holidays').select('date').eq('company_id', companyId!);
+      return (data || []).map((h: any) => h.date);
+    },
+  });
+
   const cancelMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('leave_requests')
-        .update({ status: 'cancelled' } as any)
-        .eq('id', id)
-        .eq('employee_id', employeeId!);
+      const { error } = await supabase.from('leave_requests').update({ status: 'cancelled' } as any).eq('id', id).eq('employee_id', employeeId!);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -56,14 +63,20 @@ const MyRequestsTab = () => {
     onError: () => toast.error('Failed to cancel'),
   });
 
+  // Active requests (pending/approved) for calendar blocking
+  const activeRequests = requests.filter((r: any) => r.status === 'approved' || r.status === 'pending');
+
   const monthStart = startOfMonth(calMonth);
   const monthEnd = endOfMonth(calMonth);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const calStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const calEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  const calDays = eachDayOfInterval({ start: calStart, end: calEnd });
 
-  const calRequests = requests.filter(r => {
-    if (r.status !== 'approved' && r.status !== 'pending') return false;
-    return r.start_date <= format(monthEnd, 'yyyy-MM-dd') && r.end_date >= format(monthStart, 'yyyy-MM-dd');
-  });
+  const holidaySet = new Set(publicHolidays);
+
+  const getLeaveForDate = (dateStr: string) => {
+    return activeRequests.find((r: any) => r.start_date <= dateStr && r.end_date >= dateStr);
+  };
 
   return (
     <div style={{ fontFamily: 'var(--ff-body)' }}>
@@ -98,13 +111,13 @@ const MyRequestsTab = () => {
                 <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">Loading...</TableCell></TableRow>
               ) : requests.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No leave requests</TableCell></TableRow>
-              ) : requests.map(r => (
+              ) : requests.map((r: any) => (
                 <TableRow key={r.id}>
-                  <TableCell className="text-sm">{(r as any).leave_types?.name || '-'}</TableCell>
+                  <TableCell className="text-sm">{r.leave_types?.name || '-'}</TableCell>
                   <TableCell className="text-sm">{r.start_date}</TableCell>
                   <TableCell className="text-sm">{r.end_date}</TableCell>
                   <TableCell className="text-sm">{r.days_requested}</TableCell>
-                  <TableCell className="text-sm">{(r as any).half_day ? ((r as any).half_day_period || 'Yes') : '-'}</TableCell>
+                  <TableCell className="text-sm">{r.half_day ? (r.half_day_period || 'Yes') : '-'}</TableCell>
                   <TableCell>
                     <Badge style={{ backgroundColor: statusStyles[r.status]?.bg, color: statusStyles[r.status]?.text }} className="text-xs font-medium border-0">
                       {r.status}
@@ -123,32 +136,49 @@ const MyRequestsTab = () => {
           </Table>
         </div>
       ) : (
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Select value={format(calMonth, 'yyyy-MM')} onValueChange={v => setCalMonth(new Date(v + '-01'))}>
-              <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 12 }, (_, i) => {
-                  const d = new Date(calMonth.getFullYear(), i, 1);
-                  return <SelectItem key={i} value={format(d, 'yyyy-MM')}>{format(d, 'MMMM yyyy')}</SelectItem>;
-                })}
-              </SelectContent>
-            </Select>
+        <div className="w-full">
+          <div className="flex items-center justify-between mb-4">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCalMonth(prev => subMonths(prev, 1))}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <h3 className="text-sm font-semibold">{format(calMonth, 'MMMM yyyy')}</h3>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCalMonth(prev => addMonths(prev, 1))}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-          <div className="flex gap-0.5 overflow-x-auto">
-            {daysInMonth.map(day => {
+          <div className="grid grid-cols-7 gap-px rounded-lg border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+            {WEEKDAYS.map(d => (
+              <div key={d} className="bg-muted px-2 py-2 text-center text-xs font-medium text-muted-foreground">{d}</div>
+            ))}
+            {calDays.map(day => {
               const dateStr = format(day, 'yyyy-MM-dd');
-              const req = calRequests.find(r => r.start_date <= dateStr && r.end_date >= dateStr);
-              const style = req ? statusStyles[req.status] : undefined;
+              const inMonth = isSameMonth(day, calMonth);
+              const isWkend = isWeekend(day);
+              const isHoliday = holidaySet.has(dateStr);
+              const leave = inMonth ? getLeaveForDate(dateStr) : null;
+              const style = leave ? statusStyles[leave.status] : undefined;
+              const isMuted = !inMonth || isWkend || isHoliday;
+
               return (
                 <div
                   key={dateStr}
-                  className="flex flex-col items-center min-w-[32px] rounded px-1 py-1 text-[10px]"
-                  style={style ? { backgroundColor: style.bg, color: style.text } : {}}
-                  title={req ? `${(req as any).leave_types?.name} (${req.status})` : undefined}
+                  className={cn(
+                    'min-h-[72px] p-1.5 text-xs border-t',
+                    !inMonth && 'opacity-30',
+                    isMuted && !leave && 'bg-muted/40',
+                  )}
+                  style={{
+                    borderColor: 'hsl(var(--border))',
+                    ...(style ? { backgroundColor: style.bg, color: style.text } : {}),
+                  }}
                 >
-                  <span className="font-medium">{format(day, 'd')}</span>
-                  <span className="text-[8px]">{format(day, 'EEE')}</span>
+                  <div className="font-medium mb-0.5">{format(day, 'd')}</div>
+                  {leave && (
+                    <div className="text-[10px] leading-tight font-medium truncate">{(leave as any).leave_types?.name}</div>
+                  )}
+                  {isMuted && !leave && isHoliday && inMonth && (
+                    <div className="text-[9px] text-muted-foreground">Holiday</div>
+                  )}
                 </div>
               );
             })}
@@ -158,5 +188,9 @@ const MyRequestsTab = () => {
     </div>
   );
 };
+
+function cn(...classes: (string | false | undefined)[]) {
+  return classes.filter(Boolean).join(' ');
+}
 
 export default MyRequestsTab;
