@@ -15,12 +15,13 @@ const Settings = () => {
   const role = employee?.role_name;
   const isCeo = role === 'ceo';
   const isFinance = role === 'finance_manager';
+  const isHr = role === 'hr_manager';
 
-  // Finance managers only see the Expense Categories tab
-  if (!isCeo && !isFinance) {
+  // Only CEO, Finance Manager, and HR Manager can access Settings
+  if (!isCeo && !isFinance && !isHr) {
     return (
       <div className="text-muted-foreground text-sm" style={{ fontFamily: 'var(--ff-body)' }}>
-        Settings are only accessible to the CEO and Finance Manager.
+        Settings are only accessible to the CEO, HR Manager, and Finance Manager.
       </div>
     );
   }
