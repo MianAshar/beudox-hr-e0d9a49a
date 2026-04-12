@@ -334,8 +334,9 @@ const AllRequestsTab = () => {
                   <div className="text-sm"><span className="text-muted-foreground">Rejection Reason:</span> <span>{r.rejection_reason}</span></div>
                 )}
                 {r.actioned_by && (
-                  <div className="text-sm text-muted-foreground">
-                    Actioned at: {r.actioned_at ? format(new Date(r.actioned_at), 'PPp') : '-'}
+                  <div className="text-sm text-muted-foreground space-y-0.5">
+                    <div>Actioned by: <span className="text-foreground font-medium">{r.actioned_by_employee?.full_name || '-'}</span></div>
+                    <div>Actioned at: {r.actioned_at ? format(new Date(r.actioned_at), 'PPp') : '-'}</div>
                   </div>
                 )}
                 {r.status === 'pending' && (
