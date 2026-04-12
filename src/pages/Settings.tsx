@@ -70,10 +70,12 @@ const Settings = () => {
             <TabsContent value="roles" className="mt-6"><RolesTab /></TabsContent>
           </>
         )}
-        <TabsContent value="expense-categories" className="mt-6">
-          <ExpenseCategoriesTab />
-        </TabsContent>
-        {(isCeo || role === 'hr_manager') && (
+        {!isHr && (
+          <TabsContent value="expense-categories" className="mt-6">
+            <ExpenseCategoriesTab />
+          </TabsContent>
+        )}
+        {(isCeo || isHr) && (
           <TabsContent value="leave-types" className="mt-6"><LeaveTypesTab /></TabsContent>
         )}
         {isCeo && (
