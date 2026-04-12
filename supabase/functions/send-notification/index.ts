@@ -31,8 +31,24 @@ Deno.serve(async (req) => {
     const resendKey = Deno.env.get('RESEND_API_KEY');
     const supabase = createClient(supabaseUrl, serviceKey);
 
+    // Filter out recipients who have notifications disabled
+    const { data: enabledEmployees } = await supabase
+      .from('employees')
+      .select('id')
+      .in('id', payload.recipient_ids)
+      .eq('notifications_enabled', true);
+
+    const enabledIds = new Set((enabledEmployees || []).map((e: any) => e.id));
+    const filteredRecipients = payload.recipient_ids.filter((id) => enabledIds.has(id));
+
+    if (filteredRecipients.length === 0) {
+      return new Response(JSON.stringify({ success: true, count: 0, skipped: payload.recipient_ids.length }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Insert notifications for each recipient
-    const notifications = payload.recipient_ids.map((recipientId) => ({
+    const notifications = filteredRecipients.map((recipientId) => ({
       company_id: payload.company_id,
       recipient_id: recipientId,
       type: payload.type,

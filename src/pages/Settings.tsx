@@ -7,6 +7,7 @@ import EvaluationParametersTab from '@/components/settings/EvaluationParametersT
 import RolesTab from '@/components/settings/RolesTab';
 import DangerZoneTab from '@/components/settings/DangerZoneTab';
 import ExpenseCategoriesTab from '@/components/settings/ExpenseCategoriesTab';
+import NotificationsTab from '@/components/settings/NotificationsTab';
 
 const Settings = () => {
   const { employee } = useAuth();
@@ -34,6 +35,7 @@ const Settings = () => {
         ]
       : []),
     { value: 'expense-categories', label: 'Expense Categories' },
+    ...(isCeo ? [{ value: 'notifications', label: 'Notifications' }] : []),
     ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
@@ -68,6 +70,9 @@ const Settings = () => {
         <TabsContent value="expense-categories" className="mt-6">
           <ExpenseCategoriesTab />
         </TabsContent>
+        {isCeo && (
+          <TabsContent value="notifications" className="mt-6"><NotificationsTab /></TabsContent>
+        )}
         {isCeo && (
           <TabsContent value="danger" className="mt-6"><DangerZoneTab /></TabsContent>
         )}
