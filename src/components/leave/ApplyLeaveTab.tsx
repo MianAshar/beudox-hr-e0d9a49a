@@ -35,6 +35,15 @@ const ApplyLeaveTab = () => {
   const [balances, setBalances] = useState<Record<string, number>>({});
   const [daysRequested, setDaysRequested] = useState(0);
 
+  const { data: employeesList = [] } = useQuery({
+    queryKey: ['apply-leave-employees', companyId],
+    enabled: !!companyId && isHrOrCeo,
+    queryFn: async () => {
+      const { data } = await supabase.from('employees').select('id, full_name, avatar_url, designation').eq('company_id', companyId!).eq('status', 'active').order('full_name');
+      return data || [];
+    },
+  });
+
   useEffect(() => {
     if (employee?.employee_id) setSelectedEmployee(employee.employee_id);
   }, [employee?.employee_id]);
@@ -177,7 +186,7 @@ const ApplyLeaveTab = () => {
       {isHrOrCeo && (
         <div className="space-y-1.5">
           <Label className="text-sm font-medium">Employee</Label>
-          <SearchableEmployeeSelect value={selectedEmployee} onChange={setSelectedEmployee} />
+          <SearchableEmployeeSelect employees={employeesList} value={selectedEmployee} onValueChange={setSelectedEmployee} />
         </div>
       )}
 
