@@ -8,18 +8,20 @@ import RolesTab from '@/components/settings/RolesTab';
 import DangerZoneTab from '@/components/settings/DangerZoneTab';
 import ExpenseCategoriesTab from '@/components/settings/ExpenseCategoriesTab';
 import NotificationsTab from '@/components/settings/NotificationsTab';
+import LeaveTypesTab from '@/components/settings/LeaveTypesTab';
 
 const Settings = () => {
   const { employee } = useAuth();
   const role = employee?.role_name;
   const isCeo = role === 'ceo';
   const isFinance = role === 'finance_manager';
+  const isHr = role === 'hr_manager';
 
-  // Finance managers only see the Expense Categories tab
-  if (!isCeo && !isFinance) {
+  // Only CEO, Finance Manager, and HR Manager can access Settings
+  if (!isCeo && !isFinance && !isHr) {
     return (
       <div className="text-muted-foreground text-sm" style={{ fontFamily: 'var(--ff-body)' }}>
-        Settings are only accessible to the CEO and Finance Manager.
+        Settings are only accessible to the CEO, HR Manager, and Finance Manager.
       </div>
     );
   }
@@ -34,12 +36,13 @@ const Settings = () => {
           { value: 'roles', label: 'Roles' },
         ]
       : []),
-    { value: 'expense-categories', label: 'Expense Categories' },
+    ...(!isHr ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
+    ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
     ...(isCeo ? [{ value: 'notifications', label: 'Notifications' }] : []),
     ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
-  const defaultTab = isCeo ? 'company' : 'expense-categories';
+  const defaultTab = isCeo ? 'company' : isHr ? 'leave-types' : 'expense-categories';
 
   return (
     <div className="space-y-6">
@@ -67,9 +70,14 @@ const Settings = () => {
             <TabsContent value="roles" className="mt-6"><RolesTab /></TabsContent>
           </>
         )}
-        <TabsContent value="expense-categories" className="mt-6">
-          <ExpenseCategoriesTab />
-        </TabsContent>
+        {!isHr && (
+          <TabsContent value="expense-categories" className="mt-6">
+            <ExpenseCategoriesTab />
+          </TabsContent>
+        )}
+        {(isCeo || isHr) && (
+          <TabsContent value="leave-types" className="mt-6"><LeaveTypesTab /></TabsContent>
+        )}
         {isCeo && (
           <TabsContent value="notifications" className="mt-6"><NotificationsTab /></TabsContent>
         )}

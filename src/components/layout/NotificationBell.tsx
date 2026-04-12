@@ -40,6 +40,7 @@ const REFERENCE_ROUTES: Record<string, string> = {
   loan: '/loans',
   evaluation: '/evaluations',
   invoice: '/invoices',
+  leave: '/leave',
 };
 
 const NotificationBell = () => {

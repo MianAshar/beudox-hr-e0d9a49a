@@ -35,6 +35,7 @@ import Loans from "./pages/Loans";
 import Payroll from "./pages/Payroll";
 import MyPayslip from "./pages/MyPayslip";
 import FinanceSheet from "./pages/FinanceSheet";
+import LeaveManagement from "./pages/LeaveManagement";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -129,6 +130,7 @@ const App = () => (
             <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
             <Route path="/my-payslip" element={<ProtectedRoute><MyPayslip /></ProtectedRoute>} />
             <Route path="/finance" element={<ProtectedRoute><FinanceSheet /></ProtectedRoute>} />
+            <Route path="/leave" element={<ProtectedRoute><LeaveManagement /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

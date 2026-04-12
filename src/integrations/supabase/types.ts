@@ -1310,6 +1310,8 @@ export type Database = {
           days_requested: number
           employee_id: string
           end_date: string
+          half_day: boolean
+          half_day_period: string | null
           id: string
           leave_type_id: string
           reason: string | null
@@ -1326,6 +1328,8 @@ export type Database = {
           days_requested?: number
           employee_id: string
           end_date: string
+          half_day?: boolean
+          half_day_period?: string | null
           id?: string
           leave_type_id: string
           reason?: string | null
@@ -1342,6 +1346,8 @@ export type Database = {
           days_requested?: number
           employee_id?: string
           end_date?: string
+          half_day?: boolean
+          half_day_period?: string | null
           id?: string
           leave_type_id?: string
           reason?: string | null
