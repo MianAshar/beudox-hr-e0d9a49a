@@ -584,6 +584,7 @@ export type Database = {
           id: string
           increment_rule: string | null
           joining_date: string | null
+          notifications_enabled: boolean
           phone: string | null
           status: string | null
           updated_at: string | null
@@ -607,6 +608,7 @@ export type Database = {
           id?: string
           increment_rule?: string | null
           joining_date?: string | null
+          notifications_enabled?: boolean
           phone?: string | null
           status?: string | null
           updated_at?: string | null
@@ -630,6 +632,7 @@ export type Database = {
           id?: string
           increment_rule?: string | null
           joining_date?: string | null
+          notifications_enabled?: boolean
           phone?: string | null
           status?: string | null
           updated_at?: string | null
