@@ -36,13 +36,13 @@ const Settings = () => {
           { value: 'roles', label: 'Roles' },
         ]
       : []),
-    { value: 'expense-categories', label: 'Expense Categories' },
-    ...(isCeo || role === 'hr_manager' ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
+    ...(!isHr ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
+    ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
     ...(isCeo ? [{ value: 'notifications', label: 'Notifications' }] : []),
     ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
-  const defaultTab = isCeo ? 'company' : 'expense-categories';
+  const defaultTab = isCeo ? 'company' : isHr ? 'leave-types' : 'expense-categories';
 
   return (
     <div className="space-y-6">
