@@ -19,9 +19,15 @@ Deno.serve(async (req) => {
   try {
     const payload: NotificationPayload = await req.json();
 
-    if (!payload.company_id || !payload.recipient_ids?.length || !payload.type || !payload.title || !payload.message) {
+    if (!payload.company_id || !payload.type || !payload.title || !payload.message) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!payload.recipient_ids?.length) {
+      return new Response(JSON.stringify({ success: true, count: 0, skipped_reason: 'no_recipients' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
