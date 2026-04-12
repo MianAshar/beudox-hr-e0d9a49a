@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import ApplyLeaveTab from '@/components/leave/ApplyLeaveTab';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import MyRequestsTab from '@/components/leave/MyRequestsTab';
 import AllRequestsTab from '@/components/leave/AllRequestsTab';
 import LeaveBalancesTab from '@/components/leave/LeaveBalancesTab';
+import ApplyLeaveModal from '@/components/leave/ApplyLeaveModal';
 
 const defaultLeaveTypes = [
   { name: 'Annual Leave', annual_entitlement: 15, is_paid: true, allow_carry_over: true, max_carry_over: 5, apply_proration: false },
@@ -19,6 +21,14 @@ const LeaveManagement = () => {
   const role = employee?.role_name;
   const companyId = employee?.company_id;
   const isHrOrCeo = role === 'hr_manager' || role === 'ceo';
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('');
+
+  useEffect(() => {
+    if (!activeTab) {
+      setActiveTab(isHrOrCeo ? 'all-requests' : 'my-requests');
+    }
+  }, [isHrOrCeo, activeTab]);
 
   // Seed leave types on first load
   useEffect(() => {
@@ -43,15 +53,25 @@ const LeaveManagement = () => {
   const tabs = [
     ...(isHrOrCeo ? [{ value: 'all-requests', label: 'All Requests' }] : []),
     { value: 'my-requests', label: 'My Requests' },
-    { value: 'apply', label: 'Apply for Leave' },
     ...(isHrOrCeo ? [{ value: 'balances', label: 'Leave Balances' }] : []),
   ];
 
-  const defaultTab = isHrOrCeo ? 'all-requests' : 'my-requests';
+  const handleApplySuccess = () => {
+    setApplyModalOpen(false);
+    setActiveTab('my-requests');
+  };
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue={defaultTab} className="w-full">
+      <div className="flex items-center justify-between">
+        <div />
+        <Button onClick={() => setApplyModalOpen(true)} size="sm">
+          <Plus className="h-4 w-4 mr-1.5" />
+          Apply for Leave
+        </Button>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
           {tabs.map(tab => (
             <TabsTrigger
@@ -69,11 +89,16 @@ const LeaveManagement = () => {
           <TabsContent value="all-requests" className="mt-6"><AllRequestsTab /></TabsContent>
         )}
         <TabsContent value="my-requests" className="mt-6"><MyRequestsTab /></TabsContent>
-        <TabsContent value="apply" className="mt-6"><ApplyLeaveTab /></TabsContent>
         {isHrOrCeo && (
           <TabsContent value="balances" className="mt-6"><LeaveBalancesTab /></TabsContent>
         )}
       </Tabs>
+
+      <ApplyLeaveModal
+        open={applyModalOpen}
+        onOpenChange={setApplyModalOpen}
+        onSuccess={handleApplySuccess}
+      />
     </div>
   );
 };

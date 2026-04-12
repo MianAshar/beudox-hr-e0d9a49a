@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ensureLeaveBalance } from '@/lib/leave-utils';
 
@@ -17,9 +18,10 @@ const LeaveBalancesTab = () => {
   const currentYear = new Date().getFullYear();
   const queryClient = useQueryClient();
 
-  const [adjustModal, setAdjustModal] = useState<{ open: boolean; balanceId: string | null; empName: string; ltName: string; current: number }>({
-    open: false, balanceId: null, empName: '', ltName: '', current: 0,
+  const [adjustModal, setAdjustModal] = useState<{ open: boolean; employeeId: string; empName: string }>({
+    open: false, employeeId: '', empName: '',
   });
+  const [adjLeaveType, setAdjLeaveType] = useState('');
   const [adjDays, setAdjDays] = useState('');
   const [adjReason, setAdjReason] = useState('');
   const [saving, setSaving] = useState(false);
@@ -42,7 +44,7 @@ const LeaveBalancesTab = () => {
     },
   });
 
-  // Ensure balances exist for all employees x leave types
+  // Ensure balances exist
   useEffect(() => {
     if (!companyId || employees.length === 0 || leaveTypes.length === 0) return;
     (async () => {
@@ -69,30 +71,49 @@ const LeaveBalancesTab = () => {
     },
   });
 
+  // Pivot: group balances by employee
+  const employeeRows = employees.map(emp => {
+    const empBalances: Record<string, { used: number; remaining: number; balanceId: string }> = {};
+    for (const lt of leaveTypes) {
+      const b = (balances as any[]).find((bal: any) => bal.employee_id === emp.id && bal.leave_type_id === lt.id);
+      if (b) {
+        const remaining = (b.system_days || 0) + (b.adjustment_days || 0) + (b.carried_over_days || 0) - (b.used_days || 0);
+        empBalances[lt.id] = { used: b.used_days || 0, remaining, balanceId: b.id };
+      } else {
+        empBalances[lt.id] = { used: 0, remaining: lt.annual_entitlement || 0, balanceId: '' };
+      }
+    }
+    return { id: emp.id, name: emp.full_name, balances: empBalances };
+  });
+
   const handleAdjust = async () => {
-    if (!adjustModal.balanceId || !adjReason.trim() || !adjDays) return;
+    if (!adjustModal.employeeId || !adjLeaveType || !adjDays || !adjReason.trim()) return;
     setSaving(true);
     try {
       const days = parseFloat(adjDays);
-      if (isNaN(days)) { toast.error('Invalid number'); return; }
+      if (isNaN(days)) { toast.error('Invalid number'); setSaving(false); return; }
 
-      const balance = balances.find((b: any) => b.id === adjustModal.balanceId);
-      if (!balance) return;
+      const empRow = employeeRows.find(e => e.id === adjustModal.employeeId);
+      const balInfo = empRow?.balances[adjLeaveType];
+      if (!balInfo?.balanceId) { toast.error('Balance not found'); setSaving(false); return; }
+
+      const balance = (balances as any[]).find((b: any) => b.id === balInfo.balanceId);
+      if (!balance) { setSaving(false); return; }
 
       const prevAdj = balance.adjustment_days || 0;
       const newAdj = prevAdj + days;
-      const prevBalance = (balance.system_days || 0) + prevAdj + (balance.carried_over_days || 0) - (balance.used_days || 0);
+      const prevBalance = balInfo.remaining;
       const newBalance = prevBalance + days;
 
       const { error } = await supabase
         .from('leave_balances')
         .update({ adjustment_days: newAdj } as any)
-        .eq('id', adjustModal.balanceId);
+        .eq('id', balInfo.balanceId);
       if (error) throw error;
 
       await supabase.from('leave_balance_history').insert({
         company_id: companyId!,
-        leave_balance_id: adjustModal.balanceId,
+        leave_balance_id: balInfo.balanceId,
         adjusted_by: employee!.employee_id,
         adjustment_days: days,
         previous_balance: prevBalance,
@@ -101,7 +122,8 @@ const LeaveBalancesTab = () => {
       } as any);
 
       queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
-      setAdjustModal({ open: false, balanceId: null, empName: '', ltName: '', current: 0 });
+      setAdjustModal({ open: false, employeeId: '', empName: '' });
+      setAdjLeaveType('');
       setAdjDays('');
       setAdjReason('');
       toast.success('Balance adjusted');
@@ -120,59 +142,61 @@ const LeaveBalancesTab = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Employee</TableHead>
-              <TableHead>Leave Type</TableHead>
-              <TableHead className="text-right">Entitlement</TableHead>
-              <TableHead className="text-right">Carried Over</TableHead>
-              <TableHead className="text-right">Adjustments</TableHead>
-              <TableHead className="text-right">Used</TableHead>
-              <TableHead className="text-right">Remaining</TableHead>
+              {leaveTypes.map((lt: any) => (
+                <TableHead key={lt.id} className="text-center">{lt.name}</TableHead>
+              ))}
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {balances.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No balances</TableCell></TableRow>
-            ) : balances.map((b: any) => {
-              const remaining = (b.system_days || 0) + (b.adjustment_days || 0) + (b.carried_over_days || 0) - (b.used_days || 0);
-              return (
-                <TableRow key={b.id}>
-                  <TableCell className="text-sm font-medium">{b.employees?.full_name || '-'}</TableCell>
-                  <TableCell className="text-sm">{b.leave_types?.name || '-'}</TableCell>
-                  <TableCell className="text-sm text-right">{b.system_days}</TableCell>
-                  <TableCell className="text-sm text-right">{b.carried_over_days}</TableCell>
-                  <TableCell className="text-sm text-right">{b.adjustment_days}</TableCell>
-                  <TableCell className="text-sm text-right">{b.used_days}</TableCell>
-                  <TableCell className="text-sm text-right font-medium">{remaining}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => setAdjustModal({
-                        open: true,
-                        balanceId: b.id,
-                        empName: b.employees?.full_name || '',
-                        ltName: b.leave_types?.name || '',
-                        current: remaining,
-                      })}
-                    >
-                      Adjust
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {employeeRows.length === 0 ? (
+              <TableRow><TableCell colSpan={leaveTypes.length + 2} className="text-center text-muted-foreground">No employees</TableCell></TableRow>
+            ) : employeeRows.map(row => (
+              <TableRow key={row.id}>
+                <TableCell className="text-sm font-medium">{row.name}</TableCell>
+                {leaveTypes.map((lt: any) => {
+                  const b = row.balances[lt.id];
+                  return (
+                    <TableCell key={lt.id} className="text-sm text-center">
+                      <span className="text-muted-foreground">{b?.used ?? 0}</span>
+                      <span className="text-muted-foreground mx-1">/</span>
+                      <span className="font-medium">{b?.remaining ?? 0}</span>
+                    </TableCell>
+                  );
+                })}
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setAdjustModal({ open: true, employeeId: row.id, empName: row.name })}
+                  >
+                    Adjust
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
 
-      <Dialog open={adjustModal.open} onOpenChange={open => { if (!open) setAdjustModal({ open: false, balanceId: null, empName: '', ltName: '', current: 0 }); }}>
+      <Dialog open={adjustModal.open} onOpenChange={open => { if (!open) setAdjustModal({ open: false, employeeId: '', empName: '' }); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'var(--ff-body)' }}>Adjust Balance</DialogTitle>
+            <DialogTitle style={{ fontFamily: 'var(--ff-body)' }}>Adjust Balance — {adjustModal.empName}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">{adjustModal.empName} — {adjustModal.ltName} (Current: {adjustModal.current})</p>
           <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Leave Type</Label>
+              <Select value={adjLeaveType} onValueChange={setAdjLeaveType}>
+                <SelectTrigger><SelectValue placeholder="Select leave type" /></SelectTrigger>
+                <SelectContent>
+                  {leaveTypes.map((lt: any) => (
+                    <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Adjustment Days (+ or −)</Label>
               <Input type="number" step="0.5" value={adjDays} onChange={e => setAdjDays(e.target.value)} placeholder="e.g. 2 or -1" />
@@ -183,8 +207,8 @@ const LeaveBalancesTab = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAdjustModal({ open: false, balanceId: null, empName: '', ltName: '', current: 0 })}>Cancel</Button>
-            <Button disabled={!adjDays || !adjReason.trim() || saving} onClick={handleAdjust}>
+            <Button variant="outline" onClick={() => setAdjustModal({ open: false, employeeId: '', empName: '' })}>Cancel</Button>
+            <Button disabled={!adjLeaveType || !adjDays || !adjReason.trim() || saving} onClick={handleAdjust}>
               {saving ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
