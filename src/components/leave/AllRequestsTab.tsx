@@ -44,7 +44,7 @@ const AllRequestsTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('leave_requests')
-        .select('*, leave_types!leave_requests_leave_type_id_fkey(name), employees!leave_requests_employee_id_fkey(full_name, avatar_url, designation)')
+        .select('*, leave_types!leave_requests_leave_type_id_fkey(name), employees!leave_requests_employee_id_fkey(full_name, avatar_url, designation), actioned_by_employee:employees!leave_requests_actioned_by_fkey(full_name)')
         .eq('company_id', companyId!)
         .order('created_at', { ascending: false });
       if (error) throw error;
