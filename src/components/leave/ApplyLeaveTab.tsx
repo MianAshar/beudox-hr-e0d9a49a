@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { countWorkingDays, ensureLeaveBalance, getRemainingBalance } from '@/lib/leave-utils';
 import { sendNotification, getEmployeeIdsByRole, uniqueRecipients } from '@/lib/notifications';
 import SearchableEmployeeSelect from '@/components/SearchableEmployeeSelect';
+import { useQuery } from '@tanstack/react-query';
 
 const ApplyLeaveTab = () => {
   const { employee } = useAuth();
