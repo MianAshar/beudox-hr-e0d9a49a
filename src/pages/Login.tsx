@@ -1,11 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import BeudoxLogo from '@/components/BeudoxLogo';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Building2 } from 'lucide-react';
 
-const LoginV2 = () => {
+const Login = () => {
   const { session, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,13 +12,29 @@ const LoginV2 = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
+  const [company, setCompany] = useState<{ name: string; logo_url: string | null } | null>(null);
+  const [companyLoading, setCompanyLoading] = useState(true);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
-  if (authLoading) {
+  useEffect(() => {
+    const fetchCompany = async () => {
+      const { data } = await supabase
+        .from('companies')
+        .select('name, logo_url')
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle();
+      setCompany(data);
+      setCompanyLoading(false);
+    };
+    fetchCompany();
+  }, []);
+
+  if (authLoading || companyLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center" style={{ background: '#F6F5FF' }}>
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#5B3FF8' }} />
       </div>
     );
   }
@@ -62,19 +77,16 @@ const LoginV2 = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       const isBannedUser = error.code === 'user_banned' || error.message.toLowerCase().includes('banned');
-
       if (isBannedUser) {
         setErrors({ general: 'Your account has been deactivated. Please contact your HR Manager or system administrator.' });
         setLoading(false);
         return;
       }
-
       const { data: empData } = await supabase
         .from('employees')
         .select('status')
         .eq('email', email)
         .maybeSingle();
-
       if (empData?.status === 'inactive') {
         setErrors({ general: 'Your account has been deactivated. Please contact your HR Manager or system administrator.' });
       } else {
@@ -85,242 +97,159 @@ const LoginV2 = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden" style={{ background: 'linear-gradient(160deg, #F6F5FF 0%, #EBE6FF 50%, #E0DBFF 100%)' }}>
-
-      {/* Decorative shapes — desktop only */}
-      <div className="hidden lg:block absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Large circle top-left */}
-        <div
-          className="absolute rounded-full"
-          style={{
-            width: 520,
-            height: 520,
-            top: -120,
-            left: -140,
-            background: 'radial-gradient(circle, rgba(91,63,248,0.08) 0%, rgba(91,63,248,0.02) 70%, transparent 100%)',
-          }}
-        />
-        {/* Medium shape mid-left */}
-        <div
-          className="absolute"
-          style={{
-            width: 280,
-            height: 280,
-            top: '45%',
-            left: '8%',
-            borderRadius: '32px',
-            transform: 'rotate(25deg)',
-            background: 'rgba(91,63,248,0.05)',
-            border: '1px solid rgba(91,63,248,0.08)',
-          }}
-        />
-        {/* Small accent square */}
-        <div
-          className="absolute"
-          style={{
-            width: 80,
-            height: 80,
-            top: '28%',
-            left: '22%',
-            borderRadius: '14px',
-            transform: 'rotate(-15deg)',
-            background: 'rgba(91,63,248,0.10)',
-          }}
-        />
-        {/* Bottom-right large circle */}
-        <div
-          className="absolute rounded-full"
-          style={{
-            width: 400,
-            height: 400,
-            bottom: -100,
-            right: -80,
-            background: 'radial-gradient(circle, rgba(91,63,248,0.06) 0%, transparent 70%)',
-          }}
-        />
-        {/* Tiny floating dots */}
-        <div className="absolute rounded-full" style={{ width: 12, height: 12, top: '18%', left: '35%', background: 'rgba(91,63,248,0.20)' }} />
-        <div className="absolute rounded-full" style={{ width: 8, height: 8, top: '72%', left: '15%', background: 'rgba(91,63,248,0.15)' }} />
-        <div className="absolute rounded-full" style={{ width: 10, height: 10, top: '85%', right: '35%', background: 'rgba(91,63,248,0.12)' }} />
-        <div className="absolute rounded-full" style={{ width: 6, height: 6, top: '12%', right: '25%', background: 'rgba(91,63,248,0.18)' }} />
-      </div>
-
-      {/* Left brand area — desktop only */}
+    <div className="flex min-h-screen flex-col items-center justify-center px-4" style={{ background: '#F6F5FF' }}>
       <div
-        className="hidden lg:flex lg:w-[45%] items-center justify-center relative z-10"
+        className="w-full"
         style={{
-          backgroundImage: `radial-gradient(circle, rgba(91,63,248,0.12) 3px, transparent 3px), radial-gradient(circle, rgba(91,63,248,0.05) 3px, transparent 3px)`,
-          backgroundSize: '16px 16px, 16px 16px',
-          backgroundPosition: '0 0, 8px 8px',
+          maxWidth: 420,
+          background: '#FFFFFF',
+          borderRadius: 14,
+          boxShadow: '0 4px 24px rgba(91,63,248,0.08)',
+          padding: 40,
         }}
       >
-        <div className="flex flex-col items-start px-16 max-w-md">
-          <BeudoxLogo variant="default" size={56} />
-
-          <h2
-            className="mt-10 text-[44px] font-bold leading-[1.1] tracking-tight"
-            style={{ fontFamily: 'var(--ff-display)', color: '#120E36' }}
-          >
-            Manage your<br />
-            workforce<br />
-            <span style={{ color: '#5B3FF8' }}>with clarity.</span>
-          </h2>
-
-          <p
-            className="mt-6 text-[16px] leading-relaxed"
-            style={{ color: '#4B4468', fontFamily: 'var(--ff-body)', maxWidth: 340 }}
-          >
-            Attendance, payroll, evaluations, and projects — all in one place. Built for teams that move fast.
-          </p>
-
-          <div className="mt-10">
-            <span
-              className="inline-block text-[13px] font-medium"
-              style={{
-                background: '#EBE6FF',
-                color: '#5B3FF8',
-                fontFamily: 'var(--ff-body)',
-                padding: '8px 20px',
-                borderRadius: '999px',
-              }}
+        {/* Company logo */}
+        <div className="flex justify-center mb-4">
+          {company?.logo_url ? (
+            <img
+              src={company.logo_url}
+              alt={company.name}
+              style={{ width: 64, height: 64, objectFit: 'contain' }}
+            />
+          ) : (
+            <div
+              className="flex items-center justify-center rounded-xl"
+              style={{ width: 64, height: 64, background: '#F0EDFF' }}
             >
-              Used by teams across Pakistan
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Right panel — login form */}
-      <div className="flex flex-1 items-center justify-center relative z-10 px-6 lg:w-[55%]">
-        <div
-          className="w-full max-w-[440px] rounded-[18px] border bg-white p-10 md:p-12"
-          style={{
-            borderColor: 'rgba(91,63,248,0.12)',
-            boxShadow: '0 8px 40px -12px rgba(91,63,248,0.10), 0 0 0 1px rgba(91,63,248,0.04)',
-          }}
-        >
-          {/* Mobile-only logo */}
-          <div className="flex justify-center mb-8 lg:hidden">
-            <BeudoxLogo variant="default" size={48} />
-          </div>
-
-          <h1
-            className="text-center text-[28px] font-bold text-foreground"
-            style={{ fontFamily: 'var(--ff-display)' }}
-          >
-            Welcome back
-          </h1>
-          <p
-            className="text-center text-[14px] text-muted-foreground mt-2 mb-8"
-            style={{ fontFamily: 'var(--ff-body)' }}
-          >
-            Sign in to your workspace
-          </p>
-
-          {errors.general && (
-            <div className="mb-5 rounded-[var(--radius-md)] border border-destructive/20 bg-[hsl(var(--bx-danger-bg))] px-4 py-3 text-sm text-[hsl(var(--bx-danger-text))]">
-              {errors.general}
+              <Building2 className="h-8 w-8" style={{ color: '#5B3FF8' }} />
             </div>
           )}
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label
-                className="block text-[12px] font-medium text-muted-foreground mb-2"
-                style={{ fontFamily: 'var(--ff-body)', letterSpacing: '0.02em' }}
-              >
-                Email address
-              </label>
+        {/* Company name */}
+        <h1
+          className="text-center"
+          style={{ fontFamily: 'var(--ff-display)', fontWeight: 700, fontSize: 22, color: '#120E36' }}
+        >
+          {company?.name || 'Welcome'}
+        </h1>
+
+        {/* Tagline */}
+        <p
+          className="text-center mt-1"
+          style={{ fontFamily: 'var(--ff-body)', fontWeight: 400, fontSize: 14, color: '#9490B4' }}
+        >
+          HR &amp; Workforce Portal
+        </p>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: 'rgba(91,63,248,0.10)', margin: '24px 0' }} />
+
+        {errors.general && (
+          <div className="mb-5 rounded-lg border border-destructive/20 bg-[hsl(var(--bx-danger-bg))] px-4 py-3 text-sm text-[hsl(var(--bx-danger-text))]">
+            {errors.general}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label
+              className="block mb-2"
+              style={{ fontFamily: 'var(--ff-body)', fontSize: 12, fontWeight: 500, color: '#9490B4', letterSpacing: '0.02em' }}
+            >
+              Email address
+            </label>
+            <input
+              ref={emailRef}
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onBlur={() => handleBlur('email')}
+              className={`w-full rounded-[10px] border px-4 py-3 text-[14px] text-foreground placeholder:text-muted-foreground outline-none transition-all ${
+                touched.email && errors.email
+                  ? 'border-destructive focus:ring-destructive/10'
+                  : 'border-border focus:border-[#5B3FF8] focus:ring-[#5B3FF8]/10'
+              } focus:ring-[3px]`}
+              style={{ fontFamily: 'var(--ff-body)' }}
+              placeholder="you@company.com"
+              disabled={loading}
+            />
+            {touched.email && errors.email && (
+              <p className="mt-1.5 text-xs text-destructive">{errors.email}</p>
+            )}
+          </div>
+
+          <div>
+            <label
+              className="block mb-2"
+              style={{ fontFamily: 'var(--ff-body)', fontSize: 12, fontWeight: 500, color: '#9490B4', letterSpacing: '0.02em' }}
+            >
+              Password
+            </label>
+            <div className="relative">
               <input
-                ref={emailRef}
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                onBlur={() => handleBlur('email')}
-                className={`w-full rounded-[var(--radius-md)] border px-4 py-3 text-[14px] text-foreground placeholder:text-muted-foreground outline-none transition-all duration-[var(--transition-fast)] ${
-                  touched.email && errors.email
+                ref={passwordRef}
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                onBlur={() => handleBlur('password')}
+                className={`w-full rounded-[10px] border px-4 py-3 pr-11 text-[14px] text-foreground placeholder:text-muted-foreground outline-none transition-all ${
+                  touched.password && errors.password
                     ? 'border-destructive focus:ring-destructive/10'
-                    : 'border-border focus:border-primary focus:ring-primary/10'
+                    : 'border-border focus:border-[#5B3FF8] focus:ring-[#5B3FF8]/10'
                 } focus:ring-[3px]`}
                 style={{ fontFamily: 'var(--ff-body)' }}
-                placeholder="you@company.com"
+                placeholder="••••••••"
                 disabled={loading}
               />
-              {touched.email && errors.email && (
-                <p className="mt-1.5 text-xs text-destructive">{errors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label
-                className="block text-[12px] font-medium text-muted-foreground mb-2"
-                style={{ fontFamily: 'var(--ff-body)', letterSpacing: '0.02em' }}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
               >
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  ref={passwordRef}
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  onBlur={() => handleBlur('password')}
-                  className={`w-full rounded-[var(--radius-md)] border px-4 py-3 pr-11 text-[14px] text-foreground placeholder:text-muted-foreground outline-none transition-all duration-[var(--transition-fast)] ${
-                    touched.password && errors.password
-                      ? 'border-destructive focus:ring-destructive/10'
-                      : 'border-border focus:border-primary focus:ring-primary/10'
-                  } focus:ring-[3px]`}
-                  style={{ fontFamily: 'var(--ff-body)' }}
-                  placeholder="••••••••"
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {touched.password && errors.password && (
-                <p className="mt-1.5 text-xs text-destructive">{errors.password}</p>
-              )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 rounded-[var(--radius-md)] bg-primary text-primary-foreground text-[14px] font-medium hover:bg-[hsl(var(--bx-violet-dark))] transition-colors duration-[var(--transition-fast)] disabled:opacity-50 flex items-center justify-center mt-2"
-              style={{ fontFamily: 'var(--ff-body)' }}
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
-            </button>
-          </form>
-
-          <div className="mt-5 text-center">
-            <Link
-              to="/forgot-password"
-              className="text-[13px] text-primary hover:underline"
-              style={{ fontFamily: 'var(--ff-body)' }}
-            >
-              Forgot password?
-            </Link>
+            {touched.password && errors.password && (
+              <p className="mt-1.5 text-xs text-destructive">{errors.password}</p>
+            )}
           </div>
 
-          {/* Subtle footer inside card */}
-          <div className="mt-8 pt-6 border-t" style={{ borderColor: 'rgba(91,63,248,0.08)' }}>
-            <p
-              className="text-center text-[12px]"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Secure login powered by Beudox
-            </p>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full h-12 text-[14px] font-medium text-white disabled:opacity-50 flex items-center justify-center"
+            style={{
+              background: '#5B3FF8',
+              borderRadius: 10,
+              fontFamily: 'var(--ff-body)',
+            }}
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign In'}
+          </button>
+        </form>
+
+        <div className="mt-5 text-center">
+          <Link
+            to="/forgot-password"
+            className="hover:underline"
+            style={{ fontFamily: 'var(--ff-body)', fontSize: 13, color: '#5B3FF8' }}
+          >
+            Forgot password?
+          </Link>
         </div>
       </div>
+
+      {/* Footer */}
+      <p
+        className="mt-8 text-center"
+        style={{ fontFamily: 'var(--ff-body)', fontSize: 12, color: '#9490B4' }}
+      >
+        Powered by Beudox
+      </p>
     </div>
   );
 };
 
-export default LoginV2;
+export default Login;
