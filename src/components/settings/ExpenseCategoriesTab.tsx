@@ -419,6 +419,7 @@ const ExpenseCategoriesTab = () => {
           );
         })}
       </Accordion>
+      </div>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
