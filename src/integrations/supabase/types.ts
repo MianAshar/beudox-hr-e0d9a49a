@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_logs: {
+        Row: {
+          action: string
+          admin_user_id: string | null
+          company_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: string | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_logs_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_users: {
         Row: {
           auth_user_id: string | null
@@ -251,6 +295,7 @@ export type Database = {
       companies: {
         Row: {
           address: string | null
+          admin_notes: string | null
           bank_account_number: string | null
           bank_account_title: string | null
           bank_iban: string | null
@@ -274,6 +319,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          admin_notes?: string | null
           bank_account_number?: string | null
           bank_account_title?: string | null
           bank_iban?: string | null
@@ -297,6 +343,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          admin_notes?: string | null
           bank_account_number?: string | null
           bank_account_title?: string | null
           bank_iban?: string | null
@@ -2324,6 +2371,18 @@ export type Database = {
         Args: { _auth_id: string }
         Returns: string
       }
+      get_mau_by_month: {
+        Args: { _company_id?: string }
+        Returns: {
+          count: number
+          month: string
+        }[]
+      }
+      get_monthly_active_user_count: {
+        Args: { _company_id?: string; _days?: number }
+        Returns: number
+      }
+      is_admin_user: { Args: { _auth_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
