@@ -241,13 +241,6 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <p
-        className="mt-8 text-center"
-        style={{ fontFamily: 'var(--ff-body)', fontSize: 12, color: '#9490B4' }}
-      >
-        Powered by Beudox
-      </p>
     </div>
   );
 };
