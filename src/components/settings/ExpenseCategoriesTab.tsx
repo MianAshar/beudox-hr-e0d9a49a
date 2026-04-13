@@ -298,6 +298,7 @@ const ExpenseCategoriesTab = () => {
         </div>
       )}
 
+      <div className="rounded-[14px] border bg-card overflow-hidden p-4" style={{ borderColor: 'hsl(var(--border))' }}>
       <Accordion type="multiple" className="space-y-2">
         {categories.map((cat) => {
           const catItems = lineItems.filter(i => i.category_id === cat.id);
