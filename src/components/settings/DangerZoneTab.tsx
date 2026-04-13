@@ -27,7 +27,7 @@ const DangerZoneTab = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6">
       <div
         className="rounded-[14px] border-2 p-6"
         style={{ borderColor: 'hsl(var(--destructive) / 0.4)', background: 'hsl(var(--card))' }}

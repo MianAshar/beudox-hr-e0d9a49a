@@ -70,14 +70,14 @@ const RolesTab = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-3xl">
+      <div className="space-y-6">
         <Skeleton className="h-[400px] rounded-[14px]" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6">
       <div className="rounded-[14px] border overflow-hidden" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))' }}>
         <div className="p-6 pb-3">
           <h3 className="text-[16px] font-semibold text-foreground mb-1" style={{ fontFamily: 'var(--ff-display)' }}>
