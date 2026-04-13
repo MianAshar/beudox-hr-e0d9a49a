@@ -22,7 +22,7 @@ const navSections = [
     label: 'PEOPLE',
     items: [
       { title: 'Employees', icon: Users, path: '/employees' },
-      { title: 'Attendance', icon: CalendarCheck, path: '/attendance' },
+      // { title: 'Attendance', icon: CalendarCheck, path: '/attendance' },
       { title: 'Public Holidays', icon: Calendar, path: '/holidays' },
       { title: 'Leave Management', icon: CalendarOff, path: '/leave' },
     ],
@@ -34,8 +34,8 @@ const navSections = [
       { title: 'Invoices', icon: FileSpreadsheet, path: '/invoices' },
       { title: 'Finance Sheet', icon: BarChart2, path: '/finance' },
       { title: 'Loans', icon: CreditCard, path: '/loans' },
-      { title: 'Office Expenses', icon: Receipt, path: '/expenses' },
-      { title: 'Outsourcing', icon: Building2, path: '/outsourcing' },
+      // { title: 'Office Expenses', icon: Receipt, path: '/expenses' },
+      // { title: 'Outsourcing', icon: Building2, path: '/outsourcing' },
     ],
   },
   {
