@@ -187,7 +187,7 @@ const ClientDetail = () => {
           <p className="text-sm mt-1">Create a project for this client</p>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card">
+        <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
           <Table>
             <TableHeader>
               <TableRow>

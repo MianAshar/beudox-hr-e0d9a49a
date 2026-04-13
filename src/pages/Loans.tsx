@@ -318,7 +318,7 @@ const Loans = () => {
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card">
+        <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
           <Table>
             <TableHeader>
               <TableRow>

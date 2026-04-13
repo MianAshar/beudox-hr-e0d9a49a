@@ -93,7 +93,7 @@ const MyRequestsTab = () => {
       </div>
 
       {view === 'list' ? (
-        <div className="rounded-lg border" style={{ borderColor: 'hsl(var(--border))' }}>
+        <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
           <Table>
             <TableHeader>
               <TableRow>

@@ -121,7 +121,7 @@ const LeaveTypesTab = () => {
         <Button size="sm" onClick={openAdd}><Plus className="h-4 w-4 mr-1" /> Add Leave Type</Button>
       </div>
 
-      <div className="rounded-lg border" style={{ borderColor: 'hsl(var(--border))' }}>
+      <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
         <Table>
           <TableHeader>
             <TableRow>

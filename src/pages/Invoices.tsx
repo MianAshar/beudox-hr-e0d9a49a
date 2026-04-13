@@ -264,7 +264,7 @@ const Invoices = () => {
         </div>
       ) : (
         <TooltipProvider delayDuration={300}>
-          <div className="rounded-lg border bg-card">
+          <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
             <Table>
               <TableHeader>
                 <TableRow>

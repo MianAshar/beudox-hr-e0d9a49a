@@ -137,7 +137,7 @@ const LeaveBalancesTab = () => {
   return (
     <div style={{ fontFamily: 'var(--ff-body)' }}>
       <h3 className="text-sm font-medium text-muted-foreground mb-4">Leave Balances — {currentYear}</h3>
-      <div className="rounded-lg border" style={{ borderColor: 'hsl(var(--border))' }}>
+      <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
         <Table>
           <TableHeader>
             <TableRow>

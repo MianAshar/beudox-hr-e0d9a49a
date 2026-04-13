@@ -200,7 +200,7 @@ const Clients = () => {
           <p className="text-sm mt-1">{search ? 'Try a different search term' : 'Add your first client to get started'}</p>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card">
+        <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
           <Table>
             <TableHeader>
               <TableRow>

@@ -185,7 +185,7 @@ const Projects = () => {
           <p className="text-lg font-medium">{search || statusFilter !== 'all' ? 'No matching projects' : 'No projects yet'}</p>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card">
+        <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
           <Table>
             <TableHeader>
               <TableRow>
