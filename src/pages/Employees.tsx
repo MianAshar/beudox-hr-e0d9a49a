@@ -203,6 +203,7 @@ const Employees = () => {
             </p>
           </div>
         ) : (
+          <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -298,6 +299,7 @@ const Employees = () => {
               })}
             </TableBody>
           </Table>
+          </div>
         )}
       </div>
     </div>

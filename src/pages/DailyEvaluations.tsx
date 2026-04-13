@@ -94,6 +94,7 @@ const DailyEvaluations = () => {
     }
 
     return (
+      <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
       <Table>
         <TableHeader>
           <TableRow>
@@ -163,6 +164,7 @@ const DailyEvaluations = () => {
           ))}
         </TableBody>
       </Table>
+      </div>
     );
   };
 

@@ -281,7 +281,7 @@ const Payroll = () => {
   const allApprovedOrPaid = records.length > 0 && records.every(r => r.status === 'approved' || r.status === 'paid');
 
   const renderDeptTable = (recs: PayrollRecord[]) => (
-    <div className="overflow-x-auto rounded-lg border bg-card">
+    <div className="overflow-x-auto rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
       <Table>
         <TableHeader>
           <TableRow>
