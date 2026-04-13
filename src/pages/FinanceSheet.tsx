@@ -637,7 +637,7 @@ const FinanceSheet = () => {
               {/* ═══ PAYROLL TAB ═══ */}
               <TabsContent value="payroll" className="mt-4">
                 <div className="fs-section">
-                  <div className="rounded-[14px] border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+                   <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -709,7 +709,7 @@ const FinanceSheet = () => {
               {/* ═══ EXPENSES TAB ═══ */}
               <TabsContent value="expenses" className="mt-4">
                 <div className="fs-section">
-                  <div className="rounded-[14px] border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+                  <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
                     <Table>
                       <TableHeader>
                         <TableRow>
