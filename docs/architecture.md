@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: 91a7ddffb5c8bb2e9463683161eacd0d041403f9
-generated_at: 2026-04-12T19:31:32.730Z
+source_sha: 46dfb6ac3a974a552a857eb52d0e4225e2601dd1
+generated_at: 2026-04-13T10:29:40.143Z
 action: create
 -->
 
@@ -9,207 +9,182 @@ action: create
 
 ## Application Structure
 
-### Routing Architecture
+Beudox HR is built as a single-page application with a clear separation of concerns and modular architecture.
 
-The application uses React Router with a hierarchical routing structure:
+### Routing Structure
 
-```
-/
-├── /login
-├── /forgot-password
-├── / (redirects to /dashboard or /login)
-└── Protected Routes (require authentication)
-    ├── /dashboard
-    ├── /employees
-    │   ├── /employees/new
-    │   ├── /employees/:id
-    │   └── /employees/:id/edit
-    ├── /projects
-    │   ├── /projects/new
-    │   ├── /projects/:id
-    │   └── /projects/:id/edit
-    ├── /clients
-    │   └── /clients/:id
-    ├── /invoices
-    │   ├── /invoices/new
-    │   ├── /invoices/:id
-    │   └── /invoices/:id/edit
-    ├── /hr-policies
-    │   ├── /hr-policies/new
-    │   ├── /hr-policies/:id
-    │   └── /hr-policies/:id/edit
-    ├── /evaluations
-    │   ├── /evaluations/new
-    │   ├── /evaluations/:id
-    │   └── /evaluations/:id/edit
-    ├── /evaluations/daily
-    │   ├── /evaluations/daily/new
-    │   └── /evaluations/daily/:id
-    ├── /leave
-    ├── /payroll
-    ├── /my-payslip
-    ├── /finance
-    ├── /loans
-    ├── /holidays
-    ├── /settings
-    └── /notifications
-```
+The application uses React Router DOM for client-side routing. Based on the component analysis, the routing structure includes:
 
-### Route Protection
+#### Main Routes
+- `/` - Dashboard/Home page
+- `/employees` - Employee directory and management
+- `/leave` - Leave management (requests, balances, approvals)
+- `/evaluations` - Performance evaluations
+  - `/evaluations/:id` - Individual quarterly evaluation details
+  - `/evaluations/daily` - Daily evaluations list
+  - `/evaluations/daily/:id` - Individual daily evaluation details
+- `/settings` - System configuration
+  - Departments, roles, leave types, expense categories, notifications
+- `/hr-policies` - Company policy management
 
-All business routes are wrapped with `ProtectedRoute` component that:
-1. Ensures user authentication
-2. Loads employee data and role information
-3. Checks role-based access permissions
-4. Redirects unauthorized users to dashboard
-
-### Role-Based Access Control
-
-Access is controlled by the `canAccess()` function in `src/lib/role-access.ts`:
-
-- **CEO**: Access to all routes
-- **HR Manager**: Employee management, evaluations, leave, policies, settings
-- **Finance Manager**: Payroll, invoices, finance, expenses
-- **Team Lead**: Project management, team evaluations
-- **Employee**: Basic features (dashboard, evaluations, leave, payslip)
-
-## Component Architecture
-
-### Layout Components
-
-- **AppLayout**: Main application wrapper with sidebar and top bar
-- **AppSidebar**: Navigation menu with role-based menu items
-- **TopBar**: User menu, notifications, and search
-- **NotificationBell**: Real-time notification display
-
-### Feature Components
-
-Components are organized by feature domains:
-
-- `src/components/evaluations/`: Evaluation-related components
-- `src/components/leave/`: Leave management components
-- `src/components/settings/`: Configuration components
-- `src/components/hr-policies/`: Policy document components
-- `src/components/ui/`: Reusable UI primitives
+#### Layout Components
+- **AppLayout**: Main application wrapper providing consistent layout
+- **AppSidebar**: Navigation sidebar with role-based menu visibility
+- **TopBar**: Header with logo, notifications, and user menu
+- **NotificationBell**: Real-time notification indicator
 
 ### Core Components
 
-#### EvaluationTimeline
-Displays evaluation history with:
-- Quarterly evaluations (formal reviews)
-- Daily evaluations (peer feedback)
-- Role-based visibility filtering
-- Timeline layout with avatars and scores
+#### Shared Components
+- **BeudoxLogo**: Brand logo with multiple display variants (default, sidebar, with/without wordmark)
+- **NavLink**: Enhanced navigation link with active state styling
+- **SearchableEmployeeSelect**: Advanced employee selection with search, avatars, and filtering
 
-#### RichTextEditor
-Full-featured rich text editor using Tiptap with:
-- Formatting toolbar (bold, italic, headings, lists)
-- Link insertion and editing
-- HTML output for storage
-- ProseMirror-based editing
+#### Feature Components
 
-#### SearchableEmployeeSelect
-Advanced employee selection component with:
-- Search and filter functionality
-- Avatar display with initials fallback
-- Multi-select support
-- "All Employees" option for bulk operations
+##### Leave Management
+- **ApplyLeaveModal**: Leave request form
+- **LeaveBalancesTab**: Display of available leave balances
+- **MyRequestsTab**: User's leave request history
+- **AllRequestsTab**: HR view of all leave requests (approval interface)
 
-## Data Architecture
+##### Evaluations
+- **EvaluationTimeline**: Unified timeline of quarterly and daily evaluations
+  - Shows evaluation history with scores, comments, and participants
+  - Role-based visibility (managers see recommendations, employees see limited data)
+  - Links to detailed evaluation views
 
-### State Management
+##### Settings
+- **CompanyTab**: Company information configuration
+- **DepartmentsTab**: Department management
+- **RolesTab**: User role configuration
+- **LeaveTypesTab**: Leave type definitions
+- **EvaluationParametersTab**: Evaluation criteria setup
+- **ExpenseCategoriesTab**: Expense category management
+- **AttendanceTab**: Attendance tracking configuration
+- **NotificationsTab**: Notification preferences
+- **DangerZoneTab**: Critical system settings
 
-#### Server State (TanStack Query)
-- API data fetching and caching
-- Optimistic updates for better UX
-- Background refetching
-- Error handling and retry logic
+##### HR Policies
+- **RichTextEditor**: WYSIWYG editor for policy documents
+  - Supports formatting (bold, italic, underline, headings, lists)
+  - Link insertion and management
+  - HTML output for storage and display
 
-#### Client State (React Context)
-- Authentication state
-- Theme preferences
-- Form state (React Hook Form)
+### Data Flow Patterns
 
-### Database Schema
+#### State Management
+- **Server State**: TanStack Query for API data fetching, caching, and synchronization
+- **Local State**: React hooks for component-specific state
+- **Global State**: Context providers for authentication and user preferences
 
-The application uses Supabase with PostgreSQL, featuring:
+#### Authentication Flow
+- Supabase Auth handles login/logout
+- `useAuth` hook provides user context throughout the app
+- Role-based rendering and API calls
 
-- **Employees**: User profiles with roles and departments
-- **Evaluations**: Quarterly performance reviews
-- **Daily Evaluations**: Peer feedback system
-- **Leave Requests**: Leave management with balances
-- **Projects**: Project tracking with assignments
-- **Invoices**: Client billing and payments
-- **Payroll**: Salary processing and attendance
-- **HR Policies**: Document storage with rich text
-- **Notifications**: System and user notifications
-
-### API Integration
-
-#### Supabase Client
-- Centralized client configuration in `src/integrations/supabase/client.ts`
-- Environment-based configuration
+#### API Integration
+- Supabase client for database operations
 - Real-time subscriptions for live updates
+- Edge Functions for complex business logic
 
-#### Query Patterns
-- Consistent error handling
-- Loading states management
-- Data transformation and normalization
+### Component Communication
 
-## Security Architecture
+#### Props Interface
+Components use well-defined TypeScript interfaces:
+```typescript
+interface SearchableEmployeeSelectProps {
+  employees: EmployeeOption[];
+  value: string;
+  onValueChange: (id: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  allowAll?: boolean;
+  allLabel?: string;
+}
+```
 
-### Authentication
+#### Event Handling
+- Callback props for parent-child communication
+- Custom hooks for shared logic
+- Context providers for cross-component state
+
+### UI/UX Patterns
+
+#### Design System
+- **shadcn/ui**: Consistent component library
+- **Tailwind CSS**: Utility-first styling
+- **Custom Properties**: CSS variables for theming
+- **Responsive Design**: Mobile-first approach
+
+#### Interaction Patterns
+- **Searchable Selects**: Consistent employee selection across features
+- **Modal Dialogs**: Form submissions and confirmations
+- **Toast Notifications**: User feedback for actions
+- **Loading States**: Skeleton components during data fetching
+- **Empty States**: Helpful messages when no data exists
+
+### Performance Considerations
+
+#### Code Splitting
+- Route-based lazy loading
+- Component imports optimized with Vite
+
+#### Data Fetching
+- Query caching with TanStack Query
+- Optimistic updates for better UX
+- Background refetching for data freshness
+
+#### Rendering Optimization
+- Memoization of expensive computations
+- Virtual scrolling for large lists (potential future enhancement)
+- Image optimization with proper sizing
+
+### Security Architecture
+
+#### Authentication
 - Supabase Auth with JWT tokens
-- Session management with automatic refresh
-- Password reset and invite flows
+- Automatic token refresh
+- Secure storage of session data
 
-### Authorization
-- Database-level RLS policies
-- Application-level route protection
-- Component-level permission checks
+#### Authorization
+- Role-based access control
+- Database-level Row Level Security
+- UI-level permission checks
+- API-level validation
 
-### Data Protection
-- Encrypted data transmission
-- Secure environment variable handling
-- Role-based data filtering
-
-## Performance Architecture
-
-### Build Optimization
-- Vite for fast development and optimized production builds
-- Code splitting by routes
-- Tree shaking for unused code elimination
-- Asset optimization and compression
-
-### Runtime Performance
-- React Query for efficient data fetching
-- Virtual scrolling for large lists
-- Image lazy loading
-- Memoization for expensive computations
-
-### Caching Strategy
-- Browser caching for static assets
-- Application caching for API responses
-- Service worker for offline capabilities (future)
-
-## Development Architecture
-
-### Code Organization
-- Feature-based folder structure
-- Shared utilities in `src/lib/`
-- Type definitions with TypeScript
-- Consistent naming conventions
+#### Data Protection
+- Environment variables for sensitive configuration
+- HTTPS-only communication
+- Input validation and sanitization
 
 ### Testing Architecture
-- Unit tests with Vitest
-- Component tests with React Testing Library
-- E2E tests with Playwright
-- Test utilities and mocks
 
-### Tooling
-- ESLint for code quality
-- Prettier for code formatting
-- TypeScript for type checking
-- Husky for git hooks (future)
+#### Unit Testing
+- Vitest for component and utility testing
+- Mock implementations for external dependencies
 
-This architecture provides a scalable, maintainable foundation for the HR management system with clear separation of concerns and modern development practices.
+#### Integration Testing
+- Component interaction testing
+- API integration verification
+
+#### End-to-End Testing
+- Playwright for critical user flows
+- Cross-browser compatibility testing
+
+### Deployment Architecture
+
+#### Build Process
+- Vite production build optimization
+- Asset bundling and minification
+- Environment-specific configuration
+
+#### Hosting
+- Static site hosting (Vercel, Netlify, etc.)
+- CDN for global distribution
+- Supabase handles backend scaling
+
+#### Monitoring
+- Error tracking and reporting
+- Performance monitoring
+- User analytics integration
