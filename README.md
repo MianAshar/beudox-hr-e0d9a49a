@@ -1,36 +1,34 @@
 <!--
 generated_by: tessera
-source_sha: 2371286576e780a886fa9a7f8eccbe67e207892e
-generated_at: 2026-04-13T11:05:20.954Z
+source_sha: ada1378842aeb381d5e2d6419f96c1d4c5ee29a7
+generated_at: 2026-04-13T11:17:09.567Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, payroll, evaluations, leave tracking, and organizational workflows for businesses.
+A comprehensive Human Resources management application built with modern web technologies. Beudox HR streamlines employee management, performance evaluations, leave tracking, payroll processing, and organizational workflows.
 
 ## Features
 
-### Core HR Management
+### Core HR Functionality
 - **Employee Management**: Complete employee profiles, onboarding, and organizational structure
-- **Role-Based Access Control**: Granular permissions for different user roles (CEO, HR Manager, Team Lead, Employee)
-- **Authentication & Security**: Secure login with Supabase authentication
-
-### Employee Lifecycle
 - **Performance Evaluations**: Quarterly and daily evaluation systems with detailed feedback
-- **Leave Management**: Comprehensive leave tracking, balances, and approval workflows
+- **Leave Management**: Request, approve, and track various types of leave
 - **Payroll Processing**: Automated payroll generation with payslips and financial reporting
-
-### Business Operations
-- **Project Management**: Project tracking, client management, and resource allocation
-- **Invoice Management**: Client invoicing, payment tracking, and financial documentation
-- **HR Policies**: Digital policy management with rich text editing
-- **Loan Management**: Employee loan tracking and management
-
-### Administrative Tools
-- **Settings Management**: Configurable company settings, departments, roles, and parameters
-- **Public Holidays**: Holiday calendar management
+- **Project Management**: Track projects, assign team members, and monitor progress
+- **Client Management**: Maintain client relationships and project associations
+- **Invoice Management**: Generate and manage client invoices
+- **HR Policies**: Create and maintain company policies with rich text editing
+- **Loan Management**: Track employee loans and repayments
 - **Finance Dashboard**: Comprehensive financial overview and reporting
+
+### User Experience
+- **Role-Based Access Control**: Different permissions for employees, managers, and administrators
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Real-time Notifications**: Stay updated with important HR events
+- **Searchable Interfaces**: Quickly find employees, projects, and records
+- **Data Visualization**: Charts and graphs for performance metrics and analytics
 
 ## Technology Stack
 
@@ -38,24 +36,20 @@ A comprehensive Human Resources Management System built with modern web technolo
 - **React 18** with TypeScript for type-safe development
 - **Vite** for fast development and optimized builds
 - **React Router** for client-side routing
-- **Tailwind CSS** with custom design system and dark mode support
-- **shadcn/ui** component library built on Radix UI primitives
-
-### State Management & Data
-- **TanStack Query** for server state management and caching
+- **Tailwind CSS** for styling with shadcn/ui component library
+- **React Query** for efficient server state management
 - **React Hook Form** with Zod validation for form handling
-- **Supabase** for backend services, database, and real-time features
+
+### Backend & Infrastructure
+- **Supabase** for database, authentication, and real-time features
+- **PostgreSQL** database with Row Level Security
+- **Supabase Edge Functions** for server-side processing
 
 ### Development Tools
 - **ESLint** and **TypeScript** for code quality
 - **Vitest** for unit testing
 - **Playwright** for end-to-end testing
-
-### Key Libraries
-- **TipTap** for rich text editing
-- **Recharts** for data visualization
-- **date-fns** for date manipulation
-- **Lucide React** for icons
+- **Tailwind Typography** for rich text content
 
 ## Getting Started
 
@@ -120,49 +114,54 @@ src/
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
 │   ├── [feature]/      # Feature-specific components
 │   └── ...
-├── pages/              # Page components and routing
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
-└── ...
+├── integrations/       # External service integrations
+└── types/              # TypeScript type definitions
 
 supabase/
 ├── migrations/         # Database schema migrations
-├── functions/          # Edge functions for backend logic
+├── functions/          # Edge functions for server-side logic
 └── config.toml         # Supabase project configuration
 ```
 
-## Available Scripts
+## Authentication & Authorization
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run unit tests
-- `npm run test:watch` - Run tests in watch mode
+The application uses Supabase Auth with role-based access control:
 
-## User Roles & Permissions
+- **Employee**: Basic access to personal data and requests
+- **HR Manager**: Full HR functionality and employee management
+- **CEO**: Complete system access including financial data
+- **Team Lead**: Team management and evaluations
 
-The system supports role-based access control with the following roles:
+## API Integration
 
-- **CEO**: Full system access
-- **HR Manager**: HR operations, employee management, payroll
-- **Team Lead**: Team management, evaluations, limited reporting
-- **Employee**: Personal dashboard, leave requests, evaluations
+The frontend communicates with Supabase through:
+- **REST API** for CRUD operations
+- **Real-time subscriptions** for live updates
+- **Edge Functions** for complex business logic (payroll, notifications)
+
+## Testing
+
+```bash
+# Run unit tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run end-to-end tests
+npx playwright test
+```
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Follow the existing code style and TypeScript conventions
+2. Write tests for new features
+3. Update documentation as needed
+4. Ensure all tests pass before submitting PRs
 
 ## License
 
 This project is proprietary software. All rights reserved.
-
-## Support
-
-For support and questions, please contact the development team.
