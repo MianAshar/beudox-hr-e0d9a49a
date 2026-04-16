@@ -323,7 +323,7 @@ const EmployeeForm = () => {
         employee_code: form.employee_code,
         cnic: form.cnic || null,
         phone: form.phone || null,
-        email: form.login_email,
+        email: form.email,
         designation: form.designation || null,
         department: form.department || null,
         date_of_birth: form.date_of_birth || null,
