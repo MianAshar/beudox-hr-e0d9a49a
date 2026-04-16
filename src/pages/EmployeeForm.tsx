@@ -37,7 +37,7 @@ const employeeSchema = z.object({
   employee_code: z.string().trim().min(1, 'Employee code is required').max(50),
   cnic: z.string().max(20).optional().or(z.literal('')),
   phone: z.string().max(20).optional().or(z.literal('')),
-  personal_email: z.string().email('Invalid email').optional().or(z.literal('')),
+  email: z.string().email('Invalid email'),
   designation: z.string().max(100).optional().or(z.literal('')),
   department: z.string().optional().or(z.literal('')),
   date_of_birth: z.string().optional().or(z.literal('')),
@@ -47,7 +47,6 @@ const employeeSchema = z.object({
   increment_rule: z.string().optional(),
   basic_salary: z.string().optional().or(z.literal('')),
   allowance: z.string().optional().or(z.literal('')),
-  login_email: z.string().email('Invalid login email'),
   role_id: z.string().min(1, 'Role is required'),
 });
 
@@ -127,7 +126,7 @@ const EmployeeForm = () => {
     employee_code: '',
     cnic: '',
     phone: '',
-    personal_email: '',
+    email: '',
     designation: '',
     department: '',
     date_of_birth: '',
@@ -137,7 +136,6 @@ const EmployeeForm = () => {
     increment_rule: 'year_1',
     basic_salary: '',
     allowance: '',
-    login_email: '',
     role_id: '',
   });
 
@@ -211,7 +209,7 @@ const EmployeeForm = () => {
         employee_code: existing.employee_code || '',
         cnic: existing.cnic || '',
         phone: existing.phone || '',
-        personal_email: existing.email || '',
+        email: existing.email || '',
         designation: existing.designation || '',
         department: existing.department || '',
         date_of_birth: existing.date_of_birth || '',
@@ -221,7 +219,6 @@ const EmployeeForm = () => {
         increment_rule: existing.increment_rule || 'year_1',
         basic_salary: existing.basic_salary?.toString() || '',
         allowance: existing.allowance?.toString() || '',
-        login_email: existing.email || '',
         role_id: existing.employee_roles?.[0]?.role_id || '',
       });
       setExistingAvatarUrl(existing.avatar_url);
@@ -326,7 +323,7 @@ const EmployeeForm = () => {
         employee_code: form.employee_code,
         cnic: form.cnic || null,
         phone: form.phone || null,
-        email: form.login_email,
+        email: form.email,
         designation: form.designation || null,
         department: form.department || null,
         date_of_birth: form.date_of_birth || null,
@@ -404,7 +401,7 @@ const EmployeeForm = () => {
       if (!isEdit && employeeId) {
         try {
           await supabase.functions.invoke('invite-employee', {
-            body: { email: form.login_email, employee_id: employeeId },
+            body: { email: form.email, employee_id: employeeId },
           });
         } catch (inviteErr: any) {
           console.error('Invite error:', inviteErr);
@@ -435,7 +432,7 @@ const EmployeeForm = () => {
         //     });
         //   }
         // }
-        toast.success(`Employee added. Invite sent to ${form.login_email}`);
+        toast.success(`Employee added. Invite sent to ${form.email}`);
         navigate('/employees');
       }
     } catch (err: any) {
@@ -627,11 +624,13 @@ const EmployeeForm = () => {
             onChange={(v) => updateField('phone', v)}
           />
           <FormField
-            label="Personal Email"
+            label="Email"
             type="email"
-            value={form.personal_email || ''}
-            error={errors.personal_email}
-            onChange={(v) => updateField('personal_email', v)}
+            required
+            value={form.email}
+            error={errors.email}
+            onChange={(v) => updateField('email', v)}
+            onBlur={() => validateField('email', form.email)}
           />
           <FormField
             label="Date of Birth"
@@ -763,23 +762,6 @@ const EmployeeForm = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-[12px] text-muted-foreground mb-1.5 block">
-              Login Email <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              type="email"
-              value={form.login_email}
-              onChange={(e) => updateField('login_email', e.target.value)}
-              onBlur={() => validateField('login_email', form.login_email)}
-            />
-            <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
-              This email will be used to sign in to Beudox. Can be a personal or company email.
-            </p>
-            {errors.login_email && (
-              <p className="text-[11px] text-destructive mt-1">{errors.login_email}</p>
-            )}
-          </div>
-          <div>
-            <Label className="text-[12px] text-muted-foreground mb-1.5 block">
               Role <span className="text-destructive">*</span>
             </Label>
             <Select value={form.role_id} onValueChange={(v) => updateField('role_id', v)}>
@@ -797,6 +779,9 @@ const EmployeeForm = () => {
             {errors.role_id && (
               <p className="text-[11px] text-destructive mt-1">{errors.role_id}</p>
             )}
+            <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+              The employee will sign in to Beudox using the email above.
+            </p>
           </div>
         </div>
       </div>
