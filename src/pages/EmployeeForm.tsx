@@ -401,7 +401,7 @@ const EmployeeForm = () => {
       if (!isEdit && employeeId) {
         try {
           await supabase.functions.invoke('invite-employee', {
-            body: { email: form.login_email, employee_id: employeeId },
+            body: { email: form.email, employee_id: employeeId },
           });
         } catch (inviteErr: any) {
           console.error('Invite error:', inviteErr);
@@ -432,7 +432,7 @@ const EmployeeForm = () => {
         //     });
         //   }
         // }
-        toast.success(`Employee added. Invite sent to ${form.login_email}`);
+        toast.success(`Employee added. Invite sent to ${form.email}`);
         navigate('/employees');
       }
     } catch (err: any) {
@@ -624,11 +624,13 @@ const EmployeeForm = () => {
             onChange={(v) => updateField('phone', v)}
           />
           <FormField
-            label="Personal Email"
+            label="Email"
             type="email"
-            value={form.personal_email || ''}
-            error={errors.personal_email}
-            onChange={(v) => updateField('personal_email', v)}
+            required
+            value={form.email}
+            error={errors.email}
+            onChange={(v) => updateField('email', v)}
+            onBlur={() => validateField('email', form.email)}
           />
           <FormField
             label="Date of Birth"
@@ -760,23 +762,6 @@ const EmployeeForm = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-[12px] text-muted-foreground mb-1.5 block">
-              Login Email <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              type="email"
-              value={form.login_email}
-              onChange={(e) => updateField('login_email', e.target.value)}
-              onBlur={() => validateField('login_email', form.login_email)}
-            />
-            <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
-              This email will be used to sign in to Beudox. Can be a personal or company email.
-            </p>
-            {errors.login_email && (
-              <p className="text-[11px] text-destructive mt-1">{errors.login_email}</p>
-            )}
-          </div>
-          <div>
-            <Label className="text-[12px] text-muted-foreground mb-1.5 block">
               Role <span className="text-destructive">*</span>
             </Label>
             <Select value={form.role_id} onValueChange={(v) => updateField('role_id', v)}>
@@ -794,6 +779,9 @@ const EmployeeForm = () => {
             {errors.role_id && (
               <p className="text-[11px] text-destructive mt-1">{errors.role_id}</p>
             )}
+            <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+              The employee will sign in to Beudox using the email above.
+            </p>
           </div>
         </div>
       </div>
