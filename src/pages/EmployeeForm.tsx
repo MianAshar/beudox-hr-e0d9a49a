@@ -420,21 +420,21 @@ const EmployeeForm = () => {
         toast.success('Employee updated successfully');
         navigate(`/employees/${id}`);
       } else {
-        // Send employee_onboarded notification
-        if (companyId && employeeId) {
-          const mgrs = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
-          if (mgrs.length > 0) {
-            sendNotification({
-              companyId,
-              recipientIds: mgrs,
-              type: 'employee_onboarded',
-              title: 'New Employee Added',
-              message: `${form.full_name} has been added to the system.`,
-              referenceType: 'employee',
-              referenceId: employeeId,
-            });
-          }
-        }
+        // TODO: Re-enable after invite email is fixed
+        // if (companyId && employeeId) {
+        //   const mgrs = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
+        //   if (mgrs.length > 0) {
+        //     sendNotification({
+        //       companyId,
+        //       recipientIds: mgrs,
+        //       type: 'employee_onboarded',
+        //       title: 'New Employee Added',
+        //       message: `${form.full_name} has been added to the system.`,
+        //       referenceType: 'employee',
+        //       referenceId: employeeId,
+        //     });
+        //   }
+        // }
         toast.success(`Employee added. Invite sent to ${form.login_email}`);
         navigate('/employees');
       }
