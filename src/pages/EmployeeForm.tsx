@@ -209,7 +209,7 @@ const EmployeeForm = () => {
         employee_code: existing.employee_code || '',
         cnic: existing.cnic || '',
         phone: existing.phone || '',
-        personal_email: existing.email || '',
+        email: existing.email || '',
         designation: existing.designation || '',
         department: existing.department || '',
         date_of_birth: existing.date_of_birth || '',
@@ -219,7 +219,6 @@ const EmployeeForm = () => {
         increment_rule: existing.increment_rule || 'year_1',
         basic_salary: existing.basic_salary?.toString() || '',
         allowance: existing.allowance?.toString() || '',
-        login_email: existing.email || '',
         role_id: existing.employee_roles?.[0]?.role_id || '',
       });
       setExistingAvatarUrl(existing.avatar_url);
