@@ -37,7 +37,7 @@ const employeeSchema = z.object({
   employee_code: z.string().trim().min(1, 'Employee code is required').max(50),
   cnic: z.string().max(20).optional().or(z.literal('')),
   phone: z.string().max(20).optional().or(z.literal('')),
-  personal_email: z.string().email('Invalid email').optional().or(z.literal('')),
+  email: z.string().email('Invalid email'),
   designation: z.string().max(100).optional().or(z.literal('')),
   department: z.string().optional().or(z.literal('')),
   date_of_birth: z.string().optional().or(z.literal('')),
@@ -47,7 +47,6 @@ const employeeSchema = z.object({
   increment_rule: z.string().optional(),
   basic_salary: z.string().optional().or(z.literal('')),
   allowance: z.string().optional().or(z.literal('')),
-  login_email: z.string().email('Invalid login email'),
   role_id: z.string().min(1, 'Role is required'),
 });
 
