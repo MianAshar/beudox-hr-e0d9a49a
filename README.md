@@ -1,63 +1,71 @@
 <!--
 generated_by: tessera
-source_sha: 92611a51c56234256b71584661527317e866f551
-generated_at: 2026-04-16T22:40:31.677Z
+source_sha: c2ab40057cf926796021430a2c0c3cd05baa1e26
+generated_at: 2026-04-16T22:52:04.663Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources management application built for modern businesses. Beudox HR streamlines employee management, performance evaluations, leave tracking, payroll processing, and organizational workflows.
+A comprehensive Human Resources management platform built with modern web technologies. Beudox HR streamlines employee management, payroll processing, leave tracking, performance evaluations, and organizational workflows for businesses.
 
 ## Features
 
-### Core HR Functionality
+### Core HR Management
 - **Employee Management**: Complete employee profiles, onboarding, and organizational structure
+- **Attendance Tracking**: Automated time tracking with import capabilities and overtime calculations
+- **Leave Management**: Flexible leave types, balance tracking, and approval workflows
+- **Payroll Processing**: Automated salary calculations, deductions, and payment processing
+
+### Performance & Development
 - **Performance Evaluations**: Quarterly and daily evaluation systems with customizable parameters
-- **Leave Management**: Automated leave requests, approvals, and balance tracking
-- **Payroll Processing**: Automated payroll generation with payslips and financial reporting
+- **Project Management**: Project tracking, resource allocation, and client management
 - **HR Policies**: Rich text policy documents with version control
 
-### Business Operations
-- **Project Management**: Project tracking, client assignments, and resource allocation
-- **Client Management**: Client profiles and relationship management
-- **Invoice Management**: Automated invoice generation and tracking
-- **Loan Management**: Employee loan processing and tracking
-- **Finance Dashboard**: Comprehensive financial reporting and analytics
+### Financial Management
+- **Invoicing**: Client invoicing with PDF generation and payment tracking
+- **Expense Management**: Office expenses, monthly budgeting, and approval workflows
+- **Loan Management**: Employee loan tracking and monthly deductions
 
 ### Administrative Features
-- **Role-Based Access Control**: Granular permissions for different user roles (CEO, HR Manager, Team Lead, Employee)
-- **Settings Management**: Configurable company settings, departments, leave types, and evaluation parameters
-- **Notifications System**: Automated notifications for approvals and updates
-- **Public Holidays**: Configurable holiday calendar management
+- **Role-Based Access Control**: Granular permissions and feature flags
+- **Notifications**: Automated email and in-app notifications
+- **Multi-Company Support**: Separate data isolation for multiple companies
+- **Audit Logging**: Comprehensive activity tracking
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite with SWC for fast development
-- **Styling**: Tailwind CSS with shadcn/ui component library
-- **State Management**: TanStack Query for server state, React Context for auth
-- **Routing**: React Router v6 with protected routes
-- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **Rich Text Editing**: TipTap editor for HR policies
-- **Charts & Analytics**: Recharts for financial and performance visualizations
-- **Form Handling**: React Hook Form with Zod validation
-- **Testing**: Vitest with React Testing Library
-- **E2E Testing**: Playwright
+### Frontend
+- **React 18** with TypeScript for type-safe development
+- **Vite** for fast development and optimized builds
+- **React Router** for client-side routing
+- **TanStack Query** for server state management
+- **Supabase** for backend services and real-time features
+
+### UI/UX
+- **Radix UI** components for accessible, customizable interfaces
+- **Tailwind CSS** for utility-first styling
+- **shadcn/ui** for consistent design system
+- **Lucide React** for icons
+- **TipTap** for rich text editing
+
+### Development Tools
+- **ESLint** and **TypeScript** for code quality
+- **Vitest** and **Playwright** for testing
+- **PostCSS** and **Autoprefixer** for CSS processing
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- npm or bun package manager
+- Node.js 18+ or Bun
 - Supabase account and project
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd beudox-hr
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+   cd beudox-hr-e0d9a49a
    ```
 
 2. **Install dependencies**
@@ -69,86 +77,75 @@ A comprehensive Human Resources management application built for modern business
 
 3. **Environment Setup**
    
-   Copy the `.env` file and configure your Supabase credentials:
+   Copy the environment file and configure your Supabase credentials:
    ```bash
    cp .env .env.local
    ```
    
-   Update the following variables in `.env.local`:
+   Update `.env.local` with your Supabase project details:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
    ```
 
 4. **Database Setup**
    
    The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
-   
-   Alternatively, if using Supabase CLI:
-   ```bash
-   supabase db reset
-   ```
 
-5. **Start Development Server**
+5. **Development Server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
-   
-   The application will be available at `http://localhost:8080`
 
-### Build for Production
-
-```bash
-npm run build
-npm run preview
-```
+6. **Build for Production**
+   ```bash
+   npm run build
+   ```
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
+│   ├── ui/             # shadcn/ui components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── [feature]/      # Feature-specific components
-│   └── ...
+│   ├── settings/       # Settings page components
+│   ├── evaluations/    # Evaluation-related components
+│   ├── leave/          # Leave management components
+│   └── hr-policies/    # Policy document components
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
-└── types/              # TypeScript type definitions
-
-supabase/
-├── migrations/         # Database schema migrations
-└── functions/          # Edge functions for business logic
+├── integrations/       # External service integrations
+│   └── supabase/       # Supabase client and types
+└── test/               # Test files
 ```
 
-## Available Scripts
+## Key Components
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run unit tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run lint` - Run ESLint
+### Authentication & Authorization
+- Role-based access control with granular permissions
+- Protected routes with automatic redirects
+- Password reset and invite flows
 
-## Authentication & Authorization
+### Data Management
+- Real-time subscriptions for live updates
+- Optimistic updates for better UX
+- Comprehensive error handling
 
-The application uses Supabase Authentication with role-based access control:
-
-- **CEO**: Full system access
-- **HR Manager**: HR operations and employee management
-- **Team Lead**: Team management and evaluations
-- **Employee**: Personal data and requests
+### Business Logic
+- Complex payroll calculations with overtime and deductions
+- Leave balance management with carry-over rules
+- Evaluation scoring with customizable parameters
 
 ## Contributing
 
-1. Follow the existing code style and conventions
+1. Follow the existing code style and TypeScript conventions
 2. Write tests for new features
 3. Update documentation as needed
-4. Ensure all tests pass before submitting PRs
+4. Use conventional commit messages
 
 ## License
 
