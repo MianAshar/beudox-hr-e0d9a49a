@@ -83,6 +83,10 @@ const Payroll = () => {
     }
   }, [companyId, monthYear]);
 
+  useEffect(() => {
+    fetchExisting();
+  }, [fetchExisting]);
+
   const handleMonthYearChange = (month: string, year: string) => {
     setSelectedMonth(month);
     setSelectedYear(year);
