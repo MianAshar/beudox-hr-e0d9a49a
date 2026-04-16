@@ -1,68 +1,56 @@
 <!--
 generated_by: tessera
-source_sha: 939657ec2ede9cca1a4aad08f88592834464cc25
-generated_at: 2026-04-16T12:21:14.215Z
+source_sha: 92611a51c56234256b71584661527317e866f551
+generated_at: 2026-04-16T22:40:31.677Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources Management System built with modern web technologies. This application provides a complete suite of HR tools for managing employees, projects, evaluations, leave, payroll, and more.
+A comprehensive Human Resources management application built for modern businesses. Beudox HR streamlines employee management, performance evaluations, leave tracking, payroll processing, and organizational workflows.
 
 ## Features
 
 ### Core HR Functionality
-- **Employee Management**: Complete employee profiles, onboarding, and lifecycle management
-- **Leave Management**: Request, approve, and track employee leave with balance calculations
-- **Performance Evaluations**: Quarterly and daily evaluations with rating systems
-- **Payroll Management**: Automated payroll processing and payslip generation
-- **HR Policies**: Rich text policy documents with full editing capabilities
+- **Employee Management**: Complete employee profiles, onboarding, and organizational structure
+- **Performance Evaluations**: Quarterly and daily evaluation systems with customizable parameters
+- **Leave Management**: Automated leave requests, approvals, and balance tracking
+- **Payroll Processing**: Automated payroll generation with payslips and financial reporting
+- **HR Policies**: Rich text policy documents with version control
 
-### Project & Client Management
-- **Project Tracking**: Create and manage projects with team assignments
-- **Client Management**: Maintain client relationships and project associations
-- **Invoice Generation**: Automated invoice creation and PDF generation
+### Business Operations
+- **Project Management**: Project tracking, client assignments, and resource allocation
+- **Client Management**: Client profiles and relationship management
+- **Invoice Management**: Automated invoice generation and tracking
+- **Loan Management**: Employee loan processing and tracking
+- **Finance Dashboard**: Comprehensive financial reporting and analytics
 
-### Administrative Tools
-- **Role-Based Access Control**: Granular permissions for different user roles
-- **Settings Management**: Configure company settings, departments, leave types, etc.
-- **Finance Dashboard**: Financial overview and reporting
-- **Loan Management**: Employee loan tracking and management
+### Administrative Features
+- **Role-Based Access Control**: Granular permissions for different user roles (CEO, HR Manager, Team Lead, Employee)
+- **Settings Management**: Configurable company settings, departments, leave types, and evaluation parameters
+- **Notifications System**: Automated notifications for approvals and updates
+- **Public Holidays**: Configurable holiday calendar management
 
 ## Technology Stack
 
-### Frontend
-- **React 18** - Modern React with hooks and concurrent features
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and development server
-- **React Router** - Client-side routing
-- **React Query** - Data fetching and caching
-
-### UI & Styling
-- **ShadCN/UI** - Modern component library built on Radix UI
-- **Tailwind CSS** - Utility-first CSS framework
-- **Lucide React** - Beautiful icon library
-- **Recharts** - Data visualization components
-
-### Backend & Database
-- **Supabase** - Backend-as-a-Service providing:
-  - PostgreSQL database
-  - Authentication
-  - Real-time subscriptions
-  - File storage
-  - Edge functions
-
-### Development Tools
-- **ESLint** - Code linting
-- **Vitest** - Unit testing
-- **Playwright** - End-to-end testing
-- **TypeScript** - Type checking
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite with SWC for fast development
+- **Styling**: Tailwind CSS with shadcn/ui component library
+- **State Management**: TanStack Query for server state, React Context for auth
+- **Routing**: React Router v6 with protected routes
+- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
+- **Rich Text Editing**: TipTap editor for HR policies
+- **Charts & Analytics**: Recharts for financial and performance visualizations
+- **Form Handling**: React Hook Form with Zod validation
+- **Testing**: Vitest with React Testing Library
+- **E2E Testing**: Playwright
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js 18+
 - npm or bun package manager
+- Supabase account and project
 
 ### Installation
 
@@ -88,11 +76,20 @@ A comprehensive Human Resources Management System built with modern web technolo
    
    Update the following variables in `.env.local`:
    ```env
-   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
    ```
 
-4. **Start the development server**
+4. **Database Setup**
+   
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   
+   Alternatively, if using Supabase CLI:
+   ```bash
+   supabase db reset
+   ```
+
+5. **Start Development Server**
    ```bash
    npm run dev
    # or
@@ -113,70 +110,38 @@ npm run preview
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # ShadCN base components
+│   ├── ui/             # shadcn/ui base components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
 │   ├── [feature]/      # Feature-specific components
 │   └── ...
-├── pages/              # Page components (routes)
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations (Supabase)
-└── ...
+└── types/              # TypeScript type definitions
+
+supabase/
+├── migrations/         # Database schema migrations
+└── functions/          # Edge functions for business logic
 ```
 
-## Key Components
+## Available Scripts
 
-### Layout Components
-- **AppLayout**: Main application layout with sidebar navigation
-- **AppSidebar**: Navigation sidebar with role-based menu items
-- **TopBar**: Top navigation bar with notifications and user menu
-
-### Feature Components
-- **EvaluationTimeline**: Displays chronological evaluation history
-- **SearchableEmployeeSelect**: Employee selection with search functionality
-- **RichTextEditor**: WYSIWYG editor for policy documents
-- **BeudoxLogo**: Application logo component with variants
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run unit tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run lint` - Run ESLint
 
 ## Authentication & Authorization
 
 The application uses Supabase Authentication with role-based access control:
 
-- **Authentication**: Email/password with invite system
-- **Roles**: CEO, HR Manager, Team Lead, Employee
-- **Permissions**: Route-level and feature-level access control
-
-## Database Schema
-
-The application uses a PostgreSQL database with the following main entities:
-- **employees** - Employee profiles and information
-- **evaluations** - Performance evaluation records
-- **daily_evaluations** - Daily feedback records
-- **leave_requests** - Leave management
-- **projects** - Project management
-- **invoices** - Invoice and billing
-- **hr_policies** - Company policies
-- **payroll** - Payroll processing
-
-## Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run unit tests
-- `npm run test:watch` - Run tests in watch mode
-
-### Testing
-
-The application includes both unit tests (Vitest) and end-to-end tests (Playwright).
-
-### Code Quality
-
-- TypeScript for type safety
-- ESLint for code linting
-- Prettier for code formatting (via ESLint)
+- **CEO**: Full system access
+- **HR Manager**: HR operations and employee management
+- **Team Lead**: Team management and evaluations
+- **Employee**: Personal data and requests
 
 ## Contributing
 
