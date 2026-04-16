@@ -126,7 +126,7 @@ const EmployeeForm = () => {
     employee_code: '',
     cnic: '',
     phone: '',
-    personal_email: '',
+    email: '',
     designation: '',
     department: '',
     date_of_birth: '',
@@ -136,7 +136,6 @@ const EmployeeForm = () => {
     increment_rule: 'year_1',
     basic_salary: '',
     allowance: '',
-    login_email: '',
     role_id: '',
   });
 
