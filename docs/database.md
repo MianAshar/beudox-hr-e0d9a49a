@@ -1,314 +1,408 @@
 <!--
 generated_by: tessera
-source_sha: 91a7ddffb5c8bb2e9463683161eacd0d041403f9
-generated_at: 2026-04-12T19:31:32.730Z
+source_sha: 939657ec2ede9cca1a4aad08f88592834464cc25
+generated_at: 2026-04-16T12:21:14.215Z
 action: create
 -->
 
-# Database Documentation
+# Beudox HR - Database Documentation
 
-## Schema Overview
+## Overview
 
-The Beudox HR system uses PostgreSQL via Supabase with 23 migration files representing the evolution of the database schema. The database follows a relational model with proper normalization and implements Row Level Security (RLS) for data protection.
+Beudox HR uses Supabase as its backend-as-a-service provider, offering PostgreSQL database with real-time capabilities, authentication, and file storage. The database schema supports comprehensive HR management functionality.
+
+## Database Architecture
+
+### Supabase Services
+
+#### PostgreSQL Database
+- **Tables**: Core business entities
+- **Views**: Pre-computed data aggregations
+- **Functions**: Server-side business logic
+- **Triggers**: Automated data processing
+
+#### Row Level Security (RLS)
+- **Automatic Filtering**: Data access based on user context
+- **Role-based Policies**: Granular permission control
+- **Secure Queries**: All access goes through RLS
+
+#### Real-time Subscriptions
+- **Live Updates**: Instant UI synchronization
+- **Selective Subscriptions**: Targeted data watching
+- **Performance Optimized**: Efficient change detection
 
 ## Core Tables
 
-### employees
-**Purpose**: Stores all employee information and organizational relationships
+### Employees
 
-**Key Columns**:
-- `id` (uuid, primary key)
-- `email` (text, unique) - Login email
-- `full_name` (text) - Display name
-- `avatar_url` (text) - Profile picture URL
-- `role_name` (text) - Access role (employee, hr_manager, finance_manager, team_lead, ceo)
-- `department_id` (uuid, foreign key) - Department assignment
-- `designation` (text) - Job title
-- `employee_id` (text, unique) - Company employee number
-- `hire_date` (date) - Employment start date
-- `salary` (numeric) - Base salary
-- `status` (text) - Employment status (active, inactive)
-
-**Relationships**:
-- Belongs to: departments
-- Has many: evaluations, daily_evaluations, leave_requests, project_assignments
-
-### departments
-**Purpose**: Organizational structure and reporting hierarchy
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `name` (text) - Department name
-- `description` (text) - Department purpose
-- `manager_id` (uuid, foreign key) - Department head
-- `company_id` (uuid) - Multi-tenant support
-
-### evaluations
-**Purpose**: Formal quarterly performance reviews
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `employee_id` (uuid, foreign key) - Review subject
-- `evaluator_id` (uuid, foreign key) - Review author
-- `company_id` (uuid) - Tenant isolation
-- `period` (text) - Quarter (Q1, Q2, Q3, Q4)
-- `overall_score` (numeric) - 1-5 rating
-- `comments` (text) - Detailed feedback
-- `recommendation` (text) - HR recommendations (salary, promotion, etc.)
-- `created_at` (timestamp) - Review date
-
-**Relationships**:
-- Belongs to: employees (reviewee and evaluator)
-
-### daily_evaluations
-**Purpose**: Peer feedback and daily performance notes
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `reviewer_id` (uuid, foreign key) - Feedback giver
-- `reviewee_id` (uuid, foreign key) - Feedback receiver
-- `company_id` (uuid) - Tenant isolation
-- `direction` (text) - Feedback type (positive, constructive, neutral)
-- `date` (date) - Feedback date
-- `overall_score` (numeric) - 1-5 rating
-- `remarks` (text) - Feedback content
-
-### leave_requests
-**Purpose**: Time-off request management
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `employee_id` (uuid, foreign key) - Requesting employee
-- `leave_type_id` (uuid, foreign key) - Type of leave
-- `start_date` (date) - Leave start
-- `end_date` (date) - Leave end
-- `reason` (text) - Leave justification
-- `status` (text) - Request status (pending, approved, rejected)
-- `approved_by` (uuid, foreign key) - Approving manager
-- `created_at` (timestamp) - Request date
-
-### leave_types
-**Purpose**: Configurable leave categories
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `name` (text) - Leave type name (Annual, Sick, Maternity, etc.)
-- `days_allowed` (integer) - Annual entitlement
-- `requires_approval` (boolean) - Approval workflow flag
-- `color` (text) - UI color coding
-
-### leave_balances
-**Purpose**: Employee leave entitlement tracking
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `employee_id` (uuid, foreign key)
-- `leave_type_id` (uuid, foreign key)
-- `year` (integer) - Balance year
-- `total_days` (numeric) - Annual allocation
-- `used_days` (numeric) - Days taken
-- `remaining_days` (numeric) - Available balance
-
-### projects
-**Purpose**: Project management and tracking
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `name` (text) - Project name
-- `description` (text) - Project details
-- `client_id` (uuid, foreign key) - Associated client
-- `project_manager_id` (uuid, foreign key) - Project lead
-- `start_date` (date) - Project start
-- `end_date` (date) - Project end
-- `status` (text) - Project status (planning, active, completed, on_hold)
-- `budget` (numeric) - Project budget
-- `company_id` (uuid) - Tenant isolation
-
-### project_assignments
-**Purpose**: Employee-project relationships
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `project_id` (uuid, foreign key)
-- `employee_id` (uuid, foreign key)
-- `role` (text) - Project role (developer, designer, etc.)
-- `allocation_percentage` (numeric) - Time allocation
-- `start_date` (date) - Assignment start
-- `end_date` (date) - Assignment end
-
-### clients
-**Purpose**: Client relationship management
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `name` (text) - Client company name
-- `contact_person` (text) - Primary contact
-- `email` (text) - Contact email
-- `phone` (text) - Contact phone
-- `address` (text) - Client address
-- `company_id` (uuid) - Tenant isolation
-
-### invoices
-**Purpose**: Client billing and payment tracking
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `project_id` (uuid, foreign key) - Billed project
-- `invoice_number` (text) - Unique invoice number
-- `amount` (numeric) - Invoice amount
-- `status` (text) - Payment status (draft, sent, paid, overdue)
-- `issue_date` (date) - Invoice date
-- `due_date` (date) - Payment due date
-- `paid_date` (date) - Payment received date
-
-### payroll
-**Purpose**: Salary processing and attendance integration
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `employee_id` (uuid, foreign key)
-- `month` (integer) - Payroll month
-- `year` (integer) - Payroll year
-- `basic_salary` (numeric) - Base pay
-- `allowances` (numeric) - Additional pay
-- `deductions` (numeric) - Tax and other deductions
-- `net_pay` (numeric) - Final amount
-- `status` (text) - Processing status
-
-### hr_policies
-**Purpose**: Document storage for HR policies
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `title` (text) - Policy title
-- `content` (text) - HTML content
-- `category` (text) - Policy category
-- `is_active` (boolean) - Publication status
-- `created_by` (uuid, foreign key) - Author
-- `created_at` (timestamp) - Creation date
-- `updated_at` (timestamp) - Last modification
-
-### notifications
-**Purpose**: System and user notifications
-
-**Key Columns**:
-- `id` (uuid, primary key)
-- `recipient_id` (uuid, foreign key) - Target user
-- `sender_id` (uuid, foreign key) - Notification source
-- `type` (text) - Notification type
-- `title` (text) - Notification title
-- `message` (text) - Notification content
-- `is_read` (boolean) - Read status
-- `created_at` (timestamp) - Notification time
-- `action_url` (text) - Related page URL
-
-## Database Relationships
-
-### One-to-Many Relationships
-- departments → employees (one department, many employees)
-- employees → evaluations (one employee, many evaluations as reviewee)
-- employees → daily_evaluations (one employee, many evaluations as reviewer/reviewee)
-- employees → leave_requests (one employee, many leave requests)
-- leave_types → leave_requests (one type, many requests)
-- projects → project_assignments (one project, many assignments)
-- clients → projects (one client, many projects)
-- projects → invoices (one project, many invoices)
-- employees → payroll (one employee, many payroll records)
-
-### Many-to-Many Relationships
-- employees ↔ projects (via project_assignments table)
-
-### Self-Referencing Relationships
-- employees.manager_id → employees.id (reporting hierarchy)
-- departments.manager_id → employees.id (department heads)
-
-## Indexes and Performance
-
-### Primary Indexes
-All tables have primary key indexes on `id` columns
-
-### Foreign Key Indexes
-Foreign key columns are indexed for join performance:
-- `employees.department_id`
-- `evaluations.employee_id`, `evaluations.evaluator_id`
-- `leave_requests.employee_id`, `leave_requests.leave_type_id`
-- `project_assignments.project_id`, `project_assignments.employee_id`
-
-### Query-Specific Indexes
-- `employees.email` (unique constraint)
-- `employees.employee_id` (unique constraint)
-- `evaluations.created_at` (for timeline queries)
-- `daily_evaluations.date` (for date range queries)
-- `leave_requests.status` (for approval workflow)
-
-## Row Level Security (RLS)
-
-### Security Policies
-
-All tables implement RLS with company-based isolation:
+**Purpose**: Central user management and profile storage
 
 ```sql
--- Example: Employees table RLS
-ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view employees in their company" ON employees
-FOR SELECT USING (company_id = get_current_company_id());
-
-CREATE POLICY "HR managers can manage employees" ON employees
-FOR ALL USING (
-  company_id = get_current_company_id() AND
-  get_current_user_role() IN ('hr_manager', 'ceo')
+CREATE TABLE employees (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id),
+  employee_id VARCHAR(50) UNIQUE NOT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  phone VARCHAR(50),
+  date_of_birth DATE,
+  hire_date DATE NOT NULL,
+  termination_date DATE,
+  role_name VARCHAR(50) NOT NULL,
+  department VARCHAR(100),
+  designation VARCHAR(100),
+  avatar_url TEXT,
+  address TEXT,
+  emergency_contact JSONB,
+  bank_details JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
-### Access Patterns
-- **Company Isolation**: Users can only access data from their company
-- **Role-Based Access**: Different permissions for different roles
-- **Hierarchical Access**: Managers can access their team's data
-- **Self Access**: Employees can access their own records
+**Key Relationships**:
+- **company_id**: Links to company settings
+- **role_name**: Determines permissions and access
+- **JSONB fields**: Flexible storage for complex data
 
-## Data Integrity
+### Evaluations
 
-### Constraints
-- Primary key constraints on all tables
-- Foreign key constraints maintaining referential integrity
-- Unique constraints on email and employee_id
-- Check constraints on status fields and numeric ranges
-- Not null constraints on required fields
+**Purpose**: Formal performance reviews
 
-### Triggers
-- Updated timestamp triggers for audit trails
-- Balance calculation triggers for leave management
-- Notification triggers for workflow events
+```sql
+CREATE TABLE evaluations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id),
+  employee_id UUID NOT NULL REFERENCES employees(id),
+  evaluated_by UUID NOT NULL REFERENCES employees(id),
+  period VARCHAR(20) NOT NULL, -- 'Q1', 'Q2', etc.
+  overall_score DECIMAL(3,1) CHECK (overall_score >= 1 AND overall_score <= 5),
+  comments TEXT,
+  recommendation TEXT,
+  strengths TEXT[],
+  areas_for_improvement TEXT[],
+  goals TEXT[],
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**Business Logic**:
+- **Scoring**: 1-5 star rating system
+- **Period-based**: Quarterly evaluations
+- **Structured Feedback**: Categorized improvement areas
+
+### Daily Evaluations
+
+**Purpose**: Continuous feedback system
+
+```sql
+CREATE TABLE daily_evaluations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id),
+  reviewer_id UUID NOT NULL REFERENCES employees(id),
+  reviewee_id UUID NOT NULL REFERENCES employees(id),
+  direction VARCHAR(20) NOT NULL, -- 'upward', 'downward', 'peer'
+  date DATE NOT NULL,
+  overall_score DECIMAL(3,1) CHECK (overall_score >= 1 AND overall_score <= 5),
+  remarks TEXT,
+  categories JSONB, -- {'communication': 4, 'leadership': 3}
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**Evaluation Types**:
+- **Upward**: Employee feedback to manager
+- **Downward**: Manager feedback to employee
+- **Peer**: Colleague feedback
+
+### Leave Management
+
+**Purpose**: Time-off tracking and approvals
+
+```sql
+CREATE TABLE leave_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id),
+  employee_id UUID NOT NULL REFERENCES employees(id),
+  leave_type VARCHAR(50) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  days_requested DECIMAL(5,1) NOT NULL,
+  reason TEXT,
+  status VARCHAR(20) DEFAULT 'pending',
+  approved_by UUID REFERENCES employees(id),
+  approved_at TIMESTAMP WITH TIME ZONE,
+  comments TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE leave_balances (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  employee_id UUID NOT NULL REFERENCES employees(id),
+  leave_type VARCHAR(50) NOT NULL,
+  year INTEGER NOT NULL,
+  allocated_days DECIMAL(5,1) NOT NULL,
+  used_days DECIMAL(5,1) DEFAULT 0,
+  carried_forward DECIMAL(5,1) DEFAULT 0,
+  UNIQUE(employee_id, leave_type, year)
+);
+```
+
+**Leave Types**:
+- **Annual Leave**: Standard vacation
+- **Sick Leave**: Medical absence
+- **Personal Leave**: Personal matters
+- **Maternity/Paternity**: Family leave
+
+### Projects & Finance
+
+**Purpose**: Project management and billing
+
+```sql
+CREATE TABLE projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id),
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  client_id UUID REFERENCES clients(id),
+  project_manager UUID REFERENCES employees(id),
+  start_date DATE,
+  end_date DATE,
+  budget DECIMAL(12,2),
+  status VARCHAR(20) DEFAULT 'active',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE project_assignments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id),
+  employee_id UUID NOT NULL REFERENCES employees(id),
+  role VARCHAR(100),
+  allocation_percentage INTEGER CHECK (allocation_percentage >= 0 AND allocation_percentage <= 100),
+  start_date DATE NOT NULL,
+  end_date DATE,
+  UNIQUE(project_id, employee_id, start_date)
+);
+
+CREATE TABLE invoices (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id),
+  client_id UUID REFERENCES clients(id),
+  project_id UUID REFERENCES projects(id),
+  invoice_number VARCHAR(50) UNIQUE NOT NULL,
+  issue_date DATE NOT NULL,
+  due_date DATE NOT NULL,
+  total_amount DECIMAL(12,2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'draft',
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### HR Policies
+
+**Purpose**: Company policy documentation
+
+```sql
+CREATE TABLE hr_policies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id),
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL, -- HTML content
+  category VARCHAR(100),
+  is_active BOOLEAN DEFAULT true,
+  created_by UUID NOT NULL REFERENCES employees(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### Payroll
+
+**Purpose**: Compensation processing
+
+```sql
+CREATE TABLE payroll_runs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id),
+  period_start DATE NOT NULL,
+  period_end DATE NOT NULL,
+  status VARCHAR(20) DEFAULT 'draft',
+  processed_by UUID REFERENCES employees(id),
+  processed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE payroll_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  payroll_run_id UUID NOT NULL REFERENCES payroll_runs(id),
+  employee_id UUID NOT NULL REFERENCES employees(id),
+  basic_salary DECIMAL(10,2) NOT NULL,
+  allowances DECIMAL(10,2) DEFAULT 0,
+  deductions DECIMAL(10,2) DEFAULT 0,
+  overtime_hours DECIMAL(5,2) DEFAULT 0,
+  overtime_amount DECIMAL(10,2) DEFAULT 0,
+  net_salary DECIMAL(10,2) NOT NULL,
+  UNIQUE(payroll_run_id, employee_id)
+);
+```
+
+## Database Queries & Patterns
+
+### Common Query Patterns
+
+#### Employee with Relations
+```sql
+SELECT 
+  e.*,
+  d.name as department_name,
+  m.full_name as manager_name
+FROM employees e
+LEFT JOIN departments d ON e.department_id = d.id
+LEFT JOIN employees m ON e.manager_id = m.id
+WHERE e.company_id = $1;
+```
+
+#### Evaluation Timeline
+```sql
+-- Quarterly evaluations
+SELECT 
+  'quarterly' as type,
+  ev.created_at as date,
+  ev.overall_score,
+  ev.comments,
+  evaluator.full_name as evaluator_name
+FROM evaluations ev
+JOIN employees evaluator ON ev.evaluated_by = evaluator.id
+WHERE ev.employee_id = $1
+ORDER BY ev.created_at DESC;
+
+-- Daily evaluations
+SELECT 
+  'daily' as type,
+  de.date,
+  de.overall_score,
+  de.remarks,
+  reviewer.full_name as reviewer_name
+FROM daily_evaluations de
+JOIN employees reviewer ON de.reviewer_id = reviewer.id
+WHERE de.reviewee_id = $1
+ORDER BY de.date DESC;
+```
+
+#### Leave Balance Calculation
+```sql
+SELECT 
+  leave_type,
+  allocated_days - used_days as remaining_days
+FROM leave_balances
+WHERE employee_id = $1 AND year = $2;
+```
+
+### Row Level Security Policies
+
+#### Employee Data Access
+```sql
+-- Employees can view their own data
+CREATE POLICY "employees_view_own" ON employees
+FOR SELECT USING (auth.uid() = user_id);
+
+-- HR can view all employee data
+CREATE POLICY "hr_view_all" ON employees
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM employees 
+    WHERE id = auth.uid() 
+    AND role_name IN ('hr_manager', 'ceo')
+  )
+);
+```
+
+#### Evaluation Visibility
+```sql
+-- Employees can view evaluations about themselves
+CREATE POLICY "evaluations_self" ON evaluations
+FOR SELECT USING (auth.uid() = employee_id);
+
+-- Managers can view evaluations they conducted
+CREATE POLICY "evaluations_conducted" ON evaluations
+FOR SELECT USING (auth.uid() = evaluated_by);
+```
 
 ## Migration Strategy
 
 ### Migration Files
-The database evolved through 23 migrations:
-- Initial schema creation
-- Feature additions (evaluations, leave management)
-- Relationship enhancements
-- Performance optimizations
-- Security policy implementations
-- Data type refinements
+Located in `supabase/migrations/` with timestamp-based naming:
+
+```
+20260327024411_dd73d633-87f8-4810-ade7-67a731f7245d.sql
+20260327233449_3688515e-184e-4704-8759-e560c8990571.sql
+...
+```
 
 ### Migration Best Practices
-- Incremental changes
-- Backward compatibility
-- Rollback capabilities
-- Data migration scripts
-- Testing in staging environments
+- **Incremental Changes**: Each migration is a single change
+- **Reversible**: Support for rollbacks
+- **Tested**: Validate in staging before production
+- **Documented**: Clear comments explaining changes
 
-## Backup and Recovery
+## Performance Optimization
 
-### Automated Backups
-- Daily database snapshots
-- Point-in-time recovery
-- Cross-region replication
+### Indexing Strategy
+```sql
+-- Composite indexes for common queries
+CREATE INDEX idx_evaluations_employee_period 
+ON evaluations(employee_id, period);
+
+CREATE INDEX idx_daily_evals_reviewee_date 
+ON daily_evaluations(reviewee_id, date DESC);
+
+-- Partial indexes for active records
+CREATE INDEX idx_active_policies 
+ON hr_policies(company_id) WHERE is_active = true;
+```
+
+### Query Optimization
+- **Pagination**: Use LIMIT/OFFSET for large datasets
+- **Selective Fields**: Only select needed columns
+- **Joins**: Prefer INNER JOINs over OUTER when possible
+- **Aggregations**: Use database functions for calculations
+
+## Real-time Features
+
+### Subscription Patterns
+```typescript
+// Real-time leave request updates
+const channel = supabase
+  .channel('leave_requests')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'leave_requests',
+    filter: `employee_id=eq.${employeeId}`
+  }, (payload) => {
+    // Handle real-time update
+    queryClient.invalidateQueries(['leave-requests']);
+  })
+  .subscribe();
+```
+
+### Real-time Tables
+- **leave_requests**: Live status updates
+- **daily_evaluations**: Instant feedback notifications
+- **notifications**: Real-time alert system
+
+## Backup & Recovery
+
+### Supabase Backup
+- **Automatic Backups**: Daily database snapshots
+- **Point-in-time Recovery**: Restore to specific timestamp
+- **Geographic Redundancy**: Multi-region replication
 
 ### Data Export
-- CSV export for reporting
-- JSON export for API integration
-- Encrypted backups for compliance
+- **CSV Export**: Bulk data extraction
+- **API Access**: Programmatic data retrieval
+- **Audit Logs**: Change tracking and compliance
 
-This database schema provides a robust foundation for the HR management system with proper normalization, security, and performance optimizations.
+This database documentation provides a comprehensive overview of the Beudox HR system's data architecture, schema design, and operational patterns.
