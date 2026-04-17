@@ -13,15 +13,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Search, FolderKanban, XCircle } from 'lucide-react';
+import { Plus, Search, FolderKanban, XCircle, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+
+const STATUS_OPTIONS = ['pending', 'in_progress', 'qc_required', 'on_hold', 'completed', 'cancelled', 'delayed'];
 
 const statusColors: Record<string, string> = {
+  pending: 'bg-slate-100 text-slate-700',
   in_progress: 'bg-blue-100 text-blue-700',
+  qc_required: 'bg-amber-100 text-amber-700',
   completed: 'bg-green-100 text-green-700',
   invoiced: 'bg-purple-100 text-purple-700',
   on_hold: 'bg-yellow-100 text-yellow-700',
   cancelled: 'bg-red-100 text-red-700',
+  delayed: 'bg-orange-100 text-orange-700',
 };
 
 const priorityColors: Record<string, string> = {
