@@ -2173,6 +2173,7 @@ export type Database = {
           company_id: string
           created_at: string | null
           date: string
+          end_date: string | null
           id: string
           is_recurring: boolean
           name: string
@@ -2182,6 +2183,7 @@ export type Database = {
           company_id: string
           created_at?: string | null
           date: string
+          end_date?: string | null
           id?: string
           is_recurring?: boolean
           name: string
@@ -2191,6 +2193,7 @@ export type Database = {
           company_id?: string
           created_at?: string | null
           date?: string
+          end_date?: string | null
           id?: string
           is_recurring?: boolean
           name?: string

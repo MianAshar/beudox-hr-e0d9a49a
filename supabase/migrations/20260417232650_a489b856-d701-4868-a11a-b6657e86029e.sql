@@ -1,0 +1,1 @@
+ALTER TABLE public.public_holidays ADD COLUMN IF NOT EXISTS end_date DATE;
