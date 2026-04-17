@@ -1,71 +1,89 @@
 <!--
 generated_by: tessera
-source_sha: bb2f4a3d5c7ffab410e8736a22bf8ff81da5c3f7
-generated_at: 2026-04-17T22:00:31.972Z
+source_sha: 9f5994cb2e02ca6967a2f43a3aaef3e84c0735eb
+generated_at: 2026-04-17T22:13:21.715Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources Management System built with modern web technologies, designed to streamline HR operations for small to medium-sized businesses.
+A comprehensive Human Resources management application built with modern web technologies. This system provides organizations with tools to manage employees, projects, clients, payroll, evaluations, leave management, and more.
 
 ## Features
 
-### Core HR Functionality
-- **Employee Management**: Complete employee lifecycle management including onboarding, profiles, and organizational structure
-- **Attendance Tracking**: Automated attendance recording with overtime calculations and reporting
-- **Leave Management**: Flexible leave request system with approval workflows and balance tracking
-- **Payroll Processing**: Automated payroll generation with salary calculations, deductions, and payment processing
+### Core HR Management
+- **Employee Management**: Complete employee profiles, onboarding, and lifecycle management
+- **Role-Based Access Control**: Granular permissions for different user roles (CEO, HR Manager, Team Lead, Employee)
+- **Organization Settings**: Configure departments, roles, leave types, expense categories, and company information
 
-### Performance & Development
-- **Employee Evaluations**: Quarterly performance reviews with structured feedback
-- **Daily Evaluations**: Real-time peer feedback and project-based assessments
-- **HR Policies**: Rich text policy documents with version control
+### Performance & Evaluation
+- **Quarterly Evaluations**: Formal performance reviews with scoring and recommendations
+- **Daily Evaluations**: Real-time feedback system for continuous improvement
+- **Evaluation Timeline**: Historical view of all evaluations for employees
 
 ### Project & Client Management
-- **Project Management**: Project tracking with team assignments and deadlines
-- **Client Management**: Client relationship management with billing integration
-- **Invoicing**: Automated invoice generation and payment tracking
+- **Project Tracking**: Create and manage projects with detailed information
+- **Client Management**: Maintain client relationships and project associations
+- **Invoice Management**: Generate and track invoices for projects
 
 ### Financial Management
-- **Expense Tracking**: Office and employee expense management with approval workflows
-- **Loan Management**: Employee loan processing and repayment tracking
-- **Financial Reporting**: Comprehensive financial dashboards and reports
+- **Payroll Processing**: Automated payroll generation with attendance tracking
+- **Loan Management**: Track employee loans and repayments
+- **Finance Sheets**: Comprehensive financial reporting
+- **Payslip Generation**: Employee payslip access and PDF generation
 
-### Communication & Notifications
-- **Notification System**: Automated notifications for approvals, deadlines, and updates
-- **Role-based Access**: Granular permissions based on organizational roles
+### Leave & Attendance
+- **Leave Management**: Request, approve, and track leave balances
+- **Public Holidays**: Configure and manage company holidays
+- **Attendance Tracking**: Monitor employee attendance patterns
+
+### Policy & Communication
+- **HR Policies**: Create and manage company policies with rich text editing
+- **Notifications**: Automated notifications for important events
 
 ## Technology Stack
 
 ### Frontend
-- **React 18** with TypeScript for type-safe development
-- **Vite** for fast development and optimized builds
-- **React Router** for client-side routing
-- **TanStack Query** for server state management
-- **shadcn/ui** component library with Radix UI primitives
-- **Tailwind CSS** for styling
-- **TipTap** rich text editor
-- **React Hook Form** with Zod validation
+- **React 18** - Modern React with hooks and concurrent features
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and development server
+- **React Router** - Client-side routing
+- **Tailwind CSS** - Utility-first CSS framework
+- **Radix UI** - Accessible component primitives
+- **shadcn/ui** - Beautiful, customizable components
+
+### State Management & Data
+- **TanStack Query** - Powerful data synchronization for React
+- **React Hook Form** - Performant forms with easy validation
+- **Zod** - TypeScript-first schema validation
+
+### Rich Content & Charts
+- **Tiptap** - Rich text editor for policies
+- **Recharts** - Composable charting library
+- **date-fns** - Modern JavaScript date utility library
 
 ### Backend & Database
-- **Supabase** (PostgreSQL + Auth + Edge Functions)
-- **Row Level Security (RLS)** for data access control
-- **Real-time subscriptions** for live updates
+- **Supabase** - Open source Firebase alternative
+  - PostgreSQL database
+  - Real-time subscriptions
+  - Authentication
+  - File storage
+  - Edge functions for business logic
 
-### Development Tools
-- **ESLint** for code linting
-- **Vitest** for unit testing
-- **Playwright** for end-to-end testing
-- **TypeScript** for type checking
+### Development & Testing
+- **Vitest** - Fast unit testing framework
+- **Playwright** - End-to-end testing
+- **ESLint** - Code linting
+- **TypeScript** - Type checking
 
-## Prerequisites
+## Getting Started
 
+### Prerequisites
 - Node.js 18+
 - npm or bun package manager
 - Supabase account and project
 
-## Installation
+### Installation
 
 1. **Clone the repository**
    ```bash
@@ -95,51 +113,25 @@ A comprehensive Human Resources Management System built with modern web technolo
 
 4. **Database Setup**
    
-   The application uses Supabase migrations. Run the migrations in your Supabase project:
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   
+   You can use the Supabase CLI:
    ```bash
-   # The migrations are located in supabase/migrations/
-   # Apply them through the Supabase dashboard or CLI
+   supabase db reset
    ```
 
-5. **Start the development server**
+5. **Start Development Server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
 
-## Usage
-
-### Authentication
-- Access the application at `http://localhost:5173`
-- Create an admin account through Supabase Auth
-- Set up company information and initial employees
-
-### User Roles
-- **CEO**: Full system access
-- **HR Manager**: HR operations and employee management
-- **Team Lead**: Team management and evaluations
-- **Employee**: Personal profile and requests
-
-### Key Workflows
-
-#### Employee Onboarding
-1. Create employee profile with basic information
-2. Assign role and department
-3. Set up salary and benefits
-4. Configure access permissions
-
-#### Leave Management
-1. Employee submits leave request
-2. Manager reviews and approves/rejects
-3. System updates leave balances
-4. Notifications sent to relevant parties
-
-#### Payroll Processing
-1. System calculates salaries based on attendance and overtime
-2. HR reviews and approves payroll
-3. Generate payslips and process payments
-4. Track payment history
+6. **Build for Production**
+   ```bash
+   npm run build
+   npm run preview
+   ```
 
 ## Project Structure
 
@@ -147,74 +139,48 @@ A comprehensive Human Resources Management System built with modern web technolo
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components
-│   ├── employees/      # Employee-related components
-│   ├── evaluations/    # Evaluation components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── [feature]/      # Feature-specific components
 │   └── ...
-├── pages/              # Page components
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
+├── lib/                # Utilities and configurations
 ├── integrations/       # External service integrations
-└── types/              # TypeScript type definitions
+└── ...
 
 supabase/
-├── migrations/         # Database migrations
-└── functions/          # Edge functions
+├── migrations/         # Database schema migrations
+├── functions/          # Edge functions for business logic
+└── config.toml         # Supabase configuration
 ```
 
-## Development
-
-### Available Scripts
+## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
+- `npm run build:dev` - Build for development
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
-- `npm run test` - Run unit tests
-- `npm run test:e2e` - Run end-to-end tests
+- `npm run test` - Run tests once
+- `npm run test:watch` - Run tests in watch mode
 
-### Code Quality
+## Authentication & Authorization
 
-The project uses ESLint for code linting and follows TypeScript strict mode. All components are typed and the codebase maintains high test coverage.
+The application uses Supabase Authentication with role-based access control:
 
-### Testing
-
-- Unit tests with Vitest
-- E2E tests with Playwright
-- Component testing with React Testing Library
-
-## Deployment
-
-### Build for Production
-```bash
-npm run build
-```
-
-### Environment Variables for Production
-Ensure these environment variables are set in your deployment platform:
-
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
-```
-
-### Supabase Deployment
-- Deploy edge functions through Supabase CLI
-- Configure authentication providers
-- Set up database backups and monitoring
+- **CEO**: Full access to all features
+- **HR Manager**: Access to HR functions, evaluations, payroll
+- **Team Lead**: Limited access to team management and evaluations
+- **Employee**: Access to personal data, leave requests, profile
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes with tests
-4. Ensure all tests pass
+3. Make your changes
+4. Run tests and linting
 5. Submit a pull request
 
 ## License
 
-This project is proprietary software. All rights reserved.
-
-## Support
-
-For support and questions, please contact the development team.
+This project is private and proprietary to Beudox.
