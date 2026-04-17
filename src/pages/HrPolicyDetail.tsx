@@ -13,6 +13,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ArrowLeft, Edit, Trash2, ChevronDown, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 
 const HrPolicyDetail = () => {

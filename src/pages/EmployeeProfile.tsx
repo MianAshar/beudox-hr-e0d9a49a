@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
 

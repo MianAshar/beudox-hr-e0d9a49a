@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { Plus, Eye, Trash2, ClipboardCheck, CalendarIcon, ArrowRight, ArrowLeft as ArrowLeftIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 
 const getInitials = (name: string) =>
   name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);

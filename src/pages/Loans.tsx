@@ -20,6 +20,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast } from 'sonner';
 import { Plus, Search, CreditCard, Loader2, MoreHorizontal, Pencil, CheckCircle, PauseCircle, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 
 const STATUS_OPTIONS = [

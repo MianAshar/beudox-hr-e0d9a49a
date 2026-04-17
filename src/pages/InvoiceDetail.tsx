@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Send, CreditCard, Pencil, Ban, Loader2, FileText, Trash2,
 } from 'lucide-react';
+import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 
 const statusStyles: Record<string, string> = {
