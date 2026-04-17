@@ -28,7 +28,7 @@ interface Client {
   is_active: boolean;
 }
 
-const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR'];
+const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
 
 const emptyForm = {
   name: '',
