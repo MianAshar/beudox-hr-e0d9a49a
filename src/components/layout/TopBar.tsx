@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import NotificationBell from './NotificationBell';
+import UserMenu from './UserMenu';
 
 const getPageTitle = (pathname: string): string => {
   if (pathname === '/employees/new') return 'Add Employee';
@@ -28,6 +29,7 @@ const pageTitles: Record<string, string> = {
   '/hr-policies': 'HR Policies',
   '/notifications': 'Notifications',
   '/settings': 'Settings',
+  '/my-profile': 'My Profile',
 };
 
 const TopBar = () => {
@@ -47,7 +49,10 @@ const TopBar = () => {
           {title}
         </h1>
       </div>
-      <NotificationBell />
+      <div className="flex items-center gap-3">
+        <NotificationBell />
+        <UserMenu />
+      </div>
     </header>
   );
 };
