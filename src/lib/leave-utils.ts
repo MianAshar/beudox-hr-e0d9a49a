@@ -17,15 +17,28 @@ export async function countWorkingDays(
 
   const workingDays: number[] = settings?.working_days ?? [1, 2, 3, 4, 5];
 
-  // Get public holidays in range
+  // Get public holidays whose range overlaps the requested window.
+  // A holiday overlaps when its start <= endDate AND (end_date ?? start) >= startDate.
   const { data: holidays } = await supabase
     .from('public_holidays' as any)
-    .select('date')
+    .select('date, end_date')
     .eq('company_id', companyId)
-    .gte('date', startDate)
     .lte('date', endDate);
 
-  const holidaySet = new Set((holidays || []).map((h: any) => h.date));
+  const holidaySet = new Set<string>();
+  (holidays || []).forEach((h: any) => {
+    const hStart = h.date as string;
+    const hEnd = (h.end_date as string | null) ?? hStart;
+    if (hEnd < startDate) return; // no overlap
+    // Expand each day in the holiday range that falls within [startDate, endDate]
+    const cur = new Date(hStart);
+    const end = new Date(hEnd);
+    while (cur <= end) {
+      const ds = cur.toISOString().split('T')[0];
+      if (ds >= startDate && ds <= endDate) holidaySet.add(ds);
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
 
   let count = 0;
   const current = new Date(startDate);

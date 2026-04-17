@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { format, parse, getDay, getDaysInMonth, startOfMonth, getYear } from 'date-fns';
+import { format, parse, getDay, getDaysInMonth, startOfMonth, getYear, differenceInCalendarDays, eachDayOfInterval } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { Calendar as CalendarIcon, List, Plus, Trash2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ interface Holiday {
   id: string;
   company_id: string;
   date: string;
+  end_date: string | null;
   name: string;
   is_recurring: boolean;
   year: number;
@@ -54,10 +55,12 @@ const PublicHolidays = () => {
   const [view, setView] = useState<'list' | 'calendar'>('list');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDate, setModalDate] = useState<Date | undefined>(undefined);
+  const [modalEndDate, setModalEndDate] = useState<Date | undefined>(undefined);
   const [modalName, setModalName] = useState('');
   const [modalRecurring, setModalRecurring] = useState(false);
   const [nameError, setNameError] = useState('');
   const [dateError, setDateError] = useState('');
+  const [endDateError, setEndDateError] = useState('');
   const [calPopover, setCalPopover] = useState<string | null>(null);
 
   const companyId = employee?.company_id;
@@ -91,7 +94,7 @@ const PublicHolidays = () => {
   });
 
   const addMutation = useMutation({
-    mutationFn: async (h: { date: string; name: string; is_recurring: boolean; year: number }) => {
+    mutationFn: async (h: { date: string; end_date: string | null; name: string; is_recurring: boolean; year: number }) => {
       const { error } = await supabase.from('public_holidays').insert({
         company_id: companyId!,
         ...h,
@@ -111,6 +114,7 @@ const PublicHolidays = () => {
         company_id: companyId!,
         name: h.name,
         date: `${selectedYear}-${String(h.month).padStart(2, '0')}-${String(h.day).padStart(2, '0')}`,
+        end_date: null,
         is_recurring: true,
         year: selectedYear,
       }));
@@ -126,35 +130,46 @@ const PublicHolidays = () => {
   const closeModal = () => {
     setModalOpen(false);
     setModalDate(undefined);
+    setModalEndDate(undefined);
     setModalName('');
     setModalRecurring(false);
     setNameError('');
     setDateError('');
+    setEndDateError('');
   };
 
   const openModal = (date?: Date) => {
     setModalDate(date);
+    setModalEndDate(undefined);
     setModalName('');
     setModalRecurring(false);
     setNameError('');
     setDateError('');
+    setEndDateError('');
     setModalOpen(true);
   };
 
   const handleSave = () => {
     let valid = true;
-    if (!modalDate) { setDateError('Date is required'); valid = false; } else { setDateError(''); }
+    if (!modalDate) { setDateError('Start date is required'); valid = false; } else { setDateError(''); }
     if (!modalName.trim()) { setNameError('Holiday name is required'); valid = false; } else { setNameError(''); }
+    if (modalDate && modalEndDate && modalEndDate < modalDate) {
+      setEndDateError('End date must be on or after start date');
+      valid = false;
+    } else {
+      setEndDateError('');
+    }
     if (!valid) return;
     addMutation.mutate({
       date: format(modalDate!, 'yyyy-MM-dd'),
+      end_date: modalEndDate ? format(modalEndDate, 'yyyy-MM-dd') : null,
       name: modalName.trim(),
       is_recurring: modalRecurring,
       year: getYear(modalDate!),
     });
   };
 
-  // Group holidays by month for list view
+  // Group holidays by month for list view (group by start date month)
   const grouped = useMemo(() => {
     const map: Record<string, Holiday[]> = {};
     holidays.forEach(h => {
@@ -166,10 +181,16 @@ const PublicHolidays = () => {
     return map;
   }, [holidays]);
 
-  // Holiday lookup by date string for calendar view
+  // Holiday lookup by date string for calendar view — expand ranges
   const holidayMap = useMemo(() => {
     const map: Record<string, Holiday> = {};
-    holidays.forEach(h => { map[h.date] = h; });
+    holidays.forEach(h => {
+      const start = parse(h.date, 'yyyy-MM-dd', new Date());
+      const end = h.end_date ? parse(h.end_date, 'yyyy-MM-dd', new Date()) : start;
+      eachDayOfInterval({ start, end }).forEach(d => {
+        map[format(d, 'yyyy-MM-dd')] = h;
+      });
+    });
     return map;
   }, [holidays]);
 
@@ -262,14 +283,24 @@ const PublicHolidays = () => {
                   <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{month}</h3>
                   <div className="rounded-lg border border-border bg-card divide-y divide-border">
                     {items.map(h => {
-                      const d = parse(h.date, 'yyyy-MM-dd', new Date());
+                      const start = parse(h.date, 'yyyy-MM-dd', new Date());
+                      const end = h.end_date ? parse(h.end_date, 'yyyy-MM-dd', new Date()) : null;
+                      const dateLabel = end
+                        ? `${formatDate(start)} — ${formatDate(end)}`
+                        : formatDate(start);
+                      const days = end ? differenceInCalendarDays(end, start) + 1 : 1;
                       return (
                         <div key={h.id} className="flex items-center justify-between px-4 py-3">
-                          <div className="flex items-center gap-4">
-                            <span className="text-sm text-muted-foreground w-36">{formatDate(d)}</span>
-                            <span className="text-sm font-medium text-foreground">{h.name}</span>
+                          <div className="flex items-center gap-4 min-w-0">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">{dateLabel}</span>
+                            <span className="text-sm font-medium text-foreground truncate">{h.name}</span>
+                            {days > 1 && (
+                              <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded whitespace-nowrap">
+                                {days} days
+                              </span>
+                            )}
                             {h.is_recurring && (
-                              <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">Recurring</span>
+                              <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded whitespace-nowrap">Recurring</span>
                             )}
                           </div>
                           {canManage && (
@@ -324,7 +355,7 @@ const PublicHolidays = () => {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label>Date <span className="text-destructive">*</span></Label>
+              <Label>Start Date <span className="text-destructive">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -339,12 +370,47 @@ const PublicHolidays = () => {
                   <Calendar
                     mode="single"
                     selected={modalDate}
-                    onSelect={(d) => { setModalDate(d); setDateError(''); }}
+                    onSelect={(d) => {
+                      setModalDate(d);
+                      setDateError('');
+                      // Clear end date if it's now before start
+                      if (d && modalEndDate && modalEndDate < d) {
+                        setModalEndDate(undefined);
+                      }
+                    }}
                     className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
               {dateError && <p className="text-xs text-destructive">{dateError}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>End Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn('w-full justify-start text-left font-normal', !modalEndDate && 'text-muted-foreground')}
+                  >
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    {modalEndDate ? formatDate(modalEndDate) : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={modalEndDate}
+                    onSelect={(d) => { setModalEndDate(d); setEndDateError(''); }}
+                    disabled={(d) => modalDate ? d < modalDate : false}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              {endDateError ? (
+                <p className="text-xs text-destructive">{endDateError}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Leave empty for a single day holiday</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label>Holiday Name <span className="text-destructive">*</span></Label>
@@ -399,7 +465,6 @@ interface MiniMonthProps {
 const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopover, onDelete, onAddDate, deleting, canManage }: MiniMonthProps) => {
   const firstDay = startOfMonth(new Date(year, month));
   const totalDays = getDaysInMonth(firstDay);
-  // getDay: 0=Sun, convert to Mon-start: (getDay + 6) % 7
   const startOffset = (getDay(firstDay) + 6) % 7;
 
   const cells: (number | null)[] = Array.from({ length: startOffset }, () => null);
@@ -416,15 +481,17 @@ const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopov
           if (day === null) return <div key={`e-${i}`} />;
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const holiday = holidayMap[dateStr];
-          const dayOfWeek = (startOffset + day - 1) % 7; // 0=Mon
-          const isWeekend = dayOfWeek >= 5; // 5=Sat, 6=Sun
+          const dayOfWeek = (startOffset + day - 1) % 7;
+          const isWeekend = dayOfWeek >= 5;
+          // Unique key for popover state — combine holiday id + date so each cell of a range can open independently
+          const popoverKey = holiday ? `${holiday.id}-${dateStr}` : null;
 
           const dayEl = (
             <button
               key={dateStr}
               onClick={() => {
-                if (holiday) {
-                  setCalPopover(calPopover === holiday.id ? null : holiday.id);
+                if (holiday && popoverKey) {
+                  setCalPopover(calPopover === popoverKey ? null : popoverKey);
                 } else if (canManage) {
                   onAddDate(new Date(year, month, day));
                 }
@@ -444,9 +511,9 @@ const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopov
             </button>
           );
 
-          if (holiday) {
+          if (holiday && popoverKey) {
             return (
-              <Popover key={dateStr} open={calPopover === holiday.id} onOpenChange={v => setCalPopover(v ? holiday.id : null)}>
+              <Popover key={dateStr} open={calPopover === popoverKey} onOpenChange={v => setCalPopover(v ? popoverKey : null)}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <PopoverTrigger asChild>
