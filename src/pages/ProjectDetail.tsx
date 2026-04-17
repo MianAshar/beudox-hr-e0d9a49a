@@ -37,6 +37,7 @@ const ProjectDetail = () => {
   const companyId = employee?.company_id;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const isCeo = role === 'ceo';
+  const canSeeActivity = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
 
   const [deactivateOpen, setDeactivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
