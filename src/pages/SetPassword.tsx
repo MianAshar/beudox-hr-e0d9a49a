@@ -9,19 +9,6 @@ interface SetPasswordProps {
   onComplete: () => void;
 }
 
-// Parse Supabase auth hash params (e.g. #access_token=...&type=invite)
-const parseAuthHash = () => {
-  const hash = window.location.hash.replace(/^#/, '');
-  if (!hash) return null;
-  const params = new URLSearchParams(hash);
-  return {
-    access_token: params.get('access_token'),
-    refresh_token: params.get('refresh_token'),
-    type: params.get('type'),
-    error: params.get('error'),
-    error_description: params.get('error_description'),
-  };
-};
 
 const getStrength = (pw: string): { label: string; percent: number; color: string } => {
   let score = 0;
@@ -53,23 +40,34 @@ const SetPassword = ({ mode, onComplete }: SetPasswordProps) => {
   const buttonText = isInvite ? 'Set password' : 'Reset password';
   const strength = password.length > 0 ? getStrength(password) : null;
 
-  // On mount: if URL has an auth hash, exchange it for a session so updateUser works.
+  // On mount: rely on Supabase to auto-process the URL hash and fire onAuthStateChange.
+  // Do NOT manually parse hash or call verifyOtp/exchangeCodeForSession.
   useEffect(() => {
-    const parsed = parseAuthHash();
-    if (!parsed) return;
-    if (parsed.error) {
-      setErrors({ general: parsed.error_description || parsed.error });
-      window.history.replaceState({}, '', '/set-password');
-      return;
-    }
-    if (parsed.access_token && parsed.refresh_token) {
-      supabase.auth
-        .setSession({ access_token: parsed.access_token, refresh_token: parsed.refresh_token })
-        .then(({ error }) => {
-          if (error) setErrors({ general: error.message });
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted && data.session) {
+        // Session already established — clear any URL hash and proceed silently.
+        if (window.location.hash) {
           window.history.replaceState({}, '', '/set-password');
-        });
-    }
+        }
+      }
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // Session established from invite/recovery token — clear errors and hash.
+        setErrors({});
+        if (window.location.hash) {
+          window.history.replaceState({}, '', '/set-password');
+        }
+      }
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const validate = () => {
