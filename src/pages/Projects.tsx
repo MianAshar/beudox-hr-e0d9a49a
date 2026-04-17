@@ -44,6 +44,7 @@ const Projects = () => {
   const companyId = employee?.company_id;
   const role = employee?.role_name;
   const isManager = role === 'hr_manager' || role === 'ceo';
+  const canEditStatus = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
