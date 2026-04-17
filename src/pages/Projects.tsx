@@ -12,11 +12,31 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown } from 'lucide-react';
+import { Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, Pencil } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+
+async function logProjectActivity(params: {
+  companyId: string;
+  projectId: string;
+  employeeId: string;
+  action: string;
+  oldValue: string | null;
+  newValue: string | null;
+}) {
+  await supabase.from('project_activity_logs').insert({
+    company_id: params.companyId,
+    project_id: params.projectId,
+    employee_id: params.employeeId,
+    action: params.action,
+    old_value: params.oldValue,
+    new_value: params.newValue,
+  });
+}
 
 const STATUS_OPTIONS = ['pending', 'in_progress', 'qc_required', 'on_hold', 'completed', 'cancelled', 'delayed'];
 
