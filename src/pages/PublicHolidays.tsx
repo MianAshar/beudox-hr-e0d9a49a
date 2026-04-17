@@ -309,6 +309,7 @@ const PublicHolidays = () => {
               onDelete={(id) => deleteMutation.mutate(id)}
               onAddDate={(date) => openModal(date)}
               deleting={deleteMutation.isPending}
+              canManage={canManage}
             />
           ))}
         </div>
