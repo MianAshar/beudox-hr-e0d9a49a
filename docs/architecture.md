@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: 939657ec2ede9cca1a4aad08f88592834464cc25
-generated_at: 2026-04-16T12:21:14.215Z
+source_sha: 93ba9a42b1f47246ac1f0acfa152b243f990fa9d
+generated_at: 2026-04-17T21:53:46.119Z
 action: create
 -->
 
@@ -9,263 +9,287 @@ action: create
 
 ## System Overview
 
-Beudox HR is a comprehensive Human Resources Management System implemented as a modern single-page application (SPA) with a backend-as-a-service architecture.
+Beudox HR is a comprehensive Human Resources management platform built as a modern web application. The system provides end-to-end HR functionality including employee management, performance evaluations, payroll processing, and organizational workflows.
 
-## High-Level Architecture
+## Architecture Principles
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React SPA     │    │    Supabase      │    │   PostgreSQL    │
-│   (Frontend)    │◄──►│  Backend-as-a-  │◄──►│    Database     │
-│                 │    │     Service      │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  React Router   │    │   Auth & RLS    │    │  Row Level      │
-│   Navigation    │    │   Security      │    │   Security      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+### 1. Component-Driven Development
+- **Atomic Design**: UI components organized from atoms to organisms
+- **Reusability**: Components designed for reuse across features
+- **Composition**: Complex UIs built from simple, composable parts
+
+### 2. Type Safety First
+- **TypeScript**: Strict typing throughout the application
+- **Schema Validation**: Zod schemas for runtime type checking
+- **API Contracts**: Type-safe database and API interactions
+
+### 3. Separation of Concerns
+- **Business Logic**: Isolated in custom hooks and utilities
+- **UI Logic**: Pure presentational components
+- **Data Layer**: Centralized API and database interactions
+
+### 4. Performance Optimization
+- **Code Splitting**: Route-based and feature-based splitting
+- **Caching**: Intelligent query caching and state management
+- **Lazy Loading**: Components and data loaded on demand
 
 ## Frontend Architecture
 
-### Component Hierarchy
-
-```
-src/
-├── App.tsx                 # Root component with providers
-├── main.tsx               # Application entry point
-├── pages/                 # Route-level components
-│   ├── Dashboard.tsx
-│   ├── Employees.tsx
-│   ├── Settings.tsx
-│   └── ...
-├── components/
-│   ├── ui/                # Base UI components (ShadCN)
-│   ├── layout/            # Layout components
-│   │   ├── AppLayout.tsx
-│   │   ├── AppSidebar.tsx
-│   │   └── TopBar.tsx
-│   └── [feature]/         # Feature-specific components
-│       ├── evaluations/
-│       ├── leave/
-│       └── ...
-├── hooks/                 # Custom React hooks
-├── lib/                   # Utilities and configurations
-└── integrations/          # External service integrations
-```
+### Core Technologies
+- **React 18**: Component-based UI framework
+- **TypeScript**: Type-safe JavaScript development
+- **Vite**: Fast build tool and development server
+- **React Router**: Client-side routing and navigation
 
 ### State Management
 
-#### Client State
-- **React Context**: Authentication state (`useAuth`)
-- **Local Component State**: UI state with `useState`
-- **URL State**: Route parameters and query strings
+#### Server State (TanStack Query)
+- **Query Management**: API calls with automatic caching
+- **Mutation Handling**: Data updates with optimistic updates
+- **Background Updates**: Automatic refetching and synchronization
+- **Error Handling**: Retry logic and error boundaries
 
-#### Server State
-- **React Query**: Data fetching, caching, and synchronization
-- **Optimistic Updates**: Immediate UI feedback for mutations
-- **Background Refetching**: Data freshness management
+#### Local State (React)
+- **UI State**: Component-level state for interactions
+- **Form State**: React Hook Form for complex forms
+- **Context State**: Global state for authentication and themes
 
-### Routing Architecture
+### Component Architecture
 
-#### Route Structure
-```typescript
-// Protected routes with role-based access
-<Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-<Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
-<Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+#### UI Component Library (shadcn/ui)
+```
+src/components/ui/
+├── button.tsx      # Base button component
+├── input.tsx       # Form input field
+├── dialog.tsx      # Modal dialog
+├── table.tsx       # Data table
+└── ...             # 40+ reusable components
 ```
 
-#### Route Protection
-```typescript
-const ProtectedRoute = ({ children }) => {
-  // 1. Loading states
-  // 2. Authentication checks
-  // 3. Role-based authorization
-  // 4. Render or redirect
-};
+#### Feature Components
+```
+src/components/
+├── layout/         # App layout and navigation
+├── employees/      # Employee-specific components
+├── evaluations/    # Performance evaluation UI
+├── leave/          # Leave management components
+└── settings/       # Configuration components
 ```
 
-## Backend Architecture (Supabase)
+#### Page Components
+```
+src/pages/
+├── Dashboard.tsx       # Main dashboard
+├── Employees.tsx       # Employee listing
+├── EmployeeProfile.tsx # Individual employee view
+├── Evaluations.tsx     # Evaluation management
+└── ...                 # 30+ route components
+```
 
-### Supabase Services
+## Backend Architecture
+
+### Supabase Integration
+
+#### Database Layer
+- **PostgreSQL**: Primary data store
+- **Row Level Security**: Database-level access control
+- **Migrations**: Version-controlled schema changes
+- **Real-time**: Live data synchronization
 
 #### Authentication
-- **Email/Password**: Standard authentication
-- **Invite System**: Employee onboarding
-- **Password Reset**: Recovery flows
-- **Session Management**: Automatic token refresh
+- **Supabase Auth**: JWT-based authentication
+- **Role Management**: User roles and permissions
+- **Session Handling**: Automatic token refresh
+- **Password Reset**: Secure password recovery
 
-#### Database (PostgreSQL)
-- **Tables**: Core business entities
-- **Row Level Security**: Automatic data filtering
-- **Real-time**: Live data subscriptions
-- **Migrations**: Schema versioning
+#### File Storage
+- **Document Storage**: PDFs, images, and attachments
+- **Access Control**: Bucket policies and permissions
+- **CDN Delivery**: Fast content delivery
 
-#### Storage
-- **File Uploads**: Avatars, documents
-- **Access Control**: Secure file permissions
+### API Design
 
-#### Edge Functions
-- **Server-side Logic**: PDF generation, email sending
-- **Business Rules**: Complex calculations
-
-### Database Schema
-
-#### Core Tables
-```sql
--- Employees
-employees (
-  id, full_name, email, role_name,
-  department, avatar_url, hire_date
-)
-
--- Evaluations
-evaluations (
-  id, employee_id, evaluator_id,
-  period, overall_score, comments,
-  recommendation, created_at
-)
-
--- Daily Evaluations
-daily_evaluations (
-  id, reviewer_id, reviewee_id,
-  direction, date, overall_score,
-  remarks
-)
-```
-
-## Data Flow Patterns
-
-### Authentication Flow
-```mermaid
-graph TD
-    A[User Login] --> B[Supabase Auth]
-    B --> C[Session Token]
-    C --> D[Auth Context]
-    D --> E[Protected Routes]
-    E --> F[Role Checks]
-    F --> G[Component Render]
-```
-
-### Data Fetching Flow
-```mermaid
-graph TD
-    A[Component Mount] --> B[React Query]
-    B --> C[Supabase Client]
-    C --> D[Database Query]
-    D --> E[RLS Filtering]
-    E --> F[Data Return]
-    F --> G[Cache Storage]
-    G --> H[Component Update]
-```
-
-### Evaluation Timeline Flow
-```mermaid
-graph TD
-    A[Timeline Component] --> B[Fetch Quarterly]
-    A --> C[Fetch Daily]
-    B --> D[Filter by Role]
-    C --> D
-    D --> E[Sort by Date]
-    E --> F[Render Items]
-```
-
-## Component Architecture
-
-### Layout Components
-
-#### AppLayout
+#### Client Configuration
 ```typescript
-<AppLayout>
-  <AppSidebar />  {/* Navigation */}
-  <main>
-    <TopBar />    {/* User menu, notifications */}
-    <PageContent /> {/* Route content */}
-  </main>
-</AppLayout>
+// src/integrations/supabase/client.ts
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+);
 ```
 
-#### Component Communication
-- **Props**: Parent-child data flow
-- **Context**: Cross-component state (auth, theme)
-- **Events**: User interactions
-- **React Query**: Server state synchronization
-
-### Key Component Patterns
-
-#### SearchableEmployeeSelect
-- **Composition**: Command + Popover + Button
-- **State Management**: Local search state
-- **Data Flow**: Props for data, callbacks for selection
-- **Accessibility**: Keyboard navigation, ARIA labels
-
-#### EvaluationTimeline
-- **Data Aggregation**: Multiple queries unified
-- **Conditional Rendering**: Role-based visibility
-- **Performance**: Memoized filtering and sorting
-- **Navigation**: React Router links
-
-#### RichTextEditor
-- **External Library**: TipTap integration
-- **Controlled Component**: HTML state management
-- **Toolbar**: Action buttons with state
-- **Callbacks**: onChange for parent updates
+#### Query Patterns
+- **Type-safe Queries**: Generated types from database schema
+- **Error Handling**: Consistent error response handling
+- **Loading States**: Query status management
+- **Caching**: Intelligent cache invalidation
 
 ## Security Architecture
 
-### Authentication Security
-- **Token-based**: JWT tokens with expiration
-- **Secure Storage**: HttpOnly cookies where applicable
-- **Automatic Refresh**: Seamless session management
+### Authentication Flow
+1. **Login**: User credentials verification
+2. **Token Issuance**: JWT token generation
+3. **Session Management**: Automatic token refresh
+4. **Route Protection**: Role-based access control
 
-### Authorization
-- **Role-based Access Control**: CEO, HR Manager, Team Lead, Employee
-- **Route Protection**: Component-level guards
-- **API Security**: Row Level Security in database
+### Authorization Model
 
-### Data Protection
-- **Input Validation**: Zod schemas on all inputs
-- **SQL Injection Prevention**: Parameterized queries
-- **File Security**: Type validation and size limits
+#### Role Hierarchy
+- **CEO**: Full system access
+- **HR Manager**: Employee and payroll management
+- **Team Lead**: Team member oversight
+- **Employee**: Personal data access
 
-## Performance Architecture
+#### Permission Checking
+```typescript
+// src/lib/role-access.ts
+export function canAccess(role: string, path: string): boolean {
+  // Role-based route access logic
+}
+```
 
-### Frontend Optimizations
-- **Code Splitting**: Route-based lazy loading
-- **Bundle Optimization**: Vite tree shaking
-- **Image Optimization**: Proper sizing and formats
-- **Caching**: React Query intelligent caching
+### Data Security
+- **Row Level Security**: Database-level data isolation
+- **Input Validation**: Client and server-side validation
+- **XSS Protection**: Content sanitization
+- **CSRF Protection**: Request token validation
 
-### Database Optimizations
-- **Indexing**: Optimized queries
-- **Real-time**: Selective subscriptions
-- **Pagination**: Large dataset handling
-- **Connection Pooling**: Supabase managed
+## Data Flow Architecture
 
-### Monitoring
-- **Error Boundaries**: Graceful error handling
-- **Loading States**: User feedback
-- **Performance Metrics**: React DevTools profiling
+### Request Flow
+1. **User Interaction**: Button click or form submission
+2. **Validation**: Input validation and sanitization
+3. **API Call**: Supabase client query/mutation
+4. **State Update**: Query cache invalidation
+5. **UI Update**: Component re-rendering
+
+### Real-time Updates
+1. **Subscription**: Component subscribes to database changes
+2. **Change Detection**: Database triggers notification
+3. **Cache Update**: Query cache automatic refresh
+4. **UI Sync**: Components update with new data
+
+## Business Logic Architecture
+
+### Domain Services
+
+#### Employee Management
+- **Profile Management**: CRUD operations for employee data
+- **Role Assignment**: Permission and access control
+- **Organizational Structure**: Department and hierarchy management
+
+#### Performance Management
+- **Evaluation Creation**: Structured feedback forms
+- **Visibility Rules**: Role-based data access
+- **Timeline Generation**: Chronological evaluation history
+
+#### Financial Processing
+- **Payroll Calculation**: Automated salary processing
+- **Invoice Generation**: PDF creation and distribution
+- **Expense Tracking**: Business expense management
+
+### Utility Libraries
+
+#### Business Rules
+```typescript
+// src/lib/leave-utils.ts
+export function countWorkingDays(start: Date, end: Date): number {
+  // Business day calculation logic
+}
+
+export function ensureLeaveBalance(employeeId: string, leaveType: string): Promise<void> {
+  // Leave balance validation
+}
+```
+
+#### Data Formatting
+```typescript
+// src/lib/format-role.ts
+export const ROLE_LABELS = {
+  ceo: 'CEO',
+  hr_manager: 'HR Manager',
+  team_lead: 'Team Lead',
+  employee: 'Employee'
+};
+```
 
 ## Deployment Architecture
 
-### Build Process
-```bash
-Source Code → Vite Build → Static Assets → CDN
-```
+### Development Environment
+- **Local Development**: Vite dev server on port 8080
+- **Hot Reload**: Fast development iteration
+- **Type Checking**: Real-time TypeScript validation
+- **Linting**: Code quality enforcement
 
-### Environment Configuration
-- **Environment Variables**: Supabase credentials
-- **Build-time Injection**: Vite env handling
-- **Runtime Config**: Dynamic configuration
+### Production Build
+- **Optimization**: Code splitting and minification
+- **Asset Optimization**: Image compression and bundling
+- **CDN Integration**: Static asset delivery
+- **Performance Monitoring**: Bundle size and load time tracking
 
-### Infrastructure
-- **Static Hosting**: CDN for assets
-- **API Gateway**: Supabase handles routing
-- **Database**: Managed PostgreSQL
-- **File Storage**: Supabase Storage
+### CI/CD Pipeline
+- **Automated Testing**: Unit and integration tests
+- **Build Verification**: Type checking and linting
+- **Deployment**: Automated production deployment
+- **Rollback**: Version rollback capabilities
 
-This architecture provides a scalable, secure, and maintainable foundation for the Beudox HR system, leveraging modern web technologies and best practices.
+## Monitoring and Observability
+
+### Error Tracking
+- **Client-side Errors**: Error boundaries and reporting
+- **API Errors**: Response logging and alerting
+- **Performance Issues**: Load time monitoring
+
+### Logging Strategy
+- **User Actions**: Important user interactions
+- **System Events**: Authentication and authorization events
+- **Error Events**: Application errors and exceptions
+- **Performance Metrics**: Page load and API response times
+
+## Scalability Considerations
+
+### Performance Optimization
+- **Bundle Splitting**: Feature-based code splitting
+- **Image Optimization**: Lazy loading and responsive images
+- **Query Optimization**: Selective data fetching
+- **Caching Strategy**: Multi-layer caching approach
+
+### Architecture Scalability
+- **Micro-frontend Ready**: Feature isolation for future splitting
+- **API Versioning**: Backward-compatible API evolution
+- **Database Sharding**: Multi-tenant data isolation
+- **Service Decomposition**: Business logic modularization
+
+## Technology Decisions
+
+### Why React + TypeScript?
+- **Developer Experience**: Strong typing and excellent DX
+- **Ecosystem**: Rich component libraries and tooling
+- **Performance**: Virtual DOM and efficient rendering
+- **Maintainability**: Component composition and reusability
+
+### Why Supabase?
+- **Integrated Solution**: Database, auth, and real-time in one platform
+- **Developer Productivity**: Auto-generated types and client libraries
+- **Scalability**: PostgreSQL with proven performance
+- **Security**: Built-in RLS and authentication
+
+### Why Vite?
+- **Development Speed**: Fast cold start and HMR
+- **Build Performance**: Optimized production bundles
+- **Plugin Ecosystem**: Rich plugin ecosystem
+- **Modern Standards**: ES modules and native browser support
+
+## Future Architecture Evolution
+
+### Planned Improvements
+- **Micro-frontend Architecture**: Feature-based application splitting
+- **GraphQL API**: More flexible data fetching
+- **Advanced Caching**: Service worker and offline support
+- **Real-time Collaboration**: Operational transforms for concurrent editing
+
+### Technology Migration Path
+- **React Server Components**: Improved performance and SEO
+- **Next.js Migration**: Full-stack React framework
+- **Edge Computing**: Global performance optimization
+- **AI Integration**: Intelligent HR insights and automation
