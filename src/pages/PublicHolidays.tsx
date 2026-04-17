@@ -173,7 +173,7 @@ const PublicHolidays = () => {
     return map;
   }, [holidays]);
 
-  const showPreload = !isLoading && holidays.length === 0 && selectedYear === currentYear;
+  const showPreload = canManage && !isLoading && holidays.length === 0 && selectedYear === currentYear;
 
   return (
     <div className="space-y-6">
@@ -214,9 +214,11 @@ const PublicHolidays = () => {
               <CalendarIcon className="h-4 w-4 mr-1.5" /> Calendar
             </Button>
           </div>
-          <Button onClick={() => openModal()} size="sm">
-            <Plus className="h-4 w-4 mr-1.5" /> Add Holiday
-          </Button>
+          {canManage && (
+            <Button onClick={() => openModal()} size="sm">
+              <Plus className="h-4 w-4 mr-1.5" /> Add Holiday
+            </Button>
+          )}
         </div>
       </div>
 
