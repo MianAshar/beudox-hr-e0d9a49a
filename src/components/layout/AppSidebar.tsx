@@ -115,8 +115,8 @@ const AppSidebar = () => {
             <div key={section.label}>
               {!collapsed && (
                 <div
-                  className="px-5 mb-2 text-[9px] font-medium uppercase tracking-[0.12em]"
-                  style={{ color: 'rgba(255,255,255,0.30)', fontFamily: 'var(--ff-body)' }}
+                  className="px-5 mb-2 text-[10px] font-medium uppercase tracking-[0.12em]"
+                  style={{ color: 'rgba(255,255,255,0.50)', fontFamily: 'var(--ff-body)' }}
                 >
                   {section.label}
                 </div>
@@ -128,15 +128,15 @@ const AppSidebar = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`flex items-center h-10 transition-all duration-[var(--transition-fast)] ${
+                      className={`group flex items-center h-10 transition-all duration-[var(--transition-fast)] ${
                         collapsed ? 'justify-center px-0' : 'px-5'
                       } ${
                         active
-                          ? 'text-white border-l-[3px]'
-                          : 'text-white/40 hover:text-white/70 border-l-[3px] border-transparent'
+                          ? 'text-white border-l-[3px] rounded-r-lg'
+                          : 'text-white/75 hover:text-white hover:bg-white/[0.08] border-l-[3px] border-transparent'
                       }`}
                       style={{
-                        backgroundColor: active ? 'rgba(91,63,248,0.20)' : 'transparent',
+                        backgroundColor: active ? 'rgba(91,63,248,0.25)' : undefined,
                         borderLeftColor: active ? '#5B3FF8' : 'transparent',
                       }}
                     >
