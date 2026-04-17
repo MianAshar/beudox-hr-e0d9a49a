@@ -1,104 +1,132 @@
 <!--
 generated_by: tessera
-source_sha: 5a2d080405f8bed73410566f539c7603e2229b45
-generated_at: 2026-04-17T22:20:33.491Z
+source_sha: 008c102d0cabb918fb1de501c61abdbf3fe6aa56
+generated_at: 2026-04-17T22:45:57.358Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A comprehensive Human Resources management application built with modern web technologies. Beudox HR streamlines employee management, payroll, evaluations, leave tracking, and organizational workflows for businesses.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, performance evaluations, leave tracking, payroll processing, and organizational workflows for businesses of all sizes.
 
 ## Features
 
-### Core HR Functionality
+### Core HR Management
 - **Employee Management**: Complete employee lifecycle from onboarding to offboarding
-- **Leave Management**: Request, approve, and track various leave types
-- **Payroll Processing**: Automated payroll generation with payslip distribution
-- **Performance Evaluations**: Quarterly and daily evaluation systems
+- **Role-Based Access Control**: Granular permissions system with CEO, HR Manager, Team Lead, and Employee roles
+- **Company Settings**: Configure departments, roles, leave types, expense categories, and evaluation parameters
+
+### Performance & Development
+- **Quarterly Evaluations**: Structured performance reviews with scoring and recommendations
+- **Daily Evaluations**: Real-time feedback system for continuous improvement
+- **Evaluation Timeline**: Historical view of all evaluations with filtering and visibility controls
+
+### Time & Attendance
+- **Leave Management**: Comprehensive leave request and approval workflow
+- **Public Holidays**: Configurable holiday calendar management
+- **Attendance Tracking**: Integration with payroll and leave calculations
+
+### Financial Management
+- **Payroll Processing**: Automated payroll generation with allowances and deductions
+- **Invoice Management**: Client invoicing with PDF generation and email delivery
+- **Expense Categories**: Configurable expense tracking and approval workflows
+- **Finance Dashboard**: Financial overview and reporting
+
+### Project & Client Management
+- **Project Tracking**: Project lifecycle management with team assignments
+- **Client Management**: Client relationship and contract management
+- **Resource Allocation**: Employee assignment to projects and tasks
+
+### Communication & Policies
 - **HR Policies**: Rich text policy documents with version control
-
-### Business Operations
-- **Project Management**: Track projects, assign team members, monitor progress
-- **Client Management**: Maintain client relationships and project associations
-- **Invoice Management**: Generate and manage client invoices
-- **Loan Management**: Track employee loans and repayments
-- **Finance Dashboard**: Comprehensive financial overview and reporting
-
-### Administrative Tools
-- **Settings Management**: Configure company settings, departments, roles, and policies
-- **Public Holidays**: Manage company-wide holiday schedules
-- **Role-Based Access Control**: Granular permissions system
-- **Notifications**: Automated email notifications for key events
+- **Notifications**: Automated notifications for approvals, deadlines, and updates
+- **Document Management**: Secure storage and access to HR documents
 
 ## Technology Stack
 
 ### Frontend
 - **React 18** with TypeScript for type-safe development
-- **Vite** for fast development and optimized builds
+- **Vite** for fast development and optimized production builds
 - **React Router** for client-side routing
+- **React Query** for efficient server state management
+- **React Hook Form** with Zod validation for robust form handling
+
+### UI & Design
+- **Radix UI** components for accessible, customizable UI primitives
 - **Tailwind CSS** for utility-first styling
-- **shadcn/ui** component library built on Radix UI primitives
-- **TanStack Query** for server state management
-- **React Hook Form** with Zod validation for forms
+- **Lucide React** for consistent iconography
+- **Custom Design System** with Syne and DM Sans fonts
+- **Responsive Design** optimized for desktop and mobile
 
-### Backend & Infrastructure
-- **Supabase** for database, authentication, and serverless functions
-- **PostgreSQL** database with real-time capabilities
-- **Supabase Auth** for secure user authentication
-- **Supabase Edge Functions** for server-side logic
+### Backend & Database
+- **Supabase** for backend-as-a-service
+  - PostgreSQL database with Row Level Security (RLS)
+  - Real-time subscriptions
+  - Built-in authentication and authorization
+  - File storage for documents and images
+  - Edge functions for server-side logic
 
-### Additional Libraries
-- **TipTap** for rich text editing
+### Rich Content & Data
+- **TipTap** rich text editor for policy documents
 - **Recharts** for data visualization
 - **date-fns** for date manipulation
-- **Lucide React** for icons
-- **xlsx** for Excel file handling
+- **XLSX** for Excel file processing
+- **React Image Crop** for profile picture management
+
+### Development & Testing
+- **Vitest** for unit testing
+- **Playwright** for end-to-end testing
+- **ESLint** with TypeScript rules
+- **Prettier** for code formatting
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- npm or bun package manager
+- Node.js 18+ and npm/yarn/pnpm
 - Supabase account and project
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd beudox-hr
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+   cd beudox-hr-e0d9a49a
    ```
 
 2. **Install dependencies**
    ```bash
    npm install
    # or
-   bun install
+   yarn install
+   # or
+   pnpm install
    ```
 
 3. **Environment Setup**
    
-   Copy the environment template and configure:
+   Copy the environment file and configure your Supabase credentials:
    ```bash
-   cp .env.example .env
+   cp .env .env.local
    ```
    
-   Update `.env` with your Supabase credentials:
+   Update `.env.local` with your Supabase project details:
    ```env
-   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
    ```
 
 4. **Database Setup**
    
    The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   
+   Alternatively, if using Supabase CLI:
+   ```bash
+   supabase db reset
+   ```
 
-5. **Development Server**
+5. **Start Development Server**
    ```bash
    npm run dev
-   # or
-   bun run dev
    ```
    
    The application will be available at `http://localhost:8080`
@@ -107,7 +135,21 @@ A comprehensive Human Resources management application built with modern web tec
 
 ```bash
 npm run build
-npm run preview
+```
+
+The built files will be in the `dist/` directory.
+
+### Testing
+
+```bash
+# Run unit tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run end-to-end tests
+npx playwright test
 ```
 
 ## Project Structure
@@ -116,9 +158,12 @@ npm run preview
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── [feature]/      # Feature-specific components
-│   └── BeudoxLogo.tsx  # Logo component
+│   ├── layout/         # App layout components
+│   ├── evaluations/    # Evaluation-specific components
+│   ├── hr-policies/    # Policy management components
+│   ├── leave/          # Leave management components
+│   ├── settings/       # Settings page components
+│   └── ...
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
@@ -131,62 +176,27 @@ supabase/
 └── config.toml         # Supabase configuration
 ```
 
-## Key Components
+## Authentication & Authorization
 
-### Authentication & Authorization
-- Role-based access control with granular permissions
-- Secure authentication via Supabase Auth
-- Password reset and employee invitation flows
+The application uses Supabase Auth with Row Level Security (RLS) policies to ensure data security. Users are assigned roles that determine their access to different features:
 
-### Data Management
-- Real-time data synchronization with Supabase
-- Optimistic updates with TanStack Query
-- Comprehensive error handling and loading states
-
-### User Interface
-- Responsive design with mobile-first approach
-- Dark/light theme support
-- Accessible components following WCAG guidelines
-- Consistent design system with shadcn/ui
-
-## Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests with Vitest
-- `npm run test:watch` - Run tests in watch mode
-
-### Testing
-
-The project uses:
-- **Vitest** for unit testing
-- **Playwright** for end-to-end testing
-- **Testing Library** for component testing
-
-### Code Quality
-
-- TypeScript for type safety
-- ESLint for code linting
-- Prettier for code formatting (via ESLint)
-
-## Deployment
-
-The application is designed to be deployed as a static site. Build the project and deploy the `dist/` directory to any static hosting service like Vercel, Netlify, or Cloudflare Pages.
-
-Ensure your Supabase project allows CORS from your deployment domain.
+- **CEO**: Full access to all features and data
+- **HR Manager**: Access to HR functions, employee management, and sensitive data
+- **Team Lead**: Access to team management and evaluations
+- **Employee**: Access to personal data and basic functions
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Ensure all tests pass
-6. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
 This project is proprietary software. All rights reserved.
+
+## Support
+
+For support or questions, please contact the development team.
