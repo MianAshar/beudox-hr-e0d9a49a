@@ -53,6 +53,25 @@ const SetPassword = ({ mode, onComplete }: SetPasswordProps) => {
   const buttonText = isInvite ? 'Set password' : 'Reset password';
   const strength = password.length > 0 ? getStrength(password) : null;
 
+  // On mount: if URL has an auth hash, exchange it for a session so updateUser works.
+  useEffect(() => {
+    const parsed = parseAuthHash();
+    if (!parsed) return;
+    if (parsed.error) {
+      setErrors({ general: parsed.error_description || parsed.error });
+      window.history.replaceState({}, '', '/set-password');
+      return;
+    }
+    if (parsed.access_token && parsed.refresh_token) {
+      supabase.auth
+        .setSession({ access_token: parsed.access_token, refresh_token: parsed.refresh_token })
+        .then(({ error }) => {
+          if (error) setErrors({ general: error.message });
+          window.history.replaceState({}, '', '/set-password');
+        });
+    }
+  }, []);
+
   const validate = () => {
     const errs: typeof errors = {};
     if (!password) errs.password = 'Password is required';
