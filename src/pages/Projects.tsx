@@ -221,8 +221,8 @@ const Projects = () => {
                   <TableCell>
                     {p.priority && <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>}
                   </TableCell>
-                  <TableCell>
-                    <Badge className={statusColors[p.status] || ''}>{fmt(p.status)}</Badge>
+                  <TableCell onClick={e => e.stopPropagation()}>
+                    <StatusCell project={p} canEdit={canEditStatus} fmt={fmt} />
                     {!p.is_active && <Badge variant="outline" className="ml-1 text-xs">Inactive</Badge>}
                   </TableCell>
                   {isManager && (
