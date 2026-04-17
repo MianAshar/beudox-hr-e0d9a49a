@@ -298,12 +298,19 @@ const StatusCell = ({ project, canEdit, fmt }: StatusCellProps) => {
     <Badge
       className={cn(
         statusColors[status] || '',
-        'transition-all',
+        'transition-all border border-transparent inline-flex items-center gap-1',
         flash && 'ring-2 ring-bx-success ring-offset-1',
-        canEdit && !isPending && 'cursor-pointer hover:opacity-80',
+        canEdit && !isPending && 'cursor-pointer hover:border-foreground/30',
       )}
     >
-      {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : fmt(status)}
+      {isPending ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <>
+          {fmt(status)}
+          {canEdit && <ChevronDown className="h-3 w-3 opacity-70" />}
+        </>
+      )}
     </Badge>
   );
 
