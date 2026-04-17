@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatRole } from '@/lib/format-role';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { Loader2, Upload, Eye, EyeOff } from 'lucide-react';
 
@@ -205,7 +205,7 @@ const MyProfile = () => {
             <InfoField label="Department" value={profile.department} />
             <InfoField
               label="Joining Date"
-              value={profile.joining_date ? format(new Date(profile.joining_date), 'MMM d, yyyy') : null}
+              value={profile.joining_date ? formatDate(profile.joining_date) : null}
             />
             <InfoField label="Employee Code" value={profile.employee_code} />
             <InfoField label="Role(s)" value={roles || null} />

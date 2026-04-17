@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Search, FileText } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 
 const HrPolicies = () => {
   const navigate = useNavigate();
@@ -121,7 +121,7 @@ const HrPolicies = () => {
                 </Badge>
                 {policy.published_at && (
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(policy.published_at), 'dd MMM yyyy')}
+                    {formatDate(policy.published_at)}
                   </span>
                 )}
               </div>

@@ -24,7 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Search, Plus, Users } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 
 const DEPARTMENTS = ['GC Team', 'MEP Team', 'Admin', 'Director'];
 const STATUS_OPTIONS = ['active', 'inactive', 'resigned'];
@@ -275,7 +275,7 @@ const Employees = () => {
                     <TableCell>
                       <span className="text-[13px]">
                         {emp.joining_date
-                          ? format(new Date(emp.joining_date), 'dd MMM yyyy')
+                          ? formatDate(emp.joining_date)
                           : '—'}
                       </span>
                     </TableCell>

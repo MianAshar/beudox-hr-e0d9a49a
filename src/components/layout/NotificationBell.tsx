@@ -31,7 +31,7 @@ const timeAgo = (dateStr: string) => {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString();
+  return formatDate(dateStr);
 };
 
 const REFERENCE_ROUTES: Record<string, string> = {

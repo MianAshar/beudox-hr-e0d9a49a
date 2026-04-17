@@ -366,7 +366,7 @@ const Loans = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(loan.granted_date), 'dd MMM yyyy')}
+                      {formatDate(loan.granted_date)}
                     </TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[loan.status] || ''}`}>
@@ -468,7 +468,7 @@ const Loans = () => {
                       className={cn("w-full mt-1 justify-start text-left font-normal", !formDate && "text-muted-foreground")}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formDate ? format(formDate, 'PPP') : 'Pick a date'}
+                      {formDate ? formatDate(formDate) : 'Pick a date'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">

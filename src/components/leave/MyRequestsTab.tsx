@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { List, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameMonth, isWeekend } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
@@ -114,8 +115,8 @@ const MyRequestsTab = () => {
               ) : requests.map((r: any) => (
                 <TableRow key={r.id}>
                   <TableCell className="text-sm">{r.leave_types?.name || '-'}</TableCell>
-                  <TableCell className="text-sm">{r.start_date}</TableCell>
-                  <TableCell className="text-sm">{r.end_date}</TableCell>
+                   <TableCell className="text-sm">{formatDate(r.start_date)}</TableCell>
+                  <TableCell className="text-sm">{formatDate(r.end_date)}</TableCell>
                   <TableCell className="text-sm">{r.days_requested}</TableCell>
                   <TableCell className="text-sm">{r.half_day ? (r.half_day_period || 'Yes') : '-'}</TableCell>
                   <TableCell>

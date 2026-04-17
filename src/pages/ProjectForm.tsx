@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X } from 'lucide-react';
 
 const STATUSES = ['in_progress', 'completed', 'invoiced', 'on_hold', 'cancelled'];
@@ -319,7 +320,7 @@ const ProjectForm = () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !form.client_deadline && 'text-muted-foreground')}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {form.client_deadline ? format(form.client_deadline, 'PPP') : 'Pick date'}
+                  {form.client_deadline ? formatDate(form.client_deadline) : 'Pick date'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -333,7 +334,7 @@ const ProjectForm = () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !form.internal_deadline && 'text-muted-foreground')}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {form.internal_deadline ? format(form.internal_deadline, 'PPP') : 'Pick date'}
+                  {form.internal_deadline ? formatDate(form.internal_deadline) : 'Pick date'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">

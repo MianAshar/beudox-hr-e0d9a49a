@@ -139,7 +139,7 @@ const DailyEvaluations = () => {
                 </div>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {format(new Date(ev.date), 'dd MMM yyyy')}
+                {formatDate(ev.date)}
               </TableCell>
               <TableCell>
                 <span className="font-semibold">{ev.overall_score?.toFixed(1) || '—'}</span>
@@ -185,7 +185,7 @@ const DailyEvaluations = () => {
           <PopoverTrigger asChild>
             <Button variant="outline" className={cn("w-[160px] justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateFrom ? format(dateFrom, 'dd MMM yyyy') : 'From'}
+              {dateFrom ? formatDate(dateFrom) : 'From'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -197,7 +197,7 @@ const DailyEvaluations = () => {
           <PopoverTrigger asChild>
             <Button variant="outline" className={cn("w-[160px] justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateTo ? format(dateTo, 'dd MMM yyyy') : 'To'}
+              {dateTo ? formatDate(dateTo) : 'To'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">

@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { List, CalendarDays, Check, X } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { sendNotification } from '@/lib/notifications';
 
@@ -213,8 +214,8 @@ const AllRequestsTab = () => {
                 <TableRow key={r.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(r)}>
                   <TableCell className="text-sm font-medium">{r.employees?.full_name || '-'}</TableCell>
                   <TableCell className="text-sm">{r.leave_types?.name || '-'}</TableCell>
-                  <TableCell className="text-sm">{r.start_date}</TableCell>
-                  <TableCell className="text-sm">{r.end_date}</TableCell>
+                   <TableCell className="text-sm">{formatDate(r.start_date)}</TableCell>
+                  <TableCell className="text-sm">{formatDate(r.end_date)}</TableCell>
                   <TableCell className="text-sm">{r.days_requested}</TableCell>
                   <TableCell className="text-sm">{r.half_day ? (r.half_day_period || 'Yes') : '-'}</TableCell>
                   <TableCell>
@@ -319,8 +320,8 @@ const AllRequestsTab = () => {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div><span className="text-muted-foreground">Leave Type:</span> <span className="font-medium">{r.leave_types?.name}</span></div>
                   <div><span className="text-muted-foreground">Days:</span> <span className="font-medium">{r.days_requested}</span></div>
-                  <div><span className="text-muted-foreground">From:</span> <span className="font-medium">{r.start_date}</span></div>
-                  <div><span className="text-muted-foreground">To:</span> <span className="font-medium">{r.end_date}</span></div>
+                  <div><span className="text-muted-foreground">From:</span> <span className="font-medium">{formatDate(r.start_date)}</span></div>
+                  <div><span className="text-muted-foreground">To:</span> <span className="font-medium">{formatDate(r.end_date)}</span></div>
                   {r.half_day && <div><span className="text-muted-foreground">Half Day:</span> <span className="font-medium">{r.half_day_period || 'Yes'}</span></div>}
                   <div>
                     <span className="text-muted-foreground">Status: </span>
@@ -336,7 +337,7 @@ const AllRequestsTab = () => {
                 {r.actioned_by && (
                   <div className="text-sm text-muted-foreground space-y-0.5">
                     <div>Actioned by: <span className="text-foreground font-medium">{r.actioned_by_employee?.full_name || '-'}</span></div>
-                    <div>Actioned at: {r.actioned_at ? format(new Date(r.actioned_at), 'PPp') : '-'}</div>
+                    <div>Actioned at: {r.actioned_at ? formatDate(r.actioned_at) : '-'}</div>
                   </div>
                 )}
                 {r.status === 'pending' && (

@@ -15,6 +15,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
 import { Loader2, DollarSign, CalendarIcon, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
@@ -518,7 +519,7 @@ const Payroll = () => {
                     className={cn("w-full mt-1 justify-start text-left font-normal", !paymentDate && "text-muted-foreground")}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {paymentDate ? format(paymentDate, 'PPP') : 'Pick a date'}
+                    {paymentDate ? formatDate(paymentDate) : 'Pick a date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">

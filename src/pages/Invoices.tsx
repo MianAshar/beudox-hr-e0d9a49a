@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { Plus, Search, FileText, Send, Trash2, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -296,7 +296,7 @@ const Invoices = () => {
                       {inv.currency} {Number(inv.amount_due).toLocaleString()}
                     </TableCell>
                     <TableCell>
-                      {inv.due_date ? format(new Date(inv.due_date), 'dd MMM yyyy') : '—'}
+                      {inv.due_date ? formatDate(inv.due_date) : '—'}
                     </TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[inv.status] || ''}`}>
@@ -304,7 +304,7 @@ const Invoices = () => {
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {format(new Date(inv.created_at!), 'dd MMM yyyy')}
+                      {formatDate(inv.created_at!)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">

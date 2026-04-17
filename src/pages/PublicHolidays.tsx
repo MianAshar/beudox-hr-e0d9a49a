@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { format, parse, getDay, getDaysInMonth, startOfMonth, getYear } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { Calendar as CalendarIcon, List, Plus, Trash2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -262,7 +263,7 @@ const PublicHolidays = () => {
                       return (
                         <div key={h.id} className="flex items-center justify-between px-4 py-3">
                           <div className="flex items-center gap-4">
-                            <span className="text-sm text-muted-foreground w-36">{format(d, 'EEE, d MMM yyyy')}</span>
+                            <span className="text-sm text-muted-foreground w-36">{formatDate(d)}</span>
                             <span className="text-sm font-medium text-foreground">{h.name}</span>
                             {h.is_recurring && (
                               <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">Recurring</span>
@@ -325,7 +326,7 @@ const PublicHolidays = () => {
                     className={cn('w-full justify-start text-left font-normal', !modalDate && 'text-muted-foreground')}
                   >
                     <CalendarIcon className="h-4 w-4 mr-2" />
-                    {modalDate ? format(modalDate, 'PPP') : 'Pick a date'}
+                    {modalDate ? formatDate(modalDate) : 'Pick a date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">

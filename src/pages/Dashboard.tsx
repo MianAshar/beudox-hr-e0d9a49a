@@ -2,6 +2,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, addDays, isBefore, parseISO, subDays } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { Users, CalendarCheck, DollarSign, FolderKanban } from 'lucide-react';
 import { sendNotification, getEmployeeIdsByRole, uniqueRecipients } from '@/lib/notifications';
 import { useEffect, useRef } from 'react';
@@ -98,7 +99,7 @@ const Dashboard = () => {
   const isHrOrCeo = role === 'hr_manager' || role === 'ceo';
   const isFinanceOrCeo = role === 'finance_manager' || role === 'ceo';
 
-  const today = format(new Date(), 'EEEE, d MMMM yyyy');
+  const today = formatDate(new Date());
   const firstName = employee?.full_name || 'there';
 
   // Active employees count
@@ -230,7 +231,7 @@ const Dashboard = () => {
             recipientIds: mgrs,
             type: 'increment_due',
             title: 'Salary Review Due',
-            message: `${emp.full_name} is due for a salary review on ${format(emp.reviewDate, 'dd MMM yyyy')}.`,
+            message: `${emp.full_name} is due for a salary review on ${formatDate(emp.reviewDate)}.`,
             referenceType: 'employee',
             referenceId: emp.id,
           });
