@@ -13,15 +13,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Search, FolderKanban, XCircle } from 'lucide-react';
+import { Plus, Search, FolderKanban, XCircle, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+
+const STATUS_OPTIONS = ['pending', 'in_progress', 'qc_required', 'on_hold', 'completed', 'cancelled', 'delayed'];
 
 const statusColors: Record<string, string> = {
+  pending: 'bg-slate-100 text-slate-700',
   in_progress: 'bg-blue-100 text-blue-700',
+  qc_required: 'bg-amber-100 text-amber-700',
   completed: 'bg-green-100 text-green-700',
   invoiced: 'bg-purple-100 text-purple-700',
   on_hold: 'bg-yellow-100 text-yellow-700',
   cancelled: 'bg-red-100 text-red-700',
+  delayed: 'bg-orange-100 text-orange-700',
 };
 
 const priorityColors: Record<string, string> = {
@@ -37,6 +44,7 @@ const Projects = () => {
   const companyId = employee?.company_id;
   const role = employee?.role_name;
   const isManager = role === 'hr_manager' || role === 'ceo';
+  const canEditStatus = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -144,7 +152,7 @@ const Projects = () => {
               <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                {['in_progress', 'completed', 'invoiced', 'on_hold', 'cancelled'].map(s => (
+                {STATUS_OPTIONS.map(s => (
                   <SelectItem key={s} value={s}>{fmt(s)}</SelectItem>
                 ))}
               </SelectContent>
@@ -213,8 +221,8 @@ const Projects = () => {
                   <TableCell>
                     {p.priority && <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>}
                   </TableCell>
-                  <TableCell>
-                    <Badge className={statusColors[p.status] || ''}>{fmt(p.status)}</Badge>
+                  <TableCell onClick={e => e.stopPropagation()}>
+                    <StatusCell project={p} canEdit={canEditStatus} fmt={fmt} />
                     {!p.is_active && <Badge variant="outline" className="ml-1 text-xs">Inactive</Badge>}
                   </TableCell>
                   {isManager && (
@@ -251,6 +259,77 @@ const Projects = () => {
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+interface StatusCellProps {
+  project: any;
+  canEdit: boolean;
+  fmt: (s: string) => string;
+}
+
+const StatusCell = ({ project, canEdit, fmt }: StatusCellProps) => {
+  const qc = useQueryClient();
+  const [optimistic, setOptimistic] = useState<string | null>(null);
+  const [flash, setFlash] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const mutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      const { error } = await supabase.from('projects').update({ status: newStatus }).eq('id', project.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setFlash(true);
+      setTimeout(() => setFlash(false), 800);
+      setTimeout(() => setOptimistic(null), 50);
+      qc.invalidateQueries({ queryKey: ['projects'] });
+    },
+    onError: (e: Error) => {
+      setOptimistic(null);
+      toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' });
+    },
+  });
+
+  const status = optimistic ?? project.status;
+  const isPending = mutation.isPending;
+
+  const badge = (
+    <Badge
+      className={cn(
+        statusColors[status] || '',
+        'transition-all',
+        flash && 'ring-2 ring-green-500 ring-offset-1',
+        canEdit && !isPending && 'cursor-pointer hover:opacity-80',
+      )}
+    >
+      {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : fmt(status)}
+    </Badge>
+  );
+
+  if (!canEdit) return badge;
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild disabled={isPending}>
+        <button type="button" className="inline-flex">{badge}</button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="bg-popover">
+        {STATUS_OPTIONS.map(s => (
+          <DropdownMenuItem
+            key={s}
+            onSelect={() => {
+              if (s === status) return;
+              setOptimistic(s);
+              setOpen(false);
+              mutation.mutate(s);
+            }}
+          >
+            <Badge className={cn(statusColors[s] || '', 'pointer-events-none')}>{fmt(s)}</Badge>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
