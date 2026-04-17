@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
   FolderKanban, ClipboardCheck, ClipboardList, FileText, Settings, Bell, FileSpreadsheet,
-  LogOut, ChevronLeft, ChevronRight, Briefcase, Wallet,
+  ChevronLeft, ChevronRight, Briefcase, Wallet,
 } from 'lucide-react';
 
 const navSections = [
@@ -61,7 +61,7 @@ const navSections = [
 const AppSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { employee, signOut } = useAuth();
+  const { employee } = useAuth();
 
   const isActive = (path: string) => {
     // Exact match for paths that have sub-paths sharing prefixes
@@ -146,7 +146,7 @@ const AppSidebar = () => {
         })}
       </nav>
 
-      {/* User zone */}
+      {/* Footer: collapse toggle only */}
       <div className="border-t px-5 py-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         {!collapsed && employee && (
           <div className="mb-3">
@@ -158,14 +158,7 @@ const AppSidebar = () => {
             </div>
           </div>
         )}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={signOut}
-            className="text-white/40 hover:text-white/70 transition-colors"
-            title="Sign out"
-          >
-            <LogOut className="h-5 w-5" style={{ strokeWidth: 1.5 }} />
-          </button>
+        <div className="flex items-center justify-end">
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="text-white/40 hover:text-white/70 transition-colors"

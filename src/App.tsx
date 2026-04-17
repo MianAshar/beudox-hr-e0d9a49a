@@ -36,6 +36,7 @@ import Payroll from "./pages/Payroll";
 import MyPayslip from "./pages/MyPayslip";
 import FinanceSheet from "./pages/FinanceSheet";
 import LeaveManagement from "./pages/LeaveManagement";
+import MyProfile from "./pages/MyProfile";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -64,7 +65,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!session) return <Navigate to="/login" replace />;
 
   // 3. Authenticated but role not allowed → dashboard
-  if (!canAccess(employee?.role_name, location.pathname)) {
+  // /my-profile is universally accessible to all authenticated users.
+  if (location.pathname !== '/my-profile' && !canAccess(employee?.role_name, location.pathname)) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -141,6 +143,7 @@ const App = () => (
             <Route path="/my-payslip" element={<ProtectedRoute><MyPayslip /></ProtectedRoute>} />
             <Route path="/finance" element={<ProtectedRoute><FinanceSheet /></ProtectedRoute>} />
             <Route path="/leave" element={<ProtectedRoute><LeaveManagement /></ProtectedRoute>} />
+            <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
