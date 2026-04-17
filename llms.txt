@@ -1,210 +1,253 @@
 <!--
 generated_by: tessera
-source_sha: 008c102d0cabb918fb1de501c61abdbf3fe6aa56
-generated_at: 2026-04-17T22:45:57.358Z
+source_sha: 25225680b7caec66aa1060dd843b361d1669e911
+generated_at: 2026-04-17T22:50:22.248Z
 action: create
 -->
 
 # Beudox HR - Technical Context for AI Assistants
 
-## Architecture Overview
+## Project Overview
+Beudox HR is a comprehensive Human Resources Management System built as a modern React SPA with Supabase backend. It serves as a complete HR solution for small to medium businesses, handling employee management, payroll, evaluations, and organizational workflows.
 
-Beudox HR is a comprehensive Human Resources Management System built as a single-page application (SPA) using React 18 with TypeScript. The application follows a component-based architecture with clear separation of concerns.
+## Architecture & Technology Stack
 
-### Tech Stack
-- **Frontend Framework**: React 18 with TypeScript
-- **Build Tool**: Vite with SWC for fast compilation
-- **Routing**: React Router v6 with protected routes
-- **State Management**: React Query for server state, React Context for auth state
-- **Styling**: Tailwind CSS with custom design tokens, Radix UI primitives
-- **Backend**: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
-- **Forms**: React Hook Form with Zod validation
-- **Rich Text**: TipTap editor
-- **Charts**: Recharts
-- **Icons**: Lucide React
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript for type safety
+- **Build System**: Vite with SWC compiler for fast development and optimized builds
+- **Routing**: React Router v6 with nested routes and protected route guards
+- **State Management**: 
+  - React Query (TanStack Query) for server state management and caching
+  - Context API for authentication state
+  - Local component state with useState/useReducer
+- **Styling**: Tailwind CSS with custom design tokens and shadcn/ui component library
+- **Forms**: React Hook Form with Zod schema validation
+- **UI Components**: shadcn/ui built on Radix UI primitives
 
-## Key Architectural Patterns
+### Backend Architecture
+- **Database**: PostgreSQL via Supabase
+- **Authentication**: Supabase Auth with email/password and social providers
+- **API**: Supabase client with auto-generated TypeScript types
+- **Storage**: Supabase Storage for file uploads (avatars, documents)
+- **Edge Functions**: Supabase Edge Functions for complex business logic (payroll generation, PDF creation)
+- **Real-time**: Supabase real-time subscriptions for live updates
 
-### Authentication & Authorization
-- Supabase Auth handles user authentication with email/password
-- Row Level Security (RLS) policies protect database access
-- Role-based access control with CEO, HR Manager, Team Lead, and Employee roles
-- Auth context provides user, employee, and role information throughout the app
-- Protected routes check permissions before rendering components
+### Key Architectural Patterns
+- **Component Composition**: Heavy use of compound components and render props
+- **Custom Hooks**: Business logic abstracted into reusable hooks
+- **Provider Pattern**: Context providers for cross-cutting concerns (auth, theming)
+- **Container/Presentational**: Separation of data fetching and presentation logic
+- **Role-Based Access Control**: Route-level and component-level permission checks
 
-### Data Flow
-- React Query manages all API calls with caching and optimistic updates
-- Supabase client provides type-safe database operations
-- Real-time subscriptions for live updates where needed
-- File uploads handled through Supabase Storage
-
-### Component Structure
-- shadcn/ui components as the foundation (50+ components)
-- Custom business components organized by feature (evaluations, leave, settings, etc.)
-- Layout components (AppLayout, AppSidebar, TopBar) provide consistent structure
-- Utility components (BeudoxLogo, SearchableEmployeeSelect) for common functionality
-
-### Routing Structure
-- Flat routing with nested paths for CRUD operations
-- Protected routes wrap all authenticated pages
-- Role-based route filtering prevents unauthorized access
-- Consistent URL patterns: `/resource`, `/resource/new`, `/resource/:id`, `/resource/:id/edit`
-
-## Database Schema (Key Tables)
+## Database Schema & Relationships
 
 ### Core Entities
-- `companies` - Organization information
-- `employees` - User profiles with auth integration
-- `roles` - Permission definitions
-- `employee_roles` - User-role assignments
+- **companies**: Multi-tenant company information
+- **employees**: User profiles with auth integration
+- **roles**: Permission levels (employee, hr_manager, finance_manager, team_lead, ceo)
+- **employee_roles**: Many-to-many relationship between employees and roles
 
 ### HR Management
-- `departments` - Organizational structure
-- `leave_types` - Configurable leave categories
-- `leave_requests` - Leave application workflow
-- `public_holidays` - Holiday calendar
+- **evaluations**: Quarterly performance reviews
+- **daily_evaluations**: Daily feedback and check-ins
+- **leave_requests**: Time-off requests with approval workflow
+- **leave_balances**: Accrued leave tracking
+- **hr_policies**: Company policies and procedures
 
-### Performance
-- `evaluations` - Quarterly performance reviews
-- `daily_evaluations` - Real-time feedback
-- `evaluation_parameters` - Scoring criteria
+### Project Management
+- **projects**: Project definitions with timelines and budgets
+- **project_assignments**: Employee-project relationships
+- **clients**: Client organization information
+- **client_contacts**: Individual client contacts
 
-### Financial
-- `payroll` - Salary processing
-- `invoices` - Client billing
-- `expense_categories` - Expense classification
-- `loans` - Employee loans
+### Financial Management
+- **invoices**: Client billing with line items
+- **invoice_items**: Detailed invoice line items
+- **payroll_runs**: Payroll processing batches
+- **payslips**: Individual employee payslips
+- **loans**: Employee loan tracking
+- **expenses**: Expense reimbursement requests
+- **expense_categories**: Categorization for expenses
 
-### Projects & Clients
-- `projects` - Project management
-- `clients` - Client relationships
-- `project_assignments` - Resource allocation
-
-### Content
-- `hr_policies` - Policy documents
-- `notifications` - System notifications
+### Administrative
+- **departments**: Organizational structure
+- **public_holidays**: Company holiday calendar
+- **notifications**: System notifications
+- **settings**: Company-wide configuration
 
 ## Key Files & Their Purposes
 
-### Entry Points
-- `src/main.tsx` - React root rendering
-- `src/App.tsx` - Main app component with routing
-- `src/pages/Index.tsx` - Root page component
+### Application Entry Points
+- `src/main.tsx`: React 18 createRoot bootstrap
+- `src/App.tsx`: Main application component with routing setup
+- `src/pages/Index.tsx`: Next.js-style page router (legacy, being phased out)
 
-### Authentication
-- `src/hooks/useAuth.tsx` - Auth context and session management
-- `src/pages/Login.tsx` - Authentication UI
-- `src/pages/ForgotPassword.tsx` - Password reset flow
-- `src/pages/SetPassword.tsx` - Password setup for invites
+### Authentication & Authorization
+- `src/hooks/useAuth.tsx`: Authentication context provider
+- `src/lib/role-access.ts`: Centralized role-based access control logic
+- `src/integrations/supabase/client.ts`: Supabase client configuration
 
-### Layout & Navigation
-- `src/components/layout/AppLayout.tsx` - Main app shell
-- `src/components/layout/AppSidebar.tsx` - Navigation sidebar
-- `src/components/layout/TopBar.tsx` - Page header with breadcrumbs
-- `src/lib/role-access.ts` - Route permission logic
+### Core Components
+- `src/components/layout/AppLayout.tsx`: Main application shell
+- `src/components/layout/AppSidebar.tsx`: Collapsible navigation sidebar
+- `src/components/layout/TopBar.tsx`: Page header with breadcrumbs
+- `src/components/BeudoxLogo.tsx`: Brand logo component with variants
 
-### Core Features
-- `src/components/evaluations/EvaluationTimeline.tsx` - Performance history visualization
-- `src/components/hr-policies/RichTextEditor.tsx` - Policy document editing
-- `src/components/leave/ApplyLeaveModal.tsx` - Leave request workflow
-- `src/components/SearchableEmployeeSelect.tsx` - Employee selection component
+### Business Logic
+- `src/lib/leave-utils.ts`: Leave balance calculations and business rules
+- `src/lib/notifications.ts`: Notification sending utilities
+- `src/lib/role-access.ts`: Permission checking functions
+- `src/lib/utils.ts`: General utility functions (cn for class merging)
 
-### Utilities
-- `src/lib/utils.ts` - Common utility functions (cn for class merging)
-- `src/lib/leave-utils.ts` - Leave calculation logic
-- `src/lib/role-access.ts` - Permission checking
-- `src/integrations/supabase/client.ts` - Database client configuration
+### Data Fetching Patterns
+The application uses React Query extensively for data fetching:
+- Query keys follow pattern: ['entity', id, 'sub-entity']
+- Mutations invalidate related queries automatically
+- Optimistic updates for better UX
+- Background refetching for data freshness
 
 ## Business Logic & Data Flow
 
+### Authentication Flow
+1. User submits login form → Supabase auth
+2. Auth state change triggers employee data fetch
+3. Employee record + role loaded into context
+4. Route protection checks role permissions
+5. App renders with appropriate navigation and features
+
 ### Employee Onboarding
-1. User invited via email (Supabase Auth invite)
-2. User sets password and completes profile
-3. Employee record created with role assignment
-4. Access granted based on role permissions
+1. HR creates employee record with auth invitation
+2. Email sent via Supabase auth
+3. User sets password and completes profile
+4. Role assignment determines feature access
 
 ### Leave Management
-1. Employee submits leave request with dates and type
-2. Auto-calculation of working days excluding holidays
-3. Approval workflow based on role hierarchy
-4. Balance tracking and validation
+1. Employee submits leave request
+2. Auto-calculation of working days (excluding weekends/holidays)
+3. Balance validation against accrued leave
+4. Approval workflow based on role hierarchy
+5. Calendar integration and conflict detection
 
-### Performance Evaluations
-1. Quarterly evaluations with structured criteria
-2. Daily feedback for continuous improvement
-3. Role-based visibility (managers see recommendations, employees see scores)
-4. Timeline view with filtering
+### Evaluation System
+1. Quarterly evaluations: Formal performance reviews
+2. Daily evaluations: Quick feedback and check-ins
+3. Role-based visibility (managers see more details)
+4. Timeline view combining both evaluation types
+5. Recommendation system for management decisions
 
 ### Payroll Processing
-1. Automated payroll generation via Supabase Edge Functions
+1. Finance manager initiates payroll run
 2. Calculation of basic salary, allowances, overtime
-3. PDF generation and email delivery
-4. Integration with attendance and leave data
+3. Tax deductions and benefit calculations
+4. PDF generation and email delivery
+5. Historical payslip access for employees
 
 ## Configuration & Environment
 
 ### Build Configuration
-- `vite.config.ts` - Build setup with React SWC plugin
-- `tsconfig.json` - TypeScript configuration
-- `tailwind.config.ts` - Tailwind CSS customization
-- `eslint.config.js` - Code linting rules
+- `vite.config.ts`: Vite configuration with React SWC plugin
+- `tsconfig.json`: TypeScript configuration
+- `tailwind.config.ts`: Tailwind CSS customization
+- `components.json`: shadcn/ui component configuration
 
 ### Environment Variables
-- `VITE_SUPABASE_URL` - Supabase project URL
-- `VITE_SUPABASE_PUBLISHABLE_KEY` - Public API key
+- `VITE_SUPABASE_URL`: Supabase project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public Supabase API key
+- All other config loaded from database or hardcoded
 
-### Supabase Configuration
-- `supabase/config.toml` - Project configuration
-- `supabase/migrations/` - Database schema evolution
-- `supabase/functions/` - Server-side business logic
+### Development Tools
+- ESLint with React and TypeScript rules
+- Vitest for unit testing
+- Playwright for E2E testing
+- Lovable tagger for component development
 
-## Development Workflow
+## Common Patterns & Conventions
 
-### Component Development
-- Use shadcn/ui components as base
-- Follow established patterns for forms, modals, and data fetching
-- Implement proper TypeScript types
-- Add unit tests for complex logic
+### Component Structure
+```tsx
+interface ComponentProps {
+  // Props with clear naming
+}
 
-### Database Changes
-- Create migrations in `supabase/migrations/`
-- Update RLS policies for new tables
-- Test with Supabase local development
+const Component = ({ prop }: ComponentProps) => {
+  // Early returns for loading/error states
+  if (loading) return <Skeleton />;
+  
+  // Main render logic
+  return <div>Content</div>;
+};
 
-### Feature Implementation
-- Start with route and basic UI
-- Implement data fetching with React Query
-- Add form validation and error handling
-- Test role-based access
-- Add notifications and loading states
-
-## Common Patterns
+export default Component;
+```
 
 ### Data Fetching
-```typescript
+```tsx
 const { data, isLoading, error } = useQuery({
-  queryKey: ['resource', id],
-  queryFn: () => supabase.from('table').select('*').eq('id', id).single(),
-  enabled: !!id,
+  queryKey: ['entity', id],
+  queryFn: () => apiCall(id),
+  enabled: !!id, // Proper dependency handling
 });
 ```
 
 ### Form Handling
-```typescript
+```tsx
 const form = useForm<Schema>({
   resolver: zodResolver(schema),
   defaultValues: initialData,
 });
+
+// Validation with Zod schemas
+// Error handling with form state
 ```
 
-### Permission Checking
-```typescript
-const canAccess = canAccess(employee?.role_name, location.pathname);
-```
+### File Organization
+- Components grouped by feature in subdirectories
+- Shared utilities in `lib/` directory
+- Page components in `pages/` directory
+- Custom hooks in `hooks/` directory
+- Type definitions co-located with components or in separate files
 
-### Component Props
-- Prefer interface definitions for complex props
-- Use discriminated unions for variant props
-- Export types for reusability
+## Performance Considerations
 
-This context provides the foundation for understanding the codebase structure, patterns, and implementation details for effective development and maintenance of Beudox HR.
+### Optimization Techniques
+- React Query caching prevents unnecessary requests
+- Component lazy loading for route-based code splitting
+- Image optimization with proper sizing
+- Bundle analysis and tree shaking
+- Database indexing on frequently queried columns
+
+### Scalability Features
+- Row Level Security (RLS) for multi-tenant data isolation
+- Supabase real-time for live updates
+- Edge Functions for compute-intensive tasks
+- CDN for static asset delivery
+
+## Security Measures
+
+### Authentication & Authorization
+- Supabase Auth with JWT tokens
+- Role-based access control at route and component level
+- Row Level Security policies in database
+- Secure password reset flows
+
+### Data Protection
+- Input validation with Zod schemas
+- SQL injection prevention via Supabase client
+- XSS protection with React's built-in sanitization
+- File upload validation and storage security
+
+## Deployment & DevOps
+
+### Build Process
+- Vite handles bundling and minification
+- Asset optimization and code splitting
+- Environment-specific builds
+- Source maps for debugging
+
+### Hosting Considerations
+- Static hosting for frontend (Vercel, Netlify)
+- Supabase for backend services
+- CDN for global performance
+- Monitoring and error tracking integration
+
+This technical context should enable AI assistants to understand the codebase structure, make informed decisions about code changes, and provide accurate assistance with development tasks.
