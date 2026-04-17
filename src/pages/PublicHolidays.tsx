@@ -61,6 +61,7 @@ const PublicHolidays = () => {
   const [calPopover, setCalPopover] = useState<string | null>(null);
 
   const companyId = employee?.company_id;
+  const canManage = employee?.role_name === 'hr_manager' || employee?.role_name === 'ceo';
 
   const { data: holidays = [], isLoading } = useQuery({
     queryKey: ['public-holidays', companyId, selectedYear],
