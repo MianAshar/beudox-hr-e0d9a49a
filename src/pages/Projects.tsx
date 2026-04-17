@@ -299,7 +299,7 @@ const StatusCell = ({ project, canEdit, fmt }: StatusCellProps) => {
       className={cn(
         statusColors[status] || '',
         'transition-all',
-        flash && 'ring-2 ring-success ring-offset-1',
+        flash && 'ring-2 ring-bx-success ring-offset-1',
         canEdit && !isPending && 'cursor-pointer hover:opacity-80',
       )}
     >
