@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: 9b015f7d1356b6bc02b6c37f3169549a066083dd
-generated_at: 2026-04-17T23:18:01.555Z
+source_sha: 21ae2096fc55f252e5448664d9f062a41ba0491c
+generated_at: 2026-04-17T23:26:56.763Z
 action: create
 -->
 
@@ -9,178 +9,115 @@ action: create
 
 ## Repository Overview
 
-**Repository**: MianAshar/beudox-hr-e0d9a49a  
-**Type**: Frontend Application (React/TypeScript)  
-**Primary Purpose**: Comprehensive Human Resources Management System  
-**Lines of Code**: ~16,900 (184 files)  
-**Main Technologies**: React 18, TypeScript, Vite, Supabase, ShadCN UI
+**Beudox HR** is a comprehensive Human Resources Management System implemented as a modern React frontend application. The codebase consists of 184 files (1690KB) with TypeScript as the primary language, utilizing a robust tech stack for enterprise-grade HR functionality.
 
-## Architecture Analysis
+## Key Architectural Insights
+
+### Technology Stack & Framework
+- **Frontend**: React 18 + TypeScript + Vite build system
+- **Styling**: Tailwind CSS + shadcn/ui component library
+- **Routing**: React Router with protected routes and role-based access
+- **State Management**: React Query for server state, Context API for client state
+- **Backend**: Supabase (PostgreSQL + Auth + Real-time + Edge Functions)
+- **Forms**: React Hook Form + Zod validation
+- **Rich Text**: TipTap editor for HR policies
 
 ### Application Structure
-- **Single-Page Application** built with React Router v6
-- **Component-Based Architecture** with feature-organized directories
-- **Protected Routing** with role-based access control
-- **Supabase Integration** for backend services and real-time features
-- **Custom Design System** with Beudox branding and ShadCN UI components
+- **Single-Page Application** with client-side routing
+- **Component-based architecture** with clear separation of UI and business logic
+- **Feature-organized** folder structure (pages, components, hooks, lib)
+- **Multi-tenant design** supporting multiple companies
+- **Role-based security** with granular permissions (CEO → HR Manager → Team Lead → Employee)
 
-### Key Architectural Decisions
-1. **Authentication-First**: Supabase Auth with JWT tokens and RLS policies
-2. **Role-Based Security**: Hierarchical permissions (CEO → HR Manager → Team Lead → Employee)
-3. **Real-Time Updates**: Supabase subscriptions for live data synchronization
-4. **Type Safety**: Full TypeScript coverage with generated database types
-5. **Performance Optimization**: TanStack Query caching and optimistic updates
+### Core Features Identified
+1. **Employee Lifecycle Management** - Onboarding, profiles, offboarding
+2. **Performance Management** - Bi-annual evaluations + daily feedback
+3. **Leave Management** - Request/approval workflow for various leave types
+4. **Payroll Processing** - Automated salary calculation and payslip generation
+5. **Project Management** - Team assignments and progress tracking
+6. **Financial Operations** - Invoicing, client management, loan tracking
+7. **HR Administration** - Policies, settings, notifications
 
-## Core Features Identified
+## Code Quality & Patterns
 
-### Human Resources Management
-- **Employee Lifecycle**: Onboarding, profiles, role management
-- **Performance System**: Quarterly evaluations + daily feedback
-- **Leave Management**: Request/approval workflows with balance tracking
-- **Payroll Processing**: Automated calculations with PDF generation
-- **HR Policies**: Rich text documents with version control
+### Strengths
+- **Type Safety**: Comprehensive TypeScript usage throughout
+- **Consistent Patterns**: shadcn/ui provides unified design system
+- **Modern React**: Hooks, functional components, proper state management
+- **Accessibility**: ARIA-compliant components from shadcn/ui
+- **Developer Experience**: Hot reload, path aliases, comprehensive tooling
 
-### Business Operations
-- **Project Management**: Team assignment and progress tracking
-- **Client Relations**: CRM functionality integrated with projects
-- **Financial Management**: Invoice generation and finance dashboard
-- **Loan Administration**: Employee loan tracking and repayments
+### Notable Implementation Details
+- **Protected Routes**: Authentication and authorization at route level
+- **Real-time Updates**: Supabase subscriptions for live data
+- **Optimistic UI**: React Query mutations with immediate feedback
+- **Error Handling**: Comprehensive error boundaries and user feedback
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
 
-### Administrative Tools
-- **Company Configuration**: Departments, roles, leave types, holidays
-- **Notification System**: Automated alerts and communications
-- **Settings Management**: Comprehensive admin configuration
-- **Reporting**: Data visualization and export capabilities
+## Database & API Integration
 
-## Technology Stack Deep Dive
+### Supabase Integration
+- **24 SQL migrations** defining complete HR schema
+- **Edge Functions** for complex business logic (payroll, PDF generation)
+- **Real-time subscriptions** for collaborative features
+- **Row Level Security** policies for data protection
+- **Type-safe queries** with generated TypeScript types
 
-### Frontend Framework
-- **React 18** with modern hooks and concurrent features
-- **TypeScript 5.8** with strict type checking
-- **Vite** for fast development and optimized builds
-- **React Router v6** for client-side routing
+### Key Database Relationships
+- Multi-tenant architecture with company isolation
+- Hierarchical employee structure (departments, roles)
+- Complex evaluation system (quarterly + daily)
+- Financial tracking (payroll, invoices, loans)
+- Document management for HR policies
 
-### UI/UX Layer
-- **ShadCN UI**: Complete component library built on Radix UI
-- **Tailwind CSS**: Utility-first styling with custom design tokens
-- **Custom Fonts**: Syne for headings, DM Sans for body text
-- **Responsive Design**: Mobile-first approach with collapsible sidebar
+## Development & Build Setup
 
-### Data Management
-- **Supabase**: PostgreSQL database with real-time capabilities
-- **TanStack Query**: Advanced data fetching and caching
-- **Row Level Security**: Database-level access control
-- **Type-Safe Queries**: Auto-generated TypeScript types
+### Development Environment
+- **Vite dev server** on port 8080 with HMR
+- **ESLint + TypeScript** for code quality
+- **Vitest** for unit testing framework
+- **Playwright** for E2E testing
+- **Path aliases** (@/src) for clean imports
 
-### Development Tools
-- **ESLint + TypeScript ESLint**: Code quality and consistency
-- **Vitest**: Unit testing framework
-- **Playwright**: End-to-end testing
-- **React Hook Form + Zod**: Form validation and management
+### Build Configuration
+- **SWC compiler** for fast builds
+- **Component tagging** for development insights
+- **Dependency optimization** for React ecosystem
+- **Production-ready** static asset handling
 
-## Database Schema Insights
+## Security & Performance
 
-### Core Tables (24+ migrations)
-- **Authentication**: users, sessions, RLS policies
-- **Organization**: companies, departments, roles, employee_roles
-- **People**: employees with profiles and relationships
-- **HR Operations**: evaluations, leave_requests, payroll, hr_policies
-- **Business**: projects, clients, invoices, loans
-- **Configuration**: leave_types, expense_categories, public_holidays
+### Security Measures
+- **Supabase Auth** with JWT tokens and refresh
+- **Role-based access control** at multiple levels
+- **Database RLS policies** for data isolation
+- **Input validation** with Zod schemas
+- **Secure API communication** via Supabase client
 
-### Key Relationships
-- Employees belong to companies with role assignments
-- Evaluations link employees with managers/reviewers
-- Projects connect employees, clients, and financial data
-- Leave and payroll systems integrate with employee records
+### Performance Optimizations
+- **Code splitting** at route boundaries
+- **Query caching** with React Query
+- **Image optimization** and lazy loading
+- **Bundle optimization** with Vite
+- **Virtual scrolling** for large datasets
 
-## Component Architecture
+## Areas of Interest for Future Development
 
-### Layout System
-- **AppLayout**: Main application shell
-- **AppSidebar**: Navigation with role-filtered menu items
-- **TopBar**: Page headers and breadcrumbs
-- **ProtectedRoute**: Authentication and authorization wrapper
+### Scalability Considerations
+- Current architecture supports multi-tenant growth
+- Supabase provides horizontal scaling capabilities
+- Component library enables consistent UI expansion
+- Type-safe patterns support team growth
 
-### Feature Components
-- **Reusable UI**: 40+ ShadCN components customized for Beudox
-- **Business Logic**: Feature-specific components (evaluations, leave, etc.)
-- **Forms**: Complex forms with validation and submission handling
-- **Data Display**: Tables, charts, and timeline components
-
-### Custom Components Identified
-- `BeudoxLogo`: Branded logo with variant support
-- `SearchableEmployeeSelect`: Advanced employee selection with search
-- `EvaluationTimeline`: Complex timeline with filtering
-- `RichTextEditor`: TipTap-based policy editor
-- `NotificationBell`: Real-time notification system
-
-## Security & Access Control
-
-### Authentication
-- Email/password authentication via Supabase
-- Password reset and invite flows
-- Session management with automatic refresh
-- Secure token handling
-
-### Authorization
-- Role-based route protection
-- Database-level RLS policies
-- Hierarchical permission system
-- Company data isolation
-
-## Performance Characteristics
-
-### Optimization Strategies
-- **Code Splitting**: Route-based lazy loading
-- **Caching**: TanStack Query with intelligent invalidation
-- **Asset Optimization**: Vite build optimizations
-- **Bundle Analysis**: Tree-shaking and dead code elimination
-
-### Real-Time Features
-- Live evaluation updates
-- Notification system
-- Collaborative editing potential
-- Instant data synchronization
-
-## Development Workflow
-
-### Build Process
-- Fast development server with HMR
-- Production builds with asset optimization
-- Type checking and linting integration
-- Automated testing pipelines
-
-### Code Quality
-- TypeScript strict mode
-- ESLint configuration
-- Pre-commit hooks (potential)
-- Consistent code formatting
-
-## Identified Gaps & Opportunities
-
-### Documentation
-- API documentation for Supabase functions
-- Component documentation and storybook
-- Deployment and CI/CD guides
-- User manuals and training materials
-
-### Testing
-- Unit test coverage for utilities and hooks
-- Integration tests for critical flows
-- E2E test suites for user journeys
-- Performance and load testing
-
-### Monitoring
-- Error tracking and reporting
-- Performance monitoring
-- User analytics integration
-- Database query optimization
+### Potential Enhancements
+- **Advanced Analytics**: Dashboard with HR metrics and KPIs
+- **Mobile App**: React Native companion application
+- **Integration APIs**: Third-party HR tool integrations
+- **Workflow Automation**: Advanced approval processes
+- **AI Features**: Automated evaluation insights or chat support
 
 ## Conclusion
 
-Beudox HR represents a well-architected, feature-rich HR management system with modern web development practices. The codebase demonstrates strong separation of concerns, type safety, and scalable architecture patterns. The integration of Supabase provides a robust backend foundation, while the React/TypeScript frontend offers excellent developer experience and maintainability.
+Beudox HR represents a well-architected, modern HR management system with enterprise-grade features and solid technical foundations. The codebase demonstrates best practices in React development, type safety, and scalable architecture, making it suitable for organizations requiring comprehensive HR functionality.
 
-Key strengths include comprehensive feature coverage, security-first design, and performance optimizations. The project is well-positioned for continued development and enterprise deployment.
-
-**Analysis Completed**: Baseline documentation generated for repository snapshot 9b015f7d1356b6bc02b6c37f3169549a066083dd
+The combination of Supabase's backend-as-a-service with a polished React frontend creates a maintainable and extensible platform for HR operations.
