@@ -466,7 +466,8 @@ const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopov
                       disabled={deleting}
                     >
                       <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
-                  </Button>
+                    </Button>
+                  )}
                 </PopoverContent>
               </Popover>
             );
