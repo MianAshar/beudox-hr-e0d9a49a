@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Search, FolderKanban, XCircle, Loader2 } from 'lucide-react';
+import { Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -298,12 +298,19 @@ const StatusCell = ({ project, canEdit, fmt }: StatusCellProps) => {
     <Badge
       className={cn(
         statusColors[status] || '',
-        'transition-all',
+        'transition-all border border-transparent inline-flex items-center gap-1',
         flash && 'ring-2 ring-bx-success ring-offset-1',
-        canEdit && !isPending && 'cursor-pointer hover:opacity-80',
+        canEdit && !isPending && 'cursor-pointer hover:border-foreground/30',
       )}
     >
-      {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : fmt(status)}
+      {isPending ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <>
+          {fmt(status)}
+          {canEdit && <ChevronDown className="h-3 w-3 opacity-70" />}
+        </>
+      )}
     </Badge>
   );
 
