@@ -79,8 +79,8 @@ const AppSidebar = () => {
     >
       {/* Logo + collapse toggle */}
       <div
-        className={`h-16 flex items-center border-b ${collapsed ? 'justify-center px-0' : 'justify-between px-5'}`}
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        className={`h-16 flex items-center border-b pb-4 ${collapsed ? 'justify-center px-0' : 'justify-between px-5'}`}
+        style={{ borderColor: 'rgba(255,255,255,0.10)' }}
       >
         {!collapsed && (
           companyLogo ? (
