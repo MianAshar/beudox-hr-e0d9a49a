@@ -1,40 +1,45 @@
 <!--
 generated_by: tessera
 source_sha: 7ffb1b86e9cd74132ef738aca1165796264a4de4
-generated_at: 2026-04-17T15:16:01.082Z
+generated_at: 2026-04-17T15:20:11.501Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources management system built as a modern React application. Beudox HR provides tools for managing employees, leave requests, performance evaluations, HR policies, company settings, and more.
+Beudox HR is a comprehensive Human Resources management application built with modern web technologies. It provides tools for employee management, performance evaluations, leave tracking, attendance monitoring, expense management, and HR policy administration.
 
 ## Features
 
-- **Employee Management**: Add, update, and manage employee profiles with roles and departments
+- **Employee Management**: Add, update, and manage employee profiles with roles and permissions
+- **Performance Evaluations**: Quarterly and daily evaluations with scoring and feedback
 - **Leave Management**: Request, approve, and track leave balances and requests
-- **Performance Evaluations**: Quarterly and daily evaluations with timeline tracking
+- **Attendance Tracking**: Monitor employee attendance and working hours
+- **Expense Management**: Submit and approve expense claims with categories
 - **HR Policies**: Create and manage company policies with rich text editing
-- **Company Settings**: Configure departments, roles, attendance rules, expense categories, and notifications
-- **Dashboard**: Overview of key HR metrics and recent activities
+- **Notifications**: Automated notifications for HR events and approvals
+- **Role-based Access**: Different permissions for employees, team leads, HR managers, and CEOs
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with shadcn/ui components
+- **Routing**: React Router DOM
 - **State Management**: TanStack Query for server state
-- **Routing**: React Router
-- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
+- **Backend**: Supabase (PostgreSQL database + Edge Functions)
+- **Authentication**: Supabase Auth
 - **Rich Text Editing**: Tiptap
 - **Icons**: Lucide React
-- **Testing**: Vitest with Playwright for E2E
+- **Date Handling**: date-fns
+- **Testing**: Vitest + Playwright
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ or Bun
+- Node.js 18+
+- npm or bun
 - Supabase account and project
 
 ### Installation
@@ -52,34 +57,38 @@ A comprehensive Human Resources management system built as a modern React applic
    bun install
    ```
 
-3. Set up environment variables:
-   
-   Copy `.env` and update the Supabase configuration:
+3. Create a `.env` file in the root directory with your Supabase credentials:
    ```env
-   VITE_SUPABASE_URL=your-supabase-url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
    ```
 
-4. Run database migrations:
-   
-   The Supabase migrations are included in the `supabase/migrations/` directory. Apply them to your Supabase project.
-
-5. Start the development server:
+4. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
 
-6. Open [http://localhost:5173](http://localhost:5173) in your browser.
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Available Scripts
+### Database Setup
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run unit tests
-- `npm run test:e2e` - Run end-to-end tests
+The application uses Supabase for the backend. The database schema is defined in the `supabase/migrations/` directory. To set up the database:
+
+1. Install Supabase CLI
+2. Run migrations:
+   ```bash
+   supabase db reset
+   ```
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory.
 
 ## Project Structure
 
@@ -88,10 +97,10 @@ src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── evaluations/    # Evaluation-related components
 │   ├── leave/          # Leave management components
-│   ├── evaluations/    # Evaluation components
-│   ├── settings/       # Settings components
-│   └── hr-policies/    # HR policies components
+│   ├── settings/       # Settings/configuration components
+│   └── hr-policies/    # HR policy components
 ├── pages/              # Page components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
@@ -100,8 +109,7 @@ src/
 
 supabase/
 ├── migrations/         # Database migrations
-├── functions/          # Edge functions
-└── config.toml         # Supabase configuration
+└── functions/          # Edge functions
 ```
 
 ## Contributing
@@ -109,9 +117,9 @@ supabase/
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests
+4. Run tests: `npm run test`
 5. Submit a pull request
 
 ## License
 
-This project is private and proprietary.
+This project is proprietary software owned by Beudox.

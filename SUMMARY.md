@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
 source_sha: 7ffb1b86e9cd74132ef738aca1165796264a4de4
-generated_at: 2026-04-17T15:16:01.082Z
+generated_at: 2026-04-17T15:20:11.501Z
 action: create
 -->
 
@@ -10,133 +10,90 @@ action: create
 ## Repository Overview
 
 **Repository**: MianAshar/beudox-hr-e0d9a49a  
-**Type**: Frontend React Application  
-**Primary Language**: TypeScript  
-**Total Files**: 180 (1674KB)  
-**Symbols**: 298 total, 255 public
+**Type**: Frontend Application (React/TypeScript)  
+**Primary Purpose**: Human Resources Management System  
+**Lines of Code**: ~1.7MB across 180 files  
+**Main Technologies**: React 18, TypeScript, Vite, Supabase, Tailwind CSS
 
-## Application Purpose
+## Key Discoveries
 
-Beudox HR is a comprehensive Human Resources management system designed to streamline employee management, leave tracking, performance evaluations, and company policy administration. The application serves multiple user roles (CEO, HR Manager, Team Lead, Employee) with appropriate permissions and interfaces.
+### Application Domain
+This is a comprehensive HR management platform with the following core features:
+- Employee lifecycle management (onboarding, profiles, roles)
+- Performance evaluation system (quarterly + daily feedback)
+- Leave management and approval workflows
+- Attendance tracking and payroll integration
+- Expense claim processing
+- HR policy management with rich text editing
+- Notification system for HR events
 
-## Architecture Insights
+### Architecture Insights
 
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript for type safety
-- **Build System**: Vite for fast development and optimized production builds
-- **Routing**: React Router with custom navigation components
-- **State Management**: TanStack Query for server state, React Context for auth
-- **UI Library**: shadcn/ui components with Tailwind CSS styling
+**Frontend Architecture**:
+- Single-page application built with React and TypeScript
+- Component-based architecture using shadcn/ui for consistent UI
+- Client-side routing with React Router DOM
+- Server state management via TanStack Query
+- Supabase integration for backend services and real-time features
 
-### Backend Integration
-- **Database**: Supabase (PostgreSQL) with 23 migration files
-- **Authentication**: Supabase Auth with role-based access control
-- **Edge Functions**: Custom Supabase functions for business logic (payroll, invoices, notifications)
-- **Real-time**: Live updates via Supabase subscriptions
+**Backend Integration**:
+- Supabase as the backend-as-a-service platform
+- PostgreSQL database with Row Level Security (RLS)
+- Edge Functions for server-side logic (payroll, PDF generation, notifications)
+- Authentication and authorization via Supabase Auth
 
-### Component Organization
-- **Layout Components**: AppLayout, AppSidebar, TopBar for consistent navigation
-- **Feature Components**: Modular components for leave, evaluations, settings, policies
-- **UI Components**: 50+ reusable shadcn/ui components
-- **Business Logic**: Utility functions for leave calculations, notifications, role management
+**Key Architectural Patterns**:
+- Role-based access control with four user roles (employee, team_lead, hr_manager, ceo)
+- Component composition for complex UI features
+- Query-based data fetching with automatic caching
+- Event-driven notifications and real-time updates
 
-## Key Features Discovered
+### Code Quality Observations
 
-1. **Employee Management**
-   - Profile management with avatars and role assignments
-   - Searchable employee selection components
-   - Department and role configuration
+**Strengths**:
+- Strong TypeScript usage throughout the codebase
+- Consistent component patterns and prop interfaces
+- Good separation of concerns (components, hooks, utilities)
+- Comprehensive UI component library (shadcn/ui)
+- Proper error handling and loading states
 
-2. **Leave Management**
-   - Leave request system with approval workflows
-   - Balance tracking and calendar integration
-   - Multiple leave types (vacation, sick, etc.)
+**Notable Components**:
+- `EvaluationTimeline`: Complex component handling multiple evaluation types with role-based visibility
+- `SearchableEmployeeSelect`: Reusable component with search, avatars, and filtering
+- `RichTextEditor`: Full-featured editor using Tiptap with toolbar
+- Layout components with responsive design and role-based navigation
 
-3. **Performance Evaluations**
-   - Quarterly evaluations with scoring and recommendations
-   - Daily feedback system with peer reviews
-   - Timeline visualization of evaluation history
-   - Role-based visibility controls
+### Database Schema Insights
 
-4. **HR Policies**
-   - Rich text policy creation and management
-   - Tiptap-based editor with formatting options
+From the migration files, the system manages:
+- Multi-tenant architecture (companies table)
+- Complex employee relationships and hierarchies
+- Evaluation workflows with different types (quarterly/daily)
+- Approval processes for leaves and expenses
+- Document management for HR policies
+- Attendance and payroll integration
 
-5. **Company Settings**
-   - Multi-tab configuration interface
-   - Departments, roles, attendance rules
-   - Expense categories and notification settings
+### Technology Ecosystem
 
-6. **Notifications**
-   - In-app notification system
-   - Real-time updates with bell indicator
-   - Automated notifications for approvals and evaluations
+**Core Dependencies**:
+- React ecosystem: react-router-dom, @tanstack/react-query
+- UI/Styling: tailwindcss, shadcn/ui components
+- Rich Text: @tiptap/react, @tiptap/starter-kit
+- Utilities: date-fns, lucide-react
+- Backend: @supabase/supabase-js
 
-## Technical Patterns
+**Development Tools**:
+- Build: Vite
+- Testing: Vitest, Playwright
+- Linting: ESLint
+- Package Manager: npm/bun (based on lockfiles)
 
-### Data Fetching
-- Consistent use of TanStack Query for all API calls
-- Proper loading states and error handling
-- Optimistic updates for better user experience
+## Documentation Generated
 
-### Authentication & Permissions
-- Role-based UI rendering (employee vs manager views)
-- Permission checks before API operations
-- Secure environment variable management
+Based on the codebase analysis, I've created comprehensive documentation:
 
-### Component Design
-- Functional components with hooks
-- Proper prop typing with TypeScript interfaces
-- Reusable components with customizable variants
-- Consistent naming conventions
+1. **README.md**: Project overview, features, setup instructions, and architecture description
+2. **llms.txt**: Technical context for AI assistants, including architecture patterns, key files, and development practices
+3. **SUMMARY.md**: This analysis summary
 
-### Styling Approach
-- Utility-first CSS with Tailwind
-- CSS custom properties for theming
-- Responsive design patterns
-- Consistent spacing and typography
-
-## Database Schema Insights
-
-Based on migration files and component usage:
-
-- **employees**: Core user table with profile information
-- **leave_requests**: Request tracking with approval status
-- **evaluations**: Quarterly performance data
-- **daily_evaluations**: Peer feedback system
-- **hr_policies**: Document storage
-- **departments** & **roles**: Organizational structure
-- **notifications**: Communication system
-- **expense_categories**: Financial tracking
-
-## Notable Implementation Details
-
-1. **Evaluation System**: Sophisticated visibility rules based on user roles - managers see recommendations, employees see limited views
-
-2. **Rich Text Editor**: Custom Tiptap integration with toolbar for policy creation
-
-3. **Searchable Select**: Advanced employee picker with avatar display and search functionality
-
-4. **Timeline Component**: Unified view combining quarterly and daily evaluations with proper sorting
-
-5. **Logo Component**: Flexible logo rendering with variant support for different contexts
-
-## Development Environment
-
-- **Package Manager**: npm/bun support
-- **Testing**: Vitest for unit tests, Playwright for E2E
-- **Linting**: ESLint configuration
-- **Type Checking**: TypeScript with strict settings
-- **CSS Processing**: Tailwind with PostCSS
-
-## Areas for Potential Enhancement
-
-1. **Testing Coverage**: Basic test setup exists but limited test files
-2. **Error Boundaries**: No visible error boundary components
-3. **Performance**: Could benefit from code splitting and lazy loading
-4. **Accessibility**: UI components may need ARIA improvements
-5. **Internationalization**: No i18n setup detected
-
-## Conclusion
-
-This is a well-structured, feature-rich HR management application with modern React patterns, comprehensive Supabase integration, and a polished user interface. The codebase demonstrates good separation of concerns, consistent coding practices, and scalable architecture suitable for enterprise HR operations.
+The documentation provides a solid foundation for developers to understand and contribute to the Beudox HR system, covering both high-level concepts and implementation details.
