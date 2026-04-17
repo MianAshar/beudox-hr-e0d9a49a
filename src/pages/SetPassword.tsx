@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import BeudoxLogo from '@/components/BeudoxLogo';
@@ -8,6 +8,20 @@ interface SetPasswordProps {
   mode: 'invite' | 'recovery';
   onComplete: () => void;
 }
+
+// Parse Supabase auth hash params (e.g. #access_token=...&type=invite)
+const parseAuthHash = () => {
+  const hash = window.location.hash.replace(/^#/, '');
+  if (!hash) return null;
+  const params = new URLSearchParams(hash);
+  return {
+    access_token: params.get('access_token'),
+    refresh_token: params.get('refresh_token'),
+    type: params.get('type'),
+    error: params.get('error'),
+    error_description: params.get('error_description'),
+  };
+};
 
 const getStrength = (pw: string): { label: string; percent: number; color: string } => {
   let score = 0;
