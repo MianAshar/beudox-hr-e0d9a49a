@@ -82,25 +82,24 @@ const AppSidebar = () => {
         className={`flex items-center border-b ${collapsed ? 'justify-center px-0' : 'justify-between'}`}
         style={{
           borderColor: 'rgba(255,255,255,0.10)',
-          height: 64,
+          height: 56,
           paddingLeft: collapsed ? 0 : 16,
           paddingRight: collapsed ? 0 : 16,
         }}
       >
         {!collapsed && (
-          <div className="flex items-center" style={{ height: 40, flex: 1, minWidth: 0 }}>
+          <div className="flex items-center" style={{ height: 56, flex: 1, minWidth: 0 }}>
             {companyLogo ? (
               <img
                 src={companyLogo}
                 alt={employee?.company_name || 'Company'}
                 style={{
-                  maxHeight: 32,
-                  maxWidth: 140,
+                  maxHeight: 36,
+                  maxWidth: 150,
                   width: 'auto',
                   height: 'auto',
                   objectFit: 'contain',
                   objectPosition: 'left center',
-                  filter: 'brightness(0) invert(1)',
                 }}
               />
             ) : employee?.company_name ? (
