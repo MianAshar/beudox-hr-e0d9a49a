@@ -9,19 +9,6 @@ interface SetPasswordProps {
   onComplete: () => void;
 }
 
-// Parse Supabase auth hash params (e.g. #access_token=...&type=invite)
-const parseAuthHash = () => {
-  const hash = window.location.hash.replace(/^#/, '');
-  if (!hash) return null;
-  const params = new URLSearchParams(hash);
-  return {
-    access_token: params.get('access_token'),
-    refresh_token: params.get('refresh_token'),
-    type: params.get('type'),
-    error: params.get('error'),
-    error_description: params.get('error_description'),
-  };
-};
 
 const getStrength = (pw: string): { label: string; percent: number; color: string } => {
   let score = 0;
