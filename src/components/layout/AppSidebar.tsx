@@ -79,19 +79,48 @@ const AppSidebar = () => {
     >
       {/* Logo + collapse toggle */}
       <div
-        className={`h-16 flex items-center border-b pb-4 ${collapsed ? 'justify-center px-0' : 'justify-between px-5'}`}
-        style={{ borderColor: 'rgba(255,255,255,0.10)' }}
+        className={`flex items-center border-b ${collapsed ? 'justify-center px-0' : 'justify-between'}`}
+        style={{
+          borderColor: 'rgba(255,255,255,0.10)',
+          height: 64,
+          paddingLeft: collapsed ? 0 : 16,
+          paddingRight: collapsed ? 0 : 16,
+        }}
       >
         {!collapsed && (
-          companyLogo ? (
-            <img
-              src={companyLogo}
-              alt={employee?.company_name || 'Company'}
-              style={{ height: 32, width: 'auto', maxWidth: 140, objectFit: 'contain' }}
-            />
-          ) : (
-            <BeudoxLogo variant="sidebar" size={36} />
-          )
+          <div className="flex items-center" style={{ height: 40, flex: 1, minWidth: 0 }}>
+            {companyLogo ? (
+              <img
+                src={companyLogo}
+                alt={employee?.company_name || 'Company'}
+                style={{
+                  maxHeight: 32,
+                  maxWidth: 140,
+                  width: 'auto',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  objectPosition: 'left center',
+                  filter: 'brightness(0) invert(1)',
+                }}
+              />
+            ) : employee?.company_name ? (
+              <span
+                style={{
+                  color: '#FFFFFF',
+                  fontFamily: 'Outfit, var(--ff-display), sans-serif',
+                  fontWeight: 600,
+                  fontSize: 14,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {employee.company_name}
+              </span>
+            ) : (
+              <BeudoxLogo variant="sidebar" size={36} />
+            )}
+          </div>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
