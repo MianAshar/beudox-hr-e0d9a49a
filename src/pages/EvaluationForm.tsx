@@ -18,16 +18,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Star, ArrowLeft, Settings2, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 
-const currentQuarter = () => {
+const currentHalf = () => {
   const now = new Date();
-  const q = Math.ceil((now.getMonth() + 1) / 3);
-  return `Q${q} ${now.getFullYear()}`;
+  const h = now.getMonth() < 6 ? 1 : 2;
+  return `H${h} ${now.getFullYear()}`;
 };
 
 const PERIODS = [
-  'Q1 2026', 'Q2 2026', 'Q3 2026', 'Q4 2026',
-  'Q1 2027', 'Q2 2027', 'Q3 2027', 'Q4 2027',
-  'H1 2026', 'H2 2026', 'H1 2027', 'H2 2027',
+  'H1 2026', 'H2 2026',
+  'H1 2027', 'H2 2027',
   'Annual 2026', 'Annual 2027', 'Custom',
 ];
 
@@ -53,7 +52,7 @@ const EvaluationForm = () => {
   const companyId = employee?.company_id;
 
   const [employeeId, setEmployeeId] = useState('');
-  const [period, setPeriod] = useState(currentQuarter());
+  const [period, setPeriod] = useState(currentHalf());
   const [customPeriod, setCustomPeriod] = useState('');
   const [recommendation, setRecommendation] = useState('No Change');
   const [customRecommendation, setCustomRecommendation] = useState('');

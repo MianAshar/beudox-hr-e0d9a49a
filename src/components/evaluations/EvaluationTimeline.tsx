@@ -199,7 +199,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
                       ? 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border-0 text-[10px]'
                       : 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border-0 text-[10px]'
                   }>
-                    {item.type === 'quarterly' ? 'Quarterly' : 'Daily'}
+                    {item.type === 'quarterly' ? 'Bi-Annual' : 'Daily'}
                   </Badge>
                   {item.type === 'daily' && item.dailyDirection && (
                     <Badge variant="outline" className={
