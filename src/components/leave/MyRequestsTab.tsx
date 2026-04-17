@@ -42,13 +42,23 @@ const MyRequestsTab = () => {
     },
   });
 
-  // Fetch public holidays for calendar muted style
+  // Fetch public holidays for calendar muted style — expand multi-day ranges
   const { data: publicHolidays = [] } = useQuery({
     queryKey: ['public-holidays-my', companyId],
     enabled: !!companyId,
     queryFn: async () => {
-      const { data } = await supabase.from('public_holidays').select('date').eq('company_id', companyId!);
-      return (data || []).map((h: any) => h.date);
+      const { data } = await supabase.from('public_holidays').select('date, end_date').eq('company_id', companyId!);
+      const dates: string[] = [];
+      (data || []).forEach((h: any) => {
+        const start = new Date(h.date);
+        const end = h.end_date ? new Date(h.end_date) : start;
+        const cur = new Date(start);
+        while (cur <= end) {
+          dates.push(cur.toISOString().split('T')[0]);
+          cur.setDate(cur.getDate() + 1);
+        }
+      });
+      return dates;
     },
   });
 
