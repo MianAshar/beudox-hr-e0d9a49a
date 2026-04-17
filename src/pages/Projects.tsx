@@ -239,12 +239,25 @@ const Projects = () => {
                   <TableCell>{p.clients?.name || '—'}</TableCell>
                   <TableCell>{p.project_categories?.name || '—'}</TableCell>
                   <TableCell>{p.lead?.full_name || '—'}</TableCell>
-                  <TableCell>{formatDate(p.internal_deadline)}</TableCell>
+                  <TableCell onClick={e => e.stopPropagation()}>
+                    <DeadlineCell
+                      project={p}
+                      canEdit={canEditDeadline}
+                      companyId={companyId!}
+                      employeeId={employeeId!}
+                    />
+                  </TableCell>
                   <TableCell>
                     {p.priority && <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>}
                   </TableCell>
                   <TableCell onClick={e => e.stopPropagation()}>
-                    <StatusCell project={p} canEdit={canEditStatus} fmt={fmt} />
+                    <StatusCell
+                      project={p}
+                      canEdit={canEditStatus}
+                      fmt={fmt}
+                      companyId={companyId!}
+                      employeeId={employeeId!}
+                    />
                     {!p.is_active && <Badge variant="outline" className="ml-1 text-xs">Inactive</Badge>}
                   </TableCell>
                   {isManager && (
