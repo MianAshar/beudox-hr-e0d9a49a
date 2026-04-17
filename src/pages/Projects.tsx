@@ -152,7 +152,7 @@ const Projects = () => {
               <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                {['in_progress', 'completed', 'invoiced', 'on_hold', 'cancelled'].map(s => (
+                {STATUS_OPTIONS.map(s => (
                   <SelectItem key={s} value={s}>{fmt(s)}</SelectItem>
                 ))}
               </SelectContent>
