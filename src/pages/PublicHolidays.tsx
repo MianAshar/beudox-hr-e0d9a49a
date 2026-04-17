@@ -62,6 +62,8 @@ const PublicHolidays = () => {
   const [dateError, setDateError] = useState('');
   const [endDateError, setEndDateError] = useState('');
   const [calPopover, setCalPopover] = useState<string | null>(null);
+  const [startOpen, setStartOpen] = useState(false);
+  const [endOpen, setEndOpen] = useState(false);
 
   const companyId = employee?.company_id;
   const canManage = employee?.role_name === 'hr_manager' || employee?.role_name === 'ceo';
@@ -356,7 +358,7 @@ const PublicHolidays = () => {
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label>Start Date <span className="text-destructive">*</span></Label>
-              <Popover>
+              <Popover open={startOpen} onOpenChange={setStartOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -373,10 +375,21 @@ const PublicHolidays = () => {
                     onSelect={(d) => {
                       setModalDate(d);
                       setDateError('');
-                      // Clear end date if it's now before start
-                      if (d && modalEndDate && modalEndDate < d) {
+                      if (!d) {
+                        // Cleared start: reset end and close
+                        setModalEndDate(undefined);
+                        setEndDateError('');
+                        setStartOpen(false);
+                        return;
+                      }
+                      // Reset end date if it now precedes new start
+                      if (modalEndDate && modalEndDate < d) {
                         setModalEndDate(undefined);
                       }
+                      setEndDateError('');
+                      // Close start, auto-focus end
+                      setStartOpen(false);
+                      setTimeout(() => setEndOpen(true), 100);
                     }}
                     className="p-3 pointer-events-auto"
                   />
@@ -386,7 +399,7 @@ const PublicHolidays = () => {
             </div>
             <div className="space-y-1.5">
               <Label>End Date</Label>
-              <Popover>
+              <Popover open={endOpen} onOpenChange={setEndOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -400,7 +413,12 @@ const PublicHolidays = () => {
                   <Calendar
                     mode="single"
                     selected={modalEndDate}
-                    onSelect={(d) => { setModalEndDate(d); setEndDateError(''); }}
+                    defaultMonth={modalEndDate ?? modalDate}
+                    onSelect={(d) => {
+                      setModalEndDate(d);
+                      setEndDateError('');
+                      if (d) setEndOpen(false);
+                    }}
                     disabled={(d) => modalDate ? d < modalDate : false}
                     className="p-3 pointer-events-auto"
                   />
