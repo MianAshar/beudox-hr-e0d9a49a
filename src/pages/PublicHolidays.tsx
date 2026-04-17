@@ -61,6 +61,7 @@ const PublicHolidays = () => {
   const [calPopover, setCalPopover] = useState<string | null>(null);
 
   const companyId = employee?.company_id;
+  const canManage = employee?.role_name === 'hr_manager' || employee?.role_name === 'ceo';
 
   const { data: holidays = [], isLoading } = useQuery({
     queryKey: ['public-holidays', companyId, selectedYear],
@@ -172,7 +173,7 @@ const PublicHolidays = () => {
     return map;
   }, [holidays]);
 
-  const showPreload = !isLoading && holidays.length === 0 && selectedYear === currentYear;
+  const showPreload = canManage && !isLoading && holidays.length === 0 && selectedYear === currentYear;
 
   return (
     <div className="space-y-6">
@@ -213,9 +214,11 @@ const PublicHolidays = () => {
               <CalendarIcon className="h-4 w-4 mr-1.5" /> Calendar
             </Button>
           </div>
-          <Button onClick={() => openModal()} size="sm">
-            <Plus className="h-4 w-4 mr-1.5" /> Add Holiday
-          </Button>
+          {canManage && (
+            <Button onClick={() => openModal()} size="sm">
+              <Plus className="h-4 w-4 mr-1.5" /> Add Holiday
+            </Button>
+          )}
         </div>
       </div>
 
@@ -269,15 +272,17 @@ const PublicHolidays = () => {
                               <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">Recurring</span>
                             )}
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            onClick={() => deleteMutation.mutate(h.id)}
-                            disabled={deleteMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {canManage && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => deleteMutation.mutate(h.id)}
+                              disabled={deleteMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       );
                     })}
@@ -304,6 +309,7 @@ const PublicHolidays = () => {
               onDelete={(id) => deleteMutation.mutate(id)}
               onAddDate={(date) => openModal(date)}
               deleting={deleteMutation.isPending}
+              canManage={canManage}
             />
           ))}
         </div>
@@ -387,9 +393,10 @@ interface MiniMonthProps {
   onDelete: (id: string) => void;
   onAddDate: (date: Date) => void;
   deleting: boolean;
+  canManage: boolean;
 }
 
-const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopover, onDelete, onAddDate, deleting }: MiniMonthProps) => {
+const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopover, onDelete, onAddDate, deleting, canManage }: MiniMonthProps) => {
   const firstDay = startOfMonth(new Date(year, month));
   const totalDays = getDaysInMonth(firstDay);
   // getDay: 0=Sun, convert to Mon-start: (getDay + 6) % 7
@@ -418,10 +425,11 @@ const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopov
               onClick={() => {
                 if (holiday) {
                   setCalPopover(calPopover === holiday.id ? null : holiday.id);
-                } else {
+                } else if (canManage) {
                   onAddDate(new Date(year, month, day));
                 }
               }}
+              disabled={!holiday && !canManage}
               className={cn(
                 'relative h-7 w-full rounded text-xs transition-colors',
                 holiday
@@ -429,6 +437,7 @@ const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopov
                   : isWeekend
                     ? 'bg-muted/60 text-muted-foreground hover:bg-muted'
                     : 'text-foreground hover:bg-accent',
+                !holiday && !canManage && 'cursor-default hover:bg-transparent',
               )}
             >
               {day}
@@ -448,15 +457,17 @@ const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopov
                 </Tooltip>
                 <PopoverContent className="w-48 p-3" align="center" side="top">
                   <p className="text-sm font-medium text-foreground mb-2">{holiday.name}</p>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => onDelete(holiday.id)}
-                    disabled={deleting}
-                  >
-                    <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
-                  </Button>
+                  {canManage && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => onDelete(holiday.id)}
+                      disabled={deleting}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
+                    </Button>
+                  )}
                 </PopoverContent>
               </Popover>
             );
