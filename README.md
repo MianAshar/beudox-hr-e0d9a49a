@@ -1,101 +1,115 @@
 <!--
 generated_by: tessera
-source_sha: 704ece94b7bb7bbc46344b522fa862ae8a7dd3f4
-generated_at: 2026-04-17T23:46:42.284Z
+source_sha: 2bd74d6b990f769987716ab8fe2672421a86d47b
+generated_at: 2026-04-17T23:49:23.782Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides a complete suite of HR tools including employee management, leave tracking, evaluations, payroll, project management, and more.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, performance evaluations, leave tracking, payroll processing, and organizational workflows.
 
 ## Features
 
-- **Employee Management**: Complete employee profiles, onboarding, and organizational structure
-- **Leave Management**: Request, approve, and track leave balances and requests
-- **Performance Evaluations**: Quarterly and daily evaluations with detailed feedback
-- **Payroll Management**: Automated payroll processing and payslip generation
-- **Project Management**: Track projects, clients, and resource allocation
-- **HR Policies**: Rich text policy documents with full formatting support
-- **Finance & Invoicing**: Invoice generation, expense tracking, and financial reporting
-- **Settings & Configuration**: Company settings, roles, departments, and system configuration
+### Core HR Functionality
+- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
+- **Performance Evaluations**: Quarterly and daily evaluation systems with customizable parameters
+- **Leave Management**: Automated leave request processing with balance tracking
+- **Payroll Processing**: Automated payroll generation with payslip distribution
+- **HR Policies**: Rich text policy management and documentation
+
+### Business Operations
+- **Project Management**: Project tracking with client associations
+- **Invoice Management**: Client invoicing and financial tracking
+- **Loan Management**: Employee loan processing and tracking
+- **Finance Dashboard**: Comprehensive financial reporting
+
+### Administrative Tools
+- **Role-Based Access Control**: Granular permissions for different user roles
+- **Settings Management**: Configurable company settings, departments, and parameters
+- **Public Holidays**: Holiday calendar management
+- **Notifications**: Automated email notifications for key events
 
 ## Technology Stack
 
 - **Frontend**: React 18, TypeScript, Vite
-- **UI Framework**: Radix UI components with Tailwind CSS
+- **UI Framework**: shadcn/ui with Radix UI components
+- **Styling**: Tailwind CSS
+- **State Management**: TanStack Query (React Query)
 - **Routing**: React Router DOM
-- **State Management**: React Query for server state, Context API for auth
-- **Backend**: Supabase (PostgreSQL database, Authentication, Edge Functions)
-- **Rich Text Editor**: Tiptap
+- **Backend**: Supabase (PostgreSQL, Authentication, Edge Functions)
+- **Rich Text Editing**: TipTap
 - **Charts**: Recharts
 - **Forms**: React Hook Form with Zod validation
-- **Testing**: Vitest, Playwright for E2E
+- **Testing**: Vitest, Playwright (E2E)
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or bun
+- npm or bun package manager
 - Supabase account and project
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
-   cd beudox-hr-e0d9a49a
+   git clone <repository-url>
+   cd beudox-hr
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. Set up environment variables:
+3. **Environment Setup**
    
-   Copy `.env` and update the Supabase configuration:
+   Copy the environment file and configure your Supabase credentials:
    ```bash
    cp .env .env.local
    ```
    
-   Update the following variables in `.env.local`:
+   Update `.env.local` with your Supabase project details:
    ```env
    VITE_SUPABASE_PROJECT_ID=your_project_id
    VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
    VITE_SUPABASE_URL=https://your-project.supabase.co
    ```
 
-4. Start the development server:
+4. **Database Setup**
+   
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+
+5. **Development Server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
+   
+   The application will be available at `http://localhost:8080`
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-### Database Setup
-
-The application uses Supabase as the backend. The database schema includes migrations in the `supabase/migrations/` directory. To set up the database:
-
-1. Create a new Supabase project
-2. Run the migrations in order:
-   ```bash
-   supabase db push
-   ```
-3. Configure Row Level Security (RLS) policies as needed
-
-### Building for Production
+### Build for Production
 
 ```bash
 npm run build
+# or
+bun run build
 ```
 
-The built files will be in the `dist/` directory.
+### Testing
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npx playwright test
+```
 
 ## Project Structure
 
@@ -103,42 +117,33 @@ The built files will be in the `dist/` directory.
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (sidebar, topbar, etc.)
-│   ├── [feature]/      # Feature-specific components
-│   └── BeudoxLogo.tsx  # Logo component
-├── pages/              # Page components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── evaluations/    # Evaluation-specific components
+│   ├── leave/          # Leave management components
+│   ├── settings/       # Settings components
+│   └── hr-policies/    # HR policy components
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations (Supabase)
 └── types/              # TypeScript type definitions
 ```
 
-## Available Scripts
+## Authentication & Authorization
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-
-## Authentication
-
-The application uses Supabase Authentication with email/password login. Role-based access control is implemented with different permission levels:
-
-- CEO
-- HR Manager
-- Team Lead
-- Employee
+The application uses Supabase Authentication with role-based access control. User roles include:
+- **CEO**: Full system access
+- **HR Manager**: HR operations and employee management
+- **Team Lead**: Team management and evaluations
+- **Employee**: Limited access to personal data
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+1. Follow the existing code style and conventions
+2. Write tests for new features
+3. Update documentation as needed
+4. Ensure all tests pass before submitting PRs
 
 ## License
 
-This project is private and proprietary.
+This project is proprietary software. All rights reserved.
