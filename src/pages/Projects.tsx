@@ -301,9 +301,11 @@ interface StatusCellProps {
   project: any;
   canEdit: boolean;
   fmt: (s: string) => string;
+  companyId: string;
+  employeeId: string;
 }
 
-const StatusCell = ({ project, canEdit, fmt }: StatusCellProps) => {
+const StatusCell = ({ project, canEdit, fmt, companyId, employeeId }: StatusCellProps) => {
   const qc = useQueryClient();
   const [optimistic, setOptimistic] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
@@ -311,14 +313,24 @@ const StatusCell = ({ project, canEdit, fmt }: StatusCellProps) => {
 
   const mutation = useMutation({
     mutationFn: async (newStatus: string) => {
+      const previousStatus = project.status;
       const { error } = await supabase.from('projects').update({ status: newStatus }).eq('id', project.id);
       if (error) throw error;
+      await logProjectActivity({
+        companyId,
+        projectId: project.id,
+        employeeId,
+        action: 'status_changed',
+        oldValue: previousStatus,
+        newValue: newStatus,
+      });
     },
     onSuccess: () => {
       setFlash(true);
       setTimeout(() => setFlash(false), 800);
       setTimeout(() => setOptimistic(null), 50);
       qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
     },
     onError: (e: Error) => {
       setOptimistic(null);
@@ -372,6 +384,111 @@ const StatusCell = ({ project, canEdit, fmt }: StatusCellProps) => {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+};
+
+interface DeadlineCellProps {
+  project: any;
+  canEdit: boolean;
+  companyId: string;
+  employeeId: string;
+}
+
+const toIsoDate = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const DeadlineCell = ({ project, canEdit, companyId, employeeId }: DeadlineCellProps) => {
+  const qc = useQueryClient();
+  const [optimistic, setOptimistic] = useState<string | null | undefined>(undefined);
+  const [flash, setFlash] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const mutation = useMutation({
+    mutationFn: async (newDate: string) => {
+      const previousDate = project.internal_deadline as string | null;
+      const { error } = await supabase
+        .from('projects')
+        .update({ internal_deadline: newDate })
+        .eq('id', project.id);
+      if (error) throw error;
+      await logProjectActivity({
+        companyId,
+        projectId: project.id,
+        employeeId,
+        action: 'deadline_changed',
+        oldValue: previousDate,
+        newValue: newDate,
+      });
+    },
+    onSuccess: () => {
+      setFlash(true);
+      setTimeout(() => setFlash(false), 800);
+      setTimeout(() => setOptimistic(undefined), 50);
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
+    },
+    onError: (e: Error) => {
+      setOptimistic(undefined);
+      toast({ title: 'Failed to update deadline', description: e.message, variant: 'destructive' });
+    },
+  });
+
+  const value = optimistic !== undefined ? optimistic : (project.internal_deadline as string | null);
+  const isPending = mutation.isPending;
+
+  const display = (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded px-1 py-0.5 transition-all',
+        flash && 'ring-2 ring-bx-success ring-offset-1',
+      )}
+    >
+      {isPending ? (
+        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+      ) : (
+        <>
+          <span>{formatDate(value)}</span>
+          {canEdit && (
+            <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+          )}
+        </>
+      )}
+    </span>
+  );
+
+  if (!canEdit) return display;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild disabled={isPending}>
+        <button type="button" className="group inline-flex cursor-pointer hover:text-foreground">
+          {display}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={value ? new Date(value) : undefined}
+          onSelect={d => {
+            if (!d) return;
+            const iso = toIsoDate(d);
+            if (iso === value) {
+              setOpen(false);
+              return;
+            }
+            setOptimistic(iso);
+            setOpen(false);
+            mutation.mutate(iso);
+          }}
+          initialFocus
+          className={cn('p-3 pointer-events-auto')}
+        />
+      </PopoverContent>
+    </Popover>
   );
 };
 
