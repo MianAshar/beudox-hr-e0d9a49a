@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -36,6 +37,7 @@ const ProjectDetail = () => {
   const companyId = employee?.company_id;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const isCeo = role === 'ceo';
+  const canSeeActivity = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
 
   const [deactivateOpen, setDeactivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -256,6 +258,11 @@ const ProjectDetail = () => {
           <p className="text-sm text-muted-foreground">No team members assigned</p>
         )}
       </div>
+
+      {/* Activity Log */}
+      {canSeeActivity && companyId && (
+        <ProjectActivityLog projectId={id!} companyId={companyId} />
+      )}
 
       {/* Deactivate Dialog */}
       <Dialog open={deactivateOpen} onOpenChange={setDeactivateOpen}>
