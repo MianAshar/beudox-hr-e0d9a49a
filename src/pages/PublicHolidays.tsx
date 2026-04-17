@@ -62,6 +62,8 @@ const PublicHolidays = () => {
   const [dateError, setDateError] = useState('');
   const [endDateError, setEndDateError] = useState('');
   const [calPopover, setCalPopover] = useState<string | null>(null);
+  const [startOpen, setStartOpen] = useState(false);
+  const [endOpen, setEndOpen] = useState(false);
 
   const companyId = employee?.company_id;
   const canManage = employee?.role_name === 'hr_manager' || employee?.role_name === 'ceo';
