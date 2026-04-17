@@ -259,6 +259,11 @@ const ProjectDetail = () => {
         )}
       </div>
 
+      {/* Activity Log */}
+      {canSeeActivity && companyId && (
+        <ProjectActivityLog projectId={id!} companyId={companyId} />
+      )}
+
       {/* Deactivate Dialog */}
       <Dialog open={deactivateOpen} onOpenChange={setDeactivateOpen}>
         <DialogContent>
