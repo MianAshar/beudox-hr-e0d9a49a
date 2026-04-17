@@ -393,9 +393,10 @@ interface MiniMonthProps {
   onDelete: (id: string) => void;
   onAddDate: (date: Date) => void;
   deleting: boolean;
+  canManage: boolean;
 }
 
-const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopover, onDelete, onAddDate, deleting }: MiniMonthProps) => {
+const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopover, onDelete, onAddDate, deleting, canManage }: MiniMonthProps) => {
   const firstDay = startOfMonth(new Date(year, month));
   const totalDays = getDaysInMonth(firstDay);
   // getDay: 0=Sun, convert to Mon-start: (getDay + 6) % 7
