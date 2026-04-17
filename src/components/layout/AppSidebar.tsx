@@ -77,24 +77,33 @@ const AppSidebar = () => {
       className="fixed left-0 top-0 h-screen flex flex-col z-40 transition-all duration-[250ms] ease-in-out"
       style={{ width, backgroundColor: '#1A1240' }}
     >
-      {/* Logo */}
-      <div className="h-16 flex items-center px-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        {companyLogo ? (
-          <img
-            src={companyLogo}
-            alt={employee?.company_name || 'Company'}
-            style={{
-              height: 32,
-              width: 'auto',
-              maxWidth: collapsed ? 32 : 140,
-              objectFit: 'contain',
-            }}
-          />
-        ) : collapsed ? (
-          <BeudoxLogo variant="sidebar" showWordmark={false} size={32} />
-        ) : (
-          <BeudoxLogo variant="sidebar" size={36} />
+      {/* Logo + collapse toggle */}
+      <div
+        className={`h-16 flex items-center border-b ${collapsed ? 'justify-center px-0' : 'justify-between px-5'}`}
+        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+      >
+        {!collapsed && (
+          companyLogo ? (
+            <img
+              src={companyLogo}
+              alt={employee?.company_name || 'Company'}
+              style={{ height: 32, width: 'auto', maxWidth: 140, objectFit: 'contain' }}
+            />
+          ) : (
+            <BeudoxLogo variant="sidebar" size={36} />
+          )
         )}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="text-white/40 hover:text-white/70 transition-colors shrink-0"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? (
+            <ChevronRight className="h-5 w-5" style={{ strokeWidth: 1.5 }} />
+          ) : (
+            <ChevronLeft className="h-5 w-5" style={{ strokeWidth: 1.5 }} />
+          )}
+        </button>
       </div>
 
       {/* Nav */}
@@ -145,33 +154,6 @@ const AppSidebar = () => {
           );
         })}
       </nav>
-
-      {/* Footer: collapse toggle only */}
-      <div className="border-t px-5 py-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        {!collapsed && employee && (
-          <div className="mb-3">
-            <div className="text-xs font-medium text-white truncate" style={{ fontFamily: 'var(--ff-body)' }}>
-              {employee.full_name}
-            </div>
-            <div className="text-[10px] text-white/40 truncate" style={{ fontFamily: 'var(--ff-body)' }}>
-              {employee.role_name ? formatRole(employee.role_name) : employee.designation || 'Employee'}
-            </div>
-          </div>
-        )}
-        <div className="flex items-center justify-end">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-white/40 hover:text-white/70 transition-colors"
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? (
-              <ChevronRight className="h-5 w-5" style={{ strokeWidth: 1.5 }} />
-            ) : (
-              <ChevronLeft className="h-5 w-5" style={{ strokeWidth: 1.5 }} />
-            )}
-          </button>
-        </div>
-      </div>
     </aside>
   );
 };
