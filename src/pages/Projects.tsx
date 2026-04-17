@@ -262,4 +262,75 @@ const Projects = () => {
   );
 };
 
+interface StatusCellProps {
+  project: any;
+  canEdit: boolean;
+  fmt: (s: string) => string;
+}
+
+const StatusCell = ({ project, canEdit, fmt }: StatusCellProps) => {
+  const qc = useQueryClient();
+  const [optimistic, setOptimistic] = useState<string | null>(null);
+  const [flash, setFlash] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const mutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      const { error } = await supabase.from('projects').update({ status: newStatus }).eq('id', project.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setFlash(true);
+      setTimeout(() => setFlash(false), 800);
+      setTimeout(() => setOptimistic(null), 50);
+      qc.invalidateQueries({ queryKey: ['projects'] });
+    },
+    onError: (e: Error) => {
+      setOptimistic(null);
+      toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' });
+    },
+  });
+
+  const status = optimistic ?? project.status;
+  const isPending = mutation.isPending;
+
+  const badge = (
+    <Badge
+      className={cn(
+        statusColors[status] || '',
+        'transition-all',
+        flash && 'ring-2 ring-green-500 ring-offset-1',
+        canEdit && !isPending && 'cursor-pointer hover:opacity-80',
+      )}
+    >
+      {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : fmt(status)}
+    </Badge>
+  );
+
+  if (!canEdit) return badge;
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild disabled={isPending}>
+        <button type="button" className="inline-flex">{badge}</button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="bg-popover">
+        {STATUS_OPTIONS.map(s => (
+          <DropdownMenuItem
+            key={s}
+            onSelect={() => {
+              if (s === status) return;
+              setOptimistic(s);
+              setOpen(false);
+              mutation.mutate(s);
+            }}
+          >
+            <Badge className={cn(statusColors[s] || '', 'pointer-events-none')}>{fmt(s)}</Badge>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 export default Projects;
