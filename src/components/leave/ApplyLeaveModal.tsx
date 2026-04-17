@@ -38,6 +38,7 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
   const [halfDay, setHalfDay] = useState(false);
   const [halfDayPeriod, setHalfDayPeriod] = useState('morning');
   const [reason, setReason] = useState('');
+  const [reasonError, setReasonError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [daysRequested, setDaysRequested] = useState(0);
   const [endDateOpen, setEndDateOpen] = useState(false);
@@ -97,6 +98,7 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
       setEndDate(undefined);
       setHalfDay(false);
       setReason('');
+      setReasonError('');
       setDaysRequested(0);
       if (employee?.employee_id) setSelectedEmployee(employee.employee_id);
     }
@@ -129,6 +131,12 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
     if (!companyId || !selectedEmployee || !leaveTypeId || !startDate) return;
     const lt = leaveTypes.find((t: any) => t.id === leaveTypeId);
     if (!lt) return;
+
+    if (!reason.trim()) {
+      setReasonError('Please provide a reason for your leave request.');
+      return;
+    }
+    setReasonError('');
 
     const effectiveEnd = halfDay ? startDate : endDate;
     if (!effectiveEnd) { toast.error('Please select an end date'); return; }
@@ -273,11 +281,24 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
           )}
 
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium">Reason (optional)</Label>
-            <Textarea value={reason} onChange={e => setReason(e.target.value)} rows={3} placeholder="Enter reason..." />
+            <Label className="text-sm font-medium">Reason <span className="text-destructive">*</span></Label>
+            <Textarea
+              value={reason}
+              onChange={e => {
+                setReason(e.target.value);
+                if (reasonError && e.target.value.trim()) setReasonError('');
+              }}
+              rows={3}
+              placeholder="Enter reason..."
+              aria-invalid={!!reasonError}
+              className={reasonError ? 'border-destructive focus-visible:ring-destructive' : ''}
+            />
+            {reasonError && (
+              <p className="text-xs text-destructive">{reasonError}</p>
+            )}
           </div>
 
-          <Button onClick={handleSubmit} disabled={submitting || !leaveTypeId || !startDate} className="w-full">
+          <Button onClick={handleSubmit} disabled={submitting || !leaveTypeId || !startDate || !reason.trim()} className="w-full">
             {submitting ? 'Submitting...' : 'Submit Request'}
           </Button>
         </div>
