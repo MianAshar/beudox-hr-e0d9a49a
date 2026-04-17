@@ -16,6 +16,7 @@ import {
   ArrowLeft, Send, CreditCard, Pencil, Ban, Loader2, FileText, Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 
 const statusStyles: Record<string, string> = {
   draft: 'bg-[hsl(var(--bx-warning-bg))] text-[hsl(var(--bx-warning-text))]',
@@ -405,11 +406,11 @@ const InvoiceDetail = () => {
       <div className="grid grid-cols-4 gap-4 text-sm">
         <div>
           <span className="text-muted-foreground text-xs uppercase tracking-wider">Invoice Date</span>
-          <p className="font-medium mt-1">{format(new Date(invoice.created_at!), 'dd MMM yyyy')}</p>
+          <p className="font-medium mt-1">{formatDate(invoice.created_at!)}</p>
         </div>
         <div>
           <span className="text-muted-foreground text-xs uppercase tracking-wider">Due Date</span>
-          <p className="font-medium mt-1">{invoice.due_date ? format(new Date(invoice.due_date), 'dd MMM yyyy') : '—'}</p>
+          <p className="font-medium mt-1">{invoice.due_date ? formatDate(invoice.due_date) : '—'}</p>
         </div>
         <div>
           <span className="text-muted-foreground text-xs uppercase tracking-wider">Currency</span>
@@ -418,7 +419,7 @@ const InvoiceDetail = () => {
         {invoice.sent_at && (
           <div>
             <span className="text-muted-foreground text-xs uppercase tracking-wider">Sent</span>
-            <p className="font-medium mt-1">{format(new Date(invoice.sent_at), 'dd MMM yyyy')}</p>
+            <p className="font-medium mt-1">{formatDate(invoice.sent_at)}</p>
           </div>
         )}
       </div>
@@ -523,7 +524,7 @@ const InvoiceDetail = () => {
             {payments.map(p => (
               <div key={p.id} className="flex items-center justify-between py-2 border-b last:border-0" style={{ borderColor: 'hsl(var(--border))' }}>
                 <div>
-                  <p className="text-sm font-medium">{format(new Date(p.payment_date), 'dd MMM yyyy')}</p>
+                  <p className="text-sm font-medium">{formatDate(p.payment_date)}</p>
                   <p className="text-xs text-muted-foreground capitalize">{p.payment_method.replace('_', ' ')}</p>
                   {p.reference_number && <p className="text-xs text-muted-foreground">Ref: {p.reference_number}</p>}
                 </div>

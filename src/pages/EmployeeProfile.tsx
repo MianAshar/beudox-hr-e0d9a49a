@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
@@ -267,7 +268,7 @@ const EmployeeProfile = () => {
             <InfoField label="Full Name" value={emp.full_name} />
             <InfoField label="CNIC" value={emp.cnic} />
             <InfoField label="Phone" value={emp.phone} />
-            <InfoField label="Date of Birth" value={emp.date_of_birth ? format(new Date(emp.date_of_birth), 'dd MMM yyyy') : null} />
+            <InfoField label="Date of Birth" value={emp.date_of_birth ? formatDate(emp.date_of_birth) : null} />
             <InfoField label="Address" value={emp.address} />
           </SectionCard>
         </TabsContent>
@@ -278,7 +279,7 @@ const EmployeeProfile = () => {
             <InfoField label="Employee Code" value={emp.employee_code} />
             <InfoField label="Designation" value={emp.designation} />
             <InfoField label="Department" value={emp.department} />
-            <InfoField label="Joining Date" value={emp.joining_date ? format(new Date(emp.joining_date), 'dd MMM yyyy') : null} />
+            <InfoField label="Joining Date" value={emp.joining_date ? formatDate(emp.joining_date) : null} />
             <InfoField label="Employment Type" value={toTitleCase(emp.employment_type)} />
             <InfoField label="Status" value={toTitleCase(emp.status)} />
             <InfoField label="Increment Rule" value={toTitleCase(emp.increment_rule)} />

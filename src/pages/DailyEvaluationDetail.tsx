@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Trash2, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { useState } from 'react';
 
 const getInitials = (name: string) =>
@@ -142,7 +143,7 @@ const DailyEvaluationDetail = () => {
             </div>
           </div>
           <div className="flex gap-3 mt-4 text-sm text-muted-foreground flex-wrap">
-            <span>Date: {format(new Date(ev.date), 'dd MMM yyyy')}</span>
+            <span>Date: {formatDate(ev.date)}</span>
             {ev.project && <span>· Project: {ev.project.project_name}</span>}
           </div>
         </CardContent>

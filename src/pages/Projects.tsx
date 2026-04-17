@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Search, FolderKanban, XCircle } from 'lucide-react';
+import { formatDate } from '@/lib/format-date';
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -208,7 +209,7 @@ const Projects = () => {
                   <TableCell>{p.clients?.name || '—'}</TableCell>
                   <TableCell>{p.project_categories?.name || '—'}</TableCell>
                   <TableCell>{p.lead?.full_name || '—'}</TableCell>
-                  <TableCell>{p.internal_deadline || '—'}</TableCell>
+                  <TableCell>{formatDate(p.internal_deadline)}</TableCell>
                   <TableCell>
                     {p.priority && <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>}
                   </TableCell>

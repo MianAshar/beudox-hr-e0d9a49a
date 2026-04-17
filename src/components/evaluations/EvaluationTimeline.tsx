@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Star } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { Link } from 'react-router-dom';
 
 const getInitials = (name: string) =>
@@ -211,7 +211,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
                     </Badge>
                   )}
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(item.date), 'dd MMM yyyy')}
+                    {formatDate(item.date)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">

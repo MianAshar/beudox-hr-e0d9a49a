@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { Star, ArrowLeft, CalendarIcon, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { Link } from 'react-router-dom';
 
 const StarRating = ({ value, onChange, max = 5 }: { value: number; onChange: (v: number) => void; max?: number }) => (
@@ -237,7 +238,7 @@ const DailyEvaluationForm = () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn("w-full justify-start text-left font-normal")}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(date, 'dd MMM yyyy')}
+                  {formatDate(date)}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">

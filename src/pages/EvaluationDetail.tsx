@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Pencil, Trash2, Star } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { useState } from 'react';
 
 const recommendationColors: Record<string, string> = {
@@ -135,7 +135,7 @@ const EvaluationDetail = () => {
             )}
           </div>
           <div className="text-xs text-muted-foreground mt-3">
-            Evaluated by {ev.evaluator?.full_name || '—'} on {ev.created_at ? format(new Date(ev.created_at), 'dd MMM yyyy') : '—'}
+            Evaluated by {ev.evaluator?.full_name || '—'} on {ev.created_at ? formatDate(ev.created_at) : '—'}
           </div>
         </CardContent>
       </Card>

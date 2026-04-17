@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Eye, Trash2, ClipboardCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 
 const recommendationColors: Record<string, string> = {
   'No Change': 'bg-muted text-muted-foreground',
@@ -198,7 +198,7 @@ const Evaluations = () => {
                 )}
                 <TableCell className="text-sm">{ev.evaluator?.full_name || '—'}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {ev.created_at ? format(new Date(ev.created_at), 'dd MMM yyyy') : '—'}
+                  {ev.created_at ? formatDate(ev.created_at) : '—'}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">

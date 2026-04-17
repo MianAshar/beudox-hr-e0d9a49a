@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2 } from 'lucide-react';
+import { formatDate } from '@/lib/format-date';
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -211,7 +212,7 @@ const ClientDetail = () => {
                   <TableCell>
                     <Badge className={statusColors[p.status] || ''}>{fmt(p.status)}</Badge>
                   </TableCell>
-                  <TableCell>{p.internal_deadline || '—'}</TableCell>
+                  <TableCell>{formatDate(p.internal_deadline)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

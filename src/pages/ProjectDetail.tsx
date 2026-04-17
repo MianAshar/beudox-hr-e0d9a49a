@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle } from 'lucide-react';
+import { formatDate } from '@/lib/format-date';
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -196,12 +197,12 @@ const ProjectDetail = () => {
             {isManager && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Client Deadline</span>
-                <span className="text-foreground">{project.client_deadline || '—'}</span>
+                <span className="text-foreground">{formatDate(project.client_deadline)}</span>
               </div>
             )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Internal Deadline</span>
-              <span className="text-foreground">{project.internal_deadline || '—'}</span>
+              <span className="text-foreground">{formatDate(project.internal_deadline)}</span>
             </div>
           </div>
         </div>

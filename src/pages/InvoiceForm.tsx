@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { ArrowLeft, Plus, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 
 interface CustomLineItem {
   id: string;
@@ -623,7 +624,7 @@ const InvoiceForm = () => {
             </div>
             <div>
               <span className="text-muted-foreground">Due Date</span>
-              <p className="font-medium">{dueDate ? format(new Date(dueDate), 'dd MMM yyyy') : '—'}</p>
+              <p className="font-medium">{dueDate ? formatDate(dueDate) : '—'}</p>
             </div>
           </div>
 

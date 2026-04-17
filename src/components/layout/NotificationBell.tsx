@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatDate } from '@/lib/format-date';
 
 interface Notification {
   id: string;
@@ -31,7 +32,7 @@ const timeAgo = (dateStr: string) => {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString();
+  return formatDate(dateStr);
 };
 
 const REFERENCE_ROUTES: Record<string, string> = {

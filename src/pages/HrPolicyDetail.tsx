@@ -13,6 +13,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ArrowLeft, Edit, Trash2, ChevronDown, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 
 const HrPolicyDetail = () => {
@@ -130,7 +131,7 @@ const HrPolicyDetail = () => {
           </div>
           {policy.published_at && (
             <p className="text-sm text-muted-foreground">
-              Published on {format(new Date(policy.published_at), 'dd MMMM yyyy')}
+              Published on {formatDate(policy.published_at)}
             </p>
           )}
         </div>
@@ -193,7 +194,7 @@ const HrPolicyDetail = () => {
                       v{v.version_number}
                     </Badge>
                     <span className="text-sm text-muted-foreground">
-                      {format(new Date(v.created_at!), 'dd MMM yyyy, HH:mm')}
+                      {formatDate(v.created_at!)}
                     </span>
                     {v.is_current && <span className="text-xs text-primary font-medium">Current</span>}
                   </div>
