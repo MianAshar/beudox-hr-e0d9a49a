@@ -88,6 +88,15 @@ const RootRedirect = () => {
   return <Navigate to={session ? "/dashboard" : "/login"} replace />;
 };
 
+// Public route for invite/recovery email links. Detects token type from URL hash.
+const SetPasswordRoute = () => {
+  const { passwordMode, clearPasswordMode } = useAuth();
+  // Default to 'invite' if no mode detected yet (covers the brief moment before
+  // useAuth's hash-detection effect runs, and direct navigations).
+  const mode = passwordMode ?? 'invite';
+  return <SetPassword mode={mode} onComplete={clearPasswordMode} />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
