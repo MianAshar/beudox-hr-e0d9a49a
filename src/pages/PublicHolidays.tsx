@@ -425,10 +425,11 @@ const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopov
               onClick={() => {
                 if (holiday) {
                   setCalPopover(calPopover === holiday.id ? null : holiday.id);
-                } else {
+                } else if (canManage) {
                   onAddDate(new Date(year, month, day));
                 }
               }}
+              disabled={!holiday && !canManage}
               className={cn(
                 'relative h-7 w-full rounded text-xs transition-colors',
                 holiday
@@ -436,6 +437,7 @@ const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopov
                   : isWeekend
                     ? 'bg-muted/60 text-muted-foreground hover:bg-muted'
                     : 'text-foreground hover:bg-accent',
+                !holiday && !canManage && 'cursor-default hover:bg-transparent',
               )}
             >
               {day}
@@ -455,14 +457,15 @@ const MiniMonth = ({ month, year, monthName, holidayMap, calPopover, setCalPopov
                 </Tooltip>
                 <PopoverContent className="w-48 p-3" align="center" side="top">
                   <p className="text-sm font-medium text-foreground mb-2">{holiday.name}</p>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => onDelete(holiday.id)}
-                    disabled={deleting}
-                  >
-                    <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
+                  {canManage && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => onDelete(holiday.id)}
+                      disabled={deleting}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
                   </Button>
                 </PopoverContent>
               </Popover>
