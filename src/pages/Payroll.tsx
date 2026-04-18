@@ -58,6 +58,7 @@ const Payroll = () => {
 
   const [approveOpen, setApproveOpen] = useState(false);
   const [approving, setApproving] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('all');
 
   const [paidModal, setPaidModal] = useState<PayrollRecord | null>(null);
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
@@ -282,6 +283,20 @@ const Payroll = () => {
 
   const departments = useMemo(() => Object.keys(grouped).sort(), [grouped]);
 
+  const allSorted = useMemo(() => {
+    return [...records].sort((a, b) => {
+      const da = ((a.employees as any)?.department || 'Uncategorized');
+      const db = ((b.employees as any)?.department || 'Uncategorized');
+      if (da !== db) return da.localeCompare(db);
+      const na = ((a.employees as any)?.full_name || '');
+      const nb = ((b.employees as any)?.full_name || '');
+      return na.localeCompare(nb);
+    });
+  }, [records]);
+
+  const activeRecords = activeTab === 'all' ? allSorted : (grouped[activeTab] || []);
+  const activeTabLabel = activeTab === 'all' ? 'All' : activeTab;
+  const hasDraftsInActive = activeRecords.some(r => r.status === 'draft');
   const hasDrafts = records.some(r => r.status === 'draft');
   const allApprovedOrPaid = records.length > 0 && records.every(r => r.status === 'approved' || r.status === 'paid');
 
