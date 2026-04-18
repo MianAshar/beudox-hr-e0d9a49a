@@ -139,6 +139,11 @@ const Projects = () => {
 
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
+  const todayIso = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+
   const filtered = (projects ?? []).filter((p: any) => {
     if (search && !p.project_code.toLowerCase().includes(search.toLowerCase()) && !p.project_name.toLowerCase().includes(search.toLowerCase())) return false;
     if (statusFilter !== 'all' && p.status !== statusFilter) return false;
@@ -232,20 +237,34 @@ const Projects = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((p: any) => (
-                <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/projects/${p.id}`)}>
+              {filtered.map((p: any) => {
+                const isDueToday = p.internal_deadline === todayIso;
+                return (
+                <TableRow
+                  key={p.id}
+                  className={cn('cursor-pointer', isDueToday && 'bg-[#FEF3C7] hover:bg-[#FEF3C7]/80')}
+                  onClick={() => navigate(`/projects/${p.id}`)}
+                >
                   <TableCell className="font-mono text-sm">{p.project_code}</TableCell>
                   <TableCell className="font-medium">{p.project_name}</TableCell>
                   <TableCell>{p.clients?.name || '—'}</TableCell>
                   <TableCell>{p.project_categories?.name || '—'}</TableCell>
                   <TableCell>{p.lead?.full_name || '—'}</TableCell>
                   <TableCell onClick={e => e.stopPropagation()}>
-                    <DeadlineCell
-                      project={p}
-                      canEdit={canEditDeadline}
-                      companyId={companyId!}
-                      employeeId={employeeId!}
-                    />
+                    <div className="flex items-center gap-2">
+                      <DeadlineCell
+                        project={p}
+                        canEdit={canEditDeadline}
+                        companyId={companyId!}
+                        employeeId={employeeId!}
+                        isDueToday={isDueToday}
+                      />
+                      {isDueToday && (
+                        <Badge className="bg-[#FEF3C7] text-[#92400E] hover:bg-[#FEF3C7] border border-[#92400E]/20">
+                          Due Today
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {p.priority && <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>}
@@ -270,7 +289,8 @@ const Projects = () => {
                     </TableCell>
                   )}
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -392,6 +412,7 @@ interface DeadlineCellProps {
   canEdit: boolean;
   companyId: string;
   employeeId: string;
+  isDueToday?: boolean;
 }
 
 const toIsoDate = (d: Date) => {
@@ -401,7 +422,7 @@ const toIsoDate = (d: Date) => {
   return `${y}-${m}-${day}`;
 };
 
-const DeadlineCell = ({ project, canEdit, companyId, employeeId }: DeadlineCellProps) => {
+const DeadlineCell = ({ project, canEdit, companyId, employeeId, isDueToday }: DeadlineCellProps) => {
   const qc = useQueryClient();
   const [optimistic, setOptimistic] = useState<string | null | undefined>(undefined);
   const [flash, setFlash] = useState(false);
@@ -445,6 +466,7 @@ const DeadlineCell = ({ project, canEdit, companyId, employeeId }: DeadlineCellP
       className={cn(
         'inline-flex items-center gap-1 rounded px-1 py-0.5 transition-all',
         flash && 'ring-2 ring-bx-success ring-offset-1',
+        isDueToday && 'text-[#92400E] font-medium',
       )}
     >
       {isPending ? (
