@@ -19,7 +19,58 @@ import { toast } from '@/hooks/use-toast';
 import { Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, Pencil } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+
+const getInitials = (name: string) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(p => p[0]?.toUpperCase())
+    .join('') || '?';
+
+interface TeamMember {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+}
+
+const TeamMembersCell = ({ members }: { members: TeamMember[] }) => {
+  if (!members || members.length === 0) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  const visible = members.slice(0, 4);
+  const extra = members.length - visible.length;
+  const allNames = members.map(m => m.full_name).join(', ');
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center -space-x-2">
+            {visible.map(m => (
+              <Avatar key={m.id} className="h-7 w-7 border-2 border-background">
+                {m.avatar_url && <AvatarImage src={m.avatar_url} alt={m.full_name} />}
+                <AvatarFallback className="text-[10px] font-medium bg-muted text-foreground">
+                  {getInitials(m.full_name)}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+            {extra > 0 && (
+              <div className="h-7 w-7 rounded-full border-2 border-background bg-muted text-foreground text-[10px] font-medium flex items-center justify-center">
+                +{extra}
+              </div>
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs">
+          <div className="text-xs whitespace-pre-line">{allNames}</div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
 
 async function logProjectActivity(params: {
   companyId: string;
