@@ -241,27 +241,25 @@ const Projects = () => {
               {filtered.map((p: any) => {
                 const isDueToday = p.internal_deadline === todayIso;
                 return (
-                <TooltipProvider key={p.id} delayDuration={300}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TableRow
-                        className={cn('cursor-pointer', isDueToday && 'bg-[#FEF3C7] hover:bg-[#FEF3C7]/80')}
-                        onClick={() => navigate(`/projects/${p.id}`)}
-                      >
-                        <TableCell className="font-mono text-sm">{p.project_code}</TableCell>
-                        <TableCell className="font-medium">{p.project_name}</TableCell>
-                        <TableCell>{p.clients?.name || '—'}</TableCell>
-                        <TableCell>{p.project_categories?.name || '—'}</TableCell>
-                        <TableCell>{p.lead?.full_name || '—'}</TableCell>
-                        <TableCell onClick={e => e.stopPropagation()}>
-                          <DeadlineCell
-                            project={p}
-                            canEdit={canEditDeadline}
-                            companyId={companyId!}
-                            employeeId={employeeId!}
-                            isDueToday={isDueToday}
-                          />
-                        </TableCell>
+                <TableRow
+                  key={p.id}
+                  className={cn('cursor-pointer', isDueToday && 'bg-[#FEF3C7] hover:bg-[#FEF3C7]/80')}
+                  onClick={() => navigate(`/projects/${p.id}`)}
+                >
+                  <TableCell className="font-mono text-sm">{p.project_code}</TableCell>
+                  <TableCell className="font-medium">{p.project_name}</TableCell>
+                  <TableCell>{p.clients?.name || '—'}</TableCell>
+                  <TableCell>{p.project_categories?.name || '—'}</TableCell>
+                  <TableCell>{p.lead?.full_name || '—'}</TableCell>
+                  <TableCell onClick={e => e.stopPropagation()}>
+                    <DeadlineCell
+                      project={p}
+                      canEdit={canEditDeadline}
+                      companyId={companyId!}
+                      employeeId={employeeId!}
+                      isDueToday={isDueToday}
+                    />
+                  </TableCell>
                   <TableCell>
                     {p.priority && <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>}
                   </TableCell>
@@ -284,13 +282,7 @@ const Projects = () => {
                       )}
                     </TableCell>
                   )}
-                      </TableRow>
-                    </TooltipTrigger>
-                    {isDueToday && (
-                      <TooltipContent side="top">Due today</TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
+                </TableRow>
                 );
               })}
             </TableBody>
