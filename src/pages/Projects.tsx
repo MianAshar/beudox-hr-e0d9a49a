@@ -117,6 +117,7 @@ const Projects = () => {
   const role = employee?.role_name;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
+  const canSeeTeam = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const canEditStatus = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const canEditDeadline = canEditStatus;
   const employeeId = employee?.employee_id;
