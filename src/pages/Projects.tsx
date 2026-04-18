@@ -311,6 +311,7 @@ const Projects = () => {
                 {canSeeClient && <TableHead>Client</TableHead>}
                 <TableHead>Category</TableHead>
                 <TableHead>Lead</TableHead>
+                {canSeeTeam && <TableHead>Team Members</TableHead>}
                 <TableHead>Internal Deadline</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
@@ -331,6 +332,11 @@ const Projects = () => {
                   {canSeeClient && <TableCell>{p.clients?.name || '—'}</TableCell>}
                   <TableCell>{p.project_categories?.name || '—'}</TableCell>
                   <TableCell>{p.lead?.full_name || '—'}</TableCell>
+                  {canSeeTeam && (
+                    <TableCell onClick={e => e.stopPropagation()}>
+                      <TeamMembersCell members={teamByProject.get(p.id) ?? []} />
+                    </TableCell>
+                  )}
                   <TableCell onClick={e => e.stopPropagation()}>
                     <DeadlineCell
                       project={p}
