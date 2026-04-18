@@ -26,7 +26,6 @@ const MONTH_LABELS = [
 
 const fmtPKR = (v: number) => `PKR ${Math.round(v).toLocaleString()}`;
 
-// Build the list of last N months (including the selected month), in chronological order.
 const buildMonthRange = (year: number, monthIdx: number, count: number) => {
   const months: { key: string; label: string; year: number; monthIdx: number }[] = [];
   for (let i = count - 1; i >= 0; i--) {
@@ -50,7 +49,6 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
   }, [year, monthIdx]);
   const selectedKey = `${selectedYear}-${selectedMonth}`;
 
-  // Range covers 6 months window plus the previous month for delta calc.
   const rangeKeys = useMemo(() => {
     const set = new Set(months.map(m => m.key));
     set.add(previousMonthKey);
@@ -63,7 +61,7 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
       const [payrollRes, expensesRes] = await Promise.all([
         supabase
           .from('payroll_records')
-          .select('month_year, final_payment')
+          .select('month_year, final_payment, regular_ot_amount, holiday_ot_amount, bonus, loan_deduction')
           .eq('company_id', companyId)
           .eq('superseded', false)
           .in('month_year', rangeKeys),
@@ -77,22 +75,34 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
       if (expensesRes.error) throw expensesRes.error;
 
       const payrollByMonth: Record<string, number> = {};
+      const otByMonth: Record<string, number> = {};
+      const bonusByMonth: Record<string, number> = {};
+      const loanByMonth: Record<string, number> = {};
       (payrollRes.data ?? []).forEach((r: any) => {
         payrollByMonth[r.month_year] = (payrollByMonth[r.month_year] || 0) + Number(r.final_payment || 0);
+        otByMonth[r.month_year] = (otByMonth[r.month_year] || 0) + Number(r.regular_ot_amount || 0) + Number(r.holiday_ot_amount || 0);
+        bonusByMonth[r.month_year] = (bonusByMonth[r.month_year] || 0) + Number(r.bonus || 0);
+        loanByMonth[r.month_year] = (loanByMonth[r.month_year] || 0) + Number(r.loan_deduction || 0);
       });
       const expensesByMonth: Record<string, number> = {};
       (expensesRes.data ?? []).forEach((r: any) => {
         expensesByMonth[r.month_year] = (expensesByMonth[r.month_year] || 0) + Number(r.amount || 0);
       });
-      return { payrollByMonth, expensesByMonth };
+      return { payrollByMonth, otByMonth, bonusByMonth, loanByMonth, expensesByMonth };
     },
     enabled: !!companyId,
   });
 
   const payrollByMonth = data?.payrollByMonth ?? {};
   const expensesByMonth = data?.expensesByMonth ?? {};
+  const otByMonth = data?.otByMonth ?? {};
+  const bonusByMonth = data?.bonusByMonth ?? {};
+  const loanByMonth = data?.loanByMonth ?? {};
 
   const totalPayroll = payrollByMonth[selectedKey] ?? 0;
+  const totalOT = otByMonth[selectedKey] ?? 0;
+  const totalBonus = bonusByMonth[selectedKey] ?? 0;
+  const totalLoan = loanByMonth[selectedKey] ?? 0;
   const totalExpenses = expensesByMonth[selectedKey] ?? 0;
   const grandTotal = totalPayroll + totalExpenses;
   const prevGrand = (payrollByMonth[previousMonthKey] ?? 0) + (expensesByMonth[previousMonthKey] ?? 0);
@@ -115,9 +125,12 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
 
   if (isLoading) {
     return (
-      <div className="space-y-4 no-print">
+      <div className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-[110px] rounded-[14px]" />)}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[110px] rounded-[14px]" />)}
         </div>
         <Skeleton className="h-[280px] rounded-[14px]" />
       </div>
@@ -125,10 +138,17 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
   }
 
   return (
-    <div className="space-y-4 no-print">
-      {/* Stat cards */}
+    <div className="space-y-4">
+      {/* Row 1 — Payroll breakdown */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Payroll" value={fmtPKR(totalPayroll)} accent="#5B3FF8" />
+        <StatCard label="Total OT Amount" value={fmtPKR(totalOT)} accent="#7C3AED" />
+        <StatCard label="Total Bonus" value={fmtPKR(totalBonus)} accent="#10B981" />
+        <StatCard label="Total Loan Deductions" value={fmtPKR(totalLoan)} accent="#EF4444" />
+      </div>
+
+      {/* Row 2 — Overall */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard label="Total Expenses" value={fmtPKR(totalExpenses)} accent="#F5A623" />
         <StatCard label="Grand Total" value={fmtPKR(grandTotal)} accent="#1A1240" />
         <div
