@@ -1,57 +1,62 @@
 <!--
 generated_by: tessera
-source_sha: 9702a051f92ea0fd6730afbc4c5b603380ea9173
-generated_at: 2026-04-18T00:37:56.180Z
+source_sha: 09e0c31289d212e2667da89ff8a6b0a3a8b71061
+generated_at: 2026-04-18T00:43:27.978Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Management System
 
-A comprehensive Human Resources Management System built with modern web technologies.
-
-## Overview
-
-Beudox HR is a full-featured HR management application that streamlines employee management, performance tracking, leave administration, payroll processing, and organizational workflows. The system provides role-based access control and a modern, intuitive interface for managing all aspects of human resources.
+A comprehensive web-based Human Resources management application built with modern web technologies. This system provides organizations with tools to manage employees, projects, evaluations, leave, payroll, and more.
 
 ## Features
 
 ### Core HR Functionality
-- **Employee Management**: Complete employee lifecycle management including onboarding, profiles, and organizational structure
-- **Performance Evaluations**: Quarterly and daily evaluation systems with detailed feedback and rating mechanisms
-- **Leave Management**: Comprehensive leave tracking, balances, and approval workflows
-- **Payroll Processing**: Automated payroll generation with payslip management
-- **Project Management**: Project tracking, client management, and resource allocation
+- **Employee Management**: Complete employee lifecycle management including profiles, onboarding, and offboarding
+- **Leave Management**: Request, approve, and track employee leave with various leave types
+- **Performance Evaluations**: Bi-annual evaluations and daily feedback system
+- **Payroll Management**: Automated payroll processing and payslip generation
+- **Project Management**: Track projects, assign team members, and monitor progress
+- **Client Management**: Manage client relationships and project assignments
+- **Invoice Management**: Create and manage client invoices
+- **HR Policies**: Create and maintain company policies with rich text editing
+- **Loan Management**: Track employee loans and repayments
+- **Finance Dashboard**: Comprehensive financial reporting and analytics
 
-### Administrative Tools
-- **HR Policies**: Rich text policy documents with version control
-- **Invoice Management**: Client invoicing and financial tracking
-- **Loan Management**: Employee loan tracking and administration
-- **Finance Dashboard**: Financial reporting and analytics
-- **Settings Management**: Company configuration, departments, roles, and system settings
-
-### User Experience
-- **Role-Based Access Control**: Granular permissions for Employee, HR Manager, Finance Manager, Team Lead, and CEO roles
-- **Responsive Design**: Modern UI built with shadcn/ui components
-- **Real-time Notifications**: Integrated notification system
-- **Mobile-Friendly**: Optimized for all device sizes
+### User Roles & Access Control
+- **CEO**: Full system access
+- **HR Manager**: Employee management, evaluations, policies, settings
+- **Finance Manager**: Payroll, invoices, finance, expenses
+- **Team Lead**: Project management, team evaluations, limited employee access
+- **Employee**: Personal dashboard, leave requests, evaluations, payslips
 
 ## Technology Stack
 
-- **Frontend**: React 18, TypeScript, Vite
-- **UI Framework**: shadcn/ui (Radix UI primitives), Tailwind CSS
-- **State Management**: TanStack Query (React Query)
-- **Routing**: React Router v6
-- **Authentication**: Supabase Auth
-- **Database**: Supabase (PostgreSQL)
-- **Rich Text Editing**: Tiptap
-- **Charts**: Recharts
-- **Forms**: React Hook Form with Zod validation
-- **Testing**: Vitest, Playwright
+### Frontend
+- **React 18** with TypeScript
+- **Vite** for build tooling and development server
+- **React Router** for client-side routing
+- **TanStack Query** for server state management
+- **shadcn/ui** component library built on Radix UI
+- **Tailwind CSS** for styling
+- **React Hook Form** with Zod validation
+- **Tiptap** for rich text editing
+- **Recharts** for data visualization
+
+### Backend & Database
+- **Supabase** (PostgreSQL database + Auth + Edge Functions)
+- **Row Level Security (RLS)** policies for data access control
+- **Real-time subscriptions** for live updates
+
+### Development & Testing
+- **Vitest** for unit testing
+- **Playwright** for end-to-end testing
+- **ESLint** for code linting
+- **TypeScript** for type safety
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
 - npm or bun package manager
 - Supabase account and project
@@ -71,36 +76,38 @@ Beudox HR is a full-featured HR management application that streamlines employee
    bun install
    ```
 
-3. **Environment Configuration**
+3. **Environment Setup**
    
-   Copy the `.env` file and update the Supabase configuration:
+   Copy the `.env` file and configure your Supabase credentials:
    ```bash
    cp .env .env.local
    ```
    
    Update the following variables in `.env.local`:
    ```env
-   VITE_SUPABASE_PROJECT_ID=your_project_id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
    ```
 
 4. **Database Setup**
    
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   The database schema is managed through Supabase migrations. The migrations are located in the `supabase/migrations/` directory and will be applied when you set up your Supabase project.
 
-5. **Development Server**
+5. **Start Development Server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
+   
+   The application will be available at `http://localhost:8080`
 
-6. **Build for Production**
-   ```bash
-   npm run build
-   npm run preview
-   ```
+### Build for Production
+
+```bash
+npm run build
+npm run preview
+```
 
 ## Project Structure
 
@@ -108,47 +115,41 @@ Beudox HR is a full-featured HR management application that streamlines employee
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # App layout components
-│   └── [feature]/      # Feature-specific components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── [feature]/      # Feature-specific components
+│   └── ...
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations
+├── integrations/       # External service integrations (Supabase)
 └── types/              # TypeScript type definitions
+
+supabase/
+├── migrations/         # Database schema migrations
+├── functions/          # Edge functions for serverless operations
+└── config.toml         # Supabase project configuration
 ```
 
 ## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run lint` - Run ESLint
 - `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 - `npm run test` - Run unit tests
 - `npm run test:watch` - Run tests in watch mode
 
 ## Authentication & Authorization
 
-The application uses Supabase Authentication with Row Level Security (RLS) policies. User roles determine access to different features:
-
-- **CEO**: Full system access
-- **HR Manager**: Employee management, evaluations, policies
-- **Finance Manager**: Payroll, invoices, financial reports
-- **Team Lead**: Team management, evaluations
-- **Employee**: Personal dashboard, leave requests, evaluations
+The application uses Supabase Auth for user authentication. Role-based access control is implemented at the route level, with each user role having specific permissions defined in `src/lib/role-access.ts`.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+1. Follow the existing code style and conventions
+2. Write tests for new features
+3. Ensure all tests pass before submitting PRs
+4. Update documentation as needed
 
 ## License
 
-This project is proprietary software. All rights reserved.
-
-## Support
-
-For support or questions, please contact the development team.
+This project is proprietary software owned by Beudox.
