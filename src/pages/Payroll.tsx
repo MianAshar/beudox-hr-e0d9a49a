@@ -58,6 +58,7 @@ const Payroll = () => {
 
   const [approveOpen, setApproveOpen] = useState(false);
   const [approving, setApproving] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('all');
 
   const [paidModal, setPaidModal] = useState<PayrollRecord | null>(null);
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
@@ -170,7 +171,10 @@ const Payroll = () => {
   const handleApprove = async () => {
     setApproving(true);
     try {
-      const draftIds = records.filter(r => r.status === 'draft').map(r => r.id);
+      const scopedRecords = activeTab === 'all'
+        ? records
+        : records.filter(r => ((r.employees as any)?.department || 'Uncategorized') === activeTab);
+      const draftIds = scopedRecords.filter(r => r.status === 'draft').map(r => r.id);
       if (draftIds.length === 0) {
         toast.info('No draft records to approve');
         setApproveOpen(false);
@@ -188,7 +192,7 @@ const Payroll = () => {
 
       // Send notifications for approved payroll
       const monthLabel = MONTHS.find(m => m.value === selectedMonth)?.label || selectedMonth;
-      const approvedRecords = records.filter(r => r.status === 'draft');
+      const approvedRecords = scopedRecords.filter(r => r.status === 'draft');
       const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
       for (const rec of approvedRecords) {
         const empId = rec.employee_id;
@@ -282,6 +286,20 @@ const Payroll = () => {
 
   const departments = useMemo(() => Object.keys(grouped).sort(), [grouped]);
 
+  const allSorted = useMemo(() => {
+    return [...records].sort((a, b) => {
+      const da = ((a.employees as any)?.department || 'Uncategorized');
+      const db = ((b.employees as any)?.department || 'Uncategorized');
+      if (da !== db) return da.localeCompare(db);
+      const na = ((a.employees as any)?.full_name || '');
+      const nb = ((b.employees as any)?.full_name || '');
+      return na.localeCompare(nb);
+    });
+  }, [records]);
+
+  const activeRecords = activeTab === 'all' ? allSorted : (grouped[activeTab] || []);
+  const activeTabLabel = activeTab === 'all' ? 'All' : activeTab;
+  const hasDraftsInActive = activeRecords.some(r => r.status === 'draft');
   const hasDrafts = records.some(r => r.status === 'draft');
   const allApprovedOrPaid = records.length > 0 && records.every(r => r.status === 'approved' || r.status === 'paid');
 
@@ -449,8 +467,16 @@ const Payroll = () => {
 
       {!loading && generated && departments.length > 0 && (
         <div className="space-y-6">
-          <Tabs defaultValue={departments[0]} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
+              <TabsTrigger
+                value="all"
+                className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+                style={{ fontFamily: 'var(--ff-body)' }}
+              >
+                All
+                <span className="ml-1.5 text-xs opacity-60">({records.length})</span>
+              </TabsTrigger>
               {departments.map(dept => (
                 <TabsTrigger
                   key={dept}
@@ -463,6 +489,9 @@ const Payroll = () => {
                 </TabsTrigger>
               ))}
             </TabsList>
+            <TabsContent value="all">
+              {renderDeptTable(allSorted)}
+            </TabsContent>
             {departments.map(dept => (
               <TabsContent key={dept} value={dept}>
                 {renderDeptTable(grouped[dept])}
@@ -472,8 +501,8 @@ const Payroll = () => {
 
           {hasDrafts && (
             <div className="flex justify-end">
-              <Button onClick={() => setApproveOpen(true)} className="px-6">
-                <CheckCircle2 className="h-4 w-4 mr-2" /> Approve Payroll
+              <Button onClick={() => setApproveOpen(true)} className="px-6" disabled={!hasDraftsInActive}>
+                <CheckCircle2 className="h-4 w-4 mr-2" /> Approve {activeTabLabel} Payroll
               </Button>
             </div>
           )}
@@ -484,9 +513,9 @@ const Payroll = () => {
       <AlertDialog open={approveOpen} onOpenChange={setApproveOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Approve Payroll</AlertDialogTitle>
+            <AlertDialogTitle>Approve {activeTabLabel} Payroll</AlertDialogTitle>
             <AlertDialogDescription>
-              This will approve all draft payroll records for {MONTHS.find(m => m.value === selectedMonth)?.label} {selectedYear}.
+              This will approve all draft payroll records for {activeTab === 'all' ? 'all employees' : activeTab} for {MONTHS.find(m => m.value === selectedMonth)?.label} {selectedYear}.
               Records will become read-only. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
