@@ -1,148 +1,171 @@
 <!--
 generated_by: tessera
-source_sha: 194e50701c272bdb1768378aa2c36357cf2a6060
-generated_at: 2026-04-18T00:25:38.484Z
+source_sha: be22c53a9b4354969e209148d4d03dbfbcb698f3
+generated_at: 2026-04-18T00:33:40.398Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources management application built with React, TypeScript, and Supabase. This frontend application provides a modern, intuitive interface for managing employees, evaluations, leave requests, projects, and HR policies.
+A comprehensive Human Resources management application built with modern web technologies. Beudox HR streamlines employee management, performance evaluations, leave tracking, payroll processing, and organizational workflows.
 
-## Features
+## 🚀 Features
 
-- **Employee Management**: Comprehensive employee profiles with role-based access control
-- **Performance Evaluations**: Bi-annual evaluations and daily feedback system
-- **Leave Management**: Request, approve, and track leave balances
-- **Project Management**: Track project activities and assignments
-- **HR Policies**: Rich text policy documents with formatting
-- **Settings Management**: Configure departments, roles, leave types, and company settings
-- **Notifications**: Real-time notifications for HR events
-- **Payroll & Invoicing**: Integration with backend payroll generation and invoice creation
+### Core HR Functionality
+- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
+- **Performance Evaluations**: Bi-annual and daily evaluation systems with customizable parameters
+- **Leave Management**: Automated leave request processing with balance tracking
+- **Payroll Processing**: Automated payroll generation with payslip distribution
+- **Project Management**: Project tracking with team assignments and activity logging
 
-## Technology Stack
+### Administrative Tools
+- **HR Policies**: Rich text policy documents with version control
+- **Client Management**: Client relationship and invoice management
+- **Loan Management**: Employee loan tracking and repayment schedules
+- **Finance Dashboard**: Comprehensive financial reporting and analytics
+- **Settings Management**: Configurable company settings, departments, roles, and parameters
 
-- **Frontend**: React 18, TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Routing**: React Router
-- **State Management**: TanStack Query for server state
+### User Experience
+- **Role-Based Access Control**: Granular permissions for different user roles (CEO, HR Manager, Team Lead, Employee)
+- **Responsive Design**: Modern, mobile-friendly interface using shadcn/ui components
+- **Real-time Notifications**: Automated notifications for important HR events
+- **Dark/Light Theme**: User preference-based theming
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite with SWC for fast development
+- **Routing**: React Router v6 with protected routes
+- **State Management**: TanStack Query for server state, React Context for auth
+- **UI Components**: shadcn/ui (Radix UI primitives) with Tailwind CSS
 - **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **Rich Text Editing**: Tiptap editor
-- **Testing**: Vitest, Playwright for E2E testing
-- **Package Manager**: Bun
+- **Rich Text Editing**: Tiptap editor for HR policies
+- **Charts & Analytics**: Recharts for financial and performance visualizations
+- **Form Handling**: React Hook Form with Zod validation
+- **Testing**: Vitest with React Testing Library
+- **E2E Testing**: Playwright
 
-## Getting Started
+## 📋 Prerequisites
 
-### Prerequisites
-
-- Node.js 18+ or Bun
+- Node.js 18+
+- npm, yarn, or bun package manager
 - Supabase account and project
 
-### Installation
+## 🚀 Getting Started
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
-   bun install
-   # or
    npm install
+   # or
+   yarn install
+   # or
+   bun install
    ```
 
-3. Set up environment variables:
+3. **Environment Setup**
    
-   Copy `.env` and update the Supabase configuration:
+   Copy the `.env` file and configure your Supabase credentials:
    ```bash
    cp .env .env.local
    ```
    
    Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
-
-4. Start the development server:
-   ```bash
-   bun run dev
-   # or
-   npm run dev
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
    ```
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
+4. **Database Setup**
+   
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   
+   If using Supabase CLI:
+   ```bash
+   supabase db reset
+   ```
 
-### Database Setup
+5. **Start Development Server**
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   bun run dev
+   ```
+   
+   The application will be available at `http://localhost:8080`
 
-The application uses Supabase as its backend. The database schema is managed through migrations located in `supabase/migrations/`. To set up the database:
+## 📜 Available Scripts
 
-1. Install Supabase CLI
-2. Link your project: `supabase link --project-ref your-project-ref`
-3. Run migrations: `supabase db push`
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests once
+- `npm run test:watch` - Run tests in watch mode
 
-### Testing
-
-Run unit tests:
-```bash
-bun run test
-```
-
-Run E2E tests:
-```bash
-bun run test:e2e
-```
-
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
+│   ├── ui/             # shadcn/ui components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── evaluations/    # Evaluation-related components
+│   ├── employees/      # Employee-specific components
+│   ├── evaluations/    # Evaluation components
 │   ├── leave/          # Leave management components
 │   ├── projects/       # Project management components
-│   ├── settings/       # Settings/configuration components
+│   ├── settings/       # Settings components
 │   └── hr-policies/    # HR policy components
-├── pages/              # Page components
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations (Supabase)
-└── test/               # Test files
-
-supabase/
-├── functions/          # Edge functions for backend logic
-└── migrations/         # Database schema migrations
+└── types/              # TypeScript type definitions
 ```
 
-## Key Components
+## 🔐 Authentication & Authorization
 
+The application uses Supabase authentication with role-based access control:
+
+- **CEO**: Full system access
+- **HR Manager**: HR operations and employee management
+- **Team Lead**: Team management and evaluations
+- **Employee**: Personal profile and limited access
+
+## 📊 Key Components
+
+### Core Components
 - **AppLayout**: Main application layout with sidebar navigation
-- **EvaluationTimeline**: Displays evaluation history for employees
-- **SearchableEmployeeSelect**: Employee selection dropdown with search
+- **EvaluationTimeline**: Performance evaluation history
+- **SearchableEmployeeSelect**: Employee selection with search
 - **RichTextEditor**: WYSIWYG editor for HR policies
-- **BeudoxLogo**: Application logo component with variants
+- **BeudoxLogo**: Brand logo component with variants
 
-## Authentication & Authorization
+### Layout Components
+- **AppSidebar**: Navigation sidebar with role-based menu items
+- **TopBar**: User menu and notifications
+- **NotificationBell**: Real-time notification system
 
-The application uses Supabase authentication with role-based access control. User roles include:
-- CEO
-- HR Manager
-- Team Lead
-- Employee
+## 🤝 Contributing
 
-Access permissions are managed through the `role-access.ts` utility.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Contributing
+## 📝 License
 
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure all tests pass before submitting PRs
+This project is proprietary software. All rights reserved.
 
-## License
+## 📞 Support
 
-This project is proprietary software owned by Beudox.
+For support or questions, please contact the development team.
