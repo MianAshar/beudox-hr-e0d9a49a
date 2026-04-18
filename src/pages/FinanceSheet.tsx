@@ -529,7 +529,7 @@ const FinanceSheet = () => {
     XLSX.writeFile(wb, `Finance_Sheet_${monthLabel}_${selectedYear}.xlsx`);
   }, [departments, payrollByDept, payrollGrandTotal, categories, lineItems, monthlyExpenses, monthLabel, selectedYear, expensesGrandTotal]);
 
-  const [activeTab, setActiveTab] = useState('payroll');
+  const [activeTab, setActiveTab] = useState('summary');
   const isLoading = payrollLoading || expensesLoading;
 
   return (
@@ -599,19 +599,11 @@ const FinanceSheet = () => {
           </div>
         </div>
 
-        {/* Summary widgets */}
-        {companyId && (
-          <FinanceSummary
-            companyId={companyId}
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-          />
-        )}
-
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start no-print" style={{ borderColor: 'hsl(var(--border))' }}>
             {[
+              { value: 'summary', label: 'Summary' },
               { value: 'payroll', label: 'Payroll' },
               { value: 'expenses', label: 'Expenses' },
             ].map(tab => (
@@ -625,6 +617,17 @@ const FinanceSheet = () => {
               </TabsTrigger>
             ))}
           </TabsList>
+
+          {/* Summary tab */}
+          <TabsContent value="summary" className="mt-4">
+            {companyId && (
+              <FinanceSummary
+                companyId={companyId}
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
+              />
+            )}
+          </TabsContent>
 
           {isLoading ? (
             <div className="space-y-3 pt-4">
@@ -817,17 +820,19 @@ const FinanceSheet = () => {
                 </div>
               </TabsContent>
 
-              {/* ═══ GRAND TOTAL (always visible) ═══ */}
-              <div className="rounded-[14px] overflow-hidden fs-grand-total-bar mt-6" style={{ background: '#1A1240' }}>
-                <div className="flex items-center justify-between px-6 py-4">
-                  <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
-                    Grand Total (Payroll + Expenses)
-                  </span>
-                  <span className="text-[20px] font-bold font-mono text-white">
-                    {fmtPKR(payrollGrandTotal + expensesGrandTotal)}
-                  </span>
+              {/* ═══ GRAND TOTAL (hidden on Summary tab) ═══ */}
+              {activeTab !== 'summary' && (
+                <div className="rounded-[14px] overflow-hidden fs-grand-total-bar mt-6" style={{ background: '#1A1240' }}>
+                  <div className="flex items-center justify-between px-6 py-4">
+                    <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
+                      Grand Total (Payroll + Expenses)
+                    </span>
+                    <span className="text-[20px] font-bold font-mono text-white">
+                      {fmtPKR(payrollGrandTotal + expensesGrandTotal)}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </Tabs>
