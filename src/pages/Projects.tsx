@@ -178,6 +178,33 @@ const Projects = () => {
     enabled: !!companyId && isManager,
   });
 
+  const projectIds = (projects ?? []).map((p: any) => p.id);
+
+  const { data: teamAssignments } = useQuery({
+    queryKey: ['project-team-members', companyId, projectIds.join(',')],
+    queryFn: async () => {
+      if (projectIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('project_assignments')
+        .select('project_id, employees!project_assignments_employee_id_fkey(id, full_name, avatar_url)')
+        .eq('company_id', companyId!)
+        .eq('is_active', true)
+        .in('project_id', projectIds);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId && canSeeTeam && projectIds.length > 0,
+  });
+
+  const teamByProject = new Map<string, TeamMember[]>();
+  (teamAssignments ?? []).forEach((a: any) => {
+    const emp = a.employees;
+    if (!emp) return;
+    const list = teamByProject.get(a.project_id) ?? [];
+    list.push({ id: emp.id, full_name: emp.full_name, avatar_url: emp.avatar_url });
+    teamByProject.set(a.project_id, list);
+  });
+
   const deactivateMutation = useMutation({
     mutationFn: async (projectId: string) => {
       const { error } = await supabase.from('projects').update({ is_active: false, status: 'cancelled' }).eq('id', projectId);
