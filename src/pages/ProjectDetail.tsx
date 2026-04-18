@@ -37,6 +37,7 @@ const ProjectDetail = () => {
   const companyId = employee?.company_id;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const isCeo = role === 'ceo';
+  const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
   const canSeeActivity = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
 
   const [deactivateOpen, setDeactivateOpen] = useState(false);
@@ -168,12 +169,14 @@ const ProjectDetail = () => {
         <div className="rounded-lg border bg-card p-5 space-y-4">
           <h2 className="text-base font-semibold text-foreground">Project Information</h2>
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Client</span>
-              <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
-                {(project.clients as any)?.name || '—'}
-              </Link>
-            </div>
+            {canSeeClient && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Client</span>
+                <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
+                  {(project.clients as any)?.name || '—'}
+                </Link>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Category</span>
               <span className="text-foreground">{(project.project_categories as any)?.name || '—'}</span>
