@@ -171,7 +171,10 @@ const Payroll = () => {
   const handleApprove = async () => {
     setApproving(true);
     try {
-      const draftIds = records.filter(r => r.status === 'draft').map(r => r.id);
+      const scopedRecords = activeTab === 'all'
+        ? records
+        : records.filter(r => ((r.employees as any)?.department || 'Uncategorized') === activeTab);
+      const draftIds = scopedRecords.filter(r => r.status === 'draft').map(r => r.id);
       if (draftIds.length === 0) {
         toast.info('No draft records to approve');
         setApproveOpen(false);
@@ -189,7 +192,7 @@ const Payroll = () => {
 
       // Send notifications for approved payroll
       const monthLabel = MONTHS.find(m => m.value === selectedMonth)?.label || selectedMonth;
-      const approvedRecords = records.filter(r => r.status === 'draft');
+      const approvedRecords = scopedRecords.filter(r => r.status === 'draft');
       const mgrs = await getEmployeeIdsByRole(companyId!, ['finance_manager', 'ceo']);
       for (const rec of approvedRecords) {
         const empId = rec.employee_id;
