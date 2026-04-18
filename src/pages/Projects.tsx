@@ -284,7 +284,13 @@ const Projects = () => {
                       )}
                     </TableCell>
                   )}
-                </TableRow>
+                      </TableRow>
+                    </TooltipTrigger>
+                    {isDueToday && (
+                      <TooltipContent side="top">Due today</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
                 );
               })}
             </TableBody>
