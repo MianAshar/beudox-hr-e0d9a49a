@@ -599,19 +599,11 @@ const FinanceSheet = () => {
           </div>
         </div>
 
-        {/* Summary widgets */}
-        {companyId && (
-          <FinanceSummary
-            companyId={companyId}
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-          />
-        )}
-
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start no-print" style={{ borderColor: 'hsl(var(--border))' }}>
             {[
+              { value: 'summary', label: 'Summary' },
               { value: 'payroll', label: 'Payroll' },
               { value: 'expenses', label: 'Expenses' },
             ].map(tab => (
@@ -625,6 +617,17 @@ const FinanceSheet = () => {
               </TabsTrigger>
             ))}
           </TabsList>
+
+          {/* Summary tab */}
+          <TabsContent value="summary" className="mt-4">
+            {companyId && (
+              <FinanceSummary
+                companyId={companyId}
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
+              />
+            )}
+          </TabsContent>
 
           {isLoading ? (
             <div className="space-y-3 pt-4">
