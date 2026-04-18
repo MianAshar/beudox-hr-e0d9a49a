@@ -820,17 +820,19 @@ const FinanceSheet = () => {
                 </div>
               </TabsContent>
 
-              {/* ═══ GRAND TOTAL (always visible) ═══ */}
-              <div className="rounded-[14px] overflow-hidden fs-grand-total-bar mt-6" style={{ background: '#1A1240' }}>
-                <div className="flex items-center justify-between px-6 py-4">
-                  <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
-                    Grand Total (Payroll + Expenses)
-                  </span>
-                  <span className="text-[20px] font-bold font-mono text-white">
-                    {fmtPKR(payrollGrandTotal + expensesGrandTotal)}
-                  </span>
+              {/* ═══ GRAND TOTAL (hidden on Summary tab) ═══ */}
+              {activeTab !== 'summary' && (
+                <div className="rounded-[14px] overflow-hidden fs-grand-total-bar mt-6" style={{ background: '#1A1240' }}>
+                  <div className="flex items-center justify-between px-6 py-4">
+                    <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
+                      Grand Total (Payroll + Expenses)
+                    </span>
+                    <span className="text-[20px] font-bold font-mono text-white">
+                      {fmtPKR(payrollGrandTotal + expensesGrandTotal)}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </Tabs>
