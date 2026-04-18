@@ -481,13 +481,6 @@ const DeadlineCell = ({ project, canEdit, companyId, employeeId, isDueToday }: D
       )}
     </span>
   );
-          {canEdit && (
-            <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
-          )}
-        </>
-      )}
-    </span>
-  );
 
   if (!canEdit) return display;
 
