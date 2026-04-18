@@ -467,8 +467,16 @@ const Payroll = () => {
 
       {!loading && generated && departments.length > 0 && (
         <div className="space-y-6">
-          <Tabs defaultValue={departments[0]} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
+              <TabsTrigger
+                value="all"
+                className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+                style={{ fontFamily: 'var(--ff-body)' }}
+              >
+                All
+                <span className="ml-1.5 text-xs opacity-60">({records.length})</span>
+              </TabsTrigger>
               {departments.map(dept => (
                 <TabsTrigger
                   key={dept}
@@ -481,6 +489,9 @@ const Payroll = () => {
                 </TabsTrigger>
               ))}
             </TabsList>
+            <TabsContent value="all">
+              {renderDeptTable(allSorted)}
+            </TabsContent>
             {departments.map(dept => (
               <TabsContent key={dept} value={dept}>
                 {renderDeptTable(grouped[dept])}
@@ -490,8 +501,8 @@ const Payroll = () => {
 
           {hasDrafts && (
             <div className="flex justify-end">
-              <Button onClick={() => setApproveOpen(true)} className="px-6">
-                <CheckCircle2 className="h-4 w-4 mr-2" /> Approve Payroll
+              <Button onClick={() => setApproveOpen(true)} className="px-6" disabled={!hasDraftsInActive}>
+                <CheckCircle2 className="h-4 w-4 mr-2" /> Approve {activeTabLabel} Payroll
               </Button>
             </div>
           )}
@@ -502,9 +513,9 @@ const Payroll = () => {
       <AlertDialog open={approveOpen} onOpenChange={setApproveOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Approve Payroll</AlertDialogTitle>
+            <AlertDialogTitle>Approve {activeTabLabel} Payroll</AlertDialogTitle>
             <AlertDialogDescription>
-              This will approve all draft payroll records for {MONTHS.find(m => m.value === selectedMonth)?.label} {selectedYear}.
+              This will approve all draft payroll records for {activeTab === 'all' ? 'all employees' : activeTab} for {MONTHS.find(m => m.value === selectedMonth)?.label} {selectedYear}.
               Records will become read-only. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
