@@ -65,6 +65,7 @@ const Projects = () => {
   const companyId = employee?.company_id;
   const role = employee?.role_name;
   const isManager = role === 'hr_manager' || role === 'ceo';
+  const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
   const canEditStatus = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const canEditDeadline = canEditStatus;
   const employeeId = employee?.employee_id;
@@ -228,7 +229,7 @@ const Projects = () => {
               <TableRow>
                 <TableHead>Code</TableHead>
                 <TableHead>Project Name</TableHead>
-                <TableHead>Client</TableHead>
+                {canSeeClient && <TableHead>Client</TableHead>}
                 <TableHead>Category</TableHead>
                 <TableHead>Lead</TableHead>
                 <TableHead>Internal Deadline</TableHead>
@@ -248,7 +249,7 @@ const Projects = () => {
                 >
                   <TableCell className="font-mono text-sm">{p.project_code}</TableCell>
                   <TableCell className="font-medium">{p.project_name}</TableCell>
-                  <TableCell>{p.clients?.name || '—'}</TableCell>
+                  {canSeeClient && <TableCell>{p.clients?.name || '—'}</TableCell>}
                   <TableCell>{p.project_categories?.name || '—'}</TableCell>
                   <TableCell>{p.lead?.full_name || '—'}</TableCell>
                   <TableCell onClick={e => e.stopPropagation()}>
