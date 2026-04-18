@@ -466,7 +466,7 @@ const DeadlineCell = ({ project, canEdit, companyId, employeeId, isDueToday }: D
   const display = (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded px-1 py-0.5 transition-all',
+        'inline-flex items-center gap-1.5 rounded px-1 py-0.5 transition-all',
         flash && 'ring-2 ring-bx-success ring-offset-1',
         isDueToday && 'text-[#92400E] font-medium',
       )}
@@ -475,6 +475,12 @@ const DeadlineCell = ({ project, canEdit, companyId, employeeId, isDueToday }: D
         <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
       ) : (
         <>
+          {isDueToday && (
+            <span
+              aria-hidden="true"
+              className="inline-block h-1.5 w-1.5 rounded-full bg-[#F5A623] shrink-0"
+            />
+          )}
           <span>{formatDate(value)}</span>
           {canEdit && (
             <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
