@@ -468,10 +468,17 @@ const DeadlineCell = ({ project, canEdit, companyId, employeeId, isDueToday }: D
       ) : (
         <>
           {isDueToday && (
-            <span
-              aria-hidden="true"
-              className="inline-block h-1.5 w-1.5 rounded-full bg-[#F5A623] shrink-0"
-            />
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    aria-label="Due today"
+                    className="inline-block h-1.5 w-1.5 rounded-full bg-[#F5A623] shrink-0"
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="top">Due today</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           <span>{formatDate(value)}</span>
           {canEdit && (
