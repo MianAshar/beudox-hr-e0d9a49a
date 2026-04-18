@@ -1,200 +1,190 @@
 <!--
 generated_by: tessera
-source_sha: c66ac7e241bf072c76ba5f1e516dda55f5985f0f
-generated_at: 2026-04-18T00:55:03.445Z
+source_sha: 532445a0e6591cf342df6eb72db8d288205b7fe5
+generated_at: 2026-04-18T01:00:48.803Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built for modern businesses. Streamline employee management, attendance tracking, performance evaluations, project management, payroll processing, and more.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with powerful tools to manage employees, payroll, evaluations, leave requests, projects, clients, and more.
 
-## 🚀 Features
+## Features
 
 ### Core HR Management
-- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
-- **Role-Based Access Control**: Granular permissions for different user roles (CEO, HR Manager, Team Lead, Employee)
-- **Company Settings**: Multi-company support with customizable settings
+- **Employee Management**: Complete employee lifecycle management including onboarding, profiles, and organizational structure
+- **Role-Based Access Control**: Granular permissions system with roles like HR Manager, CEO, Team Lead, and Employee
+- **Authentication & Security**: Secure login with password recovery and invite-based onboarding
 
-### Attendance & Time Tracking
-- **Automated Attendance**: Check-in/check-out with overtime calculations
-- **Attendance Imports**: Bulk import from external systems
-- **Holiday Management**: Public holidays and working day configurations
-
-### Performance Management
-- **Quarterly Evaluations**: Comprehensive performance reviews with customizable parameters
-- **Daily Evaluations**: Real-time feedback and peer reviews
-- **Evaluation Parameters**: Configurable scoring criteria
-
-### Project Management
-- **Project Tracking**: Full project lifecycle management
-- **Client Management**: Client relationships and billing
-- **Project Assignments**: Team member allocation and tracking
-- **Activity Logging**: Detailed project activity history
+### Performance & Evaluation
+- **Quarterly Evaluations**: Bi-annual performance reviews with detailed feedback and recommendations
+- **Daily Evaluations**: Real-time feedback system for continuous performance tracking
+- **Evaluation Timeline**: Comprehensive history view of all evaluations with role-based visibility
 
 ### Financial Management
-- **Invoice Management**: Client invoicing with PDF generation
-- **Payroll Processing**: Automated salary calculations with overtime and deductions
-- **Expense Tracking**: Office and employee expense management
-- **Loan Management**: Employee loan processing and repayments
+- **Payroll Processing**: Automated payroll calculations with detailed payslips
+- **Finance Dashboard**: Real-time financial metrics with 6-month trend analysis
+- **Expense Tracking**: Monthly expense management and reporting
+- **Invoice Management**: Client invoicing with PDF generation and email delivery
 
-### Leave Management
-- **Leave Types**: Configurable leave categories (annual, sick, etc.)
-- **Leave Requests**: Automated approval workflows
-- **Leave Balances**: Real-time balance tracking and carry-over
+### Leave & Time Management
+- **Leave Requests**: Comprehensive leave management system with approval workflows
+- **Leave Balances**: Real-time tracking of leave entitlements and usage
+- **Public Holidays**: Configurable holiday calendar management
 
-### Document Management
-- **HR Policies**: Rich text policy documents with versioning
-- **Document History**: Full audit trail of changes
+### Project & Client Management
+- **Project Tracking**: Full project lifecycle management with team assignments
+- **Client Management**: Client relationship management with detailed profiles
+- **Project Activity Logs**: Timeline tracking of project activities and milestones
 
-### Communication
-- **Notifications**: In-app and email notifications
-- **Real-time Updates**: Live notifications for important events
+### Policy & Compliance
+- **HR Policies**: Rich text policy documents with version control
+- **Loan Management**: Employee loan tracking and management
+- **Settings Management**: Configurable system settings for departments, roles, leave types, etc.
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-### Frontend
-- **React 18** - Modern React with hooks and concurrent features
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and development server
-- **React Router** - Client-side routing
-- **Tailwind CSS** - Utility-first CSS framework
-- **shadcn/ui** - High-quality component library
-- **Radix UI** - Accessible UI primitives
-- **React Query** - Powerful data synchronization
-- **React Hook Form** - Performant forms with validation
-- **Zod** - TypeScript-first schema validation
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite with SWC for fast development
+- **UI Framework**: ShadCN/UI with Radix UI primitives
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: TanStack Query for server state
+- **Routing**: React Router v6
+- **Backend**: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
+- **Charts**: Recharts for data visualization
+- **Forms**: React Hook Form with Zod validation
+- **Rich Text**: Tiptap editor
+- **Testing**: Vitest + Playwright
 
-### Backend & Database
-- **Supabase** - Open source Firebase alternative
-  - PostgreSQL database
-  - Authentication & authorization
-  - Real-time subscriptions
-  - Edge functions
-  - File storage
+## Getting Started
 
-### Development Tools
-- **ESLint** - Code linting
-- **Playwright** - End-to-end testing
-- **Vitest** - Unit testing
-- **TypeScript** - Type checking
-
-## 📋 Prerequisites
+### Prerequisites
 
 - Node.js 18+
 - npm or bun package manager
 - Supabase account and project
 
-## 🚀 Getting Started
+### Installation
 
-### 1. Clone the Repository
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+   cd beudox-hr-e0d9a49a
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   bun install
+   ```
+
+3. **Environment Setup**
+   
+   Copy the `.env` file and configure your Supabase credentials:
+   ```bash
+   cp .env .env.local
+   ```
+   
+   Update the following variables:
+   ```env
+   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   ```
+
+4. **Database Setup**
+   
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+
+5. **Start Development Server**
+   ```bash
+   npm run dev
+   # or
+   bun run dev
+   ```
+   
+   The application will be available at `http://localhost:8080`
+
+### Build for Production
 
 ```bash
-git clone https://github.com/MianAshar/beudox-hr.git
-cd beudox-hr
+npm run build
+# or
+bun run build
 ```
 
-### 2. Install Dependencies
+## Project Structure
 
-```bash
-# Using npm
-npm install
-
-# Or using bun (recommended)
-bun install
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # ShadCN/UI components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── finance/        # Finance-specific components
+│   ├── evaluations/    # Evaluation components
+│   ├── leave/          # Leave management components
+│   └── ...
+├── pages/              # Route components
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations (Supabase)
+└── test/               # Test files
 ```
 
-### 3. Environment Setup
-
-Create a `.env` file in the root directory:
-
-```env
-VITE_SUPABASE_PROJECT_ID=your_project_id
-VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-VITE_SUPABASE_URL=https://your-project.supabase.co
-```
-
-### 4. Database Setup
-
-1. Create a new Supabase project
-2. Run the SQL migrations in `supabase/migrations/` in order
-3. Configure authentication settings
-4. Set up storage buckets for file uploads
-
-### 5. Development Server
-
-```bash
-# Using npm
-npm run dev
-
-# Or using bun
-bun run dev
-```
-
-The application will be available at `http://localhost:5173`
-
-## 📜 Available Scripts
+## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run build:dev` - Build for development
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
-- `npm run test` - Run unit tests
+- `npm run test` - Run tests with Vitest
 - `npm run test:watch` - Run tests in watch mode
 
-## 🏗️ Project Structure
+## Key Components
 
-```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components
-│   ├── employees/      # Employee-related components
-│   ├── evaluations/    # Evaluation components
-│   ├── projects/       # Project management components
-│   └── ...
-├── pages/              # Page components
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-├── integrations/       # External service integrations
-│   └── supabase/       # Supabase client and types
-└── App.tsx             # Main application component
-```
+### Layout System
+- **AppLayout**: Main application layout with sidebar navigation
+- **AppSidebar**: Responsive sidebar with role-based menu items
+- **TopBar**: Header with notifications and user menu
 
-## 🔐 Authentication & Authorization
+### Core Components
+- **SearchableEmployeeSelect**: Employee selection with search and avatar display
+- **EvaluationTimeline**: Performance evaluation history with filtering
+- **FinanceSummary**: Financial dashboard with trend charts
+- **RichTextEditor**: Policy document editor with formatting
 
-The application uses Supabase Auth for authentication with role-based access control:
+## Authentication & Authorization
+
+The application uses Supabase Auth with custom role-based access control:
 
 - **CEO**: Full system access
 - **HR Manager**: HR operations and employee management
 - **Team Lead**: Team management and evaluations
-- **Employee**: Personal data and basic operations
+- **Employee**: Personal profile and requests
 
-## 📊 Database Schema
+## Database Schema
 
-The system uses a comprehensive PostgreSQL database with 30+ tables including:
+The application uses PostgreSQL with the following main tables:
+- `employees` - Employee profiles and information
+- `evaluations` - Quarterly performance reviews
+- `daily_evaluations` - Daily feedback entries
+- `leave_requests` - Leave management
+- `payroll_records` - Payroll processing
+- `projects` - Project management
+- `invoices` - Client invoicing
+- `hr_policies` - Policy documents
 
-- User management (employees, roles, companies)
-- Attendance tracking (records, imports)
-- Performance management (evaluations, parameters)
-- Project management (projects, assignments, clients)
-- Financial management (invoices, payroll, expenses)
-- Leave management (requests, balances, types)
-- Document management (HR policies, versions)
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests if applicable
-5. Submit a pull request
+5. Run the linter: `npm run lint`
+6. Submit a pull request
 
-## 📄 License
+## License
 
 This project is proprietary software. All rights reserved.
-
-## 📞 Support
-
-For support and questions, please contact the development team.
