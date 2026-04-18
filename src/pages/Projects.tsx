@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, Pencil } from 'lucide-react';
@@ -240,32 +241,27 @@ const Projects = () => {
               {filtered.map((p: any) => {
                 const isDueToday = p.internal_deadline === todayIso;
                 return (
-                <TableRow
-                  key={p.id}
-                  className={cn('cursor-pointer', isDueToday && 'bg-[#FEF3C7] hover:bg-[#FEF3C7]/80')}
-                  onClick={() => navigate(`/projects/${p.id}`)}
-                >
-                  <TableCell className="font-mono text-sm">{p.project_code}</TableCell>
-                  <TableCell className="font-medium">{p.project_name}</TableCell>
-                  <TableCell>{p.clients?.name || '—'}</TableCell>
-                  <TableCell>{p.project_categories?.name || '—'}</TableCell>
-                  <TableCell>{p.lead?.full_name || '—'}</TableCell>
-                  <TableCell onClick={e => e.stopPropagation()}>
-                    <div className="flex items-center gap-2">
-                      <DeadlineCell
-                        project={p}
-                        canEdit={canEditDeadline}
-                        companyId={companyId!}
-                        employeeId={employeeId!}
-                        isDueToday={isDueToday}
-                      />
-                      {isDueToday && (
-                        <Badge className="bg-[#FEF3C7] text-[#92400E] hover:bg-[#FEF3C7] border border-[#92400E]/20">
-                          Due Today
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
+                <TooltipProvider key={p.id} delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TableRow
+                        className={cn('cursor-pointer', isDueToday && 'bg-[#FEF3C7] hover:bg-[#FEF3C7]/80')}
+                        onClick={() => navigate(`/projects/${p.id}`)}
+                      >
+                        <TableCell className="font-mono text-sm">{p.project_code}</TableCell>
+                        <TableCell className="font-medium">{p.project_name}</TableCell>
+                        <TableCell>{p.clients?.name || '—'}</TableCell>
+                        <TableCell>{p.project_categories?.name || '—'}</TableCell>
+                        <TableCell>{p.lead?.full_name || '—'}</TableCell>
+                        <TableCell onClick={e => e.stopPropagation()}>
+                          <DeadlineCell
+                            project={p}
+                            canEdit={canEditDeadline}
+                            companyId={companyId!}
+                            employeeId={employeeId!}
+                            isDueToday={isDueToday}
+                          />
+                        </TableCell>
                   <TableCell>
                     {p.priority && <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>}
                   </TableCell>
