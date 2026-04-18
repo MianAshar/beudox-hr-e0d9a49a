@@ -422,7 +422,7 @@ const toIsoDate = (d: Date) => {
   return `${y}-${m}-${day}`;
 };
 
-const DeadlineCell = ({ project, canEdit, companyId, employeeId }: DeadlineCellProps) => {
+const DeadlineCell = ({ project, canEdit, companyId, employeeId, isDueToday }: DeadlineCellProps) => {
   const qc = useQueryClient();
   const [optimistic, setOptimistic] = useState<string | null | undefined>(undefined);
   const [flash, setFlash] = useState(false);
@@ -466,6 +466,7 @@ const DeadlineCell = ({ project, canEdit, companyId, employeeId }: DeadlineCellP
       className={cn(
         'inline-flex items-center gap-1 rounded px-1 py-0.5 transition-all',
         flash && 'ring-2 ring-bx-success ring-offset-1',
+        isDueToday && 'text-[#92400E] font-medium',
       )}
     >
       {isPending ? (
@@ -473,6 +474,13 @@ const DeadlineCell = ({ project, canEdit, companyId, employeeId }: DeadlineCellP
       ) : (
         <>
           <span>{formatDate(value)}</span>
+          {canEdit && (
+            <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+          )}
+        </>
+      )}
+    </span>
+  );
           {canEdit && (
             <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
           )}
