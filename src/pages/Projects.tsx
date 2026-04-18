@@ -289,7 +289,8 @@ const Projects = () => {
                     </TableCell>
                   )}
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </div>
