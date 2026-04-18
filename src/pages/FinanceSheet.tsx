@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Printer, Pencil, FileSpreadsheet, Plus, Trash2, Upload, FileText, X, ExternalLink, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { FinanceSummary } from '@/components/finance/FinanceSummary';
 
 const MONTHS = [
   { value: '01', label: 'January' }, { value: '02', label: 'February' },
@@ -597,6 +598,15 @@ const FinanceSheet = () => {
             </Button>
           </div>
         </div>
+
+        {/* Summary widgets */}
+        {companyId && (
+          <FinanceSummary
+            companyId={companyId}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+          />
+        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
