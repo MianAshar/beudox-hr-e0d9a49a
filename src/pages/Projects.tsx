@@ -412,6 +412,7 @@ interface DeadlineCellProps {
   canEdit: boolean;
   companyId: string;
   employeeId: string;
+  isDueToday?: boolean;
 }
 
 const toIsoDate = (d: Date) => {
