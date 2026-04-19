@@ -1,169 +1,203 @@
 <!--
 generated_by: tessera
-source_sha: 20ef1eb521eec693f7ae1732004ba33e7dca4c1d
-generated_at: 2026-04-19T13:01:00.948Z
+source_sha: 7cd56bd223f184273f03b6c7372dbc65d79d4bbd
+generated_at: 2026-04-19T21:20:04.480Z
 action: create
 -->
 
-# Beudox HR - Architecture Documentation
+# Architecture Documentation
 
-## System Architecture
+## System Overview
 
-Beudox HR follows a modern client-server architecture with a React-based frontend and Supabase backend.
+Beudox HR is a modern, full-stack HR management system built with React and Supabase. The architecture follows a component-driven design with clear separation of concerns between UI, business logic, and data layers.
 
-### Frontend Architecture
+## Frontend Architecture
 
-#### Component Hierarchy
+### Technology Stack
+- **React 18** with TypeScript for type-safe component development
+- **Vite** for fast development and optimized production builds
+- **shadcn/ui** component library built on Radix UI primitives
+- **Tailwind CSS** for utility-first styling
+- **React Query** for server state management
+- **React Router** for client-side routing
+
+### Component Hierarchy
+
 ```
-App (Routing & Auth)
-├── AuthProvider (Authentication Context)
-├── QueryClientProvider (Data Fetching)
-├── BrowserRouter
-│   ├── Protected Routes
-│   │   ├── AppLayout
-│   │   │   ├── AppSidebar (Navigation)
-│   │   │   ├── TopBar (User Menu & Notifications)
-│   │   │   └── Main Content
-│   │   │       └── Page Components
-│   └── Public Routes (Login, Password Reset)
+App (Providers + Routing)
+├── AuthProvider (Global auth state)
+├── QueryClientProvider (Server state)
+├── ThemeProvider (UI theming)
+└── Router
+    ├── Public Routes (Login, Password Reset)
+    └── Protected Routes (AppLayout wrapper)
+        ├── AppSidebar (Navigation)
+        ├── TopBar (Page header)
+        └── Page Content (Feature components)
 ```
 
-#### Key Architectural Patterns
+### State Management
 
-**Component Composition**
-- Higher-order components for layout and protection
-- Compound components for complex UI elements
-- Render props for flexible data display
+#### Global State
+- **Auth Context**: User session, employee data, role information
+- **Theme Context**: Dark/light mode preferences
 
-**Data Flow**
-- Unidirectional data flow with React hooks
-- Server state managed by TanStack Query
-- Local state for UI interactions
+#### Server State
+- **React Query**: API data caching, optimistic updates, background refetching
+- **Supabase Subscriptions**: Real-time data updates where needed
 
-**Routing Structure**
-- Role-based route protection
-- Nested routes for CRUD operations
-- Programmatic navigation with redirects
+#### Local State
+- **Component State**: UI interactions, form data, loading states
+- **URL State**: Route parameters, query strings
 
-### Backend Architecture
+## Backend Architecture
 
-#### Supabase Services
-- **Database**: PostgreSQL with Row Level Security
-- **Authentication**: JWT-based auth with role management
-- **Storage**: File uploads and CDN
-- **Edge Functions**: Server-side business logic
+### Supabase Services
 
-#### Database Design
-- Multi-tenant with company-based isolation
-- Normalized schema with foreign key relationships
-- Audit trails and activity logging
-- Real-time subscriptions for live updates
+#### Database (PostgreSQL)
+- **Tables**: 20+ tables for HR data (employees, evaluations, payroll, etc.)
+- **Row Level Security**: Granular access control policies
+- **Functions**: Business logic in SQL and PL/pgSQL
+- **Triggers**: Automated data processing
 
-## Core Components
+#### Authentication
+- **Supabase Auth**: User management, password reset, session handling
+- **Custom Claims**: Role-based permissions
 
-### Layout System
-- **AppLayout**: Main application wrapper with sidebar and topbar
-- **AppSidebar**: Collapsible navigation with role-based menu items
-- **TopBar**: User menu, notifications, and global actions
+#### Edge Functions
+- **Payroll Generation**: Complex salary calculations
+- **Invoice PDF Creation**: Document generation
+- **Email Notifications**: Automated communication
 
-### Authentication System
-- **AuthProvider**: Context provider managing auth state
-- **ProtectedRoute**: HOC for route protection
-- **Role Access**: Permission checking utilities
+### API Design
 
-### Data Management
-- **Supabase Client**: Centralized API client
-- **Query Hooks**: TanStack Query wrappers for data fetching
-- **Type Safety**: Generated TypeScript types from schema
+#### RESTful Endpoints
+- Standard CRUD operations for all entities
+- Consistent response formats
+- Error handling with appropriate HTTP status codes
 
-## Data Flow Patterns
-
-### Authentication Flow
-1. Login → Supabase auth → JWT token
-2. Token validation → Employee data fetch
-3. Role determination → Route access control
-4. Automatic redirects based on permissions
-
-### CRUD Operations
-1. User action → Form submission
-2. Validation → API call
-3. Optimistic update → Cache invalidation
-4. Error handling → User feedback
-
-### Real-time Updates
-1. Database change → Supabase real-time
-2. Subscription trigger → Cache update
-3. UI re-render → User notification
+#### Real-time Subscriptions
+- Live updates for collaborative features
+- Notification system for HR events
 
 ## Security Architecture
 
-### Authentication
-- JWT tokens with expiration
-- Refresh token handling
-- Secure password reset flows
+### Authentication Flow
+```
+1. User Login → Supabase Auth
+2. Token Validation → JWT claims
+3. Employee Lookup → Database query
+4. Role Assignment → Permission mapping
+5. Route Access → RBAC checks
+```
 
-### Authorization
-- Role-based access control (RBAC)
-- Row Level Security policies
-- API endpoint protection
+### Authorization Model
 
-### Data Protection
-- Input validation and sanitization
-- SQL injection prevention
-- XSS protection in rich text
+#### Role Hierarchy
+- **CEO**: Full system access
+- **HR Manager**: Employee management, HR operations
+- **Team Lead**: Team oversight, evaluations
+- **Employee**: Personal data access
 
-## Performance Considerations
+#### Permission Checks
+- Route-level protection
+- Component-level visibility
+- API-level RLS policies
 
-### Frontend Optimization
-- Code splitting with dynamic imports
-- Image lazy loading and optimization
-- Bundle analysis and tree shaking
-- Efficient re-rendering with memoization
+## Data Flow Patterns
 
-### Backend Optimization
-- Database indexing strategies
-- Query optimization and caching
-- Edge function performance
-- CDN for static assets
+### Evaluation System
+```
+Quarterly Evaluations:
+Employee → Evaluator → Review → Recommendation → Storage
 
-### Caching Strategy
-- TanStack Query for API response caching
-- Browser caching for static assets
-- Service worker for offline capability
+Daily Evaluations:
+Reviewer → Reviewee → Feedback → Direction → Timeline
+```
 
-## Scalability Patterns
+### Payroll Processing
+```
+Employee Data → Attendance → Overtime Calc → Deductions → Payslip
+```
 
-### Horizontal Scaling
-- Stateless frontend components
-- Database connection pooling
-- CDN distribution
+### Leave Management
+```
+Request → Balance Check → Approval → Calendar Update → Balance Adjustment
+```
 
-### Feature Scaling
-- Modular component architecture
-- Feature-based code organization
-- Micro-frontend potential
+## Performance Optimizations
 
-### Data Scaling
-- Efficient query patterns
-- Pagination for large datasets
-- Real-time subscription management
+### Frontend
+- **Code Splitting**: Route-based chunking
+- **Lazy Loading**: Component and image loading
+- **Memoization**: Expensive calculations cached
+- **Virtual Scrolling**: Large lists optimized
+
+### Backend
+- **Database Indexing**: Optimized queries
+- **Caching**: React Query intelligent caching
+- **Edge Functions**: Compute moved to edge
+- **CDN**: Static assets distributed
 
 ## Development Workflow
 
 ### Build Pipeline
-- Vite for fast development
-- TypeScript compilation
-- CSS processing and optimization
-- Asset bundling and minification
+```
+Source Code → TypeScript → Vite → Optimized Bundle
+                    ↓
+ESLint → Testing → Deployment
+```
 
-### Testing Strategy
-- Unit tests with Vitest
-- Component tests with RTL
-- E2E tests with Playwright
-- Integration tests for API
+### Quality Assurance
+- **TypeScript**: Compile-time type checking
+- **ESLint**: Code quality and consistency
+- **Vitest**: Unit testing framework
+- **Playwright**: End-to-end testing
 
-### Deployment
-- Environment-based configuration
-- CI/CD pipeline
-- Rollback strategies
-- Monitoring and logging
+## Deployment Architecture
+
+### Production Setup
+- **Static Hosting**: Frontend served from CDN
+- **Supabase**: Managed backend services
+- **Edge Functions**: Globally distributed compute
+- **Database**: Managed PostgreSQL with backups
+
+### Environment Management
+- **Development**: Local Supabase instance
+- **Staging**: Mirror production environment
+- **Production**: Live user environment
+
+## Monitoring & Observability
+
+### Error Tracking
+- Client-side error boundaries
+- Server-side error logging
+- User feedback collection
+
+### Performance Monitoring
+- Bundle size analysis
+- Core Web Vitals tracking
+- API response time monitoring
+
+## Scalability Considerations
+
+### Horizontal Scaling
+- Stateless frontend components
+- Database connection pooling
+- CDN for static assets
+
+### Vertical Scaling
+- Database query optimization
+- Edge function distribution
+- Caching strategies
+
+## Future Architecture Evolution
+
+### Planned Enhancements
+- **Microservices**: Break down monolithic functions
+- **GraphQL**: More efficient data fetching
+- **Real-time**: Enhanced collaborative features
+- **Mobile App**: React Native companion
+- **AI Integration**: Automated insights and recommendations
+
+This architecture provides a solid foundation for a scalable, maintainable HR management system while allowing for future growth and feature additions.

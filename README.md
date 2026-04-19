@@ -1,74 +1,64 @@
 <!--
 generated_by: tessera
-source_sha: 5bfa2e413d2c0629147e392ed5378a2266016f80
-generated_at: 2026-04-19T21:13:44.177Z
+source_sha: 7cd56bd223f184273f03b6c7372dbc65d79d4bbd
+generated_at: 2026-04-19T21:20:04.480Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A comprehensive Human Resources management application built with modern web technologies. Beudox HR provides organizations with tools to manage employees, track performance, handle payroll, manage leave requests, and oversee various HR operations through an intuitive web interface.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, payroll processing, performance evaluations, leave tracking, and organizational workflows for businesses.
 
 ## Features
 
 ### Core HR Management
-- **Employee Management**: Complete employee lifecycle management including onboarding, profile management, and offboarding
-- **Role-Based Access Control**: Granular permissions system with roles like CEO, HR Manager, Team Lead, and Employee
-- **Organization Structure**: Departments, roles, and hierarchical management
+- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
+- **Role-Based Access Control**: Granular permissions for different user roles (HR Manager, CEO, Team Lead, Employee)
+- **Profile Management**: Employee profiles with personal information, roles, and organizational data
 
-### Performance & Evaluations
+### Performance & Evaluation
 - **Quarterly Evaluations**: Bi-annual performance reviews with scoring and recommendations
-- **Daily Evaluations**: Real-time feedback system for continuous performance tracking
-- **Evaluation Timeline**: Historical view of all evaluations with filtering based on user roles
-
-### Leave & Time Management
-- **Leave Requests**: Comprehensive leave management system with approval workflows
-- **Leave Balances**: Real-time tracking of leave entitlements and usage
-- **Public Holidays**: Centralized holiday management
+- **Daily Evaluations**: Real-time feedback system for continuous improvement
+- **Evaluation Timeline**: Historical view of all evaluations with filtering by role
 
 ### Financial Management
 - **Payroll Processing**: Automated payroll generation with overtime calculations
-- **Finance Dashboard**: Visual analytics for payroll and expense tracking
-- **Expense Management**: Monthly expense tracking and reporting
+- **Finance Dashboard**: Real-time financial metrics and 6-month trend analysis
+- **Expense Tracking**: Monthly expense management and reporting
 - **Loan Management**: Employee loan tracking and deductions
 
-### Project Management
-- **Project Tracking**: Project lifecycle management with task assignments
-- **Client Management**: Client relationship management
-- **Invoice Generation**: Automated invoice creation and PDF generation
+### Leave & Time Management
+- **Leave Management**: Comprehensive leave request and approval system
+- **Leave Balances**: Real-time tracking of leave entitlements
+- **Public Holidays**: Configurable holiday calendar management
+
+### Project & Client Management
+- **Project Management**: Project creation, assignment, and progress tracking
+- **Client Management**: Client relationship management with invoicing
+- **Task Management**: Individual and team task assignment
 
 ### Administrative Features
 - **HR Policies**: Rich text policy documents with version control
-- **Settings Management**: Configurable system settings (departments, leave types, evaluation parameters, etc.)
-- **Notifications**: Automated email notifications for various HR events
+- **Settings Management**: Company settings, departments, roles, and system configuration
+- **Invoice Generation**: Automated invoice creation with PDF export
+- **Notification System**: Automated notifications for various HR events
 
 ## Technology Stack
 
-### Frontend
-- **React 18** with TypeScript for type-safe development
-- **Vite** for fast development and optimized builds
-- **React Router** for client-side routing
-- **TanStack Query** for efficient server state management
-- **Tailwind CSS** for styling with custom design system
-- **shadcn/ui** component library built on Radix UI primitives
-- **Recharts** for data visualization
-- **React Hook Form** with Zod validation for form handling
-
-### Backend & Infrastructure
-- **Supabase** for backend-as-a-service (authentication, database, real-time subscriptions, edge functions)
-- **PostgreSQL** database with Supabase
-- **Supabase Edge Functions** for server-side logic (payroll generation, notifications, etc.)
-
-### Development & Testing
-- **Vitest** for unit testing
-- **Playwright** for end-to-end testing
-- **ESLint** for code linting
-- **TypeScript** for type checking
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Framework**: shadcn/ui with Radix UI primitives
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: React Query for server state, Context API for auth
+- **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
+- **Charts**: Recharts for data visualization
+- **Forms**: React Hook Form with Zod validation
+- **Icons**: Lucide React
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm/yarn/bun
+- Node.js 18+
+- npm or bun
 - Supabase account and project
 
 ### Installation
@@ -83,36 +73,36 @@ A comprehensive Human Resources management application built with modern web tec
    ```bash
    npm install
    # or
-   yarn install
-   # or
    bun install
    ```
 
 3. **Environment Setup**
    
-   Copy the `.env` file and configure your Supabase credentials:
+   Copy the environment file and configure Supabase credentials:
    ```bash
    cp .env .env.local
    ```
    
-   Update the following variables in `.env.local`:
+   Update `.env.local` with your Supabase project details:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+   VITE_SUPABASE_URL=https://your-project.supabase.co
    ```
 
 4. **Database Setup**
    
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
-   
-   You can use the Supabase CLI:
+   The project includes Supabase migrations. Run them in your Supabase project:
    ```bash
-   supabase db reset
+   # Migrations are located in supabase/migrations/
+   # Apply them through Supabase dashboard or CLI
    ```
 
-5. **Start Development Server**
+5. **Development Server**
    ```bash
    npm run dev
+   # or
+   bun run dev
    ```
    
    The application will be available at `http://localhost:8080`
@@ -121,7 +111,8 @@ A comprehensive Human Resources management application built with modern web tec
 
 ```bash
 npm run build
-npm run preview
+# or
+bun run build
 ```
 
 ## Project Structure
@@ -130,59 +121,62 @@ npm run preview
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── [feature]/      # Feature-specific components
+│   ├── layout/         # App layout components
+│   ├── finance/        # Financial components
+│   ├── evaluations/    # Evaluation components
+│   ├── leave/          # Leave management components
+│   └── ...
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
-├── test/               # Test files
+├── integrations/       # External service integrations
 └── types/              # TypeScript type definitions
 
 supabase/
 ├── migrations/         # Database schema migrations
-├── functions/          # Edge functions for server-side logic
-└── config.toml         # Supabase project configuration
+└── functions/          # Edge functions for business logic
 ```
 
 ## Authentication & Authorization
 
-The application uses Supabase Auth for authentication with role-based access control:
+The application uses Supabase Auth for user authentication with role-based access control:
 
 - **CEO**: Full system access
 - **HR Manager**: HR operations and employee management
 - **Team Lead**: Team management and evaluations
 - **Employee**: Personal profile and limited access
 
-## Key Workflows
+## Development
 
-### Employee Onboarding
-1. HR creates employee account via invitation
-2. Employee sets password and completes profile
-3. HR assigns role and department
-4. Employee gains access based on role permissions
+### Available Scripts
 
-### Performance Management
-1. Daily evaluations for continuous feedback
-2. Quarterly evaluations for formal reviews
-3. Managers can view evaluation history
-4. HR oversees evaluation processes
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
 
-### Payroll Processing
-1. System calculates payroll based on attendance and overtime
-2. HR reviews and approves payroll runs
-3. Employees can view their payslips
-4. Automated notifications for payroll events
+### Code Quality
+
+- **TypeScript**: Strict type checking enabled
+- **ESLint**: Code linting with React and TypeScript rules
+- **Prettier**: Code formatting (via ESLint)
+- **Vitest**: Unit testing framework
+- **Playwright**: End-to-end testing
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
 This project is proprietary software. All rights reserved.
+
+## Support
+
+For support and questions, please contact the development team.
