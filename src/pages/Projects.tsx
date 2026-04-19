@@ -422,11 +422,13 @@ const Projects = () => {
             const isDueToday = p.internal_deadline === todayIso;
             const isCollapsed = !expandedIds.has(p.id);
             const team = teamByProject.get(p.id) ?? [];
+            const tc = taskCountByProject.get(p.id);
             return (
               <ProjectCard
                 key={p.id}
                 project={p}
                 team={team}
+                taskCount={tc}
                 isCollapsed={isCollapsed}
                 onToggle={() => toggleOne(p.id)}
                 onOpenDetail={() => navigate(`/projects/${p.id}`)}
@@ -440,6 +442,7 @@ const Projects = () => {
                 canEditDeadline={canEditDeadline}
                 companyId={companyId!}
                 employeeId={employeeId!}
+                role={role}
               />
             );
           })}
