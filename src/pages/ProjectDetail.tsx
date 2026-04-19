@@ -10,13 +10,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle } from 'lucide-react';
+import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
 import { ListChecks } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
+  pending: 'bg-[#F3F4F6] text-[#374151] hover:bg-[#F3F4F6]',
   in_progress: 'bg-blue-100 text-blue-700',
   completed: 'bg-green-100 text-green-700',
   invoiced: 'bg-purple-100 text-purple-700',
@@ -42,11 +43,13 @@ const ProjectDetail = () => {
   const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
   const canManageTasks = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
   const canSeeActivity = role === 'hr_manager' || role === 'ceo';
+  const canStartProject = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
   const employeeId = employee?.employee_id;
 
   const [deactivateOpen, setDeactivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [startOpen, setStartOpen] = useState(false);
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project-detail', id, companyId],
@@ -116,6 +119,29 @@ const ProjectDetail = () => {
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
+  const startMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('projects').update({ status: 'in_progress' }).eq('id', id!);
+      if (error) throw error;
+      await supabase.from('project_activity_logs').insert({
+        company_id: companyId!,
+        project_id: id!,
+        employee_id: employeeId!,
+        action: 'project_started',
+        old_value: 'pending',
+        new_value: 'in_progress',
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-detail'] });
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
+      toast({ title: 'Project started' });
+      setStartOpen(false);
+    },
+    onError: (e: Error) => toast({ title: 'Failed to start project', description: e.message, variant: 'destructive' }),
+  });
+
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
@@ -129,6 +155,11 @@ const ProjectDetail = () => {
   }
 
   if (!project) {
+    return <div className="p-6 text-muted-foreground">Project not found.</div>;
+  }
+
+  // Employees can't view pending projects
+  if (project.status === 'pending' && !canStartProject) {
     return <div className="p-6 text-muted-foreground">Project not found.</div>;
   }
 
@@ -150,6 +181,11 @@ const ProjectDetail = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {project.status === 'pending' && canStartProject && (
+            <Button onClick={() => setStartOpen(true)}>
+              <Play className="h-4 w-4 mr-2" /> Start Project
+            </Button>
+          )}
           {isManager && (
             <>
               <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
@@ -332,6 +368,24 @@ const ProjectDetail = () => {
               disabled={deleteConfirmText !== project.project_code || deleteMutation.isPending}
             >
               {deleteMutation.isPending ? 'Deleting…' : 'Delete Permanently'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Start Project Dialog */}
+      <Dialog open={startOpen} onOpenChange={setStartOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Start Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to start this project? Assigned team members will be able to see it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStartOpen(false)}>Cancel</Button>
+            <Button onClick={() => startMutation.mutate()} disabled={startMutation.isPending}>
+              {startMutation.isPending ? 'Starting…' : 'Start Project'}
             </Button>
           </DialogFooter>
         </DialogContent>

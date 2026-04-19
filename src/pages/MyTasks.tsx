@@ -30,11 +30,12 @@ const MyTasks = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_tasks')
-        .select('id, title, deadline, is_completed, completed_at, project_id, project:projects!project_tasks_project_id_fkey(id, project_code, project_name)')
+        .select('id, title, deadline, is_completed, completed_at, project_id, project:projects!project_tasks_project_id_fkey(id, project_code, project_name, status)')
         .eq('company_id', companyId!)
         .eq('assigned_to', employeeId!);
       if (error) throw error;
-      return data;
+      // Hide tasks belonging to pending projects
+      return (data ?? []).filter((t: any) => t.project?.status !== 'pending');
     },
     enabled: !!employeeId && !!companyId,
   });

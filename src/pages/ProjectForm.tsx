@@ -18,7 +18,7 @@ import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X } from 'lucide-react';
 
-const STATUSES = ['in_progress', 'completed', 'invoiced', 'on_hold', 'cancelled'];
+const STATUSES = ['pending', 'in_progress', 'completed', 'invoiced', 'on_hold', 'cancelled'];
 const PRIORITIES = ['high', 'medium', 'low'];
 
 const ProjectForm = () => {
@@ -42,7 +42,7 @@ const ProjectForm = () => {
     internal_deadline: undefined as Date | undefined,
     project_lead_id: '',
     priority: '',
-    status: 'in_progress',
+    status: 'pending',
     notes: '',
   });
   const [teamMembers, setTeamMembers] = useState<string[]>([]);

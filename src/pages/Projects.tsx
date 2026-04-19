@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import {
   Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight,
-  Pencil, FileText, Users, ListChecks, History, ChevronsDownUp, ChevronsUpDown, ArrowUpDown,
+  Pencil, FileText, Users, ListChecks, History, ChevronsDownUp, ChevronsUpDown, ArrowUpDown, Play,
 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -94,10 +94,65 @@ async function logProjectActivity(params: {
   });
 }
 
+interface StartProjectButtonProps {
+  projectId: string;
+  companyId: string;
+  employeeId: string;
+  size?: 'sm' | 'default';
+}
+
+const StartProjectButton = ({ projectId, companyId, employeeId, size = 'sm' }: StartProjectButtonProps) => {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('projects').update({ status: 'in_progress' }).eq('id', projectId);
+      if (error) throw error;
+      await logProjectActivity({
+        companyId, projectId, employeeId,
+        action: 'project_started', oldValue: 'pending', newValue: 'in_progress',
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['project-detail'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
+      qc.invalidateQueries({ queryKey: ['project-activity-inline'] });
+      toast({ title: 'Project started' });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast({ title: 'Failed to start project', description: e.message, variant: 'destructive' }),
+  });
+
+  return (
+    <>
+      <Button size={size} onClick={e => { e.stopPropagation(); setOpen(true); }}>
+        <Play className="h-4 w-4 mr-2" /> Start Project
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Start Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to start this project? Assigned team members will be able to see it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+              {mutation.isPending ? 'Starting…' : 'Start Project'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 const STATUS_OPTIONS = ['pending', 'in_progress', 'qc_required', 'on_hold', 'completed', 'cancelled', 'delayed'];
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-slate-100 text-slate-700',
+  pending: 'bg-[#F3F4F6] text-[#374151] hover:bg-[#F3F4F6]',
   in_progress: 'bg-blue-100 text-blue-700',
   qc_required: 'bg-amber-100 text-amber-700',
   completed: 'bg-green-100 text-green-700',
@@ -164,14 +219,17 @@ const Projects = () => {
         if (aErr) throw aErr;
         const pIds = assignments?.map(a => a.project_id) || [];
         if (pIds.length === 0) return [];
-        const { data, error } = await supabase
+        let q = supabase
           .from('projects')
           .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)')
           .eq('company_id', companyId!)
-          .eq('status', 'in_progress')
           .eq('is_active', true)
-          .in('id', pIds)
-          .order('created_at', { ascending: false });
+          .in('id', pIds);
+        // Team Lead can see pending projects; employees and finance cannot
+        if (role !== 'team_lead') {
+          q = q.neq('status', 'pending');
+        }
+        const { data, error } = await q.order('created_at', { ascending: false });
         if (error) throw error;
         return data;
       }
@@ -628,6 +686,11 @@ const ProjectCard = ({
           className="px-4 py-4 space-y-5"
           style={{ borderTop: '1px solid rgba(91,63,248,0.15)' }}
         >
+          {p.status === 'pending' && canEditStatus && (
+            <div className="flex justify-end">
+              <StartProjectButton projectId={p.id} companyId={companyId} employeeId={employeeId} />
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Left column: Scope + Notes */}
             <div className="space-y-4">
