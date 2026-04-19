@@ -17,6 +17,7 @@ import { Loader2, DollarSign, CalendarIcon, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
+import { PayrollSummary } from '@/components/payroll/PayrollSummary';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   draft: { bg: '#FEF3C7', text: '#92400E' },
@@ -58,7 +59,7 @@ const Payroll = () => {
 
   const [approveOpen, setApproveOpen] = useState(false);
   const [approving, setApproving] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('summary');
 
   const [paidModal, setPaidModal] = useState<PayrollRecord | null>(null);
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
@@ -171,7 +172,7 @@ const Payroll = () => {
   const handleApprove = async () => {
     setApproving(true);
     try {
-      const scopedRecords = activeTab === 'all'
+      const scopedRecords = activeTab === 'all' || activeTab === 'summary'
         ? records
         : records.filter(r => ((r.employees as any)?.department || 'Uncategorized') === activeTab);
       const draftIds = scopedRecords.filter(r => r.status === 'draft').map(r => r.id);
@@ -297,9 +298,11 @@ const Payroll = () => {
     });
   }, [records]);
 
-  const activeRecords = activeTab === 'all' ? allSorted : (grouped[activeTab] || []);
-  const activeTabLabel = activeTab === 'all' ? 'All' : activeTab;
-  const hasDraftsInActive = activeRecords.some(r => r.status === 'draft');
+  const activeRecords = activeTab === 'all' || activeTab === 'summary' ? allSorted : (grouped[activeTab] || []);
+  const activeTabLabel = activeTab === 'all' || activeTab === 'summary' ? 'All' : activeTab;
+  const hasDraftsInActive = activeTab === 'summary'
+    ? false
+    : activeRecords.some(r => r.status === 'draft');
   const hasDrafts = records.some(r => r.status === 'draft');
   const allApprovedOrPaid = records.length > 0 && records.every(r => r.status === 'approved' || r.status === 'paid');
 
@@ -470,6 +473,13 @@ const Payroll = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
               <TabsTrigger
+                value="summary"
+                className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+                style={{ fontFamily: 'var(--ff-body)' }}
+              >
+                Summary
+              </TabsTrigger>
+              <TabsTrigger
                 value="all"
                 className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
                 style={{ fontFamily: 'var(--ff-body)' }}
@@ -489,6 +499,14 @@ const Payroll = () => {
                 </TabsTrigger>
               ))}
             </TabsList>
+            <TabsContent value="summary">
+              <PayrollSummary
+                companyId={companyId!}
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
+                records={records}
+              />
+            </TabsContent>
             <TabsContent value="all">
               {renderDeptTable(allSorted)}
             </TabsContent>
