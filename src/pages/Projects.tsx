@@ -241,16 +241,16 @@ const Projects = () => {
     return true;
   });
 
-  const allCollapsed = filtered.length > 0 && filtered.every((p: any) => collapsedIds.has(p.id));
+  const allExpanded = filtered.length > 0 && filtered.every((p: any) => expandedIds.has(p.id));
   const toggleAll = () => {
-    if (allCollapsed) {
-      setCollapsedIds(new Set());
+    if (allExpanded) {
+      setExpandedIds(new Set());
     } else {
-      setCollapsedIds(new Set(filtered.map((p: any) => p.id)));
+      setExpandedIds(new Set(filtered.map((p: any) => p.id)));
     }
   };
   const toggleOne = (id: string) => {
-    setCollapsedIds(prev => {
+    setExpandedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
