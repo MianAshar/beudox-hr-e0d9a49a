@@ -265,8 +265,29 @@ const ProjectDetail = () => {
         )}
       </div>
 
+      {/* Tasks */}
+      {companyId && employeeId && (
+        <div className="rounded-lg border bg-card p-5 space-y-3">
+          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+            <ListChecks className="h-4 w-4" /> Tasks
+          </h2>
+          <ProjectTasksSection
+            projectId={id!}
+            companyId={companyId}
+            employeeId={employeeId}
+            teamMembers={(teamMembers ?? []).map((a: any) => ({
+              id: a.employees?.id,
+              full_name: a.employees?.full_name,
+              avatar_url: a.employees?.avatar_url,
+              designation: a.employees?.designation,
+            })).filter(m => m.id)}
+            canManage={canManageTasks}
+          />
+        </div>
+      )}
+
       {/* Activity Log */}
-      {canSeeActivity && companyId && (
+      {companyId && (
         <ProjectActivityLog projectId={id!} companyId={companyId} />
       )}
 
