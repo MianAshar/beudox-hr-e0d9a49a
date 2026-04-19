@@ -126,10 +126,7 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-[80px] rounded-[14px]" />)}
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[80px] rounded-[14px]" />)}
         </div>
         <Skeleton className="h-[280px] rounded-[14px] mt-4" />
@@ -139,18 +136,9 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
 
   return (
     <div className="space-y-3">
-      {/* Row 1 — Payroll breakdown */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <StatCard label="Total Payroll" value={fmtPKR(totalPayroll)} />
-        <StatCard label="Total OT" value={fmtPKR(totalOT)} />
-        <StatCard label="Total Bonus" value={fmtPKR(totalBonus)} />
-        <StatCard label="Total Loan Deductions" value={fmtPKR(totalLoan)} />
-      </div>
-
-      {/* Row 2 — Overall */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <StatCard label="Total Expenses" value={fmtPKR(totalExpenses)} />
-        <StatCard label="Grand Total" value={fmtPKR(grandTotal)} />
         <div
           className="rounded-[14px] bg-card flex items-center justify-between"
           style={{
