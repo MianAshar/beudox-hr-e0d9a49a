@@ -320,10 +320,10 @@ const Projects = () => {
           disabled={filtered.length === 0}
           className={cn(!isManager && 'ml-auto')}
         >
-          {allCollapsed ? (
-            <><ChevronsUpDown className="h-4 w-4 mr-2" /> Expand All</>
-          ) : (
+          {allExpanded ? (
             <><ChevronsDownUp className="h-4 w-4 mr-2" /> Collapse All</>
+          ) : (
+            <><ChevronsUpDown className="h-4 w-4 mr-2" /> Expand All</>
           )}
         </Button>
       </div>
