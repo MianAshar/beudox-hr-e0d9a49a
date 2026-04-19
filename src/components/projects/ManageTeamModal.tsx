@@ -129,7 +129,7 @@ export const ManageTeamModal = ({
                 <SearchableEmployeeSelect
                   employees={availableEmployees}
                   value={selectedToAdd}
-                  onChange={setSelectedToAdd}
+                  onValueChange={setSelectedToAdd}
                   placeholder="Select employee…"
                 />
               </div>
