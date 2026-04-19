@@ -10,13 +10,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle } from 'lucide-react';
+import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
 import { ListChecks } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
+  pending: 'bg-[#F3F4F6] text-[#374151] hover:bg-[#F3F4F6]',
   in_progress: 'bg-blue-100 text-blue-700',
   completed: 'bg-green-100 text-green-700',
   invoiced: 'bg-purple-100 text-purple-700',
