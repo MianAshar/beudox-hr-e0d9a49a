@@ -439,39 +439,49 @@ const ProjectCard = ({
         )}
         onClick={onToggle}
       >
-        <button
-          type="button"
-          aria-label={isCollapsed ? 'Expand' : 'Collapse'}
-          className="shrink-0 text-muted-foreground hover:text-foreground"
-          onClick={e => { e.stopPropagation(); onToggle(); }}
-        >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </button>
+        {/* Chevron — 32px */}
+        <div className="w-8 shrink-0 flex items-center justify-center">
+          <button
+            type="button"
+            aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+            className="text-muted-foreground hover:text-foreground"
+            onClick={e => { e.stopPropagation(); onToggle(); }}
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        </div>
 
-        <span className="font-mono text-xs text-muted-foreground w-24 shrink-0 truncate">{p.project_code}</span>
+        {/* Project Code — 80px */}
+        <span className="font-mono text-xs text-muted-foreground w-20 shrink-0 truncate">{p.project_code}</span>
 
-        <button
-          type="button"
-          className="font-medium text-sm text-foreground hover:underline truncate flex-1 text-left min-w-0"
-          onClick={e => { e.stopPropagation(); onOpenDetail(); }}
-          title={p.project_name}
-        >
-          {p.project_name}
-        </button>
+        {/* Project Name — flex */}
+        <div className="flex-1 min-w-0 flex items-center gap-2">
+          <button
+            type="button"
+            className="font-medium text-sm text-foreground hover:underline truncate text-left min-w-0"
+            onClick={e => { e.stopPropagation(); onOpenDetail(); }}
+            title={p.project_name}
+          >
+            {p.project_name}
+          </button>
+          {!p.is_active && <Badge variant="outline" className="text-xs shrink-0">Inactive</Badge>}
+        </div>
 
-        <div onClick={e => e.stopPropagation()} className="shrink-0">
+        {/* Status — 160px */}
+        <div onClick={e => e.stopPropagation()} className="w-[160px] shrink-0">
           <StatusCell project={p} canEdit={canEditStatus} companyId={companyId} employeeId={employeeId} />
         </div>
-        {!p.is_active && <Badge variant="outline" className="text-xs shrink-0">Inactive</Badge>}
 
-        <div onClick={e => e.stopPropagation()} className="shrink-0 min-w-[120px] text-right text-sm">
+        {/* Internal Deadline — 140px */}
+        <div onClick={e => e.stopPropagation()} className="w-[140px] shrink-0 text-sm">
           <DeadlineCell project={p} canEdit={canEditDeadline} companyId={companyId} employeeId={employeeId} isDueToday={isDueToday} />
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 min-w-[140px]">
+        {/* Team Lead — 160px */}
+        <div className="w-[160px] shrink-0 flex items-center gap-2 min-w-0">
           {p.lead ? (
             <>
-              <Avatar className="h-6 w-6">
+              <Avatar className="h-6 w-6 shrink-0">
                 {p.lead.avatar_url && <AvatarImage src={p.lead.avatar_url} alt={p.lead.full_name} />}
                 <AvatarFallback className="text-[10px]">{getInitials(p.lead.full_name)}</AvatarFallback>
               </Avatar>
@@ -482,23 +492,27 @@ const ProjectCard = ({
           )}
         </div>
 
+        {/* Team Members — 120px */}
         {canSeeTeam && (
-          <div className="shrink-0">
+          <div className="w-[120px] shrink-0">
             <TeamMembersStack members={team} />
           </div>
         )}
 
-        {isManager && p.is_active && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 shrink-0"
-            onClick={e => { e.stopPropagation(); onDeactivate(); }}
-            aria-label="Deactivate project"
-          >
-            <XCircle className="h-4 w-4 text-destructive" />
-          </Button>
-        )}
+        {/* Delete — 40px */}
+        <div className="w-10 shrink-0 flex items-center justify-center">
+          {isManager && p.is_active && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={e => { e.stopPropagation(); onDeactivate(); }}
+              aria-label="Deactivate project"
+            >
+              <XCircle className="h-4 w-4 text-destructive" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Expanded panel */}
