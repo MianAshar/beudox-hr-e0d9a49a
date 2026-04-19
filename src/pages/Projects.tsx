@@ -583,6 +583,11 @@ const ProjectCard = ({
           </div>
         )}
 
+        {/* Task progress — 70px */}
+        <div className="w-[70px] shrink-0 text-xs text-muted-foreground">
+          {taskCount && taskCount.total > 0 ? `${taskCount.completed}/${taskCount.total} tasks` : ''}
+        </div>
+
         {/* Delete — 40px */}
         <div className="w-10 shrink-0 flex items-center justify-center">
           {isManager && p.is_active && (
@@ -675,9 +680,15 @@ const ProjectCard = ({
             </Section>
           )}
 
-          {/* Tasks placeholder (no tasks table in DB yet) */}
+          {/* Tasks */}
           <Section icon={<ListChecks className="h-3.5 w-3.5" />} title="Tasks">
-            <p className="text-sm text-muted-foreground">No tasks yet</p>
+            <ProjectTasksSection
+              projectId={p.id}
+              companyId={companyId}
+              employeeId={employeeId}
+              teamMembers={team}
+              canManage={canManageTasks}
+            />
           </Section>
 
           {/* Activity log */}
