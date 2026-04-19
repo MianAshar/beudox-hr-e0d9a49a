@@ -219,14 +219,17 @@ const Projects = () => {
         if (aErr) throw aErr;
         const pIds = assignments?.map(a => a.project_id) || [];
         if (pIds.length === 0) return [];
-        const { data, error } = await supabase
+        let q = supabase
           .from('projects')
           .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)')
           .eq('company_id', companyId!)
-          .neq('status', 'pending')
           .eq('is_active', true)
-          .in('id', pIds)
-          .order('created_at', { ascending: false });
+          .in('id', pIds);
+        // Team Lead can see pending projects; employees and finance cannot
+        if (role !== 'team_lead') {
+          q = q.neq('status', 'pending');
+        }
+        const { data, error } = await q.order('created_at', { ascending: false });
         if (error) throw error;
         return data;
       }
