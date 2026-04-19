@@ -41,8 +41,13 @@ const ProjectDetail = () => {
   const companyId = employee?.company_id;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const isCeo = role === 'ceo';
+  const isTeamLead = role === 'team_lead';
+  const canEditDetails = isManager;
+  const canDeactivate = isManager;
   const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
+  const canSeeFinancial = isManager;
   const canManageTasks = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
+  const canManageTeam = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
   const canSeeActivity = role === 'hr_manager' || role === 'ceo';
   const canStartProject = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
   const employeeId = employee?.employee_id;
@@ -51,6 +56,7 @@ const ProjectDetail = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [startOpen, setStartOpen] = useState(false);
+  const [manageTeamOpen, setManageTeamOpen] = useState(false);
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project-detail', id, companyId],
