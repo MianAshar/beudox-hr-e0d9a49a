@@ -134,7 +134,7 @@ const Projects = () => {
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<any>(null);
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', companyId, role, showInactive],
