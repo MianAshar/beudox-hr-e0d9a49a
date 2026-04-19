@@ -1,58 +1,74 @@
 <!--
 generated_by: tessera
-source_sha: 33a0971c00b6755ad2b4b40df39abdb3f8cc7ba7
-generated_at: 2026-04-19T14:07:58.146Z
+source_sha: 412f930907229c36dc63ebfb2ed140f03d17899b
+generated_at: 2026-04-19T14:14:09.311Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built for modern companies. Beudox HR streamlines employee management, performance evaluations, leave tracking, payroll processing, and financial oversight in a single, intuitive web application.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, payroll, evaluations, leave tracking, and more for organizations.
 
 ## Features
 
 ### Core HR Management
-- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
-- **Role-Based Access Control**: Granular permissions for different user roles (Employee, Team Lead, HR Manager, Finance Manager, CEO)
-- **Profile Management**: Detailed employee profiles with personal information, job details, and history
+- **Employee Management**: Complete employee profiles, onboarding, and organizational structure
+- **Role-Based Access Control**: Granular permissions for different user roles (HR Manager, CEO, Team Lead, Employee)
+- **Company Settings**: Configure departments, roles, leave types, expense categories, and evaluation parameters
 
 ### Performance & Evaluations
-- **Bi-Annual Evaluations**: Structured performance reviews with scoring and recommendations
+- **Quarterly Evaluations**: Bi-annual performance reviews with scoring and recommendations
 - **Daily Evaluations**: Real-time feedback system for continuous improvement
-- **Evaluation Timeline**: Historical view of all evaluations with filtering by role
-
-### Leave & Attendance
-- **Leave Management**: Request, approve, and track various leave types
-- **Leave Balances**: Real-time tracking of remaining leave days
-- **Public Holidays**: Company-wide holiday management
+- **Evaluation Timeline**: Historical view of all evaluations with filtering by role permissions
 
 ### Payroll & Finance
-- **Payroll Processing**: Automated payroll calculations with overtime and bonuses
-- **Payslip Generation**: Employee payslip access and PDF generation
-- **Financial Dashboard**: Revenue and expense tracking with trend analysis
-- **Invoice Management**: Client invoicing and payment tracking
+- **Payroll Processing**: Automated payroll generation with overtime calculations
+- **Finance Dashboard**: Real-time financial summaries with 6-month trend analysis
+- **Expense Tracking**: Monthly expense management and reporting
+- **Loan Management**: Employee loan tracking and deductions
+
+### Leave Management
+- **Leave Requests**: Employee leave applications with approval workflows
+- **Leave Balances**: Real-time tracking of leave entitlements
+- **Leave Types**: Configurable leave categories (vacation, sick, personal, etc.)
 
 ### Project Management
 - **Project Tracking**: Project creation, assignment, and progress monitoring
 - **Task Management**: Individual and team task assignment
-- **Client Management**: Client relationship and project association
+- **Project Activity Log**: Timeline of project updates and milestones
+- **Client Management**: Client profiles and project associations
 
-### HR Policies & Compliance
-- **Policy Management**: Rich text policy documents with version control
-- **Loan Management**: Employee loan requests and tracking
-- **Settings Management**: Configurable company settings and parameters
+### Additional Features
+- **Invoice Management**: Client invoicing with PDF generation
+- **HR Policies**: Document management for company policies
+- **Public Holidays**: Holiday calendar management
+- **Notifications**: Automated notifications for important events
+- **Settings**: Comprehensive system configuration
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite with SWC for fast development
-- **Styling**: Tailwind CSS with shadcn/ui component library
-- **State Management**: React Query for server state, React Hook Form for forms
-- **Backend**: Supabase (PostgreSQL database + Auth + Edge Functions)
-- **Routing**: React Router v6 with protected routes
-- **Charts**: Recharts for data visualization
-- **Rich Text**: Tiptap for policy document editing
-- **Testing**: Vitest + Playwright for unit and E2E testing
+### Frontend
+- **React 18** with TypeScript
+- **Vite** for build tooling and development server
+- **React Router** for client-side routing
+- **Tailwind CSS** for styling with custom design system
+- **shadcn/ui** component library built on Radix UI
+- **React Hook Form** with Zod validation
+- **TanStack Query** for server state management
+- **Recharts** for data visualization
+- **TipTap** rich text editor
+- **Lucide React** for icons
+
+### Backend & Infrastructure
+- **Supabase** (PostgreSQL database + Auth + Edge Functions)
+- **Row Level Security (RLS)** for data access control
+- **Supabase Auth** for user authentication and authorization
+
+### Development & Testing
+- **Vitest** for unit testing
+- **Playwright** for end-to-end testing
+- **ESLint** for code linting
+- **TypeScript** for type safety
 
 ## Getting Started
 
@@ -78,12 +94,12 @@ A comprehensive Human Resources Management System built for modern companies. Be
 
 3. **Environment Setup**
    
-   Copy the environment template:
+   Copy the environment file and configure your Supabase credentials:
    ```bash
    cp .env .env.local
    ```
    
-   Update `.env.local` with your Supabase credentials:
+   Update `.env.local` with your Supabase project details:
    ```env
    VITE_SUPABASE_PROJECT_ID=your_project_id
    VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
@@ -93,6 +109,16 @@ A comprehensive Human Resources Management System built for modern companies. Be
 4. **Database Setup**
    
    The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   
+   Key tables include:
+   - `companies` - Company information
+   - `employees` - Employee records
+   - `roles` - User roles and permissions
+   - `evaluations` - Performance evaluations
+   - `payroll_records` - Payroll data
+   - `leave_requests` - Leave management
+   - `projects` - Project tracking
+   - And many more...
 
 5. **Start Development Server**
    ```bash
@@ -101,7 +127,7 @@ A comprehensive Human Resources Management System built for modern companies. Be
    bun run dev
    ```
    
-   The application will be available at `http://localhost:8080`
+   The application will be available at `http://localhost:5173`
 
 ### Build for Production
 
@@ -113,37 +139,37 @@ bun run build
 
 The built files will be in the `dist/` directory.
 
-## User Roles & Permissions
-
-### Employee
-Basic access to personal dashboard, leave requests, evaluations, and payslips.
-
-### Team Lead
-Employee access plus project management and team evaluation capabilities.
-
-### HR Manager
-Full employee management, leave approvals, evaluations, and HR policy management.
-
-### Finance Manager
-Payroll processing, invoice management, financial reporting, and expense tracking.
-
-### CEO
-Complete access to all system features and settings.
-
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
+│   ├── ui/             # shadcn/ui components
 │   ├── layout/         # App layout components
-│   └── feature/        # Feature-specific components
+│   ├── evaluations/    # Evaluation-specific components
+│   ├── finance/        # Finance dashboard components
+│   ├── leave/          # Leave management components
+│   └── ...
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations
 └── types/              # TypeScript type definitions
+
+supabase/
+├── migrations/         # Database schema migrations
+├── functions/          # Edge functions for server-side logic
+└── config.toml         # Supabase project configuration
 ```
+
+## Authentication & Authorization
+
+The application uses Supabase Auth for user management with role-based access control:
+
+- **CEO**: Full system access
+- **HR Manager**: HR operations and employee management
+- **Team Lead**: Team management and evaluations
+- **Employee**: Personal profile and limited access
 
 ## Development
 
@@ -152,14 +178,14 @@ src/
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
 - `npm run test` - Run unit tests
 - `npm run test:watch` - Run tests in watch mode
 
 ### Code Quality
 
-The project uses ESLint for code linting and follows TypeScript strict mode. All components are built with accessibility in mind using Radix UI primitives.
+The project uses ESLint for code linting and follows TypeScript strict mode for type safety. All components are built with accessibility in mind using Radix UI primitives.
 
 ## Contributing
 
