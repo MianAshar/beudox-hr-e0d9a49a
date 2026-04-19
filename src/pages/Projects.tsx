@@ -168,7 +168,7 @@ const Projects = () => {
           .from('projects')
           .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)')
           .eq('company_id', companyId!)
-          .eq('status', 'in_progress')
+          .neq('status', 'pending')
           .eq('is_active', true)
           .in('id', pIds)
           .order('created_at', { ascending: false });
