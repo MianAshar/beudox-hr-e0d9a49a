@@ -715,10 +715,12 @@ const ProjectCard = ({
             />
           </Section>
 
-          {/* Activity log */}
-          <Section icon={<History className="h-3.5 w-3.5" />} title="Activity">
-            <InlineActivityLog projectId={p.id} companyId={companyId} />
-          </Section>
+          {/* Activity log — managers only */}
+          {canSeeActivity && (
+            <Section icon={<History className="h-3.5 w-3.5" />} title="Activity">
+              <InlineActivityLog projectId={p.id} companyId={companyId} />
+            </Section>
+          )}
         </div>
       )}
     </div>
