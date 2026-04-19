@@ -125,67 +125,85 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-[110px] rounded-[14px]" />)}
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-[80px] rounded-[14px]" />)}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[110px] rounded-[14px]" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[80px] rounded-[14px]" />)}
         </div>
-        <Skeleton className="h-[280px] rounded-[14px]" />
+        <Skeleton className="h-[280px] rounded-[14px] mt-4" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Row 1 — Payroll breakdown */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Payroll" value={fmtPKR(totalPayroll)} accent="#5B3FF8" />
-        <StatCard label="Total OT Amount" value={fmtPKR(totalOT)} accent="#7C3AED" />
-        <StatCard label="Total Bonus" value={fmtPKR(totalBonus)} accent="#10B981" />
-        <StatCard label="Total Loan Deductions" value={fmtPKR(totalLoan)} accent="#EF4444" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <StatCard label="Total Payroll" value={fmtPKR(totalPayroll)} />
+        <StatCard label="Total OT" value={fmtPKR(totalOT)} />
+        <StatCard label="Total Bonus" value={fmtPKR(totalBonus)} />
+        <StatCard label="Total Loan Deductions" value={fmtPKR(totalLoan)} />
       </div>
 
       {/* Row 2 — Overall */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatCard label="Total Expenses" value={fmtPKR(totalExpenses)} accent="#F5A623" />
-        <StatCard label="Grand Total" value={fmtPKR(grandTotal)} accent="#1A1240" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <StatCard label="Total Expenses" value={fmtPKR(totalExpenses)} />
+        <StatCard label="Grand Total" value={fmtPKR(grandTotal)} />
         <div
-          className="rounded-[14px] border bg-card p-5 flex flex-col gap-1"
-          style={{ borderColor: 'hsl(var(--border))' }}
+          className="rounded-[14px] bg-card flex items-center justify-between"
+          style={{
+            borderWidth: 1,
+            borderStyle: 'solid',
+            borderColor: 'rgba(91,63,248,0.15)',
+            padding: '12px 16px',
+            maxHeight: 80,
+          }}
         >
-          <div className="text-xs uppercase tracking-wider text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
-            vs Last Month
-          </div>
-          {!hasPrev ? (
-            <div className="text-[15px] font-medium text-muted-foreground mt-1">No prior data</div>
-          ) : (
-            <div className="flex items-center gap-2 mt-1">
-              {isLower && <ArrowDownRight className="h-5 w-5" style={{ color: '#10B981' }} />}
-              {isHigher && <ArrowUpRight className="h-5 w-5" style={{ color: '#EF4444' }} />}
-              {!isLower && !isHigher && <Minus className="h-5 w-5 text-muted-foreground" />}
+          <div className="flex flex-col justify-center min-w-0">
+            <div
+              className="uppercase text-muted-foreground truncate"
+              style={{ fontFamily: 'var(--ff-body)', fontSize: 11, letterSpacing: '0.04em' }}
+            >
+              vs Last Month
+            </div>
+            {!hasPrev ? (
+              <div
+                className="text-muted-foreground"
+                style={{ fontFamily: 'var(--ff-display)', fontSize: 14, fontWeight: 600, marginTop: 2 }}
+              >
+                No prior data
+              </div>
+            ) : (
               <span
-                className="text-[22px] font-semibold tabular-nums"
+                className="tabular-nums"
                 style={{
                   fontFamily: 'var(--ff-display)',
-                  color: isLower ? '#10B981' : isHigher ? '#EF4444' : 'hsl(var(--foreground))',
+                  fontSize: 18,
+                  fontWeight: 600,
+                  marginTop: 2,
+                  color: isLower ? '#10B981' : isHigher ? '#EF4444' : '#120E36',
                 }}
               >
                 {pctChange === 0 ? '0%' : `${isLower ? '' : '+'}${pctChange.toFixed(1)}%`}
               </span>
+            )}
+          </div>
+          {hasPrev && (
+            <div className="shrink-0 ml-2">
+              {isLower && <ArrowDownRight className="h-4 w-4" style={{ color: '#10B981' }} />}
+              {isHigher && <ArrowUpRight className="h-4 w-4" style={{ color: '#EF4444' }} />}
+              {!isLower && !isHigher && <Minus className="h-4 w-4 text-muted-foreground" />}
             </div>
           )}
-          <div className="text-xs text-muted-foreground mt-auto pt-1">
-            Lower spend is better
-          </div>
         </div>
       </div>
 
       {/* Trend graph */}
       <div
-        className="rounded-[14px] border bg-card"
-        style={{ borderColor: 'hsl(var(--border))', padding: 24 }}
+        className="rounded-[14px] border bg-card mt-1"
+        style={{ borderColor: 'rgba(91,63,248,0.15)', padding: 24 }}
       >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[15px] font-semibold" style={{ fontFamily: 'var(--ff-display)' }}>
@@ -252,21 +270,26 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
   );
 };
 
-const StatCard = ({ label, value, accent }: { label: string; value: string; accent: string }) => (
+const StatCard = ({ label, value }: { label: string; value: string }) => (
   <div
-    className="rounded-[14px] border bg-card p-5 flex flex-col gap-2 relative overflow-hidden"
-    style={{ borderColor: 'hsl(var(--border))' }}
+    className="rounded-[14px] bg-card flex flex-col justify-center"
+    style={{
+      borderWidth: 1,
+      borderStyle: 'solid',
+      borderColor: 'rgba(91,63,248,0.15)',
+      padding: '12px 16px',
+      maxHeight: 80,
+    }}
   >
-    <div className="absolute top-0 left-0 h-1 w-full" style={{ background: accent }} />
     <div
-      className="text-xs uppercase tracking-wider text-muted-foreground"
-      style={{ fontFamily: 'var(--ff-body)' }}
+      className="uppercase text-muted-foreground truncate"
+      style={{ fontFamily: 'var(--ff-body)', fontSize: 11, letterSpacing: '0.04em' }}
     >
       {label}
     </div>
     <div
-      className="text-[22px] font-semibold tabular-nums mt-1"
-      style={{ fontFamily: 'var(--ff-display)', color: 'hsl(var(--foreground))' }}
+      className="tabular-nums truncate"
+      style={{ fontFamily: 'var(--ff-display)', fontSize: 18, fontWeight: 600, color: '#120E36', marginTop: 2 }}
     >
       {value}
     </div>
