@@ -94,6 +94,61 @@ async function logProjectActivity(params: {
   });
 }
 
+interface StartProjectButtonProps {
+  projectId: string;
+  companyId: string;
+  employeeId: string;
+  size?: 'sm' | 'default';
+}
+
+const StartProjectButton = ({ projectId, companyId, employeeId, size = 'sm' }: StartProjectButtonProps) => {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('projects').update({ status: 'in_progress' }).eq('id', projectId);
+      if (error) throw error;
+      await logProjectActivity({
+        companyId, projectId, employeeId,
+        action: 'project_started', oldValue: 'pending', newValue: 'in_progress',
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['project-detail'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
+      qc.invalidateQueries({ queryKey: ['project-activity-inline'] });
+      toast({ title: 'Project started' });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast({ title: 'Failed to start project', description: e.message, variant: 'destructive' }),
+  });
+
+  return (
+    <>
+      <Button size={size} onClick={e => { e.stopPropagation(); setOpen(true); }}>
+        <Play className="h-4 w-4 mr-2" /> Start Project
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Start Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to start this project? Assigned team members will be able to see it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+              {mutation.isPending ? 'Starting…' : 'Start Project'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 const STATUS_OPTIONS = ['pending', 'in_progress', 'qc_required', 'on_hold', 'completed', 'cancelled', 'delayed'];
 
 const statusColors: Record<string, string> = {
