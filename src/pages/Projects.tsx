@@ -391,7 +391,7 @@ const Projects = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((p: any) => {
+          {sortedFiltered.map((p: any) => {
             const isDueToday = p.internal_deadline === todayIso;
             const isCollapsed = !expandedIds.has(p.id);
             const team = teamByProject.get(p.id) ?? [];
