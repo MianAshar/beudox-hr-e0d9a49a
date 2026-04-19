@@ -419,6 +419,27 @@ const Projects = () => {
         </div>
       ) : (
         <div className="space-y-3">
+          {/* Sticky column headers */}
+          <div
+            className="sticky top-0 z-10 flex items-center gap-3 px-4 py-2 rounded-md"
+            style={{
+              backgroundColor: '#F6F5FF',
+              borderBottom: '1px solid rgba(91,63,248,0.15)',
+            }}
+          >
+            <div className="w-8 shrink-0" />
+            <span className="w-20 shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Code</span>
+            <span className="flex-1 min-w-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Project Name</span>
+            <span className="w-[160px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Status</span>
+            <span className="w-[140px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Internal Deadline</span>
+            <span className="w-[160px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Lead</span>
+            {canSeeTeam && (
+              <span className="w-[120px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Team Members</span>
+            )}
+            <span className="w-[70px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Tasks</span>
+            <div className="w-10 shrink-0" />
+          </div>
+
           {sortedFiltered.map((p: any) => {
             const isDueToday = p.internal_deadline === todayIso;
             const isCollapsed = !expandedIds.has(p.id);
@@ -441,6 +462,7 @@ const Projects = () => {
                 canSeeTeam={canSeeTeam}
                 canEditStatus={canEditStatus}
                 canEditDeadline={canEditDeadline}
+                canSeeActivity={canSeeActivity}
                 companyId={companyId!}
                 employeeId={employeeId!}
                 role={role}
