@@ -473,6 +473,13 @@ const Payroll = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
               <TabsTrigger
+                value="summary"
+                className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+                style={{ fontFamily: 'var(--ff-body)' }}
+              >
+                Summary
+              </TabsTrigger>
+              <TabsTrigger
                 value="all"
                 className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
                 style={{ fontFamily: 'var(--ff-body)' }}
@@ -492,6 +499,14 @@ const Payroll = () => {
                 </TabsTrigger>
               ))}
             </TabsList>
+            <TabsContent value="summary">
+              <PayrollSummary
+                companyId={companyId!}
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
+                records={records}
+              />
+            </TabsContent>
             <TabsContent value="all">
               {renderDeptTable(allSorted)}
             </TabsContent>
