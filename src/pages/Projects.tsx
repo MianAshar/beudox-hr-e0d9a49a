@@ -196,12 +196,14 @@ const Projects = () => {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   const { data: projects, isLoading } = useQuery({
-    queryKey: ['projects', companyId, role, showInactive],
+    queryKey: ['projects', companyId, role, employeeId, showInactive],
     queryFn: async () => {
+      const projectSelect = '*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)';
+
       if (isManager) {
         let query = supabase
           .from('projects')
-          .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)')
+          .select(projectSelect)
           .eq('company_id', companyId!);
         if (!showInactive) {
           query = query.eq('is_active', true);
@@ -209,41 +211,59 @@ const Projects = () => {
         const { data, error } = await query.order('created_at', { ascending: false });
         if (error) throw error;
         return data;
-      } else {
-        const { data: assignments, error: aErr } = await supabase
-          .from('project_assignments')
-          .select('project_id')
-          .eq('company_id', companyId!)
-          .eq('employee_id', employee?.employee_id!)
-          .eq('is_active', true);
-        if (aErr) throw aErr;
-        const assignedIds = assignments?.map(a => a.project_id) || [];
-
-        let q = supabase
-          .from('projects')
-          .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)')
-          .eq('company_id', companyId!)
-          .eq('is_active', true);
-
-        if (role === 'team_lead') {
-          // Team Lead: visible if project lead OR assigned (includes pending)
-          const orParts = [`project_lead_id.eq.${employee?.employee_id}`];
-          if (assignedIds.length > 0) {
-            orParts.push(`id.in.(${assignedIds.join(',')})`);
-          }
-          q = q.or(orParts.join(','));
-        } else {
-          // Employees & finance: only assigned, exclude pending
-          if (assignedIds.length === 0) return [];
-          q = q.in('id', assignedIds).neq('status', 'pending');
-        }
-
-        const { data, error } = await q.order('created_at', { ascending: false });
-        if (error) throw error;
-        return data;
       }
+
+      const { data: assignments, error: assignmentError } = await supabase
+        .from('project_assignments')
+        .select('project_id')
+        .eq('company_id', companyId!)
+        .eq('employee_id', employeeId!)
+        .eq('is_active', true);
+      if (assignmentError) throw assignmentError;
+
+      const assignedIds = assignments?.map((assignment) => assignment.project_id) ?? [];
+
+      if (role === 'team_lead') {
+        const [leadProjectsResult, assignedProjectsResult] = await Promise.all([
+          supabase
+            .from('projects')
+            .select(projectSelect)
+            .eq('company_id', companyId!)
+            .eq('is_active', true)
+            .eq('project_lead_id', employeeId!),
+          assignedIds.length > 0
+            ? supabase
+                .from('projects')
+                .select(projectSelect)
+                .eq('company_id', companyId!)
+                .eq('is_active', true)
+                .in('id', assignedIds)
+            : Promise.resolve({ data: [], error: null }),
+        ]);
+
+        if (leadProjectsResult.error) throw leadProjectsResult.error;
+        if (assignedProjectsResult.error) throw assignedProjectsResult.error;
+
+        const mergedProjects = [...(leadProjectsResult.data ?? []), ...(assignedProjectsResult.data ?? [])];
+        const uniqueProjects = Array.from(new Map(mergedProjects.map((project: any) => [project.id, project])).values());
+        return uniqueProjects.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      }
+
+      if (assignedIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from('projects')
+        .select(projectSelect)
+        .eq('company_id', companyId!)
+        .eq('is_active', true)
+        .in('id', assignedIds)
+        .neq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
     },
-    enabled: !!companyId && !!employee,
+    enabled: !!companyId && !!employeeId && !!role,
   });
 
   const { data: clients } = useQuery({
