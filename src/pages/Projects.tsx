@@ -135,6 +135,8 @@ const Projects = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<any>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<string>('default');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', companyId, role, showInactive],
@@ -240,6 +242,29 @@ const Projects = () => {
     if (clientFilter !== 'all' && p.client_id !== clientFilter) return false;
     return true;
   });
+
+  const sortedFiltered = useMemo(() => {
+    if (sortBy === 'default') return filtered;
+    const accessors: Record<string, (p: any) => any> = {
+      project_code: (p) => p.project_code || '',
+      project_name: (p) => p.project_name || '',
+      status: (p) => p.status || '',
+      internal_deadline: (p) => p.internal_deadline,
+    };
+    const acc = accessors[sortBy];
+    if (!acc) return filtered;
+    const mul = sortDir === 'asc' ? 1 : -1;
+    return [...filtered].sort((a, b) => {
+      const va = acc(a); const vb = acc(b);
+      const aNil = va === null || va === undefined || va === '';
+      const bNil = vb === null || vb === undefined || vb === '';
+      if (aNil && bNil) return 0;
+      if (aNil) return 1;
+      if (bNil) return -1;
+      if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * mul;
+      return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * mul;
+    });
+  }, [filtered, sortBy, sortDir]);
 
   const allExpanded = filtered.length > 0 && filtered.every((p: any) => expandedIds.has(p.id));
   const toggleAll = () => {
