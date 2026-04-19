@@ -23,6 +23,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SortableHeader } from '@/components/ui/sortable-header';
+import { useSort } from '@/hooks/useSort';
 import { Search, Plus, Users } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 
@@ -100,6 +102,15 @@ const Employees = () => {
     }
     return null;
   };
+
+  const { sorted, sort, toggleSort } = useSort(filtered, {
+    name: (r: any) => r.full_name,
+    code: (r: any) => r.employee_code,
+    department: (r: any) => r.department,
+    joining_date: (r: any) => r.joining_date,
+    role: (r: any) => getRoleName(r),
+    status: (r: any) => r.status,
+  });
 
   return (
     <div className="space-y-6">
@@ -207,16 +218,16 @@ const Employees = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Employee Code</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Joining Date</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
+                <SortableHeader column="name" sort={sort} onSort={toggleSort}>Employee</SortableHeader>
+                <SortableHeader column="code" sort={sort} onSort={toggleSort}>Employee Code</SortableHeader>
+                <SortableHeader column="department" sort={sort} onSort={toggleSort}>Department</SortableHeader>
+                <SortableHeader column="joining_date" sort={sort} onSort={toggleSort}>Joining Date</SortableHeader>
+                <SortableHeader column="role" sort={sort} onSort={toggleSort}>Role</SortableHeader>
+                <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((emp) => {
+              {sorted.map((emp) => {
                 const roleName = getRoleName(emp);
                 return (
                   <TableRow
