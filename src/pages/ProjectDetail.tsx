@@ -158,6 +158,11 @@ const ProjectDetail = () => {
     return <div className="p-6 text-muted-foreground">Project not found.</div>;
   }
 
+  // Employees can't view pending projects
+  if (project.status === 'pending' && !canStartProject) {
+    return <div className="p-6 text-muted-foreground">Project not found.</div>;
+  }
+
   return (
     <div className="p-6 space-y-6 max-w-4xl">
       {/* Header */}
@@ -176,6 +181,11 @@ const ProjectDetail = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {project.status === 'pending' && canStartProject && (
+            <Button onClick={() => setStartOpen(true)}>
+              <Play className="h-4 w-4 mr-2" /> Start Project
+            </Button>
+          )}
           {isManager && (
             <>
               <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
