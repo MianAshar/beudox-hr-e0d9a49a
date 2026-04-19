@@ -351,16 +351,16 @@ const Clients = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Client Name</TableHead>
-                {showActivity && <TableHead>Activity</TableHead>}
-                <TableHead>Contact Name</TableHead>
-                <TableHead>Contact Email</TableHead>
-                <TableHead>Country</TableHead>
+                <SortableHeader column="name" sort={sort} onSort={toggleSort}>Client Name</SortableHeader>
+                {showActivity && <SortableHeader column="activity" sort={sort} onSort={toggleSort}>Activity</SortableHeader>}
+                <SortableHeader column="contact_name" sort={sort} onSort={toggleSort}>Contact Name</SortableHeader>
+                <SortableHeader column="contact_email" sort={sort} onSort={toggleSort}>Contact Email</SortableHeader>
+                <SortableHeader column="country" sort={sort} onSort={toggleSort}>Country</SortableHeader>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(c => {
+              {sorted.map(c => {
                 const cat = activityByClient.get(c.id);
                 const styles = cat ? ACTIVITY_STYLES[cat] : null;
                 return (
