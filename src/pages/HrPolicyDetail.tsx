@@ -10,9 +10,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowLeft, Edit, Trash2, ChevronDown, Eye } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 
@@ -42,21 +40,7 @@ const HrPolicyDetail = () => {
     enabled: !!id && !!employee?.company_id,
   });
 
-  const { data: versions } = useQuery({
-    queryKey: ['hr-policy-versions', policy?.title],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('hr_documents')
-        .select('id, version_number, created_at, is_current, published_at')
-        .eq('company_id', employee!.company_id)
-        .eq('document_type', 'policy')
-        .eq('title', policy!.title)
-        .order('version_number', { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!policy?.title && isManager,
-  });
+
 
   const handleTogglePublish = async () => {
     if (!policy) return;
@@ -124,7 +108,6 @@ const HrPolicyDetail = () => {
         <div className="min-w-0">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-2xl font-bold text-foreground">{policy.title}</h1>
-            <Badge variant="secondary">Version {policy.version_number}</Badge>
             <Badge variant={policy.published_at ? 'default' : 'outline'}>
               {policy.published_at ? 'Published' : 'Draft'}
             </Badge>
@@ -177,39 +160,6 @@ const HrPolicyDetail = () => {
         dangerouslySetInnerHTML={{ __html: policy.content }}
       />
 
-      {isManager && versions && versions.length > 1 && (
-        <Collapsible>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2">
-              <ChevronDown className="h-4 w-4" />
-              Version History ({versions.length} versions)
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-2 border border-border rounded-lg divide-y divide-border">
-              {versions.map(v => (
-                <div key={v.id} className="flex items-center justify-between px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <Badge variant={v.is_current ? 'default' : 'secondary'} className="text-xs">
-                      v{v.version_number}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {formatDate(v.created_at!)}
-                    </span>
-                    {v.is_current && <span className="text-xs text-primary font-medium">Current</span>}
-                  </div>
-                  {v.id !== id && (
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/hr-policies/${v.id}`)}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
     </div>
   );
 };

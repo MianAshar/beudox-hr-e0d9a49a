@@ -25,6 +25,9 @@ import InvoiceDetail from "./pages/InvoiceDetail";
 import HrPolicies from "./pages/HrPolicies";
 import HrPolicyDetail from "./pages/HrPolicyDetail";
 import HrPolicyForm from "./pages/HrPolicyForm";
+import JobDescriptions from "./pages/JobDescriptions";
+import JobDescriptionDetail from "./pages/JobDescriptionDetail";
+import JobDescriptionForm from "./pages/JobDescriptionForm";
 import Evaluations from "./pages/Evaluations";
 import EvaluationForm from "./pages/EvaluationForm";
 import EvaluationDetail from "./pages/EvaluationDetail";
@@ -132,6 +135,10 @@ const App = () => (
             <Route path="/hr-policies/new" element={<ProtectedRoute><HrPolicyForm /></ProtectedRoute>} />
             <Route path="/hr-policies/:id" element={<ProtectedRoute><HrPolicyDetail /></ProtectedRoute>} />
             <Route path="/hr-policies/:id/edit" element={<ProtectedRoute><HrPolicyForm /></ProtectedRoute>} />
+            <Route path="/job-descriptions" element={<ProtectedRoute><JobDescriptions /></ProtectedRoute>} />
+            <Route path="/job-descriptions/new" element={<ProtectedRoute><JobDescriptionForm /></ProtectedRoute>} />
+            <Route path="/job-descriptions/:id" element={<ProtectedRoute><JobDescriptionDetail /></ProtectedRoute>} />
+            <Route path="/job-descriptions/:id/edit" element={<ProtectedRoute><JobDescriptionForm /></ProtectedRoute>} />
             <Route path="/evaluations" element={<ProtectedRoute><Evaluations /></ProtectedRoute>} />
             <Route path="/evaluations/new" element={<ProtectedRoute><EvaluationForm /></ProtectedRoute>} />
             <Route path="/evaluations/:id" element={<ProtectedRoute><EvaluationDetail /></ProtectedRoute>} />
