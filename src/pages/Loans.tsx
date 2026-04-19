@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SortableHeader } from '@/components/ui/sortable-header';
+import { useSort } from '@/hooks/useSort';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -117,6 +119,15 @@ const Loans = () => {
     const empName = (loan.employees as any)?.full_name || '';
     return !search || empName.toLowerCase().includes(search.toLowerCase());
   }) ?? [];
+
+  const { sorted, sort, toggleSort } = useSort(filtered, {
+    employee: (l: any) => (l.employees as any)?.full_name,
+    total_amount: (l: any) => Number(l.total_amount),
+    monthly_deduction: (l: any) => Number(l.monthly_deduction),
+    remaining_balance: (l: any) => Number(l.remaining_balance),
+    granted_date: (l: any) => l.granted_date,
+    status: (l: any) => l.status,
+  });
 
   const resetForm = () => {
     setFormEmployeeId('');
@@ -323,17 +334,17 @@ const Loans = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                {isManager && <TableHead>Employee</TableHead>}
-                <TableHead className="text-right">Total Amount</TableHead>
-                <TableHead className="text-right">Monthly Deduction</TableHead>
-                <TableHead className="text-right">Remaining Balance</TableHead>
-                <TableHead>Granted Date</TableHead>
-                <TableHead>Status</TableHead>
+                {isManager && <SortableHeader column="employee" sort={sort} onSort={toggleSort}>Employee</SortableHeader>}
+                <SortableHeader column="total_amount" sort={sort} onSort={toggleSort} align="right">Total Amount</SortableHeader>
+                <SortableHeader column="monthly_deduction" sort={sort} onSort={toggleSort} align="right">Monthly Deduction</SortableHeader>
+                <SortableHeader column="remaining_balance" sort={sort} onSort={toggleSort} align="right">Remaining Balance</SortableHeader>
+                <SortableHeader column="granted_date" sort={sort} onSort={toggleSort}>Granted Date</SortableHeader>
+                <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
                 {isManager && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(loan => {
+              {sorted.map(loan => {
                 const emp = loan.employees as any;
                 const totalAmt = Number(loan.total_amount);
                 const remaining = Number(loan.remaining_balance);

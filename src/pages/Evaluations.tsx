@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SortableHeader } from '@/components/ui/sortable-header';
+import { useSort } from '@/hooks/useSort';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Eye, Trash2, ClipboardCheck } from 'lucide-react';
@@ -89,6 +91,15 @@ const Evaluations = () => {
     return true;
   });
 
+  const { sorted, sort, toggleSort } = useSort(filtered, {
+    employee: (e: any) => e.employee?.full_name,
+    period: (e: any) => e.period,
+    overall_score: (e: any) => e.overall_score ?? -1,
+    recommendation: (e: any) => e.recommendation,
+    evaluator: (e: any) => e.evaluator?.full_name,
+    date: (e: any) => e.created_at,
+  });
+
   const periods = [...new Set((evaluations || []).map((e: any) => e.period))].sort();
   const recommendations = [...new Set((evaluations || []).map((e: any) => e.recommendation).filter(Boolean))].sort();
 
@@ -156,17 +167,17 @@ const Evaluations = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Employee</TableHead>
-              <TableHead>Period</TableHead>
-              <TableHead>Overall Score</TableHead>
-              {isManager && <TableHead>Recommendation</TableHead>}
-              <TableHead>Evaluated By</TableHead>
-              <TableHead>Date</TableHead>
+              <SortableHeader column="employee" sort={sort} onSort={toggleSort}>Employee</SortableHeader>
+              <SortableHeader column="period" sort={sort} onSort={toggleSort}>Period</SortableHeader>
+              <SortableHeader column="overall_score" sort={sort} onSort={toggleSort}>Overall Score</SortableHeader>
+              {isManager && <SortableHeader column="recommendation" sort={sort} onSort={toggleSort}>Recommendation</SortableHeader>}
+              <SortableHeader column="evaluator" sort={sort} onSort={toggleSort}>Evaluated By</SortableHeader>
+              <SortableHeader column="date" sort={sort} onSort={toggleSort}>Date</SortableHeader>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((ev: any) => (
+            {sorted.map((ev: any) => (
               <TableRow key={ev.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">

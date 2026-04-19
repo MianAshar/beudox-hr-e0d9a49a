@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SortableHeader } from '@/components/ui/sortable-header';
+import { useSort } from '@/hooks/useSort';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -214,6 +216,14 @@ const Clients = () => {
     return true;
   });
 
+  const { sorted, sort, toggleSort } = useSort(filtered, {
+    name: (c: Client) => c.name,
+    activity: (c: Client) => activityByClient.get(c.id) || '',
+    contact_name: (c: Client) => c.contact_name,
+    contact_email: (c: Client) => c.contact_email,
+    country: (c: Client) => c.country,
+  });
+
   const SummaryCard = ({ category, count }: { category: ActivityCategory; count: number }) => {
     const isActive = activityFilter === category;
     const styles = ACTIVITY_STYLES[category];
@@ -341,16 +351,16 @@ const Clients = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Client Name</TableHead>
-                {showActivity && <TableHead>Activity</TableHead>}
-                <TableHead>Contact Name</TableHead>
-                <TableHead>Contact Email</TableHead>
-                <TableHead>Country</TableHead>
+                <SortableHeader column="name" sort={sort} onSort={toggleSort}>Client Name</SortableHeader>
+                {showActivity && <SortableHeader column="activity" sort={sort} onSort={toggleSort}>Activity</SortableHeader>}
+                <SortableHeader column="contact_name" sort={sort} onSort={toggleSort}>Contact Name</SortableHeader>
+                <SortableHeader column="contact_email" sort={sort} onSort={toggleSort}>Contact Email</SortableHeader>
+                <SortableHeader column="country" sort={sort} onSort={toggleSort}>Country</SortableHeader>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(c => {
+              {sorted.map(c => {
                 const cat = activityByClient.get(c.id);
                 const styles = cat ? ACTIVITY_STYLES[cat] : null;
                 return (

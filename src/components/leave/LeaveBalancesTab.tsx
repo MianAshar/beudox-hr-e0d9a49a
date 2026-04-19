@@ -3,6 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SortableHeader } from '@/components/ui/sortable-header';
+import { useSort } from '@/hooks/useSort';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -86,6 +88,15 @@ const LeaveBalancesTab = () => {
     return { id: emp.id, name: emp.full_name, balances: empBalances };
   });
 
+  // Build accessors: name + one "remaining" accessor per leave type (column id = `lt:<id>`)
+  const accessors: Record<string, (r: typeof employeeRows[number]) => any> = {
+    name: (r) => r.name,
+  };
+  for (const lt of leaveTypes as any[]) {
+    accessors[`lt:${lt.id}`] = (r) => r.balances[lt.id]?.remaining ?? 0;
+  }
+  const { sorted: sortedRows, sort, toggleSort } = useSort(employeeRows, accessors);
+
   const handleAdjust = async () => {
     if (!adjustModal.employeeId || !adjLeaveType || !adjDays || !adjReason.trim()) return;
     setSaving(true);
@@ -141,17 +152,17 @@ const LeaveBalancesTab = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Employee</TableHead>
+              <SortableHeader column="name" sort={sort} onSort={toggleSort}>Employee</SortableHeader>
               {leaveTypes.map((lt: any) => (
-                <TableHead key={lt.id} className="text-center">{lt.name}</TableHead>
+                <SortableHeader key={lt.id} column={`lt:${lt.id}`} sort={sort} onSort={toggleSort} align="center">{lt.name}</SortableHeader>
               ))}
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {employeeRows.length === 0 ? (
+            {sortedRows.length === 0 ? (
               <TableRow><TableCell colSpan={leaveTypes.length + 2} className="text-center text-muted-foreground">No employees</TableCell></TableRow>
-            ) : employeeRows.map(row => (
+            ) : sortedRows.map(row => (
               <TableRow key={row.id}>
                 <TableCell className="text-sm font-medium">{row.name}</TableCell>
                 {leaveTypes.map((lt: any) => {
