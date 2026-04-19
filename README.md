@@ -1,53 +1,51 @@
 <!--
 generated_by: tessera
-source_sha: d5deb5bd5c9714c72e93778947bb8ef3f6812c5e
-generated_at: 2026-04-19T12:41:06.444Z
+source_sha: cbfdaa67dad861603e73542b543937249d4e19e2
+generated_at: 2026-04-19T12:41:39.152Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, payroll processing, leave tracking, performance evaluations, and financial reporting for organizations.
+A comprehensive Human Resources Management System built with React, TypeScript, and Supabase. Streamline employee management, evaluations, leave tracking, payroll, and organizational workflows.
 
 ## Features
 
 ### Core HR Functionality
-- **Employee Management**: Complete employee lifecycle management including onboarding, profiles, and organizational structure
-- **Leave Management**: Automated leave request processing, balance tracking, and approval workflows
-- **Payroll Processing**: Automated payroll calculations with overtime, bonuses, and deductions
-- **Performance Evaluations**: Bi-annual and daily evaluation systems with customizable parameters
-- **Project Management**: Project tracking, client management, and resource allocation
+- **Employee Management**: Comprehensive employee profiles with roles, departments, and organizational hierarchy
+- **Performance Evaluations**: Bi-annual evaluations and daily feedback system
+- **Leave Management**: Request, approve, and track various leave types with balance monitoring
+- **Payroll & Finance**: Automated payroll processing, expense tracking, and financial reporting
+- **Attendance Tracking**: Monitor employee attendance and working hours
 
-### Financial Management
-- **Invoice Management**: Client invoicing with PDF generation and email delivery
-- **Expense Tracking**: Monthly expense management and reporting
-- **Financial Analytics**: Comprehensive dashboards with trend analysis and KPIs
+### Administrative Tools
+- **Settings Management**: Configure company policies, roles, departments, and evaluation parameters
+- **Notifications System**: Automated notifications for HR events and approvals
+- **Rich Text Policies**: Create and manage HR policies with rich text editing
+- **Expense Categories**: Track and categorize business expenses
 
-### Administrative Features
-- **HR Policies**: Rich text policy documents with version control
-- **Loan Management**: Employee loan tracking and repayment schedules
-- **Public Holidays**: Configurable holiday calendars
-- **Role-Based Access Control**: Granular permissions system with multiple user roles
+### User Experience
+- **Responsive Design**: Modern, mobile-friendly interface with consistent design system
+- **Role-Based Access**: Different permission levels for employees, team leads, HR managers, and CEOs
+- **Real-time Updates**: Live data synchronization with Supabase
+- **Search & Filter**: Powerful search functionality across employees and records
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **State Management**: React Query for server state, React Hook Form for forms
-- **Routing**: React Router v6
-- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **Charts**: Recharts for data visualization
-- **Rich Text Editing**: Tiptap for policy documents
-- **Testing**: Vitest with React Testing Library
-- **E2E Testing**: Playwright
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Components**: shadcn/ui, Tailwind CSS, Lucide Icons
+- **Backend**: Supabase (PostgreSQL, Auth, Edge Functions)
+- **State Management**: React Query (TanStack)
+- **Routing**: React Router
+- **Charts**: Recharts
+- **Testing**: Vitest, Playwright
+- **Build Tools**: Vite, ESLint, PostCSS
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
-- npm or bun package manager
+- npm or bun
 - Supabase account and project
 
 ### Installation
@@ -67,7 +65,7 @@ A comprehensive Human Resources Management System built with modern web technolo
 
 3. **Environment Setup**
    
-   Copy the `.env` file and configure your Supabase credentials:
+   Copy the `.env` file and update the Supabase credentials:
    ```bash
    cp .env .env.local
    ```
@@ -76,11 +74,17 @@ A comprehensive Human Resources Management System built with modern web technolo
    ```env
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
    ```
 
 4. **Database Setup**
    
    The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   
+   If using Supabase CLI:
+   ```bash
+   supabase db reset
+   ```
 
 5. **Start the development server**
    ```bash
@@ -89,19 +93,12 @@ A comprehensive Human Resources Management System built with modern web technolo
    bun run dev
    ```
 
-6. **Access the application**
-   
-   Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
+6. **Build for production**
+   ```bash
+   npm run build
+   # or
+   bun run build
+   ```
 
 ## Project Structure
 
@@ -110,24 +107,31 @@ src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── finance/        # Financial dashboard components
 │   ├── evaluations/    # Evaluation-related components
+│   ├── finance/        # Financial dashboard components
 │   ├── leave/          # Leave management components
-│   └── ...
-├── pages/              # Route components
+│   ├── settings/       # Settings/configuration components
+│   └── hr-policies/    # HR policy components
+├── pages/              # Page components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations (Supabase)
-└── types/              # TypeScript type definitions
+└── test/               # Test files
+
+supabase/
+├── migrations/         # Database migrations
+├── functions/          # Edge functions
+└── config.toml         # Supabase configuration
 ```
 
-## Authentication & Authorization
+## Available Scripts
 
-The application uses Supabase authentication with role-based access control. User roles include:
-- **Employee**: Basic access to personal data and requests
-- **Team Lead**: Additional permissions for team management
-- **HR Manager**: Full HR functionality access
-- **CEO**: Administrative access to all features
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run unit tests with Vitest
+- `npm run test:e2e` - Run end-to-end tests with Playwright
+- `npm run lint` - Run ESLint
 
 ## Contributing
 
@@ -140,3 +144,7 @@ The application uses Supabase authentication with role-based access control. Use
 ## License
 
 This project is proprietary software. All rights reserved.
+
+## Support
+
+For support and questions, please contact the development team.
