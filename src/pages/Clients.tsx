@@ -282,12 +282,14 @@ const Clients = () => {
 
       {/* Activity Summary Cards (CEO + HR only) */}
       {showActivity && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <SummaryCard category="active" count={activityCounts.active} />
-          <SummaryCard category="inactive_2m" count={activityCounts.inactive_2m} />
-          <SummaryCard category="inactive_4m" count={activityCounts.inactive_4m} />
-          <SummaryCard category="inactive_6m" count={activityCounts.inactive_6m} />
-        </div>
+        <TooltipProvider delayDuration={150}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <SummaryCard category="active" count={activityCounts.active} />
+            <SummaryCard category="inactive_2m" count={activityCounts.inactive_2m} />
+            <SummaryCard category="inactive_4m" count={activityCounts.inactive_4m} />
+            <SummaryCard category="inactive_6m" count={activityCounts.inactive_6m} />
+          </div>
+        </TooltipProvider>
       )}
 
       {/* Search + Filters */}
