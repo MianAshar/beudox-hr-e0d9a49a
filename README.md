@@ -1,73 +1,53 @@
 <!--
 generated_by: tessera
-source_sha: f1a3d6086340396d2f2a9a07591755d5fdd81480
-generated_at: 2026-04-19T14:17:03.200Z
+source_sha: c3170ac3be14d8a64f3396e1e79f905f52fb9f93
+generated_at: 2026-04-19T14:19:37.064Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A comprehensive Human Resources management application built with modern web technologies. Beudox HR streamlines employee management, performance evaluations, payroll processing, leave management, and organizational workflows.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, payroll processing, performance evaluations, leave tracking, and organizational workflows.
 
 ## Features
 
-### Core HR Functionality
+### Core HR Functions
 - **Employee Management**: Complete employee lifecycle from onboarding to offboarding
-- **Performance Evaluations**: Bi-annual and daily evaluation systems with structured feedback
-- **Payroll Management**: Automated payroll processing with overtime calculations and deductions
-- **Leave Management**: Comprehensive leave tracking and approval workflows
-- **Loan Management**: Employee loan tracking and repayment management
+- **Payroll Processing**: Automated payroll calculations with overtime, bonuses, and deductions
+- **Performance Evaluations**: Quarterly and daily evaluation systems with role-based visibility
+- **Leave Management**: Comprehensive leave tracking with balances and approvals
+- **Project Management**: Project creation, task assignment, and progress tracking
 
-### Organizational Tools
-- **Project Management**: Project tracking with task assignments and activity logging
-- **Client Management**: Client relationship management with invoice generation
+### Financial Management
+- **Invoice Management**: Client invoicing with PDF generation
+- **Expense Tracking**: Monthly expense recording and reporting
+- **Financial Dashboard**: Real-time financial metrics and trend analysis
+- **Loan Management**: Employee loan tracking and deductions
+
+### Administrative Tools
 - **HR Policies**: Rich text policy documents with version control
-- **Finance Dashboard**: Real-time financial insights with trend analysis
-- **Settings Management**: Configurable company settings, roles, and parameters
-
-### User Experience
-- **Role-Based Access Control**: Granular permissions for different user roles (CEO, HR Manager, Team Lead, Employee)
-- **Responsive Design**: Mobile-first design that works across all devices
-- **Real-time Notifications**: Instant notifications for important HR events
-- **Dark/Light Theme**: User preference-based theming
+- **Company Settings**: Configurable departments, roles, leave types, and evaluation parameters
+- **Notifications**: Automated email notifications for key events
+- **Public Holidays**: Configurable holiday calendar management
 
 ## Technology Stack
 
-### Frontend
-- **React 18** - Modern React with hooks and concurrent features
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and development server
-- **React Router** - Client-side routing with protected routes
-- **TanStack Query** - Powerful data fetching and caching
-
-### UI & Styling
-- **Tailwind CSS** - Utility-first CSS framework
-- **Radix UI** - Accessible, unstyled UI primitives
-- **shadcn/ui** - Beautiful, customizable component library
-- **Lucide React** - Consistent icon system
-- **Recharts** - Data visualization components
-
-### Forms & Validation
-- **React Hook Form** - Performant forms with easy validation
-- **Zod** - TypeScript-first schema validation
-- **TipTap** - Rich text editor for policy documents
-
-### Backend & Database
-- **Supabase** - PostgreSQL database with real-time subscriptions
-- **Supabase Auth** - Secure authentication and authorization
-- **Supabase Storage** - File upload and management
-
-### Development & Testing
-- **Vitest** - Fast unit testing framework
-- **Playwright** - End-to-end testing
-- **ESLint** - Code linting and formatting
-- **TypeScript** - Type checking
+- **Frontend**: React 18 + TypeScript + Vite
+- **UI Framework**: shadcn/ui (Radix UI primitives + Tailwind CSS)
+- **State Management**: TanStack Query for server state, React Context for auth
+- **Routing**: React Router v6
+- **Backend**: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
+- **Styling**: Tailwind CSS with custom design tokens
+- **Forms**: React Hook Form + Zod validation
+- **Charts**: Recharts for data visualization
+- **Rich Text**: Tiptap editor for policies
+- **Testing**: Vitest + Playwright
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js 18+
-- npm or bun package manager
+- npm or bun
 - Supabase account and project
 
 ### Installation
@@ -87,12 +67,12 @@ A comprehensive Human Resources management application built with modern web tec
 
 3. **Environment Setup**
    
-   Copy the `.env` file and configure your Supabase credentials:
+   Copy the environment file and configure Supabase:
    ```bash
    cp .env .env.local
    ```
    
-   Update the following variables in `.env.local`:
+   Update `.env.local` with your Supabase credentials:
    ```env
    VITE_SUPABASE_PROJECT_ID=your_project_id
    VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
@@ -102,83 +82,102 @@ A comprehensive Human Resources management application built with modern web tec
 4. **Database Setup**
    
    The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   
+   Key tables include:
+   - `companies`, `employees`, `roles`
+   - `payroll_records`, `monthly_expenses`
+   - `evaluations`, `daily_evaluations`
+   - `leave_requests`, `leave_balances`
+   - `projects`, `tasks`, `clients`, `invoices`
 
-5. **Start Development Server**
+5. **Development Server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
+   
+   The application will be available at `http://localhost:8080`
 
-6. **Build for Production**
-   ```bash
-   npm run build
-   npm run preview
-   ```
+### Build for Production
+
+```bash
+npm run build
+npm run preview
+```
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── [feature]/      # Feature-specific components
-│   └── BeudoxLogo.tsx  # Logo component
+│   ├── ui/             # shadcn/ui base components
+│   ├── layout/         # App layout components
+│   ├── finance/        # Financial dashboard components
+│   ├── evaluations/    # Evaluation-related components
+│   ├── leave/          # Leave management components
+│   └── ...
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations
-└── App.tsx             # Main application component
+└── types/              # TypeScript type definitions
+
+supabase/
+├── migrations/         # Database schema migrations
+├── functions/          # Edge functions for automation
+└── config.toml         # Supabase project configuration
 ```
 
-## Available Scripts
+## Authentication & Authorization
+
+The application uses Supabase Auth for user authentication with role-based access control:
+
+- **CEO**: Full system access
+- **HR Manager**: HR operations and employee management
+- **Team Lead**: Team management and evaluations
+- **Employee**: Personal profile and limited access
+
+## Key Components
+
+### Layout System
+- `AppLayout`: Main application wrapper with sidebar and topbar
+- `AppSidebar`: Collapsible navigation sidebar
+- `TopBar`: Page header with breadcrumbs
+
+### Core Components
+- `BeudoxLogo`: Brand logo component with variants
+- `SearchableEmployeeSelect`: Employee selection with search
+- `EvaluationTimeline`: Performance evaluation history
+- `FinanceSummary`: Financial metrics dashboard
+
+## Development
+
+### Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
 - `npm run test` - Run unit tests
 - `npm run test:watch` - Run tests in watch mode
 
-## User Roles & Permissions
+### Testing
 
-### CEO
-- Full access to all features
-- Can view all employee data and evaluations
-- Manage company settings and policies
+The application includes both unit tests (Vitest) and end-to-end tests (Playwright).
 
-### HR Manager
-- Employee management and evaluations
-- Payroll and finance oversight
-- HR policy management
-- Access to sensitive employee information
+### Code Quality
 
-### Team Lead
-- Manage team members
-- Conduct daily evaluations
-- View team performance data
-- Limited access to HR functions
-
-### Employee
-- View personal profile and payslips
-- Submit leave requests
-- Access assigned tasks and projects
-- Limited self-service features
+- TypeScript for type safety
+- ESLint for code linting
+- Prettier for code formatting (via ESLint)
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Follow the existing code style and patterns
+2. Write tests for new features
+3. Update documentation as needed
+4. Ensure type safety with TypeScript
 
 ## License
 
-This project is proprietary software. All rights reserved.
-
-## Support
-
-For support and questions, please contact the development team or create an issue in the repository.
+This project is proprietary software for Beudox HR.
