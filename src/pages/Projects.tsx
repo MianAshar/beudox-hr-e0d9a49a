@@ -218,6 +218,32 @@ const Projects = () => {
     return map;
   }, [teamAssignments]);
 
+  const { data: taskCounts } = useQuery({
+    queryKey: ['project-task-counts', companyId, projectIds.join(',')],
+    queryFn: async () => {
+      if (projectIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('project_tasks')
+        .select('project_id, is_completed')
+        .eq('company_id', companyId!)
+        .in('project_id', projectIds);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId && projectIds.length > 0,
+  });
+
+  const taskCountByProject = useMemo(() => {
+    const map = new Map<string, { total: number; completed: number }>();
+    (taskCounts ?? []).forEach((t: any) => {
+      const c = map.get(t.project_id) ?? { total: 0, completed: 0 };
+      c.total += 1;
+      if (t.is_completed) c.completed += 1;
+      map.set(t.project_id, c);
+    });
+    return map;
+  }, [taskCounts]);
+
   const deactivateMutation = useMutation({
     mutationFn: async (projectId: string) => {
       const { error } = await supabase.from('projects').update({ is_active: false, status: 'cancelled' }).eq('id', projectId);
