@@ -216,6 +216,14 @@ const Clients = () => {
     return true;
   });
 
+  const { sorted, sort, toggleSort } = useSort(filtered, {
+    name: (c: Client) => c.name,
+    activity: (c: Client) => activityByClient.get(c.id) || '',
+    contact_name: (c: Client) => c.contact_name,
+    contact_email: (c: Client) => c.contact_email,
+    country: (c: Client) => c.country,
+  });
+
   const SummaryCard = ({ category, count }: { category: ActivityCategory; count: number }) => {
     const isActive = activityFilter === category;
     const styles = ACTIVITY_STYLES[category];
