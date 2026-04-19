@@ -15,10 +15,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Search, Pencil, XCircle, Building2, RotateCcw } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   ActivityCategory,
   ACTIVITY_LABELS,
   ACTIVITY_STYLES,
+  ACTIVITY_DESCRIPTIONS,
   getActivityCategory,
   ProjectActivityInfo,
 } from '@/lib/client-activity';
