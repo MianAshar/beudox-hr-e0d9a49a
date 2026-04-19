@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import {
   Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight,
-  Pencil, FileText, Users, ListChecks, History, ChevronsDownUp, ChevronsUpDown,
+  Pencil, FileText, Users, ListChecks, History, ChevronsDownUp, ChevronsUpDown, ArrowUpDown,
 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -338,19 +338,45 @@ const Projects = () => {
             </div>
           </>
         )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleAll}
-          disabled={filtered.length === 0}
-          className={cn(!isManager && 'ml-auto')}
-        >
-          {allExpanded ? (
-            <><ChevronsDownUp className="h-4 w-4 mr-2" /> Collapse All</>
-          ) : (
-            <><ChevronsUpDown className="h-4 w-4 mr-2" /> Expand All</>
+        <div className="flex items-center gap-2 ml-auto">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default order</SelectItem>
+              <SelectItem value="project_code">Project Code</SelectItem>
+              <SelectItem value="project_name">Project Name</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+              <SelectItem value="internal_deadline">Internal Deadline</SelectItem>
+            </SelectContent>
+          </Select>
+          {sortBy !== 'default' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+              aria-label={`Sort ${sortDir === 'asc' ? 'ascending' : 'descending'}`}
+              title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
+            >
+              {sortDir === 'asc' ? <ChevronsUpDown className="h-4 w-4" /> : <ChevronsDownUp className="h-4 w-4" />}
+              <span className="ml-1.5 text-xs">{sortDir === 'asc' ? 'Asc' : 'Desc'}</span>
+            </Button>
           )}
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAll}
+            disabled={filtered.length === 0}
+          >
+            {allExpanded ? (
+              <><ChevronsDownUp className="h-4 w-4 mr-2" /> Collapse All</>
+            ) : (
+              <><ChevronsUpDown className="h-4 w-4 mr-2" /> Expand All</>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Project list */}
