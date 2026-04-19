@@ -1,67 +1,36 @@
 <!--
 generated_by: tessera
 source_sha: 7cd56bd223f184273f03b6c7372dbc65d79d4bbd
-generated_at: 2026-04-19T21:20:04.480Z
+generated_at: 2026-04-19T21:21:09.441Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, payroll processing, performance evaluations, leave tracking, and organizational workflows for businesses.
+A comprehensive Human Resources Management System built as a modern React frontend application. Beudox HR provides tools for employee management, evaluations, leave tracking, payroll processing, finance summaries, and more.
 
 ## Features
 
-### Core HR Management
-- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
-- **Role-Based Access Control**: Granular permissions for different user roles (HR Manager, CEO, Team Lead, Employee)
-- **Profile Management**: Employee profiles with personal information, roles, and organizational data
-
-### Performance & Evaluation
-- **Quarterly Evaluations**: Bi-annual performance reviews with scoring and recommendations
-- **Daily Evaluations**: Real-time feedback system for continuous improvement
-- **Evaluation Timeline**: Historical view of all evaluations with filtering by role
-
-### Financial Management
-- **Payroll Processing**: Automated payroll generation with overtime calculations
-- **Finance Dashboard**: Real-time financial metrics and 6-month trend analysis
-- **Expense Tracking**: Monthly expense management and reporting
-- **Loan Management**: Employee loan tracking and deductions
-
-### Leave & Time Management
-- **Leave Management**: Comprehensive leave request and approval system
-- **Leave Balances**: Real-time tracking of leave entitlements
-- **Public Holidays**: Configurable holiday calendar management
-
-### Project & Client Management
-- **Project Management**: Project creation, assignment, and progress tracking
-- **Client Management**: Client relationship management with invoicing
-- **Task Management**: Individual and team task assignment
-
-### Administrative Features
-- **HR Policies**: Rich text policy documents with version control
-- **Settings Management**: Company settings, departments, roles, and system configuration
-- **Invoice Generation**: Automated invoice creation with PDF export
-- **Notification System**: Automated notifications for various HR events
+- **Employee Management**: Searchable employee selection, profiles, and role-based access
+- **Evaluations**: Quarterly and daily performance evaluations with timelines
+- **Leave Management**: Apply for leave, track balances, and manage requests
+- **Payroll**: Generate and view payroll records with overtime and bonuses
+- **Finance**: Monthly expense tracking and financial summaries with trend analysis
+- **HR Policies**: Rich text editor for policy management
+- **Settings**: Configure departments, roles, leave types, expense categories, and more
 
 ## Technology Stack
 
-- **Frontend**: React 18, TypeScript, Vite
-- **UI Framework**: shadcn/ui with Radix UI primitives
-- **Styling**: Tailwind CSS with custom design system
-- **State Management**: React Query for server state, Context API for auth
-- **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Routing**: React Router
+- **State Management**: TanStack Query for server state
+- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
 - **Charts**: Recharts for data visualization
-- **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
 
-## Getting Started
-
-### Prerequisites
-- Node.js 18+
-- npm or bun
-- Supabase account and project
-
-### Installation
+## Setup and Installation
 
 1. **Clone the repository**
    ```bash
@@ -76,107 +45,76 @@ A comprehensive Human Resources Management System built with modern web technolo
    bun install
    ```
 
-3. **Environment Setup**
+3. **Environment Configuration**
    
-   Copy the environment file and configure Supabase credentials:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update `.env.local` with your Supabase project details:
+   Copy the `.env` file and ensure the following variables are set:
    ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
    VITE_SUPABASE_PROJECT_ID=your_project_id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=https://your-project.supabase.co
    ```
 
-4. **Database Setup**
-   
-   The project includes Supabase migrations. Run them in your Supabase project:
-   ```bash
-   # Migrations are located in supabase/migrations/
-   # Apply them through Supabase dashboard or CLI
-   ```
-
-5. **Development Server**
+4. **Run the development server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
-   
-   The application will be available at `http://localhost:8080`
 
-### Build for Production
-
-```bash
-npm run build
-# or
-bun run build
-```
+5. **Build for production**
+   ```bash
+   npm run build
+   ```
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   ├── layout/         # App layout components
-│   ├── finance/        # Financial components
-│   ├── evaluations/    # Evaluation components
+│   ├── ui/             # shadcn/ui base components
+│   ├── layout/         # App layout components (sidebar, topbar, etc.)
+│   ├── evaluations/    # Evaluation-related components
+│   ├── finance/        # Finance dashboard components
 │   ├── leave/          # Leave management components
-│   └── ...
-├── pages/              # Route components
+│   ├── payroll/        # Payroll components
+│   ├── profile/        # User profile components
+│   ├── projects/       # Project management components
+│   ├── settings/       # Admin settings components
+│   └── hr-policies/    # HR policy components
+├── pages/              # Page components (Next.js-style routing)
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations
-└── types/              # TypeScript type definitions
+├── integrations/       # External service integrations (Supabase)
+└── test/               # Test files
 
 supabase/
 ├── migrations/         # Database schema migrations
-└── functions/          # Edge functions for business logic
+├── functions/          # Edge functions for backend logic
+└── config.toml         # Supabase configuration
 ```
 
-## Authentication & Authorization
+## Key Components
 
-The application uses Supabase Auth for user authentication with role-based access control:
-
-- **CEO**: Full system access
-- **HR Manager**: HR operations and employee management
-- **Team Lead**: Team management and evaluations
-- **Employee**: Personal profile and limited access
+- **AppLayout**: Main application layout with sidebar navigation
+- **EvaluationTimeline**: Displays evaluation history for employees
+- **FinanceSummary**: Financial dashboard with charts and metrics
+- **SearchableEmployeeSelect**: Employee selection component with search
+- **BeudoxLogo**: Brand logo component with variant support
 
 ## Development
 
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-
-### Code Quality
-
-- **TypeScript**: Strict type checking enabled
-- **ESLint**: Code linting with React and TypeScript rules
-- **Prettier**: Code formatting (via ESLint)
-- **Vitest**: Unit testing framework
-- **Playwright**: End-to-end testing
+- **Linting**: ESLint configuration
+- **Testing**: Vitest for unit tests
+- **Type Checking**: TypeScript strict mode
+- **Code Formatting**: Prettier (via ESLint)
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Follow the existing code style and TypeScript types
+2. Add tests for new features
+3. Update documentation as needed
+4. Ensure all components are accessible and responsive
 
 ## License
 
-This project is proprietary software. All rights reserved.
-
-## Support
-
-For support and questions, please contact the development team.
+This project is proprietary software for Beudox HR.
