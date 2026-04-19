@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
   FolderKanban, ClipboardCheck, ClipboardList, FileText, Settings, Bell, FileSpreadsheet,
-  ChevronLeft, ChevronRight, Briefcase, Wallet,
+  ChevronLeft, ChevronRight, Briefcase, Wallet, ListChecks,
 } from 'lucide-react';
 
 const navSections = [
@@ -42,6 +42,7 @@ const navSections = [
     label: 'WORK',
     items: [
       { title: 'Projects', icon: FolderKanban, path: '/projects' },
+      { title: 'My Tasks', icon: ListChecks, path: '/my-tasks' },
       { title: 'Clients', icon: Briefcase, path: '/clients' },
       { title: 'Evaluations', icon: ClipboardCheck, path: '/evaluations' },
       { title: 'Daily Evaluations', icon: ClipboardList, path: '/evaluations/daily' },

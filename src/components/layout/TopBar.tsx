@@ -30,6 +30,7 @@ const pageTitles: Record<string, string> = {
   '/notifications': 'Notifications',
   '/settings': 'Settings',
   '/my-profile': 'My Profile',
+  '/my-tasks': 'My Tasks',
 };
 
 const TopBar = () => {
