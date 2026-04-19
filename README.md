@@ -1,96 +1,86 @@
 <!--
 generated_by: tessera
-source_sha: b5485c341bfd9d2120406250767f8b36d408f25c
-generated_at: 2026-04-19T21:33:49.847Z
+source_sha: 6e3133e8531ac7a3f5865ccc31db25f1b96f2e4d
+generated_at: 2026-04-19T21:46:52.676Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with tools to manage employees, projects, evaluations, payroll, leave management, and more.
+A comprehensive Human Resources Management System built with modern web technologies.
+
+## Overview
+
+Beudox HR is a full-featured HR management application that provides organizations with tools to manage employees, projects, evaluations, payroll, leave, and more. The system includes role-based access control and supports various HR workflows including employee onboarding, performance evaluations, leave management, and financial tracking.
 
 ## Features
 
-- **Employee Management**: Complete employee lifecycle management including profiles, onboarding, and offboarding
-- **Project Management**: Create and manage projects, assign team members, and track progress
-- **Performance Evaluations**: Quarterly and daily evaluation systems with customizable parameters
-- **Payroll Management**: Automated payroll processing with overtime calculations and loan deductions
-- **Leave Management**: Comprehensive leave tracking and approval workflows
-- **Finance Dashboard**: Real-time financial insights with expense tracking and reporting
-- **HR Policies**: Rich text policy documents with version control
-- **Client Management**: Manage client relationships and project assignments
-- **Invoice Management**: Generate and manage client invoices
-- **Role-Based Access Control**: Granular permissions system for different user roles
+- **Employee Management**: Complete employee profiles, onboarding, and directory
+- **Project Management**: Project creation, team assignment, and progress tracking
+- **Performance Evaluations**: Quarterly and daily evaluation systems
+- **Leave Management**: Leave requests, approvals, and balance tracking
+- **Payroll & Finance**: Payroll processing, expense tracking, and financial reporting
+- **HR Policies**: Policy creation and management with rich text editing
+- **Job Descriptions**: Structured job description management
+- **Client & Invoice Management**: Client relationships and invoice generation
+- **Settings**: Comprehensive system configuration
+- **Role-based Access Control**: Granular permissions based on user roles
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
+- **Frontend**: React 18, TypeScript
 - **Build Tool**: Vite
-- **UI Framework**: shadcn/ui (Radix UI primitives)
-- **Styling**: Tailwind CSS
-- **State Management**: React Query (TanStack Query)
-- **Routing**: React Router v6
-- **Backend**: Supabase (PostgreSQL database + Auth)
-- **Charts**: Recharts
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **State Management**: TanStack Query (React Query)
+- **Routing**: React Router DOM
+- **Backend**: Supabase (PostgreSQL database, authentication, real-time)
 - **Forms**: React Hook Form with Zod validation
-- **Rich Text Editor**: Tiptap
-- **Testing**: Vitest + Playwright
-- **Package Manager**: npm/bun
+- **Charts**: Recharts
+- **Rich Text**: Tiptap
+- **Icons**: Lucide React
+- **Testing**: Vitest, Playwright
 
-## Prerequisites
+## Getting Started
 
-- Node.js 18+
-- npm or bun
-- Supabase account and project
+### Prerequisites
 
-## Setup Instructions
+- Node.js (v18 or higher)
+- npm or bun package manager
 
-1. **Clone the repository**
+### Installation
+
+1. Clone the repository:
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. **Environment Configuration**
+3. Set up environment variables:
    
-   Copy the `.env` file and update the Supabase configuration:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables in `.env.local`:
+   Copy `.env` and configure your Supabase credentials:
    ```env
    VITE_SUPABASE_PROJECT_ID=your_project_id
    VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_URL=your_supabase_url
    ```
 
-4. **Database Setup**
-   
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
-   
-   You can use the Supabase CLI:
-   ```bash
-   supabase db reset
-   ```
-
-5. **Start the development server**
+4. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
-   
-   The application will be available at `http://localhost:8080`
 
-## Available Scripts
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+### Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
@@ -108,20 +98,34 @@ src/
 │   ├── ui/             # shadcn/ui components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
 │   ├── [feature]/      # Feature-specific components
-├── pages/              # Page components (routes)
+├── pages/              # Page components and routing
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations (Supabase)
 ├── test/               # Test files
-└── types/              # TypeScript type definitions
+└── main.tsx           # Application entry point
 ```
 
-## User Roles
+## Authentication & Authorization
 
-- **CEO**: Full access to all features
-- **HR Manager**: Access to employee management, evaluations, payroll, and settings
-- **Team Lead**: Access to team management, evaluations, and project oversight
-- **Employee**: Limited access to personal profile, tasks, and leave management
+The application uses Supabase for authentication and implements role-based access control. User roles include:
+- CEO
+- HR Manager
+- Team Lead
+- Employee
+
+Access to different sections of the application is controlled based on user roles.
+
+## Database
+
+The application uses Supabase with PostgreSQL. Database migrations are located in the `supabase/migrations/` directory and include tables for:
+- Employees and user management
+- Projects and project assignments
+- Evaluations (quarterly and daily)
+- Leave management
+- Payroll and financial data
+- HR policies and job descriptions
+- Clients and invoices
 
 ## Contributing
 
@@ -134,4 +138,4 @@ src/
 
 ## License
 
-This project is proprietary software. All rights reserved.
+This project is private and proprietary.
