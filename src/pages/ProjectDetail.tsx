@@ -285,9 +285,16 @@ const ProjectDetail = () => {
 
       {/* Team */}
       <div className="rounded-lg border bg-card p-5 space-y-4">
-        <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <Users className="h-4 w-4" /> Team Members ({teamMembers?.length || 0})
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Users className="h-4 w-4" /> Team Members ({teamMembers?.length || 0})
+          </h2>
+          {canManageTeam && (
+            <Button variant="outline" size="sm" onClick={() => setManageTeamOpen(true)}>
+              <UserCog className="h-4 w-4 mr-2" /> Manage Team
+            </Button>
+          )}
+        </div>
         {teamMembers && teamMembers.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {teamMembers.map((a: any) => {
