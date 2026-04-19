@@ -683,8 +683,19 @@ const ProjectCard = ({
 
         {/* Team Members — 120px */}
         {canSeeTeam && (
-          <div className="w-[120px] shrink-0">
-            <TeamMembersStack members={team} />
+          <div className="w-[120px] shrink-0" onClick={e => e.stopPropagation()}>
+            {canManageTeam ? (
+              <button
+                type="button"
+                className="rounded-md hover:bg-muted/40 px-1 py-0.5 -mx-1 -my-0.5 transition-colors cursor-pointer"
+                onClick={() => setManageTeamProject(p)}
+                title="Manage team"
+              >
+                <TeamMembersStack members={team} />
+              </button>
+            ) : (
+              <TeamMembersStack members={team} />
+            )}
           </div>
         )}
 
