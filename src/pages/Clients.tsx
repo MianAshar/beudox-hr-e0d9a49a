@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Search, Pencil, XCircle, Building2, RotateCcw } from 'lucide-react';
+import {
+  ActivityCategory,
+  ACTIVITY_LABELS,
+  ACTIVITY_STYLES,
+  getActivityCategory,
+  ProjectActivityInfo,
+} from '@/lib/client-activity';
 
 interface Client {
   id: string;
@@ -51,8 +58,11 @@ const Clients = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showInactive, setShowInactive] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<Client | null>(null);
+  const [activityFilter, setActivityFilter] = useState<'all' | ActivityCategory>('all');
 
   const companyId = employee?.company_id;
+  const role = employee?.role_name;
+  const showActivity = role === 'ceo' || role === 'hr_manager';
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients', companyId, showInactive],
@@ -71,6 +81,49 @@ const Clients = () => {
     },
     enabled: !!companyId,
   });
+
+  // Fetch projects for activity categorisation (only if user can see activity)
+  const { data: projects } = useQuery({
+    queryKey: ['client-projects-activity', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('client_id, status, updated_at, created_at')
+        .eq('company_id', companyId!);
+      if (error) throw error;
+      return data as Array<ProjectActivityInfo & { client_id: string }>;
+    },
+    enabled: !!companyId && showActivity,
+  });
+
+  // Per-client activity map
+  const activityByClient = useMemo(() => {
+    const map = new Map<string, ActivityCategory>();
+    if (!showActivity || !clients) return map;
+    const grouped = new Map<string, ProjectActivityInfo[]>();
+    (projects || []).forEach(p => {
+      if (!grouped.has(p.client_id)) grouped.set(p.client_id, []);
+      grouped.get(p.client_id)!.push(p);
+    });
+    clients.forEach(c => {
+      map.set(c.id, getActivityCategory(grouped.get(c.id) || []));
+    });
+    return map;
+  }, [clients, projects, showActivity]);
+
+  // Activity counts for summary cards (only active clients counted)
+  const activityCounts = useMemo(() => {
+    const counts: Record<ActivityCategory, number> = {
+      active: 0, inactive_2m: 0, inactive_4m: 0, inactive_6m: 0,
+    };
+    if (!showActivity || !clients) return counts;
+    clients.forEach(c => {
+      if (!c.is_active) return;
+      const cat = activityByClient.get(c.id);
+      if (cat) counts[cat]++;
+    });
+    return counts;
+  }, [clients, activityByClient, showActivity]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -151,9 +204,45 @@ const Clients = () => {
     saveMutation.mutate();
   };
 
-  const filtered = clients?.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  ) ?? [];
+  const filtered = (clients ?? []).filter(c => {
+    if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (showActivity && activityFilter !== 'all') {
+      if (activityByClient.get(c.id) !== activityFilter) return false;
+    }
+    return true;
+  });
+
+  const SummaryCard = ({ category, count }: { category: ActivityCategory; count: number }) => {
+    const isActive = activityFilter === category;
+    const styles = ACTIVITY_STYLES[category];
+    return (
+      <button
+        onClick={() => setActivityFilter(isActive ? 'all' : category)}
+        className="rounded-[14px] bg-card text-left transition-all hover:shadow-sm"
+        style={{
+          border: isActive ? `1.5px solid ${styles.text}` : '1px solid rgba(91,63,248,0.15)',
+          padding: '12px 16px',
+          maxHeight: 80,
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+              {ACTIVITY_LABELS[category]}
+            </p>
+            <p className="text-[18px] font-semibold mt-0.5" style={{ fontFamily: 'Outfit, sans-serif', color: '#120E36' }}>
+              {count}
+            </p>
+          </div>
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: styles.text }}
+            aria-hidden
+          />
+        </div>
+      </button>
+    );
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -169,9 +258,19 @@ const Clients = () => {
         </Button>
       </div>
 
-      {/* Search + Toggle */}
-      <div className="flex items-center gap-4">
-        <div className="relative max-w-sm flex-1">
+      {/* Activity Summary Cards (CEO + HR only) */}
+      {showActivity && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <SummaryCard category="active" count={activityCounts.active} />
+          <SummaryCard category="inactive_2m" count={activityCounts.inactive_2m} />
+          <SummaryCard category="inactive_4m" count={activityCounts.inactive_4m} />
+          <SummaryCard category="inactive_6m" count={activityCounts.inactive_6m} />
+        </div>
+      )}
+
+      {/* Search + Filters */}
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="relative max-w-sm flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search clients…"
@@ -180,6 +279,20 @@ const Clients = () => {
             className="pl-9"
           />
         </div>
+        {showActivity && (
+          <Select value={activityFilter} onValueChange={v => setActivityFilter(v as 'all' | ActivityCategory)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by activity" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Activity</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive_2m">Inactive 2M</SelectItem>
+              <SelectItem value="inactive_4m">Inactive 4M</SelectItem>
+              <SelectItem value="inactive_6m">Inactive 6M+</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
         <div className="flex items-center gap-2">
           <Switch id="show-inactive" checked={showInactive} onCheckedChange={setShowInactive} />
           <Label htmlFor="show-inactive" className="text-sm text-muted-foreground cursor-pointer">Show inactive</Label>
@@ -196,8 +309,8 @@ const Clients = () => {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <Building2 className="h-12 w-12 mb-4 opacity-40" />
-          <p className="text-lg font-medium">{search ? 'No matching clients' : 'No clients yet'}</p>
-          <p className="text-sm mt-1">{search ? 'Try a different search term' : 'Add your first client to get started'}</p>
+          <p className="text-lg font-medium">{search || activityFilter !== 'all' ? 'No matching clients' : 'No clients yet'}</p>
+          <p className="text-sm mt-1">{search || activityFilter !== 'all' ? 'Try a different search or filter' : 'Add your first client to get started'}</p>
         </div>
       ) : (
         <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
@@ -205,6 +318,7 @@ const Clients = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Client Name</TableHead>
+                {showActivity && <TableHead>Activity</TableHead>}
                 <TableHead>Contact Name</TableHead>
                 <TableHead>Contact Email</TableHead>
                 <TableHead>Country</TableHead>
@@ -212,36 +326,52 @@ const Clients = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(c => (
-                <TableRow key={c.id}>
-                  <TableCell>
-                    <button
-                      onClick={() => navigate(`/clients/${c.id}`)}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      {c.name}
-                    </button>
-                    {!c.is_active && <Badge variant="outline" className="ml-2 text-xs">Inactive</Badge>}
-                  </TableCell>
-                  <TableCell>{c.contact_name || '—'}</TableCell>
-                  <TableCell>{c.contact_email || '—'}</TableCell>
-                  <TableCell>{c.country || '—'}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    {c.is_active ? (
-                      <Button variant="ghost" size="icon" onClick={() => setDeactivateTarget(c)}>
-                        <XCircle className="h-4 w-4 text-destructive" />
-                      </Button>
-                    ) : (
-                      <Button variant="ghost" size="icon" onClick={() => reactivateMutation.mutate(c.id)}>
-                        <RotateCcw className="h-4 w-4 text-primary" />
-                      </Button>
+              {filtered.map(c => {
+                const cat = activityByClient.get(c.id);
+                const styles = cat ? ACTIVITY_STYLES[cat] : null;
+                return (
+                  <TableRow key={c.id}>
+                    <TableCell>
+                      <button
+                        onClick={() => navigate(`/clients/${c.id}`)}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        {c.name}
+                      </button>
+                      {!c.is_active && <Badge variant="outline" className="ml-2 text-xs">Inactive</Badge>}
+                    </TableCell>
+                    {showActivity && (
+                      <TableCell>
+                        {cat && styles && (
+                          <span
+                            className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                            style={{ backgroundColor: styles.bg, color: styles.text }}
+                          >
+                            {ACTIVITY_LABELS[cat]}
+                          </span>
+                        )}
+                      </TableCell>
                     )}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableCell>{c.contact_name || '—'}</TableCell>
+                    <TableCell>{c.contact_email || '—'}</TableCell>
+                    <TableCell>{c.country || '—'}</TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      {c.is_active ? (
+                        <Button variant="ghost" size="icon" onClick={() => setDeactivateTarget(c)}>
+                          <XCircle className="h-4 w-4 text-destructive" />
+                        </Button>
+                      ) : (
+                        <Button variant="ghost" size="icon" onClick={() => reactivateMutation.mutate(c.id)}>
+                          <RotateCcw className="h-4 w-4 text-primary" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
