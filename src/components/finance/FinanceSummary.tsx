@@ -270,21 +270,26 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
   );
 };
 
-const StatCard = ({ label, value, accent }: { label: string; value: string; accent: string }) => (
+const StatCard = ({ label, value }: { label: string; value: string }) => (
   <div
-    className="rounded-[14px] border bg-card p-5 flex flex-col gap-2 relative overflow-hidden"
-    style={{ borderColor: 'hsl(var(--border))' }}
+    className="rounded-[14px] bg-card flex flex-col justify-center"
+    style={{
+      borderWidth: 1,
+      borderStyle: 'solid',
+      borderColor: 'rgba(91,63,248,0.15)',
+      padding: '12px 16px',
+      maxHeight: 80,
+    }}
   >
-    <div className="absolute top-0 left-0 h-1 w-full" style={{ background: accent }} />
     <div
-      className="text-xs uppercase tracking-wider text-muted-foreground"
-      style={{ fontFamily: 'var(--ff-body)' }}
+      className="uppercase text-muted-foreground truncate"
+      style={{ fontFamily: 'var(--ff-body)', fontSize: 11, letterSpacing: '0.04em' }}
     >
       {label}
     </div>
     <div
-      className="text-[22px] font-semibold tabular-nums mt-1"
-      style={{ fontFamily: 'var(--ff-display)', color: 'hsl(var(--foreground))' }}
+      className="tabular-nums truncate"
+      style={{ fontFamily: 'var(--ff-display)', fontSize: 18, fontWeight: 600, color: '#120E36', marginTop: 2 }}
     >
       {value}
     </div>
