@@ -13,6 +13,8 @@ import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
+import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
+import { ListChecks } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
