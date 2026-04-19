@@ -127,6 +127,7 @@ const Projects = () => {
   const canSeeTeam = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const canEditStatus = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const canEditDeadline = canEditStatus;
+  const canSeeActivity = role === 'hr_manager' || role === 'ceo';
   const employeeId = employee?.employee_id;
 
   const [search, setSearch] = useState('');
