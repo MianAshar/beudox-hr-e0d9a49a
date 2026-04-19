@@ -683,6 +683,11 @@ const ProjectCard = ({
           className="px-4 py-4 space-y-5"
           style={{ borderTop: '1px solid rgba(91,63,248,0.15)' }}
         >
+          {p.status === 'pending' && canEditStatus && (
+            <div className="flex justify-end">
+              <StartProjectButton projectId={p.id} companyId={companyId} employeeId={employeeId} />
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Left column: Scope + Notes */}
             <div className="space-y-4">
