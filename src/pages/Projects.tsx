@@ -419,23 +419,18 @@ const Projects = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {/* Sticky column headers — flat lavender bar */}
-          <div
-            className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3"
-            style={{
-              backgroundColor: '#EEEBFF',
-            }}
-          >
+          {/* Sticky column headers — mirrors Payroll table header styling */}
+          <div className="sticky top-0 z-10 flex h-10 items-center gap-3 border-b bg-secondary px-4">
             <div className="w-8 shrink-0" />
-            <span className="w-20 shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Code</span>
-            <span className="flex-1 min-w-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Project Name</span>
-            <span className="w-[160px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Status</span>
-            <span className="w-[140px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Internal Deadline</span>
-            <span className="w-[160px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Lead</span>
+            <span className="w-20 shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Code</span>
+            <span className="flex-1 min-w-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Project Name</span>
+            <span className="w-[160px] shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Status</span>
+            <span className="w-[140px] shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Internal Deadline</span>
+            <span className="w-[160px] shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Lead</span>
             {canSeeTeam && (
-              <span className="w-[120px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Team Members</span>
+              <span className="w-[120px] shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Team Members</span>
             )}
-            <span className="w-[70px] shrink-0 text-[11px] font-medium uppercase tracking-wider" style={{ color: '#9490B4', fontFamily: 'DM Sans, sans-serif' }}>Tasks</span>
+            <span className="w-[70px] shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Tasks</span>
             <div className="w-10 shrink-0" />
           </div>
 
