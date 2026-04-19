@@ -17,6 +17,7 @@ import { Loader2, DollarSign, CalendarIcon, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
+import { PayrollSummary } from '@/components/payroll/PayrollSummary';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   draft: { bg: '#FEF3C7', text: '#92400E' },
