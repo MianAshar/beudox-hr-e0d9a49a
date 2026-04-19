@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SortableHeader } from '@/components/ui/sortable-header';
+import { useSort } from '@/hooks/useSort';
 import { ArrowDownRight, ArrowUpRight, Search, Wallet, Gift, Clock, Sparkles } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -185,6 +187,17 @@ export const PayrollSummary = ({ companyId, selectedMonth, selectedYear, records
         return na.localeCompare(nb);
       });
   }, [records, search, deptFilter, statusFilter]);
+
+  const { sorted: sortedRecords, sort, toggleSort } = useSort(filteredRecords, {
+    employee: (r: any) => (r.employees as any)?.full_name,
+    basic: (r: any) => Number(r.basic_salary),
+    allowance: (r: any) => Number(r.allowance),
+    ot: (r: any) => Number(r.regular_ot_amount) + Number(r.holiday_ot_amount),
+    bonus: (r: any) => Number(r.bonus),
+    loan: (r: any) => Number(r.loan_deduction),
+    total: (r: any) => Number(r.final_payment),
+    status: (r: any) => r.status,
+  });
 
   const initials = (name: string) =>
     name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join('') || '?';
@@ -394,25 +407,25 @@ export const PayrollSummary = ({ companyId, selectedMonth, selectedYear, records
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead className="text-right">Basic</TableHead>
-                <TableHead className="text-right">Allowance</TableHead>
-                <TableHead className="text-right">OT</TableHead>
-                <TableHead className="text-right">Bonus</TableHead>
-                <TableHead className="text-right">Loan Ded.</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead>Status</TableHead>
+                <SortableHeader column="employee" sort={sort} onSort={toggleSort}>Employee</SortableHeader>
+                <SortableHeader column="basic" sort={sort} onSort={toggleSort} align="right">Basic</SortableHeader>
+                <SortableHeader column="allowance" sort={sort} onSort={toggleSort} align="right">Allowance</SortableHeader>
+                <SortableHeader column="ot" sort={sort} onSort={toggleSort} align="right">OT</SortableHeader>
+                <SortableHeader column="bonus" sort={sort} onSort={toggleSort} align="right">Bonus</SortableHeader>
+                <SortableHeader column="loan" sort={sort} onSort={toggleSort} align="right">Loan Ded.</SortableHeader>
+                <SortableHeader column="total" sort={sort} onSort={toggleSort} align="right">Total</SortableHeader>
+                <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRecords.length === 0 ? (
+              {sortedRecords.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">
                     No employees match the current filters.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredRecords.map(rec => {
+                sortedRecords.map(rec => {
                   const emp = rec.employees as any;
                   const style = statusStyles[rec.status] || statusStyles.draft;
                   const otAmount = Number(rec.regular_ot_amount) + Number(rec.holiday_ot_amount);

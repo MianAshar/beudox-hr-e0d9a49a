@@ -3,6 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SortableHeader } from '@/components/ui/sortable-header';
+import { useSort } from '@/hooks/useSort';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -76,6 +78,16 @@ const AllRequestsTab = () => {
     if (employeeFilter !== 'all' && r.employee_id !== employeeFilter) return false;
     if (typeFilter !== 'all' && r.leave_type_id !== typeFilter) return false;
     return true;
+  });
+
+  const { sorted, sort, toggleSort } = useSort(filtered, {
+    employee: (r: any) => r.employees?.full_name,
+    leave_type: (r: any) => r.leave_types?.name,
+    from: (r: any) => r.start_date,
+    to: (r: any) => r.end_date,
+    days: (r: any) => Number(r.days_requested),
+    half_day: (r: any) => r.half_day ? 1 : 0,
+    status: (r: any) => r.status,
   });
 
   const approveMutation = useMutation({
@@ -195,22 +207,22 @@ const AllRequestsTab = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Leave Type</TableHead>
-                <TableHead>From</TableHead>
-                <TableHead>To</TableHead>
-                <TableHead>Days</TableHead>
-                <TableHead>Half Day</TableHead>
-                <TableHead>Status</TableHead>
+                <SortableHeader column="employee" sort={sort} onSort={toggleSort}>Employee</SortableHeader>
+                <SortableHeader column="leave_type" sort={sort} onSort={toggleSort}>Leave Type</SortableHeader>
+                <SortableHeader column="from" sort={sort} onSort={toggleSort}>From</SortableHeader>
+                <SortableHeader column="to" sort={sort} onSort={toggleSort}>To</SortableHeader>
+                <SortableHeader column="days" sort={sort} onSort={toggleSort}>Days</SortableHeader>
+                <SortableHeader column="half_day" sort={sort} onSort={toggleSort}>Half Day</SortableHeader>
+                <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Loading...</TableCell></TableRow>
-              ) : filtered.length === 0 ? (
+              ) : sorted.length === 0 ? (
                 <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No leave requests</TableCell></TableRow>
-              ) : filtered.map((r: any) => (
+              ) : sorted.map((r: any) => (
                 <TableRow key={r.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(r)}>
                   <TableCell className="text-sm font-medium">{r.employees?.full_name || '-'}</TableCell>
                   <TableCell className="text-sm">{r.leave_types?.name || '-'}</TableCell>
