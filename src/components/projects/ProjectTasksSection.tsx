@@ -27,6 +27,9 @@ interface Props {
   canManage: boolean;
 }
 
+const isAssignee = (taskAssignedTo: string | null | undefined, employeeId: string) =>
+  !!taskAssignedTo && taskAssignedTo === employeeId;
+
 const initials = (name: string) =>
   name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join('') || '?';
 
