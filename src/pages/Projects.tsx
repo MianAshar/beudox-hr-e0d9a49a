@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,14 +9,16 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, Pencil } from 'lucide-react';
+import {
+  Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight,
+  Pencil, FileText, Users, ListChecks, History, ChevronsDownUp, ChevronsUpDown,
+} from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -34,11 +36,12 @@ interface TeamMember {
   id: string;
   full_name: string;
   avatar_url: string | null;
+  designation?: string | null;
 }
 
-const TeamMembersCell = ({ members }: { members: TeamMember[] }) => {
+const TeamMembersStack = ({ members }: { members: TeamMember[] }) => {
   if (!members || members.length === 0) {
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-xs text-muted-foreground">No team</span>;
   }
   const visible = members.slice(0, 4);
   const extra = members.length - visible.length;
@@ -109,6 +112,8 @@ const priorityColors: Record<string, string> = {
   low: 'bg-green-100 text-green-700',
 };
 
+const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
 const Projects = () => {
   const { employee } = useAuth();
   const navigate = useNavigate();
@@ -117,6 +122,7 @@ const Projects = () => {
   const role = employee?.role_name;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
+  const canSeeFinancial = role === 'hr_manager' || role === 'ceo';
   const canSeeTeam = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const canEditStatus = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const canEditDeadline = canEditStatus;
@@ -128,6 +134,7 @@ const Projects = () => {
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<any>(null);
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', companyId, role, showInactive],
@@ -135,7 +142,7 @@ const Projects = () => {
       if (isManager) {
         let query = supabase
           .from('projects')
-          .select('*, clients(name), project_categories(name), lead:employees!projects_project_lead_id_fkey(full_name)')
+          .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)')
           .eq('company_id', companyId!);
         if (!showInactive) {
           query = query.eq('is_active', true);
@@ -155,7 +162,7 @@ const Projects = () => {
         if (pIds.length === 0) return [];
         const { data, error } = await supabase
           .from('projects')
-          .select('*, clients(name), project_categories(name), lead:employees!projects_project_lead_id_fkey(full_name)')
+          .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)')
           .eq('company_id', companyId!)
           .eq('status', 'in_progress')
           .eq('is_active', true)
@@ -186,7 +193,7 @@ const Projects = () => {
       if (projectIds.length === 0) return [];
       const { data, error } = await supabase
         .from('project_assignments')
-        .select('project_id, employees!project_assignments_employee_id_fkey(id, full_name, avatar_url)')
+        .select('project_id, employees!project_assignments_employee_id_fkey(id, full_name, avatar_url, designation)')
         .eq('company_id', companyId!)
         .eq('is_active', true)
         .in('project_id', projectIds);
@@ -196,14 +203,17 @@ const Projects = () => {
     enabled: !!companyId && canSeeTeam && projectIds.length > 0,
   });
 
-  const teamByProject = new Map<string, TeamMember[]>();
-  (teamAssignments ?? []).forEach((a: any) => {
-    const emp = a.employees;
-    if (!emp) return;
-    const list = teamByProject.get(a.project_id) ?? [];
-    list.push({ id: emp.id, full_name: emp.full_name, avatar_url: emp.avatar_url });
-    teamByProject.set(a.project_id, list);
-  });
+  const teamByProject = useMemo(() => {
+    const map = new Map<string, TeamMember[]>();
+    (teamAssignments ?? []).forEach((a: any) => {
+      const emp = a.employees;
+      if (!emp) return;
+      const list = map.get(a.project_id) ?? [];
+      list.push({ id: emp.id, full_name: emp.full_name, avatar_url: emp.avatar_url, designation: emp.designation });
+      map.set(a.project_id, list);
+    });
+    return map;
+  }, [teamAssignments]);
 
   const deactivateMutation = useMutation({
     mutationFn: async (projectId: string) => {
@@ -218,8 +228,6 @@ const Projects = () => {
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
-  const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
   const todayIso = (() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -232,6 +240,22 @@ const Projects = () => {
     if (clientFilter !== 'all' && p.client_id !== clientFilter) return false;
     return true;
   });
+
+  const allCollapsed = filtered.length > 0 && filtered.every((p: any) => collapsedIds.has(p.id));
+  const toggleAll = () => {
+    if (allCollapsed) {
+      setCollapsedIds(new Set());
+    } else {
+      setCollapsedIds(new Set(filtered.map((p: any) => p.id)));
+    }
+  };
+  const toggleOne = (id: string) => {
+    setCollapsedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -289,12 +313,25 @@ const Projects = () => {
             </div>
           </>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleAll}
+          disabled={filtered.length === 0}
+          className={cn(!isManager && 'ml-auto')}
+        >
+          {allCollapsed ? (
+            <><ChevronsUpDown className="h-4 w-4 mr-2" /> Expand All</>
+          ) : (
+            <><ChevronsDownUp className="h-4 w-4 mr-2" /> Collapse All</>
+          )}
+        </Button>
       </div>
 
-      {/* Table */}
+      {/* Project list */}
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
+          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
@@ -302,77 +339,32 @@ const Projects = () => {
           <p className="text-lg font-medium">{search || statusFilter !== 'all' ? 'No matching projects' : 'No projects yet'}</p>
         </div>
       ) : (
-        <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Project Name</TableHead>
-                {canSeeClient && <TableHead>Client</TableHead>}
-                <TableHead>Category</TableHead>
-                <TableHead>Lead</TableHead>
-                {canSeeTeam && <TableHead>Team Members</TableHead>}
-                <TableHead>Internal Deadline</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Status</TableHead>
-                {isManager && <TableHead className="text-right">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((p: any) => {
-                const isDueToday = p.internal_deadline === todayIso;
-                return (
-                <TableRow
-                  key={p.id}
-                  className={cn('cursor-pointer', isDueToday && 'bg-[#FEF3C7] hover:bg-[#FEF3C7]/80')}
-                  onClick={() => navigate(`/projects/${p.id}`)}
-                >
-                  <TableCell className="font-mono text-sm">{p.project_code}</TableCell>
-                  <TableCell className="font-medium">{p.project_name}</TableCell>
-                  {canSeeClient && <TableCell>{p.clients?.name || '—'}</TableCell>}
-                  <TableCell>{p.project_categories?.name || '—'}</TableCell>
-                  <TableCell>{p.lead?.full_name || '—'}</TableCell>
-                  {canSeeTeam && (
-                    <TableCell onClick={e => e.stopPropagation()}>
-                      <TeamMembersCell members={teamByProject.get(p.id) ?? []} />
-                    </TableCell>
-                  )}
-                  <TableCell onClick={e => e.stopPropagation()}>
-                    <DeadlineCell
-                      project={p}
-                      canEdit={canEditDeadline}
-                      companyId={companyId!}
-                      employeeId={employeeId!}
-                      isDueToday={isDueToday}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {p.priority && <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>}
-                  </TableCell>
-                  <TableCell onClick={e => e.stopPropagation()}>
-                    <StatusCell
-                      project={p}
-                      canEdit={canEditStatus}
-                      fmt={fmt}
-                      companyId={companyId!}
-                      employeeId={employeeId!}
-                    />
-                    {!p.is_active && <Badge variant="outline" className="ml-1 text-xs">Inactive</Badge>}
-                  </TableCell>
-                  {isManager && (
-                    <TableCell className="text-right" onClick={e => e.stopPropagation()}>
-                      {p.is_active && (
-                        <Button variant="ghost" size="icon" onClick={() => setDeactivateTarget(p)}>
-                          <XCircle className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  )}
-                </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+        <div className="space-y-3">
+          {filtered.map((p: any) => {
+            const isDueToday = p.internal_deadline === todayIso;
+            const isCollapsed = collapsedIds.has(p.id);
+            const team = teamByProject.get(p.id) ?? [];
+            return (
+              <ProjectCard
+                key={p.id}
+                project={p}
+                team={team}
+                isCollapsed={isCollapsed}
+                onToggle={() => toggleOne(p.id)}
+                onOpenDetail={() => navigate(`/projects/${p.id}`)}
+                onDeactivate={() => setDeactivateTarget(p)}
+                isDueToday={isDueToday}
+                isManager={isManager}
+                canSeeClient={canSeeClient}
+                canSeeFinancial={canSeeFinancial}
+                canSeeTeam={canSeeTeam}
+                canEditStatus={canEditStatus}
+                canEditDeadline={canEditDeadline}
+                companyId={companyId!}
+                employeeId={employeeId!}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -397,15 +389,287 @@ const Projects = () => {
   );
 };
 
-interface StatusCellProps {
+interface ProjectCardProps {
   project: any;
-  canEdit: boolean;
-  fmt: (s: string) => string;
+  team: TeamMember[];
+  isCollapsed: boolean;
+  onToggle: () => void;
+  onOpenDetail: () => void;
+  onDeactivate: () => void;
+  isDueToday: boolean;
+  isManager: boolean;
+  canSeeClient: boolean;
+  canSeeFinancial: boolean;
+  canSeeTeam: boolean;
+  canEditStatus: boolean;
+  canEditDeadline: boolean;
   companyId: string;
   employeeId: string;
 }
 
-const StatusCell = ({ project, canEdit, fmt, companyId, employeeId }: StatusCellProps) => {
+const ProjectCard = ({
+  project: p, team, isCollapsed, onToggle, onOpenDetail, onDeactivate, isDueToday,
+  isManager, canSeeClient, canSeeFinancial, canSeeTeam, canEditStatus, canEditDeadline,
+  companyId, employeeId,
+}: ProjectCardProps) => {
+  return (
+    <div
+      className={cn(
+        'rounded-[14px] border bg-card overflow-hidden transition-colors',
+        isDueToday && 'bg-[#FEF3C7]',
+      )}
+      style={{ borderColor: 'hsl(var(--border))' }}
+    >
+      {/* Header row (always visible) */}
+      <div
+        className={cn(
+          'flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/40 transition-colors',
+          isDueToday && 'hover:bg-[#FEF3C7]/80',
+        )}
+        onClick={onToggle}
+      >
+        <button
+          type="button"
+          aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+          className="shrink-0 text-muted-foreground hover:text-foreground"
+          onClick={e => { e.stopPropagation(); onToggle(); }}
+        >
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+
+        <span className="font-mono text-xs text-muted-foreground w-24 shrink-0 truncate">{p.project_code}</span>
+
+        <button
+          type="button"
+          className="font-medium text-sm text-foreground hover:underline truncate flex-1 text-left min-w-0"
+          onClick={e => { e.stopPropagation(); onOpenDetail(); }}
+          title={p.project_name}
+        >
+          {p.project_name}
+        </button>
+
+        <div onClick={e => e.stopPropagation()} className="shrink-0">
+          <StatusCell project={p} canEdit={canEditStatus} companyId={companyId} employeeId={employeeId} />
+        </div>
+        {!p.is_active && <Badge variant="outline" className="text-xs shrink-0">Inactive</Badge>}
+
+        <div onClick={e => e.stopPropagation()} className="shrink-0 min-w-[120px] text-right text-sm">
+          <DeadlineCell project={p} canEdit={canEditDeadline} companyId={companyId} employeeId={employeeId} isDueToday={isDueToday} />
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 min-w-[140px]">
+          {p.lead ? (
+            <>
+              <Avatar className="h-6 w-6">
+                {p.lead.avatar_url && <AvatarImage src={p.lead.avatar_url} alt={p.lead.full_name} />}
+                <AvatarFallback className="text-[10px]">{getInitials(p.lead.full_name)}</AvatarFallback>
+              </Avatar>
+              <span className="text-xs text-foreground truncate">{p.lead.full_name}</span>
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground">No lead</span>
+          )}
+        </div>
+
+        {canSeeTeam && (
+          <div className="shrink-0">
+            <TeamMembersStack members={team} />
+          </div>
+        )}
+
+        {isManager && p.is_active && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 shrink-0"
+            onClick={e => { e.stopPropagation(); onDeactivate(); }}
+            aria-label="Deactivate project"
+          >
+            <XCircle className="h-4 w-4 text-destructive" />
+          </Button>
+        )}
+      </div>
+
+      {/* Expanded panel */}
+      {!isCollapsed && (
+        <div className="border-t border-border bg-muted/20 px-4 py-4 space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Left column: Scope + Notes */}
+            <div className="space-y-4">
+              <Section icon={<FileText className="h-3.5 w-3.5" />} title="Scope of Work">
+                <p className="text-sm text-foreground whitespace-pre-wrap">
+                  {p.scope_of_work?.trim() || <span className="text-muted-foreground italic">No scope defined</span>}
+                </p>
+              </Section>
+              <Section title="Notes / Progress">
+                <p className="text-sm text-foreground whitespace-pre-wrap">
+                  {p.notes?.trim() || <span className="text-muted-foreground italic">No notes</span>}
+                </p>
+              </Section>
+            </div>
+
+            {/* Right column: meta */}
+            <div className="space-y-2 text-sm">
+              {canSeeClient && (
+                <MetaRow label="Client">
+                  {p.clients?.id ? (
+                    <Link to={`/clients/${p.clients.id}`} className="text-primary hover:underline" onClick={e => e.stopPropagation()}>
+                      {p.clients.name}
+                    </Link>
+                  ) : '—'}
+                </MetaRow>
+              )}
+              {canSeeFinancial && (
+                <MetaRow label="Fee">
+                  {p.fee != null && p.fee > 0 ? Number(p.fee).toLocaleString() : '—'}
+                </MetaRow>
+              )}
+              {canSeeFinancial && (
+                <MetaRow label="Client Deadline">{formatDate(p.client_deadline) || '—'}</MetaRow>
+              )}
+              <MetaRow label="Internal Deadline">{formatDate(p.internal_deadline) || '—'}</MetaRow>
+              {p.priority && (
+                <MetaRow label="Priority">
+                  <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>
+                </MetaRow>
+              )}
+              {p.project_categories?.name && (
+                <MetaRow label="Category">{p.project_categories.name}</MetaRow>
+              )}
+            </div>
+          </div>
+
+          {/* Team members */}
+          {canSeeTeam && (
+            <Section icon={<Users className="h-3.5 w-3.5" />} title={`Team Members (${team.length})`}>
+              {team.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No team members assigned</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {team.map(m => (
+                    <div key={m.id} className="flex items-center gap-2 p-2 rounded-md bg-card border border-border">
+                      <Avatar className="h-7 w-7">
+                        {m.avatar_url && <AvatarImage src={m.avatar_url} alt={m.full_name} />}
+                        <AvatarFallback className="text-[10px]">{getInitials(m.full_name)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{m.full_name}</p>
+                        {m.designation && <p className="text-xs text-muted-foreground truncate">{m.designation}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Section>
+          )}
+
+          {/* Tasks placeholder (no tasks table in DB yet) */}
+          <Section icon={<ListChecks className="h-3.5 w-3.5" />} title="Tasks">
+            <p className="text-sm text-muted-foreground">No tasks yet</p>
+          </Section>
+
+          {/* Activity log */}
+          <Section icon={<History className="h-3.5 w-3.5" />} title="Activity">
+            <InlineActivityLog projectId={p.id} companyId={companyId} />
+          </Section>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Section = ({ icon, title, children }: { icon?: React.ReactNode; title: string; children: React.ReactNode }) => (
+  <div className="space-y-2">
+    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+      {icon}{title}
+    </h3>
+    {children}
+  </div>
+);
+
+const MetaRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="flex items-center justify-between gap-3 py-1">
+    <span className="text-muted-foreground text-xs">{label}</span>
+    <span className="text-foreground text-sm text-right">{children}</span>
+  </div>
+);
+
+interface InlineActivityLogProps {
+  projectId: string;
+  companyId: string;
+}
+
+const InlineActivityLog = ({ projectId, companyId }: InlineActivityLogProps) => {
+  const [showAll, setShowAll] = useState(false);
+  const { data: logs, isLoading } = useQuery({
+    queryKey: ['project-activity-inline', projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_activity_logs')
+        .select('id, action, old_value, new_value, created_at, employees:employees!project_activity_logs_employee_id_fkey(full_name)')
+        .eq('project_id', projectId)
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!projectId && !!companyId,
+  });
+
+  if (isLoading) return <Skeleton className="h-12 w-full" />;
+  if (!logs || logs.length === 0) return <p className="text-sm text-muted-foreground">No activity yet</p>;
+
+  const visible = showAll ? logs : logs.slice(0, 3);
+  const formatValue = (action: string, value: string | null) => {
+    if (!value) return '—';
+    if (action === 'status_changed') return fmt(value);
+    if (action === 'deadline_changed') return formatDate(value);
+    return value;
+  };
+  const actionLabels: Record<string, string> = {
+    status_changed: 'Status',
+    deadline_changed: 'Deadline',
+  };
+
+  return (
+    <div className="space-y-2">
+      <ul className="space-y-1.5">
+        {visible.map((log: any) => (
+          <li key={log.id} className="text-xs flex items-baseline justify-between gap-3">
+            <span className="text-foreground">
+              <span className="text-muted-foreground">{actionLabels[log.action] || fmt(log.action)}:</span>{' '}
+              <span className="text-muted-foreground">{formatValue(log.action, log.old_value)}</span>
+              <span className="mx-1.5 text-muted-foreground">→</span>
+              <span className="font-medium">{formatValue(log.action, log.new_value)}</span>
+              <span className="text-muted-foreground"> by {log.employees?.full_name || 'Unknown'}</span>
+            </span>
+            <span className="text-muted-foreground whitespace-nowrap">
+              {new Date(log.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {logs.length > 3 && (
+        <button
+          type="button"
+          className="text-xs text-primary hover:underline"
+          onClick={() => setShowAll(s => !s)}
+        >
+          {showAll ? 'Show less' : `View all (${logs.length})`}
+        </button>
+      )}
+    </div>
+  );
+};
+
+interface StatusCellProps {
+  project: any;
+  canEdit: boolean;
+  companyId: string;
+  employeeId: string;
+}
+
+const StatusCell = ({ project, canEdit, companyId, employeeId }: StatusCellProps) => {
   const qc = useQueryClient();
   const [optimistic, setOptimistic] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
@@ -431,6 +695,7 @@ const StatusCell = ({ project, canEdit, fmt, companyId, employeeId }: StatusCell
       setTimeout(() => setOptimistic(null), 50);
       qc.invalidateQueries({ queryKey: ['projects'] });
       qc.invalidateQueries({ queryKey: ['project-activity'] });
+      qc.invalidateQueries({ queryKey: ['project-activity-inline'] });
     },
     onError: (e: Error) => {
       setOptimistic(null);
@@ -531,6 +796,7 @@ const DeadlineCell = ({ project, canEdit, companyId, employeeId, isDueToday }: D
       setTimeout(() => setOptimistic(undefined), 50);
       qc.invalidateQueries({ queryKey: ['projects'] });
       qc.invalidateQueries({ queryKey: ['project-activity'] });
+      qc.invalidateQueries({ queryKey: ['project-activity-inline'] });
     },
     onError: (e: Error) => {
       setOptimistic(undefined);
@@ -566,7 +832,7 @@ const DeadlineCell = ({ project, canEdit, companyId, employeeId, isDueToday }: D
               </Tooltip>
             </TooltipProvider>
           )}
-          <span>{formatDate(value)}</span>
+          <span>{formatDate(value) || '—'}</span>
           {canEdit && (
             <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
           )}
