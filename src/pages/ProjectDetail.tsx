@@ -287,8 +287,8 @@ const ProjectDetail = () => {
         </div>
       )}
 
-      {/* Activity Log */}
-      {companyId && (
+      {/* Activity Log — managers only */}
+      {canSeeActivity && companyId && (
         <ProjectActivityLog projectId={id!} companyId={companyId} />
       )}
 
