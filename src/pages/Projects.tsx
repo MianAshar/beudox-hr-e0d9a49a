@@ -23,6 +23,7 @@ import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
 
 const getInitials = (name: string) =>
   name
