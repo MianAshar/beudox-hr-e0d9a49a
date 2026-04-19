@@ -47,6 +47,7 @@ const navSections = [
       { title: 'Evaluations', icon: ClipboardCheck, path: '/evaluations' },
       { title: 'Daily Evaluations', icon: ClipboardList, path: '/evaluations/daily' },
       { title: 'HR Policies', icon: FileText, path: '/hr-policies' },
+      { title: 'Job Descriptions', icon: FileText, path: '/job-descriptions' },
     ],
   },
   {
