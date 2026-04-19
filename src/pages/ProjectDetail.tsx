@@ -10,10 +10,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play } from 'lucide-react';
+import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play, UserCog } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
+import { ManageTeamModal } from '@/components/projects/ManageTeamModal';
 import { ListChecks } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
@@ -40,8 +41,13 @@ const ProjectDetail = () => {
   const companyId = employee?.company_id;
   const isManager = role === 'hr_manager' || role === 'ceo';
   const isCeo = role === 'ceo';
+  const isTeamLead = role === 'team_lead';
+  const canEditDetails = isManager;
+  const canDeactivate = isManager;
   const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
+  const canSeeFinancial = isManager;
   const canManageTasks = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
+  const canManageTeam = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
   const canSeeActivity = role === 'hr_manager' || role === 'ceo';
   const canStartProject = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
   const employeeId = employee?.employee_id;
@@ -50,6 +56,7 @@ const ProjectDetail = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [startOpen, setStartOpen] = useState(false);
+  const [manageTeamOpen, setManageTeamOpen] = useState(false);
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project-detail', id, companyId],
@@ -186,7 +193,12 @@ const ProjectDetail = () => {
               <Play className="h-4 w-4 mr-2" /> Start Project
             </Button>
           )}
-          {isManager && (
+          {isTeamLead && (
+            <Button variant="outline" onClick={() => setManageTeamOpen(true)}>
+              <UserCog className="h-4 w-4 mr-2" /> Manage Team
+            </Button>
+          )}
+          {canEditDetails && (
             <>
               <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
                 <Pencil className="h-4 w-4 mr-2" /> Edit
@@ -273,9 +285,16 @@ const ProjectDetail = () => {
 
       {/* Team */}
       <div className="rounded-lg border bg-card p-5 space-y-4">
-        <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <Users className="h-4 w-4" /> Team Members ({teamMembers?.length || 0})
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Users className="h-4 w-4" /> Team Members ({teamMembers?.length || 0})
+          </h2>
+          {canManageTeam && (
+            <Button variant="outline" size="sm" onClick={() => setManageTeamOpen(true)}>
+              <UserCog className="h-4 w-4 mr-2" /> Manage Team
+            </Button>
+          )}
+        </div>
         {teamMembers && teamMembers.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {teamMembers.map((a: any) => {
@@ -390,6 +409,18 @@ const ProjectDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manage Team Modal */}
+      {canManageTeam && companyId && employeeId && (
+        <ManageTeamModal
+          open={manageTeamOpen}
+          onOpenChange={setManageTeamOpen}
+          projectId={id!}
+          projectName={project.project_name}
+          companyId={companyId}
+          currentUserId={employeeId}
+        />
+      )}
     </div>
   );
 };

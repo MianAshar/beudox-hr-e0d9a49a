@@ -24,6 +24,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
+import { ManageTeamModal } from '@/components/projects/ManageTeamModal';
 
 const getInitials = (name: string) =>
   name
@@ -183,6 +184,7 @@ const Projects = () => {
   const canEditStatus = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const canEditDeadline = canEditStatus;
   const canSeeActivity = role === 'hr_manager' || role === 'ceo';
+  const canManageTeam = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const employeeId = employee?.employee_id;
 
   const [search, setSearch] = useState('');
@@ -191,6 +193,7 @@ const Projects = () => {
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<any>(null);
+  const [manageTeamProject, setManageTeamProject] = useState<any>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<string>('default');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -536,6 +539,8 @@ const Projects = () => {
                 onToggle={() => toggleOne(p.id)}
                 onOpenDetail={() => navigate(`/projects/${p.id}`)}
                 onDeactivate={() => setDeactivateTarget(p)}
+                onManageTeam={() => setManageTeamProject(p)}
+                canManageTeam={canManageTeam}
                 isDueToday={isDueToday}
                 isManager={isManager}
                 canSeeClient={canSeeClient}
@@ -570,6 +575,18 @@ const Projects = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manage Team Modal */}
+      {manageTeamProject && companyId && employeeId && (
+        <ManageTeamModal
+          open={!!manageTeamProject}
+          onOpenChange={(open) => { if (!open) setManageTeamProject(null); }}
+          projectId={manageTeamProject.id}
+          projectName={manageTeamProject.project_name}
+          companyId={companyId}
+          currentUserId={employeeId}
+        />
+      )}
     </div>
   );
 };
@@ -582,11 +599,13 @@ interface ProjectCardProps {
   onToggle: () => void;
   onOpenDetail: () => void;
   onDeactivate: () => void;
+  onManageTeam: () => void;
   isDueToday: boolean;
   isManager: boolean;
   canSeeClient: boolean;
   canSeeFinancial: boolean;
   canSeeTeam: boolean;
+  canManageTeam: boolean;
   canEditStatus: boolean;
   canEditDeadline: boolean;
   canSeeActivity: boolean;
@@ -596,8 +615,8 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({
-  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, isDueToday,
-  isManager, canSeeClient, canSeeFinancial, canSeeTeam, canEditStatus, canEditDeadline, canSeeActivity,
+  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, onManageTeam, isDueToday,
+  isManager, canSeeClient, canSeeFinancial, canSeeTeam, canManageTeam, canEditStatus, canEditDeadline, canSeeActivity,
   companyId, employeeId, role,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
@@ -683,8 +702,19 @@ const ProjectCard = ({
 
         {/* Team Members — 120px */}
         {canSeeTeam && (
-          <div className="w-[120px] shrink-0">
-            <TeamMembersStack members={team} />
+          <div className="w-[120px] shrink-0" onClick={e => e.stopPropagation()}>
+            {canManageTeam ? (
+              <button
+                type="button"
+                className="rounded-md hover:bg-muted/40 px-1 py-0.5 -mx-1 -my-0.5 transition-colors cursor-pointer"
+                onClick={onManageTeam}
+                title="Manage team"
+              >
+                <TeamMembersStack members={team} />
+              </button>
+            ) : (
+              <TeamMembersStack members={team} />
+            )}
           </div>
         )}
 
