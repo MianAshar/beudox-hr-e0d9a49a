@@ -97,7 +97,7 @@ async function logProjectActivity(params: {
 const STATUS_OPTIONS = ['pending', 'in_progress', 'qc_required', 'on_hold', 'completed', 'cancelled', 'delayed'];
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-slate-100 text-slate-700',
+  pending: 'bg-[#F3F4F6] text-[#374151] hover:bg-[#F3F4F6]',
   in_progress: 'bg-blue-100 text-blue-700',
   qc_required: 'bg-amber-100 text-amber-700',
   completed: 'bg-green-100 text-green-700',

@@ -42,7 +42,7 @@ const ProjectForm = () => {
     internal_deadline: undefined as Date | undefined,
     project_lead_id: '',
     priority: '',
-    status: 'in_progress',
+    status: 'pending',
     notes: '',
   });
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
