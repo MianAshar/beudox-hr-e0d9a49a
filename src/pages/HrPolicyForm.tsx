@@ -52,35 +52,25 @@ const HrPolicyForm = () => {
 
     try {
       if (isEdit && existing) {
-        // Mark current version as not current
-        await supabase
+        // Update in place — no versioning for HR policies.
+        const { error } = await supabase
           .from('hr_documents')
-          .update({ is_current: false })
+          .update({
+            title: title.trim(),
+            content,
+            published_at: publishNow
+              ? (existing.published_at ?? new Date().toISOString())
+              : existing.published_at,
+            updated_by: employee!.employee_id,
+          })
           .eq('id', existing.id)
           .eq('company_id', employee!.company_id);
 
-        // Insert new version
-        const { data, error } = await supabase
-          .from('hr_documents')
-          .insert({
-            company_id: employee!.company_id,
-            title: title.trim(),
-            document_type: 'policy',
-            content,
-            version_number: existing.version_number + 1,
-            is_current: true,
-            designation: existing.designation,
-            published_at: publishNow ? new Date().toISOString() : null,
-            created_by: employee!.employee_id,
-          })
-          .select()
-          .single();
-
         if (error) throw error;
-        toast.success(`Policy saved as v${existing.version_number + 1}`);
+        toast.success('Policy saved');
         queryClient.invalidateQueries({ queryKey: ['hr-policies'] });
         queryClient.invalidateQueries({ queryKey: ['hr-policy'] });
-        navigate(`/hr-policies/${data.id}`);
+        navigate(`/hr-policies/${existing.id}`);
       } else {
         // Create new policy
         const { data, error } = await supabase
@@ -129,11 +119,6 @@ const HrPolicyForm = () => {
         <h1 className="text-2xl font-bold text-foreground">
           {isEdit ? 'Edit Policy' : 'New Policy'}
         </h1>
-        {isEdit && existing && (
-          <p className="text-sm text-muted-foreground mt-1">
-            Currently v{existing.version_number}, saving as v{existing.version_number + 1}
-          </p>
-        )}
       </div>
 
       <div className="space-y-4">

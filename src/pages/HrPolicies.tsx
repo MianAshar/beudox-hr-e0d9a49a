@@ -26,13 +26,11 @@ const HrPolicies = () => {
         .select('*')
         .eq('company_id', employee!.company_id)
         .eq('document_type', 'policy')
-        .order('title', { ascending: true })
-        .order('version_number', { ascending: false });
+        .eq('is_current', true)
+        .order('title', { ascending: true });
 
       if (!isManager) {
-        query = query.eq('is_current', true).not('published_at', 'is', null);
-      } else {
-        query = query.eq('is_current', true);
+        query = query.not('published_at', 'is', null);
       }
 
       const { data, error } = await query;
@@ -113,7 +111,6 @@ const HrPolicies = () => {
             >
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-semibold text-foreground line-clamp-2 flex-1 mr-2">{policy.title}</h3>
-                <Badge variant="secondary" className="shrink-0 text-xs">v{policy.version_number}</Badge>
               </div>
               <div className="flex items-center gap-2 mb-4">
                 <Badge variant={policy.published_at ? 'default' : 'outline'} className="text-xs">
