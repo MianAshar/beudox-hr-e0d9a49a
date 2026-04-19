@@ -692,7 +692,7 @@ const ProjectCard = ({
               <button
                 type="button"
                 className="rounded-md hover:bg-muted/40 px-1 py-0.5 -mx-1 -my-0.5 transition-colors cursor-pointer"
-                onClick={() => setManageTeamProject(p)}
+                onClick={onManageTeam}
                 title="Manage team"
               >
                 <TeamMembersStack members={team} />
