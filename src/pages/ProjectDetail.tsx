@@ -372,6 +372,24 @@ const ProjectDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Start Project Dialog */}
+      <Dialog open={startOpen} onOpenChange={setStartOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Start Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to start this project? Assigned team members will be able to see it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStartOpen(false)}>Cancel</Button>
+            <Button onClick={() => startMutation.mutate()} disabled={startMutation.isPending}>
+              {startMutation.isPending ? 'Starting…' : 'Start Project'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
