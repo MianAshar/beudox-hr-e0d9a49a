@@ -218,31 +218,51 @@ const Clients = () => {
     const isActive = activityFilter === category;
     const styles = ACTIVITY_STYLES[category];
     return (
-      <button
-        onClick={() => setActivityFilter(isActive ? 'all' : category)}
-        className="rounded-[14px] bg-card text-left transition-all hover:shadow-sm"
-        style={{
-          border: isActive ? `1.5px solid ${styles.text}` : '1px solid rgba(91,63,248,0.15)',
-          padding: '12px 16px',
-          maxHeight: 80,
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-              {ACTIVITY_LABELS[category]}
-            </p>
-            <p className="text-[18px] font-semibold mt-0.5" style={{ fontFamily: 'Outfit, sans-serif', color: '#120E36' }}>
-              {count}
-            </p>
-          </div>
-          <span
-            className="h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: styles.text }}
-            aria-hidden
-          />
-        </div>
-      </button>
+      <Tooltip delayDuration={150}>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => setActivityFilter(isActive ? 'all' : category)}
+            className="rounded-[14px] bg-card text-left transition-all hover:shadow-sm"
+            style={{
+              border: isActive ? `1.5px solid ${styles.text}` : '1px solid rgba(91,63,248,0.15)',
+              padding: '12px 16px',
+              maxHeight: 80,
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                  {ACTIVITY_LABELS[category]}
+                </p>
+                <p className="text-[18px] font-semibold mt-0.5" style={{ fontFamily: 'Outfit, sans-serif', color: '#120E36' }}>
+                  {count}
+                </p>
+              </div>
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: styles.text }}
+                aria-hidden
+              />
+            </div>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent
+          side="bottom"
+          sideOffset={8}
+          className="border-0 text-white"
+          style={{
+            backgroundColor: '#1A1240',
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: 12,
+            lineHeight: 1.4,
+            padding: 8,
+            borderRadius: 8,
+            maxWidth: 200,
+          }}
+        >
+          {ACTIVITY_DESCRIPTIONS[category]}
+        </TooltipContent>
+      </Tooltip>
     );
   };
 
