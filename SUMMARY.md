@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: c3170ac3be14d8a64f3396e1e79f905f52fb9f93
-generated_at: 2026-04-19T14:20:27.922Z
+source_sha: f87bebdf9a6729bb6c4fd93b276bccf813582fd5
+generated_at: 2026-04-19T14:27:41.859Z
 action: create
 -->
 
@@ -11,88 +11,147 @@ action: create
 
 **Repository**: MianAshar/beudox-hr-e0d9a49a  
 **Type**: Frontend Application (React/TypeScript)  
-**Primary Purpose**: Human Resources Management System  
-**Stage**: Baseline Analysis  
-**Files Analyzed**: 194 total (143 TypeScript, 26 SQL migrations, 6 JSON configs)
+**Primary Language**: TypeScript (143 files)  
+**Total Files**: 194 (1.8MB)  
+**Symbols**: 350 total (285 public)
+
+## Architecture Analysis
+
+### Technology Stack
+- **Frontend Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Routing**: React Router v6
+- **Styling**: Tailwind CSS + ShadCN/UI components
+- **State Management**: React Query + React Context
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **Forms**: React Hook Form + Zod validation
+- **Charts**: Recharts
+- **Rich Text**: TipTap editor
+
+### Application Structure
+- **Single Page Application** with client-side routing
+- **Component-based architecture** following atomic design principles
+- **Feature-based organization** with clear separation of concerns
+- **Role-based access control** with frontend and backend enforcement
+- **Real-time capabilities** using Supabase subscriptions
 
 ## Key Findings
 
-### Application Architecture
-- **Framework**: React 18 with TypeScript, built with Vite
-- **UI Library**: shadcn/ui components with Tailwind CSS styling
-- **Backend**: Supabase (PostgreSQL with real-time capabilities)
-- **Routing**: React Router DOM for client-side navigation
-- **State Management**: TanStack Query for server state, React Context for auth
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
-
 ### Core Features Identified
-1. **Employee Management**: Profile management with searchable selection
-2. **Performance Evaluations**: Bi-annual and daily evaluation system with timelines
-3. **Payroll & Finance**: Automated payroll with OT/bonus calculations and expense tracking
-4. **Leave Management**: Request system with balance tracking and approvals
-5. **Project Management**: Task tracking and activity logging
-6. **HR Administration**: Company settings, departments, roles, and policies
-
-### Component Architecture
-- **Modular Design**: Components organized by feature domains (evaluations, finance, leave, etc.)
-- **Reusable UI**: Extensive use of shadcn/ui base components
-- **Layout System**: AppLayout with sidebar navigation and topbar
-- **Data Components**: Query-based components with loading states and error handling
+1. **Employee Management**: Complete CRUD operations with role assignments
+2. **Authentication System**: Supabase Auth with email/password and password reset
+3. **Evaluation System**: Quarterly and daily performance reviews
+4. **Financial Management**: Payroll, expenses, invoices with PDF generation
+5. **Leave Management**: Request/approval workflow with balance tracking
+6. **Project Management**: Task assignment and client relationships
+7. **HR Policies**: Rich text policy documents
+8. **Settings**: Configurable departments, roles, and parameters
 
 ### Database Integration
-- **Supabase Client**: Centralized configuration with environment variables
-- **Type Safety**: Generated TypeScript types from database schema
-- **Real-time Updates**: Subscription capabilities for live data
-- **Migrations**: 26 SQL migration files indicating active schema evolution
+- **26 SQL migrations** indicating comprehensive schema evolution
+- **Supabase Edge Functions** for serverless operations (payroll, invoices, notifications)
+- **Row Level Security** policies for data access control
+- **Real-time subscriptions** for live updates
 
-## Technical Insights
+### Component Architecture
+- **UI Components**: 50+ ShadCN/UI components (buttons, forms, tables, etc.)
+- **Feature Components**: Specialized components for HR functions
+- **Layout Components**: App shell with sidebar navigation and top bar
+- **Page Components**: Route-level components with data fetching
 
-### Code Quality Patterns
-- **TypeScript Usage**: Strong typing throughout with interfaces for props and data
-- **Component Composition**: Higher-order components and render props patterns
-- **Hook-based Logic**: Custom hooks for reusable business logic
-- **Error Boundaries**: Graceful error handling with user feedback
+### Code Quality Indicators
+- **TypeScript**: Full type safety throughout the codebase
+- **ESLint Configuration**: Code quality enforcement
+- **Testing Setup**: Vitest for unit tests, Playwright for E2E
+- **Consistent Patterns**: Utility functions, custom hooks, and naming conventions
 
-### Data Flow Patterns
-- **Query Optimization**: Efficient caching and background updates
-- **Optimistic Updates**: Immediate UI feedback for mutations
-- **Role-based Filtering**: Context-aware data access and visibility
-- **Date Handling**: Consistent formatting and timezone management
-
-### UI/UX Patterns
-- **Responsive Design**: Mobile-first approach with grid layouts
-- **Accessibility**: Proper ARIA labels and keyboard navigation
-- **Loading States**: Skeleton components for better perceived performance
-- **Toast Notifications**: User feedback system for actions and errors
-
-## Notable Implementation Details
+## Business Logic Insights
 
 ### Evaluation System
-- Combines quarterly and daily evaluations in unified timeline
-- Role-based visibility (managers see recommendations, employees see limited data)
-- Scoring system with star ratings and directional feedback
+- **Dual Evaluation Types**: Formal quarterly reviews vs. daily feedback
+- **Role-based Visibility**: Different access levels for managers vs. employees
+- **Timeline Display**: Chronological evaluation history with filtering
+- **Scoring System**: 1-5 star ratings with comments and recommendations
 
-### Financial Dashboard
-- 6-month trend analysis with Recharts visualization
-- Currency formatting (PKR) with proper localization
-- Comparative analysis (month-over-month percentage changes)
+### Financial Calculations
+- **Payroll Complexity**: Base salary + overtime (regular/holiday) + bonuses - deductions
+- **Expense Tracking**: Monthly categorization with approval workflows
+- **Invoice Generation**: PDF creation with client billing details
+- **Dashboard Analytics**: 6-month trend analysis with percentage changes
 
-### Employee Selection
-- Searchable dropdown with avatar display
-- Support for "All" option and designation filtering
-- Keyboard navigation and accessibility features
+### Leave Management
+- **Balance Calculations**: Working days excluding weekends/holidays
+- **Approval Workflow**: Role-based approval permissions
+- **Type Configuration**: Flexible leave categories (vacation, sick, etc.)
+- **Usage Tracking**: Historical leave requests and balances
 
-## Areas for Potential Enhancement
+## Technical Patterns Observed
 
-- **Documentation**: Current README is placeholder - comprehensive docs now created
-- **Testing Coverage**: Basic test setup exists but may need expansion
-- **Performance**: Large component bundles could benefit from code splitting
-- **Internationalization**: Currently English-only, potential for multi-language support
+### State Management
+- **React Query**: Primary data fetching with caching and optimistic updates
+- **Auth Context**: Global user state management
+- **Local State**: Component-level UI state
+- **Real-time Updates**: Supabase subscriptions for live data
 
-## Documentation Generated
+### Data Flow
+- **API Layer**: Supabase client with type-safe queries
+- **Error Handling**: React Query error boundaries and toast notifications
+- **Loading States**: Skeleton components and loading indicators
+- **Form Validation**: Zod schemas with React Hook Form
 
-- **README.md**: Complete project overview, setup instructions, and feature descriptions
-- **llms.txt**: Technical context for AI assistants with architecture details
-- **SUMMARY.md**: This analysis summary
+### Performance Optimizations
+- **Query Caching**: React Query background refetching
+- **Lazy Loading**: Route-based code splitting
+- **Image Optimization**: Supabase Storage with responsive images
+- **Bundle Optimization**: Vite tree shaking and minification
 
-The codebase demonstrates a well-structured, modern React application with strong separation of concerns, comprehensive feature set, and solid foundation for HR management operations.
+## Security Architecture
+
+### Authentication
+- **Supabase Auth**: JWT-based session management
+- **Password Reset**: Secure token-based recovery
+- **Session Persistence**: Automatic token refresh
+
+### Authorization
+- **Role-based Access**: Frontend route protection and UI rendering
+- **Database Security**: RLS policies enforcing data access
+- **API Security**: Authenticated requests with proper scoping
+
+### Data Protection
+- **Input Validation**: Client and server-side validation
+- **File Upload Security**: Type checking and size limits
+- **Audit Trail**: Activity logging for sensitive operations
+
+## Development Workflow
+
+### Tooling
+- **Package Manager**: npm/bun support
+- **Version Control**: Git with conventional commits
+- **Code Quality**: ESLint + TypeScript strict mode
+- **Testing**: Unit tests (Vitest) + E2E tests (Playwright)
+
+### Configuration
+- **Environment Variables**: Supabase configuration
+- **Build Configuration**: Vite with development/production modes
+- **Database**: Migration-based schema management
+- **Deployment**: Static site generation ready
+
+## Recommendations for Documentation
+
+### Immediate Needs
+- **API Documentation**: While frontend-focused, document key Supabase functions
+- **Setup Guide**: Detailed environment and database setup
+- **Architecture Diagrams**: Visual representation of data flow
+- **Testing Guide**: How to run and write tests
+
+### Maintenance Considerations
+- **Changelog**: Track feature additions and breaking changes
+- **Migration Guide**: Database schema evolution
+- **Performance Monitoring**: Key metrics and optimization targets
+- **Security Updates**: Regular dependency and security audits
+
+## Conclusion
+
+This is a well-architected, feature-rich HR management system built with modern web technologies. The codebase demonstrates strong engineering practices with comprehensive TypeScript usage, proper separation of concerns, and scalable architecture patterns. The integration with Supabase provides a robust backend foundation with real-time capabilities and security features.
+
+The analysis reveals a production-ready application with sophisticated business logic for HR operations, financial management, and performance tracking. The component architecture and state management patterns indicate a maintainable and extensible codebase suitable for enterprise use.
