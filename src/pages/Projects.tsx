@@ -134,7 +134,7 @@ const Projects = () => {
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<any>(null);
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', companyId, role, showInactive],
@@ -241,16 +241,16 @@ const Projects = () => {
     return true;
   });
 
-  const allCollapsed = filtered.length > 0 && filtered.every((p: any) => collapsedIds.has(p.id));
+  const allExpanded = filtered.length > 0 && filtered.every((p: any) => expandedIds.has(p.id));
   const toggleAll = () => {
-    if (allCollapsed) {
-      setCollapsedIds(new Set());
+    if (allExpanded) {
+      setExpandedIds(new Set());
     } else {
-      setCollapsedIds(new Set(filtered.map((p: any) => p.id)));
+      setExpandedIds(new Set(filtered.map((p: any) => p.id)));
     }
   };
   const toggleOne = (id: string) => {
-    setCollapsedIds(prev => {
+    setExpandedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
@@ -320,10 +320,10 @@ const Projects = () => {
           disabled={filtered.length === 0}
           className={cn(!isManager && 'ml-auto')}
         >
-          {allCollapsed ? (
-            <><ChevronsUpDown className="h-4 w-4 mr-2" /> Expand All</>
-          ) : (
+          {allExpanded ? (
             <><ChevronsDownUp className="h-4 w-4 mr-2" /> Collapse All</>
+          ) : (
+            <><ChevronsUpDown className="h-4 w-4 mr-2" /> Expand All</>
           )}
         </Button>
       </div>
@@ -342,7 +342,7 @@ const Projects = () => {
         <div className="space-y-3">
           {filtered.map((p: any) => {
             const isDueToday = p.internal_deadline === todayIso;
-            const isCollapsed = collapsedIds.has(p.id);
+            const isCollapsed = !expandedIds.has(p.id);
             const team = teamByProject.get(p.id) ?? [];
             return (
               <ProjectCard
@@ -412,19 +412,30 @@ const ProjectCard = ({
   isManager, canSeeClient, canSeeFinancial, canSeeTeam, canEditStatus, canEditDeadline,
   companyId, employeeId,
 }: ProjectCardProps) => {
+  const isExpanded = !isCollapsed;
   return (
     <div
       className={cn(
-        'rounded-[14px] border bg-card overflow-hidden transition-colors',
-        isDueToday && 'bg-[#FEF3C7]',
+        'rounded-[14px] border overflow-hidden transition-colors',
+        isExpanded ? '' : 'bg-card',
+        isDueToday && !isExpanded && 'bg-[#FEF3C7]',
       )}
-      style={{ borderColor: 'hsl(var(--border))' }}
+      style={{
+        borderColor: 'hsl(var(--border))',
+        ...(isExpanded
+          ? {
+              backgroundColor: '#F6F5FF',
+              borderLeft: '3px solid #5B3FF8',
+            }
+          : {}),
+      }}
     >
       {/* Header row (always visible) */}
       <div
         className={cn(
-          'flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/40 transition-colors',
-          isDueToday && 'hover:bg-[#FEF3C7]/80',
+          'flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors',
+          isExpanded ? 'hover:bg-[#EFEDFF]' : 'hover:bg-muted/40',
+          isDueToday && !isExpanded && 'hover:bg-[#FEF3C7]/80',
         )}
         onClick={onToggle}
       >
@@ -492,7 +503,10 @@ const ProjectCard = ({
 
       {/* Expanded panel */}
       {!isCollapsed && (
-        <div className="border-t border-border bg-muted/20 px-4 py-4 space-y-5">
+        <div
+          className="px-4 py-4 space-y-5"
+          style={{ borderTop: '1px solid rgba(91,63,248,0.15)' }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Left column: Scope + Notes */}
             <div className="space-y-4">
