@@ -183,6 +183,7 @@ const Projects = () => {
   const canEditStatus = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const canEditDeadline = canEditStatus;
   const canSeeActivity = role === 'hr_manager' || role === 'ceo';
+  const canManageTeam = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
   const employeeId = employee?.employee_id;
 
   const [search, setSearch] = useState('');
@@ -191,6 +192,7 @@ const Projects = () => {
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<any>(null);
+  const [manageTeamProject, setManageTeamProject] = useState<any>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<string>('default');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
