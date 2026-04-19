@@ -629,6 +629,7 @@ export type Database = {
           employment_type: string | null
           full_name: string
           id: string
+          in_app_notifications_enabled: boolean | null
           increment_rule: string | null
           joining_date: string | null
           notifications_enabled: boolean
@@ -653,6 +654,7 @@ export type Database = {
           employment_type?: string | null
           full_name: string
           id?: string
+          in_app_notifications_enabled?: boolean | null
           increment_rule?: string | null
           joining_date?: string | null
           notifications_enabled?: boolean
@@ -677,6 +679,7 @@ export type Database = {
           employment_type?: string | null
           full_name?: string
           id?: string
+          in_app_notifications_enabled?: boolean | null
           increment_rule?: string | null
           joining_date?: string | null
           notifications_enabled?: boolean
@@ -1666,6 +1669,48 @@ export type Database = {
             columns: ["line_item_id"]
             isOneToOne: false
             referencedRelation: "expense_line_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          company_id: string
+          email_enabled: boolean | null
+          employee_id: string
+          id: string
+          in_app_enabled: boolean | null
+          notification_type: string
+        }
+        Insert: {
+          company_id: string
+          email_enabled?: boolean | null
+          employee_id: string
+          id?: string
+          in_app_enabled?: boolean | null
+          notification_type: string
+        }
+        Update: {
+          company_id?: string
+          email_enabled?: boolean | null
+          employee_id?: string
+          id?: string
+          in_app_enabled?: boolean | null
+          notification_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]

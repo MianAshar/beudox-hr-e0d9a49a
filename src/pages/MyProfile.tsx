@@ -6,10 +6,12 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { formatRole } from '@/lib/format-role';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { Loader2, Upload, Eye, EyeOff } from 'lucide-react';
+import NotificationPreferencesTab from '@/components/profile/NotificationPreferencesTab';
 
 const getInitials = (name: string) =>
   name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -124,7 +126,6 @@ const MyProfile = () => {
 
     setSavingPw(true);
     try {
-      // Verify current password
       const { error: signInErr } = await supabase.auth.signInWithPassword({
         email: user.email,
         password: currentPassword,
@@ -166,132 +167,160 @@ const MyProfile = () => {
     .join(', ');
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 p-6">
-      {/* Personal Details */}
-      <SectionCard title="Personal Details">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="flex flex-col items-center gap-3 shrink-0">
-            <Avatar className="h-24 w-24">
-              {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.full_name} />}
-              <AvatarFallback className="bg-primary/10 text-primary text-2xl font-semibold">
-                {getInitials(profile.full_name)}
-              </AvatarFallback>
-            </Avatar>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarUpload}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingAvatar}
+    <div className="max-w-4xl mx-auto p-6">
+      <Tabs defaultValue="personal" className="w-full">
+        <TabsList
+          className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start"
+          style={{ borderColor: 'hsl(var(--border))' }}
+        >
+          {[
+            { value: 'personal', label: 'Personal Details' },
+            { value: 'password', label: 'Change Password' },
+            { value: 'notifications', label: 'Notifications' },
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+              style={{ fontFamily: 'var(--ff-body)' }}
             >
-              {uploadingAvatar ? (
-                <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Uploading…</>
-              ) : (
-                <><Upload className="mr-2 h-3 w-3" /> Change Photo</>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <TabsContent value="personal" className="mt-6">
+          <SectionCard title="Personal Details">
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex flex-col items-center gap-3 shrink-0">
+                <Avatar className="h-24 w-24">
+                  {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.full_name} />}
+                  <AvatarFallback className="bg-primary/10 text-primary text-2xl font-semibold">
+                    {getInitials(profile.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                >
+                  {uploadingAvatar ? (
+                    <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Uploading…</>
+                  ) : (
+                    <><Upload className="mr-2 h-3 w-3" /> Change Photo</>
+                  )}
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 flex-1">
+                <InfoField label="Full Name" value={profile.full_name} />
+                <InfoField label="Email" value={profile.email} />
+                <InfoField label="Designation" value={profile.designation} />
+                <InfoField label="Department" value={profile.department} />
+                <InfoField
+                  label="Joining Date"
+                  value={profile.joining_date ? formatDate(profile.joining_date) : null}
+                />
+                <InfoField label="Employee Code" value={profile.employee_code} />
+                <InfoField label="Role(s)" value={roles || null} />
+              </div>
+            </div>
+          </SectionCard>
+        </TabsContent>
+
+        <TabsContent value="password" className="mt-6">
+          <SectionCard title="Change Password">
+            <form onSubmit={handlePasswordSave} className="space-y-4 max-w-md">
+              <div>
+                <Label htmlFor="current-password" className="text-[12px]">Current Password</Label>
+                <div className="relative mt-1">
+                  <Input
+                    id="current-password"
+                    type={showCurrent ? 'text' : 'password'}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    tabIndex={-1}
+                  >
+                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="new-password" className="text-[12px]">New Password</Label>
+                <div className="relative mt-1">
+                  <Input
+                    id="new-password"
+                    type={showNew ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew(!showNew)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    tabIndex={-1}
+                  >
+                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="confirm-password" className="text-[12px]">Confirm New Password</Label>
+                <div className="relative mt-1">
+                  <Input
+                    id="confirm-password"
+                    type={showConfirm ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    tabIndex={-1}
+                  >
+                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {pwError && (
+                <p className="text-[12px] text-destructive">{pwError}</p>
               )}
-            </Button>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 flex-1">
-            <InfoField label="Full Name" value={profile.full_name} />
-            <InfoField label="Email" value={profile.email} />
-            <InfoField label="Designation" value={profile.designation} />
-            <InfoField label="Department" value={profile.department} />
-            <InfoField
-              label="Joining Date"
-              value={profile.joining_date ? formatDate(profile.joining_date) : null}
-            />
-            <InfoField label="Employee Code" value={profile.employee_code} />
-            <InfoField label="Role(s)" value={roles || null} />
-          </div>
-        </div>
-      </SectionCard>
+              <Button type="submit" disabled={savingPw}>
+                {savingPw ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                ) : (
+                  'Save Password'
+                )}
+              </Button>
+            </form>
+          </SectionCard>
+        </TabsContent>
 
-      {/* Change Password */}
-      <SectionCard title="Change Password">
-        <form onSubmit={handlePasswordSave} className="space-y-4 max-w-md">
-          <div>
-            <Label htmlFor="current-password" className="text-[12px]">Current Password</Label>
-            <div className="relative mt-1">
-              <Input
-                id="current-password"
-                type={showCurrent ? 'text' : 'password'}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                tabIndex={-1}
-              >
-                {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="new-password" className="text-[12px]">New Password</Label>
-            <div className="relative mt-1">
-              <Input
-                id="new-password"
-                type={showNew ? 'text' : 'password'}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                tabIndex={-1}
-              >
-                {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="confirm-password" className="text-[12px]">Confirm New Password</Label>
-            <div className="relative mt-1">
-              <Input
-                id="confirm-password"
-                type={showConfirm ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                tabIndex={-1}
-              >
-                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          {pwError && (
-            <p className="text-[12px] text-destructive">{pwError}</p>
-          )}
-
-          <Button type="submit" disabled={savingPw}>
-            {savingPw ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
-            ) : (
-              'Save Password'
-            )}
-          </Button>
-        </form>
-      </SectionCard>
+        <TabsContent value="notifications" className="mt-6">
+          <NotificationPreferencesTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

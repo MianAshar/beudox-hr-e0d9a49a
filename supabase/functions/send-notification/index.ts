@@ -37,24 +37,64 @@ Deno.serve(async (req) => {
     const resendKey = Deno.env.get('RESEND_API_KEY');
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Filter out recipients who have notifications disabled
-    const { data: enabledEmployees } = await supabase
+    // Fetch recipient channel preferences (global toggles)
+    const { data: employees } = await supabase
       .from('employees')
-      .select('id')
-      .in('id', payload.recipient_ids)
-      .eq('notifications_enabled', true);
+      .select('id, email, notifications_enabled, in_app_notifications_enabled')
+      .in('id', payload.recipient_ids);
 
-    const enabledIds = new Set((enabledEmployees || []).map((e: any) => e.id));
-    const filteredRecipients = payload.recipient_ids.filter((id) => enabledIds.has(id));
+    const empMap = new Map(
+      (employees || []).map((e: any) => [
+        e.id,
+        {
+          email: e.email,
+          email_enabled: e.notifications_enabled !== false,
+          in_app_enabled: e.in_app_notifications_enabled !== false,
+        },
+      ]),
+    );
 
-    if (filteredRecipients.length === 0) {
-      return new Response(JSON.stringify({ success: true, count: 0, skipped: payload.recipient_ids.length }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Fetch per-type preferences for these recipients
+    const { data: prefs } = await supabase
+      .from('notification_preferences')
+      .select('employee_id, in_app_enabled, email_enabled')
+      .in('employee_id', payload.recipient_ids)
+      .eq('notification_type', payload.type);
+
+    const prefMap = new Map(
+      (prefs || []).map((p: any) => [
+        p.employee_id,
+        {
+          in_app: p.in_app_enabled !== false,
+          email: p.email_enabled !== false,
+        },
+      ]),
+    );
+
+    // Determine which recipients should receive in-app and which should receive email
+    const inAppRecipients: string[] = [];
+    const emailEnabledFor = new Set<string>();
+
+    for (const id of payload.recipient_ids) {
+      const emp = empMap.get(id);
+      if (!emp) continue;
+      // If no preference row, default true
+      const pref = prefMap.get(id) || { in_app: true, email: true };
+      const sendInApp = emp.in_app_enabled && pref.in_app;
+      const sendEmail = emp.email_enabled && pref.email;
+      if (sendInApp) inAppRecipients.push(id);
+      if (sendEmail) emailEnabledFor.add(id);
     }
 
-    // Insert notifications for each recipient
-    const notifications = filteredRecipients.map((recipientId) => ({
+    if (inAppRecipients.length === 0) {
+      return new Response(
+        JSON.stringify({ success: true, count: 0, skipped: payload.recipient_ids.length }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Insert in-app notifications only for those that pass both filters
+    const notifications = inAppRecipients.map((recipientId) => ({
       company_id: payload.company_id,
       recipient_id: recipientId,
       type: payload.type,
@@ -77,18 +117,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send emails if Resend key is available
+    // Send emails only to those whose email channel + type pref are both enabled
     if (resendKey && inserted) {
-      // Fetch recipient emails
-      const { data: employees } = await supabase
-        .from('employees')
-        .select('id, email')
-        .in('id', payload.recipient_ids);
-
-      const emailMap = new Map((employees || []).map((e: any) => [e.id, e.email]));
-
       for (const notif of inserted) {
-        const email = emailMap.get(notif.recipient_id);
+        if (!emailEnabledFor.has(notif.recipient_id)) continue;
+        const emp = empMap.get(notif.recipient_id);
+        const email = emp?.email;
         if (!email) continue;
 
         try {
@@ -123,7 +157,6 @@ Deno.serve(async (req) => {
           }
         } catch (emailErr) {
           console.error('Email send failed for', email, emailErr);
-          // Don't block - notification is still saved
         }
       }
     }
