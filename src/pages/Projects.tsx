@@ -473,6 +473,7 @@ const Projects = () => {
 interface ProjectCardProps {
   project: any;
   team: TeamMember[];
+  taskCount?: { total: number; completed: number };
   isCollapsed: boolean;
   onToggle: () => void;
   onOpenDetail: () => void;
@@ -486,14 +487,16 @@ interface ProjectCardProps {
   canEditDeadline: boolean;
   companyId: string;
   employeeId: string;
+  role?: string | null;
 }
 
 const ProjectCard = ({
-  project: p, team, isCollapsed, onToggle, onOpenDetail, onDeactivate, isDueToday,
+  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, isDueToday,
   isManager, canSeeClient, canSeeFinancial, canSeeTeam, canEditStatus, canEditDeadline,
-  companyId, employeeId,
+  companyId, employeeId, role,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
+  const canManageTasks = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
   return (
     <div
       className={cn(
