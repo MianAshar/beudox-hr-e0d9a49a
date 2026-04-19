@@ -10,10 +10,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play } from 'lucide-react';
+import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play, UserCog } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
+import { ManageTeamModal } from '@/components/projects/ManageTeamModal';
 import { ListChecks } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
