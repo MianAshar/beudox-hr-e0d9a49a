@@ -8,6 +8,7 @@ import RolesTab from '@/components/settings/RolesTab';
 import DangerZoneTab from '@/components/settings/DangerZoneTab';
 import ExpenseCategoriesTab from '@/components/settings/ExpenseCategoriesTab';
 import LeaveTypesTab from '@/components/settings/LeaveTypesTab';
+import ProjectCategoriesTab from '@/components/settings/ProjectCategoriesTab';
 
 const Settings = () => {
   const { employee } = useAuth();
@@ -37,6 +38,7 @@ const Settings = () => {
       : []),
     ...(!isHr ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
     ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
+    ...(isCeo || isHr ? [{ value: 'project-categories', label: 'Project Categories' }] : []),
     ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
@@ -75,6 +77,9 @@ const Settings = () => {
         )}
         {(isCeo || isHr) && (
           <TabsContent value="leave-types" className="mt-6"><LeaveTypesTab /></TabsContent>
+        )}
+        {(isCeo || isHr) && (
+          <TabsContent value="project-categories" className="mt-6"><ProjectCategoriesTab /></TabsContent>
         )}
         {isCeo && (
           <TabsContent value="danger" className="mt-6"><DangerZoneTab /></TabsContent>

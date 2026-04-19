@@ -296,7 +296,13 @@ const ProjectForm = () => {
             <Select value={form.category_id} onValueChange={v => setForm({ ...form, category_id: v })}>
               <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
               <SelectContent>
-                {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                {categories && categories.length > 0 ? (
+                  categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)
+                ) : (
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                    No categories defined. Add categories in Settings.
+                  </div>
+                )}
               </SelectContent>
             </Select>
           </div>
