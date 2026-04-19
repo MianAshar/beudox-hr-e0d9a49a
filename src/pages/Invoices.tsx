@@ -122,6 +122,17 @@ const Invoices = () => {
     return matchSearch && matchClient;
   }) ?? [];
 
+  const { sorted, sort, toggleSort } = useSort(filtered, {
+    invoice_number: (i: any) => i.invoice_number,
+    client: (i: any) => (i.clients as any)?.name,
+    title: (i: any) => i.title,
+    total_amount: (i: any) => Number(i.total_amount),
+    amount_due: (i: any) => Number(i.amount_due),
+    due_date: (i: any) => i.due_date,
+    status: (i: any) => i.status,
+    created: (i: any) => i.created_at,
+  });
+
   // View PDF handler
   const handleViewPdf = async (inv: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -270,19 +281,19 @@ const Invoices = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Amount Due</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
+                  <SortableHeader column="invoice_number" sort={sort} onSort={toggleSort}>Invoice #</SortableHeader>
+                  <SortableHeader column="client" sort={sort} onSort={toggleSort}>Client</SortableHeader>
+                  <SortableHeader column="title" sort={sort} onSort={toggleSort}>Title</SortableHeader>
+                  <SortableHeader column="total_amount" sort={sort} onSort={toggleSort} align="right">Total</SortableHeader>
+                  <SortableHeader column="amount_due" sort={sort} onSort={toggleSort} align="right">Amount Due</SortableHeader>
+                  <SortableHeader column="due_date" sort={sort} onSort={toggleSort}>Due Date</SortableHeader>
+                  <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
+                  <SortableHeader column="created" sort={sort} onSort={toggleSort}>Created</SortableHeader>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map(inv => (
+                {sorted.map(inv => (
                   <TableRow
                     key={inv.id}
                     className="cursor-pointer"

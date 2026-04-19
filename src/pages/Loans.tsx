@@ -120,6 +120,15 @@ const Loans = () => {
     return !search || empName.toLowerCase().includes(search.toLowerCase());
   }) ?? [];
 
+  const { sorted, sort, toggleSort } = useSort(filtered, {
+    employee: (l: any) => (l.employees as any)?.full_name,
+    total_amount: (l: any) => Number(l.total_amount),
+    monthly_deduction: (l: any) => Number(l.monthly_deduction),
+    remaining_balance: (l: any) => Number(l.remaining_balance),
+    granted_date: (l: any) => l.granted_date,
+    status: (l: any) => l.status,
+  });
+
   const resetForm = () => {
     setFormEmployeeId('');
     setFormAmount('');
@@ -325,17 +334,17 @@ const Loans = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                {isManager && <TableHead>Employee</TableHead>}
-                <TableHead className="text-right">Total Amount</TableHead>
-                <TableHead className="text-right">Monthly Deduction</TableHead>
-                <TableHead className="text-right">Remaining Balance</TableHead>
-                <TableHead>Granted Date</TableHead>
-                <TableHead>Status</TableHead>
+                {isManager && <SortableHeader column="employee" sort={sort} onSort={toggleSort}>Employee</SortableHeader>}
+                <SortableHeader column="total_amount" sort={sort} onSort={toggleSort} align="right">Total Amount</SortableHeader>
+                <SortableHeader column="monthly_deduction" sort={sort} onSort={toggleSort} align="right">Monthly Deduction</SortableHeader>
+                <SortableHeader column="remaining_balance" sort={sort} onSort={toggleSort} align="right">Remaining Balance</SortableHeader>
+                <SortableHeader column="granted_date" sort={sort} onSort={toggleSort}>Granted Date</SortableHeader>
+                <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
                 {isManager && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(loan => {
+              {sorted.map(loan => {
                 const emp = loan.employees as any;
                 const totalAmt = Number(loan.total_amount);
                 const remaining = Number(loan.remaining_balance);
