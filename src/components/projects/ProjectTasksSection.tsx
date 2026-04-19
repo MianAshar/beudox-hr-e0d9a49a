@@ -27,6 +27,9 @@ interface Props {
   canManage: boolean;
 }
 
+const isAssignee = (taskAssignedTo: string | null | undefined, employeeId: string) =>
+  !!taskAssignedTo && taskAssignedTo === employeeId;
+
 const initials = (name: string) =>
   name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join('') || '?';
 
@@ -161,6 +164,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
 
   const renderTask = (t: any) => {
     const overdue = !t.is_completed && t.deadline && isBefore(parseISO(t.deadline), today);
+    const canToggle = canManage || isAssignee(t.assigned_to, employeeId);
     return (
       <li
         key={t.id}
@@ -171,8 +175,8 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
       >
         <Checkbox
           checked={t.is_completed}
-          onCheckedChange={() => toggleMutation.mutate(t)}
-          disabled={toggleMutation.isPending}
+          onCheckedChange={() => canToggle && toggleMutation.mutate(t)}
+          disabled={!canToggle || toggleMutation.isPending}
           aria-label={t.is_completed ? 'Mark as incomplete' : 'Mark as complete'}
         />
         <span className={cn('flex-1 text-sm text-foreground min-w-0 truncate', t.is_completed && 'line-through')}>

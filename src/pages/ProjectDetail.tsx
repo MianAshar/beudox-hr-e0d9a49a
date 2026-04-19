@@ -13,6 +13,8 @@ import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
+import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
+import { ListChecks } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -38,7 +40,8 @@ const ProjectDetail = () => {
   const isManager = role === 'hr_manager' || role === 'ceo';
   const isCeo = role === 'ceo';
   const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
-  const canSeeActivity = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
+  const canManageTasks = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
+  const employeeId = employee?.employee_id;
 
   const [deactivateOpen, setDeactivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -262,8 +265,29 @@ const ProjectDetail = () => {
         )}
       </div>
 
+      {/* Tasks */}
+      {companyId && employeeId && (
+        <div className="rounded-lg border bg-card p-5 space-y-3">
+          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+            <ListChecks className="h-4 w-4" /> Tasks
+          </h2>
+          <ProjectTasksSection
+            projectId={id!}
+            companyId={companyId}
+            employeeId={employeeId}
+            teamMembers={(teamMembers ?? []).map((a: any) => ({
+              id: a.employees?.id,
+              full_name: a.employees?.full_name,
+              avatar_url: a.employees?.avatar_url,
+              designation: a.employees?.designation,
+            })).filter(m => m.id)}
+            canManage={canManageTasks}
+          />
+        </div>
+      )}
+
       {/* Activity Log */}
-      {canSeeActivity && companyId && (
+      {companyId && (
         <ProjectActivityLog projectId={id!} companyId={companyId} />
       )}
 
