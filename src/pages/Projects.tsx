@@ -508,6 +508,7 @@ interface ProjectCardProps {
   canSeeTeam: boolean;
   canEditStatus: boolean;
   canEditDeadline: boolean;
+  canSeeActivity: boolean;
   companyId: string;
   employeeId: string;
   role?: string | null;
@@ -515,7 +516,7 @@ interface ProjectCardProps {
 
 const ProjectCard = ({
   project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, isDueToday,
-  isManager, canSeeClient, canSeeFinancial, canSeeTeam, canEditStatus, canEditDeadline,
+  isManager, canSeeClient, canSeeFinancial, canSeeTeam, canEditStatus, canEditDeadline, canSeeActivity,
   companyId, employeeId, role,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
