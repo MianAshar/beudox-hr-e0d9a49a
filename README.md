@@ -1,68 +1,38 @@
 <!--
 generated_by: tessera
 source_sha: 20ef1eb521eec693f7ae1732004ba33e7dca4c1d
-generated_at: 2026-04-19T13:01:00.948Z
+generated_at: 2026-04-19T13:02:16.583Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A comprehensive Human Resources management application built with modern web technologies. Beudox HR streamlines employee management, payroll processing, performance evaluations, leave tracking, and organizational workflows.
+A comprehensive Human Resources Management System built for modern businesses. Beudox HR streamlines employee management, performance evaluations, leave tracking, payroll processing, and financial reporting.
 
 ## Features
 
-### Core HR Management
-- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
-- **Organizational Structure**: Departments, roles, and hierarchical management
-- **Profile Management**: Detailed employee profiles with personal and professional information
+### Core HR Functionality
+- **Employee Management**: Complete employee profiles with roles, departments, and organizational structure
+- **Performance Evaluations**: Bi-annual evaluations and daily feedback system
+- **Leave Management**: Request, approve, and track various types of leave
+- **Payroll Processing**: Automated payroll calculations with overtime and bonuses
+- **Financial Dashboard**: Real-time expense tracking and financial summaries
 
-### Performance & Evaluation
-- **Quarterly Evaluations**: Bi-annual performance reviews with structured feedback
-- **Daily Evaluations**: Real-time peer and manager feedback system
-- **Evaluation Timeline**: Historical view of all performance assessments
-
-### Time & Attendance
-- **Leave Management**: Comprehensive leave request and approval system
-- **Public Holidays**: Configurable holiday calendar management
-- **Attendance Tracking**: Time tracking and attendance monitoring
-
-### Financial Management
-- **Payroll Processing**: Automated payroll generation with overtime calculations
-- **Expense Management**: Business expense tracking and reimbursement
-- **Financial Reporting**: Revenue, expense, and payroll analytics with charts
-- **Invoice Management**: Client invoicing and payment tracking
-
-### Project Management
-- **Project Tracking**: Project lifecycle management with team assignments
-- **Client Management**: Client relationship and project association
-- **Project Activity Logs**: Detailed activity tracking and reporting
-
-### Administrative
-- **HR Policies**: Rich text policy documents with version control
-- **Loan Management**: Employee loan tracking and repayment schedules
-- **Settings Management**: Configurable system settings and parameters
+### Administrative Tools
+- **Company Settings**: Configure departments, roles, leave types, and expense categories
+- **Notifications System**: Automated alerts for HR events and approvals
+- **Role-based Access Control**: Granular permissions for different user types (CEO, HR Manager, Team Lead, Employee)
 
 ## Technology Stack
 
-### Frontend
-- **React 18** - Modern React with hooks and concurrent features
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and development server
-- **Tailwind CSS** - Utility-first CSS framework
-- **shadcn/ui** - High-quality React components built on Radix UI
-
-### Backend & Data
-- **Supabase** - PostgreSQL database with real-time subscriptions and authentication
-- **TanStack Query** - Powerful data fetching and caching
-- **React Hook Form** - Performant forms with validation
-- **Zod** - TypeScript-first schema validation
-
-### Additional Libraries
-- **React Router** - Client-side routing
-- **Recharts** - Composable charting library
-- **TipTap** - Rich text editor
-- **Lucide React** - Beautiful icon library
-- **date-fns** - Modern JavaScript date utility library
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Routing**: React Router
+- **State Management**: React Query for server state
+- **Backend**: Supabase (PostgreSQL database + Auth + Edge Functions)
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
+- **Deployment**: Configured for modern hosting platforms
 
 ## Getting Started
 
@@ -88,92 +58,68 @@ A comprehensive Human Resources management application built with modern web tec
 
 3. **Environment Setup**
    
-   Copy the environment template:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Configure your Supabase credentials in `.env.local`:
+   Copy the `.env` file and configure your Supabase credentials:
    ```env
+   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
    VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
    ```
 
-4. **Database Setup**
-   
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
-
-5. **Development Server**
+4. **Start the development server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
-   
-   The application will be available at `http://localhost:8080`
 
-### Build for Production
+5. **Run tests**
+   ```bash
+   npm run test
+   ```
 
-```bash
-npm run build
-npm run preview
-```
+### Database Setup
+
+The application uses Supabase for data storage. Database migrations are included in the `supabase/migrations/` directory. To set up the database:
+
+1. Install Supabase CLI
+2. Link your project: `supabase link --project-ref your-project-ref`
+3. Run migrations: `supabase db push`
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (sidebar, topbar)
-│   ├── [feature]/      # Feature-specific components
-├── pages/              # Route components
-├── hooks/              # Custom React hooks
+│   ├── ui/             # shadcn/ui base components
+│   ├── layout/         # App layout components
+│   ├── evaluations/    # Evaluation-related components
+│   ├── finance/        # Financial dashboard components
+│   ├── leave/          # Leave management components
+│   ├── payroll/        # Payroll components
+│   └── settings/       # Admin settings components
+├── pages/              # Page components (Next.js style routing)
 ├── lib/                # Utility functions and configurations
+├── hooks/              # Custom React hooks
 ├── integrations/       # External service integrations
-└── types/              # TypeScript type definitions
-
-supabase/
-├── migrations/         # Database schema migrations
-└── functions/          # Edge functions for backend logic
+└── test/               # Test files
 ```
 
-## Authentication & Authorization
-
-The application uses Supabase Authentication with role-based access control:
-
-- **CEO**: Full system access
-- **HR Manager**: HR operations and management
-- **Team Lead**: Team management and limited HR access
-- **Employee**: Personal profile and basic features
-
-## Development
-
-### Available Scripts
+## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run lint` - Run ESLint
 - `npm run preview` - Preview production build
-- `npm run test` - Run tests with Vitest
-- `npm run test:watch` - Run tests in watch mode
-
-### Testing
-
-The project uses Vitest for unit testing and Playwright for end-to-end testing.
-
-```bash
-npm run test          # Run unit tests
-npm run test:watch    # Run tests in watch mode
-```
+- `npm run test` - Run unit tests
+- `npm run test:e2e` - Run end-to-end tests
+- `npm run lint` - Run ESLint
 
 ## Contributing
 
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure all tests pass before submitting PRs
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes and add tests
+4. Run the test suite: `npm run test`
+5. Submit a pull request
 
 ## License
 
