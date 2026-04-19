@@ -24,6 +24,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
+import { ManageTeamModal } from '@/components/projects/ManageTeamModal';
 
 const getInitials = (name: string) =>
   name
@@ -574,6 +575,18 @@ const Projects = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manage Team Modal */}
+      {manageTeamProject && companyId && employeeId && (
+        <ManageTeamModal
+          open={!!manageTeamProject}
+          onOpenChange={(open) => { if (!open) setManageTeamProject(null); }}
+          projectId={manageTeamProject.id}
+          projectName={manageTeamProject.project_name}
+          companyId={companyId}
+          currentUserId={employeeId}
+        />
+      )}
     </div>
   );
 };
