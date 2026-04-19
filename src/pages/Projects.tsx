@@ -217,18 +217,27 @@ const Projects = () => {
           .eq('employee_id', employee?.employee_id!)
           .eq('is_active', true);
         if (aErr) throw aErr;
-        const pIds = assignments?.map(a => a.project_id) || [];
-        if (pIds.length === 0) return [];
+        const assignedIds = assignments?.map(a => a.project_id) || [];
+
         let q = supabase
           .from('projects')
           .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)')
           .eq('company_id', companyId!)
-          .eq('is_active', true)
-          .in('id', pIds);
-        // Team Lead can see pending projects; employees and finance cannot
-        if (role !== 'team_lead') {
-          q = q.neq('status', 'pending');
+          .eq('is_active', true);
+
+        if (role === 'team_lead') {
+          // Team Lead: visible if project lead OR assigned (includes pending)
+          const orParts = [`project_lead_id.eq.${employee?.employee_id}`];
+          if (assignedIds.length > 0) {
+            orParts.push(`id.in.(${assignedIds.join(',')})`);
+          }
+          q = q.or(orParts.join(','));
+        } else {
+          // Employees & finance: only assigned, exclude pending
+          if (assignedIds.length === 0) return [];
+          q = q.in('id', assignedIds).neq('status', 'pending');
         }
+
         const { data, error } = await q.order('created_at', { ascending: false });
         if (error) throw error;
         return data;
