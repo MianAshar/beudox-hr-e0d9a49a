@@ -582,11 +582,13 @@ interface ProjectCardProps {
   onToggle: () => void;
   onOpenDetail: () => void;
   onDeactivate: () => void;
+  onManageTeam: () => void;
   isDueToday: boolean;
   isManager: boolean;
   canSeeClient: boolean;
   canSeeFinancial: boolean;
   canSeeTeam: boolean;
+  canManageTeam: boolean;
   canEditStatus: boolean;
   canEditDeadline: boolean;
   canSeeActivity: boolean;
@@ -596,8 +598,8 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({
-  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, isDueToday,
-  isManager, canSeeClient, canSeeFinancial, canSeeTeam, canEditStatus, canEditDeadline, canSeeActivity,
+  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, onManageTeam, isDueToday,
+  isManager, canSeeClient, canSeeFinancial, canSeeTeam, canManageTeam, canEditStatus, canEditDeadline, canSeeActivity,
   companyId, employeeId, role,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
