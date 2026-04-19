@@ -172,7 +172,7 @@ const Payroll = () => {
   const handleApprove = async () => {
     setApproving(true);
     try {
-      const scopedRecords = activeTab === 'all'
+      const scopedRecords = activeTab === 'all' || activeTab === 'summary'
         ? records
         : records.filter(r => ((r.employees as any)?.department || 'Uncategorized') === activeTab);
       const draftIds = scopedRecords.filter(r => r.status === 'draft').map(r => r.id);
