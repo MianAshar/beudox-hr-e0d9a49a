@@ -538,6 +538,8 @@ const Projects = () => {
                 onToggle={() => toggleOne(p.id)}
                 onOpenDetail={() => navigate(`/projects/${p.id}`)}
                 onDeactivate={() => setDeactivateTarget(p)}
+                onManageTeam={() => setManageTeamProject(p)}
+                canManageTeam={canManageTeam}
                 isDueToday={isDueToday}
                 isManager={isManager}
                 canSeeClient={canSeeClient}
