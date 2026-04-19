@@ -298,9 +298,11 @@ const Payroll = () => {
     });
   }, [records]);
 
-  const activeRecords = activeTab === 'all' ? allSorted : (grouped[activeTab] || []);
-  const activeTabLabel = activeTab === 'all' ? 'All' : activeTab;
-  const hasDraftsInActive = activeRecords.some(r => r.status === 'draft');
+  const activeRecords = activeTab === 'all' || activeTab === 'summary' ? allSorted : (grouped[activeTab] || []);
+  const activeTabLabel = activeTab === 'all' || activeTab === 'summary' ? 'All' : activeTab;
+  const hasDraftsInActive = activeTab === 'summary'
+    ? false
+    : activeRecords.some(r => r.status === 'draft');
   const hasDrafts = records.some(r => r.status === 'draft');
   const allApprovedOrPaid = records.length > 0 && records.every(r => r.status === 'approved' || r.status === 'paid');
 
