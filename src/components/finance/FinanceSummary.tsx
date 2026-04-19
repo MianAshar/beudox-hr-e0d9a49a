@@ -202,8 +202,8 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
 
       {/* Trend graph */}
       <div
-        className="rounded-[14px] border bg-card"
-        style={{ borderColor: 'hsl(var(--border))', padding: 24 }}
+        className="rounded-[14px] border bg-card mt-1"
+        style={{ borderColor: 'rgba(91,63,248,0.15)', padding: 24 }}
       >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[15px] font-semibold" style={{ fontFamily: 'var(--ff-display)' }}>
