@@ -419,12 +419,11 @@ const Projects = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {/* Sticky column headers — matches row card chrome */}
+          {/* Sticky column headers — flat lavender bar */}
           <div
-            className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 rounded-[14px] border"
+            className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3"
             style={{
-              backgroundColor: '#F6F5FF',
-              borderColor: 'rgba(91,63,248,0.15)',
+              backgroundColor: '#EEEBFF',
             }}
           >
             <div className="w-8 shrink-0" />
