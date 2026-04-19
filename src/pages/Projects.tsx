@@ -342,7 +342,7 @@ const Projects = () => {
         <div className="space-y-3">
           {filtered.map((p: any) => {
             const isDueToday = p.internal_deadline === todayIso;
-            const isCollapsed = collapsedIds.has(p.id);
+            const isCollapsed = !expandedIds.has(p.id);
             const team = teamByProject.get(p.id) ?? [];
             return (
               <ProjectCard
