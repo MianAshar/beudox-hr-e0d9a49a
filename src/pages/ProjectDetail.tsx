@@ -409,6 +409,18 @@ const ProjectDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manage Team Modal */}
+      {canManageTeam && companyId && employeeId && (
+        <ManageTeamModal
+          open={manageTeamOpen}
+          onOpenChange={setManageTeamOpen}
+          projectId={id!}
+          projectName={project.project_name}
+          companyId={companyId}
+          currentUserId={employeeId}
+        />
+      )}
     </div>
   );
 };
