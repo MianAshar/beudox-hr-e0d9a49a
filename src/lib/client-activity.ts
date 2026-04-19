@@ -15,6 +15,13 @@ export const ACTIVITY_LABELS: Record<ActivityCategory, string> = {
   inactive_6m: 'Inactive 6M+',
 };
 
+export const ACTIVITY_DESCRIPTIONS: Record<ActivityCategory, string> = {
+  active: 'Clients with at least one project currently in progress',
+  inactive_2m: 'Clients with no active projects and whose last project was updated 1 to 2 months ago',
+  inactive_4m: 'Clients with no active projects and whose last project was updated 2 to 4 months ago',
+  inactive_6m: 'Clients with no active projects and whose last project was updated more than 6 months ago, or clients with no projects at all',
+};
+
 export const ACTIVITY_STYLES: Record<ActivityCategory, { bg: string; text: string }> = {
   active: { bg: '#D1FAE5', text: '#065F46' },
   inactive_2m: { bg: '#FEF3C7', text: '#92400E' },
