@@ -23,6 +23,7 @@ import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
 
 const getInitials = (name: string) =>
   name
@@ -217,6 +218,32 @@ const Projects = () => {
     return map;
   }, [teamAssignments]);
 
+  const { data: taskCounts } = useQuery({
+    queryKey: ['project-task-counts', companyId, projectIds.join(',')],
+    queryFn: async () => {
+      if (projectIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('project_tasks')
+        .select('project_id, is_completed')
+        .eq('company_id', companyId!)
+        .in('project_id', projectIds);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId && projectIds.length > 0,
+  });
+
+  const taskCountByProject = useMemo(() => {
+    const map = new Map<string, { total: number; completed: number }>();
+    (taskCounts ?? []).forEach((t: any) => {
+      const c = map.get(t.project_id) ?? { total: 0, completed: 0 };
+      c.total += 1;
+      if (t.is_completed) c.completed += 1;
+      map.set(t.project_id, c);
+    });
+    return map;
+  }, [taskCounts]);
+
   const deactivateMutation = useMutation({
     mutationFn: async (projectId: string) => {
       const { error } = await supabase.from('projects').update({ is_active: false, status: 'cancelled' }).eq('id', projectId);
@@ -395,11 +422,13 @@ const Projects = () => {
             const isDueToday = p.internal_deadline === todayIso;
             const isCollapsed = !expandedIds.has(p.id);
             const team = teamByProject.get(p.id) ?? [];
+            const tc = taskCountByProject.get(p.id);
             return (
               <ProjectCard
                 key={p.id}
                 project={p}
                 team={team}
+                taskCount={tc}
                 isCollapsed={isCollapsed}
                 onToggle={() => toggleOne(p.id)}
                 onOpenDetail={() => navigate(`/projects/${p.id}`)}
@@ -413,6 +442,7 @@ const Projects = () => {
                 canEditDeadline={canEditDeadline}
                 companyId={companyId!}
                 employeeId={employeeId!}
+                role={role}
               />
             );
           })}
@@ -443,6 +473,7 @@ const Projects = () => {
 interface ProjectCardProps {
   project: any;
   team: TeamMember[];
+  taskCount?: { total: number; completed: number };
   isCollapsed: boolean;
   onToggle: () => void;
   onOpenDetail: () => void;
@@ -456,14 +487,16 @@ interface ProjectCardProps {
   canEditDeadline: boolean;
   companyId: string;
   employeeId: string;
+  role?: string | null;
 }
 
 const ProjectCard = ({
-  project: p, team, isCollapsed, onToggle, onOpenDetail, onDeactivate, isDueToday,
+  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, isDueToday,
   isManager, canSeeClient, canSeeFinancial, canSeeTeam, canEditStatus, canEditDeadline,
-  companyId, employeeId,
+  companyId, employeeId, role,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
+  const canManageTasks = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
   return (
     <div
       className={cn(
@@ -549,6 +582,11 @@ const ProjectCard = ({
             <TeamMembersStack members={team} />
           </div>
         )}
+
+        {/* Task progress — 70px */}
+        <div className="w-[70px] shrink-0 text-xs text-muted-foreground">
+          {taskCount && taskCount.total > 0 ? `${taskCount.completed}/${taskCount.total} tasks` : ''}
+        </div>
 
         {/* Delete — 40px */}
         <div className="w-10 shrink-0 flex items-center justify-center">
@@ -642,9 +680,15 @@ const ProjectCard = ({
             </Section>
           )}
 
-          {/* Tasks placeholder (no tasks table in DB yet) */}
+          {/* Tasks */}
           <Section icon={<ListChecks className="h-3.5 w-3.5" />} title="Tasks">
-            <p className="text-sm text-muted-foreground">No tasks yet</p>
+            <ProjectTasksSection
+              projectId={p.id}
+              companyId={companyId}
+              employeeId={employeeId}
+              teamMembers={team}
+              canManage={canManageTasks}
+            />
           </Section>
 
           {/* Activity log */}

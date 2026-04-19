@@ -16,6 +16,7 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/loans',
     '/leave',
     '/my-payslip',
+    '/my-tasks',
     '/notifications',
   ],
   hr_manager: [
@@ -31,6 +32,7 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/hr-policies',
     '/loans',
     '/my-payslip',
+    '/my-tasks',
     '/notifications',
     '/settings',
   ],
@@ -48,6 +50,7 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/outsourcing',
     '/hr-policies',
     '/my-payslip',
+    '/my-tasks',
     '/notifications',
     '/settings',
   ],
@@ -62,6 +65,7 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/loans',
     '/leave',
     '/my-payslip',
+    '/my-tasks',
     '/notifications',
   ],
 };
