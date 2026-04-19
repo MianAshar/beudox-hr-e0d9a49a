@@ -1,241 +1,169 @@
 <!--
 generated_by: tessera
-source_sha: 09e0c31289d212e2667da89ff8a6b0a3a8b71061
-generated_at: 2026-04-18T00:43:27.978Z
+source_sha: 20ef1eb521eec693f7ae1732004ba33e7dca4c1d
+generated_at: 2026-04-19T13:01:00.948Z
 action: create
 -->
 
-# Beudox HR System - Architecture Documentation
+# Beudox HR - Architecture Documentation
 
-## System Architecture Overview
+## System Architecture
 
-Beudox HR is a modern web-based HR management system built with a React frontend and Supabase backend. The architecture follows a client-server model with real-time capabilities and role-based access control.
+Beudox HR follows a modern client-server architecture with a React-based frontend and Supabase backend.
 
-## Frontend Architecture
+### Frontend Architecture
 
-### Technology Stack
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite with SWC compiler
-- **Routing**: React Router v6
-- **State Management**: TanStack React Query + React Context
-- **UI Library**: shadcn/ui (Radix UI primitives)
-- **Styling**: Tailwind CSS
-- **Forms**: React Hook Form + Zod validation
-- **Charts**: Recharts
-- **Rich Text**: Tiptap editor
-
-### Application Structure
-
+#### Component Hierarchy
 ```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui primitives
-│   ├── layout/         # App layout components
-│   └── [feature]/      # Feature-specific components
-├── pages/              # Route components
-├── hooks/              # Custom React hooks
-├── lib/                # Utilities and business logic
-├── integrations/       # External service integrations
-└── types/              # TypeScript definitions
+App (Routing & Auth)
+├── AuthProvider (Authentication Context)
+├── QueryClientProvider (Data Fetching)
+├── BrowserRouter
+│   ├── Protected Routes
+│   │   ├── AppLayout
+│   │   │   ├── AppSidebar (Navigation)
+│   │   │   ├── TopBar (User Menu & Notifications)
+│   │   │   └── Main Content
+│   │   │       └── Page Components
+│   └── Public Routes (Login, Password Reset)
 ```
 
-### Component Architecture
+#### Key Architectural Patterns
 
-#### UI Components (`src/components/ui/`)
-- **Design System**: Consistent component library with variants
-- **Accessibility**: WCAG-compliant components using Radix UI
-- **Theming**: CSS custom properties for light/dark mode support
-- **Composition**: Compound components with flexible APIs
+**Component Composition**
+- Higher-order components for layout and protection
+- Compound components for complex UI elements
+- Render props for flexible data display
 
-#### Layout Components (`src/components/layout/`)
-- **AppLayout**: Main application wrapper with sidebar and header
-- **AppSidebar**: Navigation sidebar with role-based menu items
-- **TopBar**: User menu, notifications, and search
-- **NotificationBell**: Real-time notification system
+**Data Flow**
+- Unidirectional data flow with React hooks
+- Server state managed by TanStack Query
+- Local state for UI interactions
 
-#### Feature Components
-- **Evaluations**: Timeline views, evaluation forms, scoring systems
-- **Leave Management**: Request forms, approval workflows, calendar views
-- **Employee Management**: Profile cards, searchable selects, forms
-- **Project Management**: Activity logs, team assignments, progress tracking
+**Routing Structure**
+- Role-based route protection
+- Nested routes for CRUD operations
+- Programmatic navigation with redirects
 
-### State Management Strategy
+### Backend Architecture
 
-#### Server State (TanStack React Query)
-- **Caching**: Intelligent caching with background refetching
-- **Synchronization**: Real-time updates via Supabase subscriptions
-- **Error Handling**: Global error handling with retry logic
-- **Optimistic Updates**: Immediate UI feedback for mutations
+#### Supabase Services
+- **Database**: PostgreSQL with Row Level Security
+- **Authentication**: JWT-based auth with role management
+- **Storage**: File uploads and CDN
+- **Edge Functions**: Server-side business logic
 
-#### Client State (React Context)
-- **Authentication**: User session and profile management
-- **Theme**: Light/dark mode preferences
-- **Toast Notifications**: Global notification system
+#### Database Design
+- Multi-tenant with company-based isolation
+- Normalized schema with foreign key relationships
+- Audit trails and activity logging
+- Real-time subscriptions for live updates
 
-### Routing & Navigation
+## Core Components
 
-#### Protected Routes
-- **Role-Based Access**: Route-level permission checking
-- **Authentication Guards**: Automatic redirects for unauthenticated users
-- **Loading States**: Proper loading indicators during auth checks
+### Layout System
+- **AppLayout**: Main application wrapper with sidebar and topbar
+- **AppSidebar**: Collapsible navigation with role-based menu items
+- **TopBar**: User menu, notifications, and global actions
 
-#### Route Structure
-```
-/                     # Root redirect
-/login               # Authentication
-/dashboard           # Main dashboard
-/employees           # Employee management
-  /:id              # Employee profile
-  /new              # New employee form
-  /:id/edit         # Edit employee
-/projects           # Project management
-  /:id              # Project details
-  /new              # New project
-  /:id/edit         # Edit project
-/evaluations        # Performance evaluations
-  /daily            # Daily feedback
-  /:id              # Evaluation details
-/leave              # Leave management
-/payroll            # Payroll processing
-/settings           # System settings
-```
+### Authentication System
+- **AuthProvider**: Context provider managing auth state
+- **ProtectedRoute**: HOC for route protection
+- **Role Access**: Permission checking utilities
 
-## Backend Architecture
+### Data Management
+- **Supabase Client**: Centralized API client
+- **Query Hooks**: TanStack Query wrappers for data fetching
+- **Type Safety**: Generated TypeScript types from schema
 
-### Supabase Integration
+## Data Flow Patterns
 
-#### Database (PostgreSQL)
-- **Schema**: Normalized relational database
-- **Migrations**: Version-controlled schema changes
-- **Row Level Security**: Database-level access control
-- **Real-time**: Live data synchronization
+### Authentication Flow
+1. Login → Supabase auth → JWT token
+2. Token validation → Employee data fetch
+3. Role determination → Route access control
+4. Automatic redirects based on permissions
 
-#### Authentication
-- **Provider**: Supabase Auth
-- **Methods**: Email/password, magic links
-- **Session Management**: JWT tokens with automatic refresh
-- **User Management**: Profile data and role assignments
+### CRUD Operations
+1. User action → Form submission
+2. Validation → API call
+3. Optimistic update → Cache invalidation
+4. Error handling → User feedback
 
-#### Edge Functions
-- **Runtime**: Deno/TypeScript
-- **Use Cases**: PDF generation, email sending, complex calculations
-- **Deployment**: Automatic deployment with schema changes
-
-### Database Schema
-
-#### Core Tables
-- `companies` - Multi-tenant organization data
-- `employees` - User profiles and organizational information
-- `departments` - Organizational structure
-- `projects` - Work assignments and teams
-- `evaluations` - Performance review data
-- `daily_evaluations` - Quick feedback entries
-- `leave_requests` - Time-off requests
-- `leave_types` - Configurable leave categories
-- `invoices` - Client billing
-- `payroll_records` - Salary processing
-- `loans` - Employee loan tracking
-- `hr_policies` - Company policies
-- `notifications` - System notifications
-
-#### Key Relationships
-- **Employees → Companies**: Multi-tenant isolation
-- **Employees → Departments**: Organizational hierarchy
-- **Projects ↔ Employees**: Many-to-many team assignments
-- **Evaluations → Employees**: Performance tracking
-- **Leave Requests → Employees**: Time-off management
-- **Invoices → Projects**: Revenue tracking
+### Real-time Updates
+1. Database change → Supabase real-time
+2. Subscription trigger → Cache update
+3. UI re-render → User notification
 
 ## Security Architecture
 
 ### Authentication
-- **Multi-factor**: Email verification and password requirements
-- **Session Security**: Secure token storage and automatic expiration
-- **Password Reset**: Secure recovery flow with email verification
+- JWT tokens with expiration
+- Refresh token handling
+- Secure password reset flows
 
 ### Authorization
-- **Role-Based Access Control**: 5 distinct user roles
-  - `ceo`: Full system access
-  - `hr_manager`: HR operations and employee management
-  - `finance_manager`: Financial operations and reporting
-  - `team_lead`: Team management and limited HR access
-  - `employee`: Personal dashboard and self-service
-- **Route Protection**: Frontend permission checking
-- **Database Security**: Row Level Security policies
+- Role-based access control (RBAC)
+- Row Level Security policies
+- API endpoint protection
 
 ### Data Protection
-- **Encryption**: Data encrypted at rest and in transit
-- **Input Validation**: Client and server-side validation
-- **SQL Injection Prevention**: Parameterized queries
-- **XSS Protection**: Automatic escaping and sanitization
+- Input validation and sanitization
+- SQL injection prevention
+- XSS protection in rich text
 
-## Performance Architecture
+## Performance Considerations
 
-### Frontend Optimizations
-- **Code Splitting**: Route-based and component lazy loading
-- **Bundle Optimization**: Tree shaking and minification
-- **Image Optimization**: Lazy loading and responsive images
-- **Caching**: Service worker and browser caching strategies
+### Frontend Optimization
+- Code splitting with dynamic imports
+- Image lazy loading and optimization
+- Bundle analysis and tree shaking
+- Efficient re-rendering with memoization
 
-### Database Optimizations
-- **Indexing**: Strategic indexes on frequently queried columns
-- **Query Optimization**: Efficient JOIN operations and pagination
-- **Connection Pooling**: Supabase handles connection management
-- **Real-time Efficiency**: Targeted subscriptions for data changes
+### Backend Optimization
+- Database indexing strategies
+- Query optimization and caching
+- Edge function performance
+- CDN for static assets
 
-### Monitoring & Analytics
-- **Error Tracking**: Global error boundaries and logging
-- **Performance Monitoring**: Core Web Vitals tracking
-- **User Analytics**: Usage patterns and feature adoption
-- **Database Monitoring**: Query performance and usage statistics
+### Caching Strategy
+- TanStack Query for API response caching
+- Browser caching for static assets
+- Service worker for offline capability
 
-## Deployment Architecture
-
-### Build Process
-- **Development**: Hot reload with Vite dev server
-- **Production**: Optimized build with asset optimization
-- **Testing**: Automated testing in CI/CD pipeline
-- **Deployment**: Static hosting with CDN distribution
-
-### Environment Management
-- **Development**: Local Supabase instance for development
-- **Staging**: Mirror production environment for testing
-- **Production**: Live Supabase project with backups
-- **Configuration**: Environment-specific configuration files
-
-## Scalability Considerations
+## Scalability Patterns
 
 ### Horizontal Scaling
-- **Stateless Frontend**: Easy scaling with CDN distribution
-- **Database Scaling**: Supabase handles read replicas and scaling
-- **Edge Functions**: Serverless scaling for compute-intensive tasks
+- Stateless frontend components
+- Database connection pooling
+- CDN distribution
 
 ### Feature Scaling
-- **Modular Architecture**: Independent feature development
-- **API Design**: RESTful endpoints for mobile app support
-- **Real-time Features**: WebSocket connections for live updates
+- Modular component architecture
+- Feature-based code organization
+- Micro-frontend potential
 
-### Organizational Scaling
-- **Multi-tenant**: Company-scoped data isolation
-- **Role Management**: Flexible permission system for growing organizations
-- **Department Structure**: Hierarchical organization support
+### Data Scaling
+- Efficient query patterns
+- Pagination for large datasets
+- Real-time subscription management
 
 ## Development Workflow
 
-### Local Development
-- **Setup**: Single command setup with environment configuration
-- **Testing**: Comprehensive test suite with multiple frameworks
-- **Linting**: Automated code quality checks
-- **Type Checking**: Strict TypeScript configuration
+### Build Pipeline
+- Vite for fast development
+- TypeScript compilation
+- CSS processing and optimization
+- Asset bundling and minification
 
-### Collaboration
-- **Git Workflow**: Feature branches with pull request reviews
-- **Code Standards**: ESLint and Prettier for consistency
-- **Documentation**: Auto-generated documentation from code
-- **Testing**: Required test coverage for new features
+### Testing Strategy
+- Unit tests with Vitest
+- Component tests with RTL
+- E2E tests with Playwright
+- Integration tests for API
 
-### CI/CD Pipeline
-- **Automated Testing**: Unit and integration tests
-- **Build Verification**: Type checking and linting
-- **Security Scanning**: Dependency and code security checks
-- **Deployment**: Automated deployment to staging and production
+### Deployment
+- Environment-based configuration
+- CI/CD pipeline
+- Rollback strategies
+- Monitoring and logging
