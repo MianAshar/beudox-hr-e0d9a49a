@@ -59,7 +59,7 @@ const Payroll = () => {
 
   const [approveOpen, setApproveOpen] = useState(false);
   const [approving, setApproving] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('summary');
 
   const [paidModal, setPaidModal] = useState<PayrollRecord | null>(null);
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
