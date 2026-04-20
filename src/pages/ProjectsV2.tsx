@@ -956,11 +956,14 @@ const ProjectsV2 = () => {
             const isToday = p.internal_deadline === today;
             const isPending = p.status === 'pending';
             return (
-              <div key={p.id}>
-                {/* Project row */}
+              <div
+                key={p.id}
+                className="mb-2 overflow-hidden rounded-[10px] bg-white"
+                style={{ border: '1px solid rgba(91,63,248,0.10)' }}
+              >
+                {/* Project header row */}
                 <div
-                  className="flex items-center gap-4 py-4"
-                  style={{ borderBottom: '1px solid #F0EEFF' }}
+                  className="flex items-center gap-4 px-4 py-3 bg-[#F6F5FF] rounded-t-[10px]"
                 >
                   <button
                     type="button"
@@ -1045,6 +1048,7 @@ const ProjectsV2 = () => {
                     teamMembers={team}
                     canManage={canManageTasks}
                     role={role}
+                    filterAssigneeId={canFilterByEmployee && employeeFilter !== 'all' ? employeeFilter : null}
                   />
                 )}
               </div>
