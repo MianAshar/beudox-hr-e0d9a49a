@@ -912,12 +912,24 @@ const ProjectsV2 = () => {
               </SelectContent>
             </Select>
           )}
-          {(statusFilter !== 'all' || priorityFilter !== 'all' || clientFilter !== 'all') && (
+          {canFilterByEmployee && (
+            <div className="w-[220px]">
+              <SearchableEmployeeSelect
+                employees={filterEmployees ?? []}
+                value={employeeFilter}
+                onValueChange={setEmployeeFilter}
+                placeholder="Team Member"
+                allowAll
+                allLabel="All Team Members"
+              />
+            </div>
+          )}
+          {(statusFilter !== 'all' || priorityFilter !== 'all' || clientFilter !== 'all' || employeeFilter !== 'all') && (
             <Button
               variant="ghost"
               size="sm"
               className="h-9 text-xs"
-              onClick={() => { setStatusFilter('all'); setPriorityFilter('all'); setClientFilter('all'); }}
+              onClick={() => { setStatusFilter('all'); setPriorityFilter('all'); setClientFilter('all'); setEmployeeFilter('all'); }}
             >
               Clear
             </Button>
