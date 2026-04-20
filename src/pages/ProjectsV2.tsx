@@ -959,8 +959,11 @@ const ProjectsV2 = () => {
             return (
               <div
                 key={p.id}
-                className="mb-2 overflow-hidden rounded-[10px] bg-white"
-                style={{ border: '1px solid rgba(91,63,248,0.10)' }}
+                className="mb-3 overflow-hidden rounded-[10px] bg-white"
+                style={{
+                  border: '1px solid rgba(91,63,248,0.18)',
+                  boxShadow: '0 1px 2px rgba(91,63,248,0.04)',
+                }}
               >
                 {/* Project header row */}
                 <div
