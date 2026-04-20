@@ -820,6 +820,13 @@ const ProjectsV2 = () => {
       if (priorityFilter !== 'all' && p.priority !== priorityFilter) return false;
       // Client filter
       if (isManager && clientFilter !== 'all' && p.client_id !== clientFilter) return false;
+      // Employee filter — only projects where selected employee is lead or assigned member
+      if (canFilterByEmployee && employeeFilter !== 'all') {
+        const isLead = p.project_lead_id === employeeFilter;
+        const team = teamByProject.get(p.id) ?? [];
+        const isMember = team.some(m => m.id === employeeFilter);
+        if (!isLead && !isMember) return false;
+      }
       // Search: project name/code OR matching task
       if (search.trim()) {
         const q = search.trim().toLowerCase();
@@ -830,7 +837,7 @@ const ProjectsV2 = () => {
       }
       return true;
     });
-  }, [projects, statusFilter, priorityFilter, clientFilter, isManager, search, projectIdsMatchingTasks]);
+  }, [projects, statusFilter, priorityFilter, clientFilter, isManager, search, projectIdsMatchingTasks, canFilterByEmployee, employeeFilter, teamByProject]);
 
   const toggleOne = (id: string) => {
     setExpandedIds(prev => {
