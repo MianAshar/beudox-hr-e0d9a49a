@@ -347,9 +347,10 @@ interface TaskRowsProps {
   teamMembers: TeamMember[];
   canManage: boolean; // can add tasks
   role: string | null | undefined;
+  filterAssigneeId?: string | null;
 }
 
-const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, role }: TaskRowsProps) => {
+const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, role, filterAssigneeId }: TaskRowsProps) => {
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -429,7 +430,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
   if (isLoading) {
     return (
       <div
-        className="pl-8 pr-4 py-2.5 text-xs text-muted-foreground"
+        className="pl-12 pr-4 py-2.5 text-xs text-muted-foreground"
         style={{ borderBottom: '1px solid #F8F7FF' }}
       >
         Loading tasks…
@@ -437,7 +438,10 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
     );
   }
 
-  const list = tasks ?? [];
+  const allTasks = tasks ?? [];
+  const list = filterAssigneeId
+    ? allTasks.filter((t: any) => t.assigned_to === filterAssigneeId)
+    : allTasks;
   const empty = list.length === 0;
 
   const cancelAdd = () => {
@@ -450,7 +454,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
     <>
       {empty && !adding && (
         <div
-          className="flex items-center gap-3 pl-8 pr-4 py-2.5 text-sm text-muted-foreground"
+          className="flex items-center gap-3 pl-12 pr-4 py-2.5 text-sm text-muted-foreground"
           style={taskRowBorder}
         >
           <span className="italic">No tasks yet</span>
@@ -473,7 +477,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
         return (
           <div
             key={t.id}
-            className="flex items-center gap-4 pl-8 pr-4 py-2.5 hover:bg-[#FAFAFA] transition-colors"
+            className="flex items-center gap-4 pl-12 pr-4 py-2.5 hover:bg-[#FAFAFA] transition-colors"
             style={taskRowBorder}
           >
             <Checkbox
@@ -521,7 +525,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
       {/* Inline add row */}
       {canManage && adding && (
         <div
-          className="flex items-center gap-3 pl-8 pr-4 py-2.5"
+          className="flex items-center gap-3 pl-12 pr-4 py-2.5"
           style={taskRowBorder}
           onKeyDown={(e) => { if (e.key === 'Escape') cancelAdd(); }}
         >
@@ -591,10 +595,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
 
       {/* + Add Task trigger row (when not adding and there are existing tasks) */}
       {canManage && !adding && !empty && (
-        <div
-          className="pl-8 pr-4 py-2"
-          style={taskRowBorder}
-        >
+        <div className="pl-12 pr-4 py-2">
           <button
             type="button"
             className="text-[13px] font-medium text-[#5B3FF8] hover:underline"
@@ -634,7 +635,10 @@ const ProjectsV2 = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
+  const [employeeFilter, setEmployeeFilter] = useState<string>('all');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const canFilterByEmployee = isManager || isTeamLead;
 
   // Projects query — same access pattern as Projects page
   const { data: projects, isLoading } = useQuery({
@@ -723,6 +727,42 @@ const ProjectsV2 = () => {
     enabled: !!companyId && isManager,
   });
 
+  // Employees for filter dropdown
+  const { data: filterEmployees } = useQuery({
+    queryKey: ['projects-v2-filter-employees', companyId, role, employeeId, projectIds.join(',')],
+    queryFn: async () => {
+      if (isManager) {
+        const { data, error } = await supabase
+          .from('employees')
+          .select('id, full_name, avatar_url, designation')
+          .eq('company_id', companyId!)
+          .eq('status', 'active')
+          .order('full_name');
+        if (error) throw error;
+        return data ?? [];
+      }
+      // Team Lead: employees assigned to projects this lead can see
+      if (isTeamLead) {
+        if (projectIds.length === 0) return [];
+        const { data, error } = await supabase
+          .from('project_assignments')
+          .select('employees!project_assignments_employee_id_fkey(id, full_name, avatar_url, designation)')
+          .eq('company_id', companyId!)
+          .eq('is_active', true)
+          .in('project_id', projectIds);
+        if (error) throw error;
+        const map = new Map<string, any>();
+        (data ?? []).forEach((row: any) => {
+          const e = row.employees;
+          if (e && !map.has(e.id)) map.set(e.id, e);
+        });
+        return Array.from(map.values()).sort((a, b) => a.full_name.localeCompare(b.full_name));
+      }
+      return [];
+    },
+    enabled: !!companyId && canFilterByEmployee,
+  });
+
   const { data: teamAssignments } = useQuery({
     queryKey: ['projects-v2-team', companyId, projectIds.join(',')],
     queryFn: async () => {
@@ -781,6 +821,13 @@ const ProjectsV2 = () => {
       if (priorityFilter !== 'all' && p.priority !== priorityFilter) return false;
       // Client filter
       if (isManager && clientFilter !== 'all' && p.client_id !== clientFilter) return false;
+      // Employee filter — only projects where selected employee is lead or assigned member
+      if (canFilterByEmployee && employeeFilter !== 'all') {
+        const isLead = p.project_lead_id === employeeFilter;
+        const team = teamByProject.get(p.id) ?? [];
+        const isMember = team.some(m => m.id === employeeFilter);
+        if (!isLead && !isMember) return false;
+      }
       // Search: project name/code OR matching task
       if (search.trim()) {
         const q = search.trim().toLowerCase();
@@ -791,7 +838,7 @@ const ProjectsV2 = () => {
       }
       return true;
     });
-  }, [projects, statusFilter, priorityFilter, clientFilter, isManager, search, projectIdsMatchingTasks]);
+  }, [projects, statusFilter, priorityFilter, clientFilter, isManager, search, projectIdsMatchingTasks, canFilterByEmployee, employeeFilter, teamByProject]);
 
   const toggleOne = (id: string) => {
     setExpandedIds(prev => {
@@ -866,12 +913,24 @@ const ProjectsV2 = () => {
               </SelectContent>
             </Select>
           )}
-          {(statusFilter !== 'all' || priorityFilter !== 'all' || clientFilter !== 'all') && (
+          {canFilterByEmployee && (
+            <div className="w-[220px]">
+              <SearchableEmployeeSelect
+                employees={filterEmployees ?? []}
+                value={employeeFilter}
+                onValueChange={setEmployeeFilter}
+                placeholder="Team Member"
+                allowAll
+                allLabel="All Team Members"
+              />
+            </div>
+          )}
+          {(statusFilter !== 'all' || priorityFilter !== 'all' || clientFilter !== 'all' || employeeFilter !== 'all') && (
             <Button
               variant="ghost"
               size="sm"
               className="h-9 text-xs"
-              onClick={() => { setStatusFilter('all'); setPriorityFilter('all'); setClientFilter('all'); }}
+              onClick={() => { setStatusFilter('all'); setPriorityFilter('all'); setClientFilter('all'); setEmployeeFilter('all'); }}
             >
               Clear
             </Button>
@@ -898,11 +957,14 @@ const ProjectsV2 = () => {
             const isToday = p.internal_deadline === today;
             const isPending = p.status === 'pending';
             return (
-              <div key={p.id}>
-                {/* Project row */}
+              <div
+                key={p.id}
+                className="mb-2 overflow-hidden rounded-[10px] bg-white"
+                style={{ border: '1px solid rgba(91,63,248,0.10)' }}
+              >
+                {/* Project header row */}
                 <div
-                  className="flex items-center gap-4 py-4"
-                  style={{ borderBottom: '1px solid #F0EEFF' }}
+                  className="flex items-center gap-4 px-4 py-3 bg-[#F6F5FF] rounded-t-[10px]"
                 >
                   <button
                     type="button"
@@ -987,6 +1049,7 @@ const ProjectsV2 = () => {
                     teamMembers={team}
                     canManage={canManageTasks}
                     role={role}
+                    filterAssigneeId={canFilterByEmployee && employeeFilter !== 'all' ? employeeFilter : null}
                   />
                 )}
               </div>
