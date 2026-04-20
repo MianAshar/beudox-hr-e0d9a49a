@@ -525,7 +525,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
       {/* Inline add row */}
       {canManage && adding && (
         <div
-          className="flex items-center gap-3 pl-8 pr-4 py-2.5"
+          className="flex items-center gap-3 pl-12 pr-4 py-2.5"
           style={taskRowBorder}
           onKeyDown={(e) => { if (e.key === 'Escape') cancelAdd(); }}
         >
