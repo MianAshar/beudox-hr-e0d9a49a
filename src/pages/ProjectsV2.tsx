@@ -726,6 +726,42 @@ const ProjectsV2 = () => {
     enabled: !!companyId && isManager,
   });
 
+  // Employees for filter dropdown
+  const { data: filterEmployees } = useQuery({
+    queryKey: ['projects-v2-filter-employees', companyId, role, employeeId, projectIds.join(',')],
+    queryFn: async () => {
+      if (isManager) {
+        const { data, error } = await supabase
+          .from('employees')
+          .select('id, full_name, avatar_url, designation')
+          .eq('company_id', companyId!)
+          .eq('status', 'active')
+          .order('full_name');
+        if (error) throw error;
+        return data ?? [];
+      }
+      // Team Lead: employees assigned to projects this lead can see
+      if (isTeamLead) {
+        if (projectIds.length === 0) return [];
+        const { data, error } = await supabase
+          .from('project_assignments')
+          .select('employees!project_assignments_employee_id_fkey(id, full_name, avatar_url, designation)')
+          .eq('company_id', companyId!)
+          .eq('is_active', true)
+          .in('project_id', projectIds);
+        if (error) throw error;
+        const map = new Map<string, any>();
+        (data ?? []).forEach((row: any) => {
+          const e = row.employees;
+          if (e && !map.has(e.id)) map.set(e.id, e);
+        });
+        return Array.from(map.values()).sort((a, b) => a.full_name.localeCompare(b.full_name));
+      }
+      return [];
+    },
+    enabled: !!companyId && canFilterByEmployee,
+  });
+
   const { data: teamAssignments } = useQuery({
     queryKey: ['projects-v2-team', companyId, projectIds.join(',')],
     queryFn: async () => {
