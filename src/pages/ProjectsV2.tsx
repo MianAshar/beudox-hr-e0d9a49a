@@ -4,8 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO, isBefore, startOfDay } from 'date-fns';
 import {
   Plus, Search, ChevronDown, ChevronRight, SlidersHorizontal, Loader2,
-  CalendarIcon, X,
+  CalendarIcon, X, Play,
 } from 'lucide-react';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -71,6 +74,62 @@ async function logProjectActivity(params: {
 interface TeamMember {
   id: string; full_name: string; avatar_url: string | null; designation?: string | null;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Start project CTA
+// ─────────────────────────────────────────────────────────────────────────────
+
+const StartProjectButton = ({
+  projectId, companyId, employeeId,
+}: { projectId: string; companyId: string; employeeId: string }) => {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('projects').update({ status: 'in_progress' }).eq('id', projectId);
+      if (error) throw error;
+      await logProjectActivity({
+        companyId, projectId, employeeId,
+        action: 'project_started', oldValue: 'pending', newValue: 'in_progress',
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects-v2'] });
+      toast({ title: 'Project started' });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast({ title: 'Failed to start project', description: e.message, variant: 'destructive' }),
+  });
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-[#5B3FF8] text-[#5B3FF8] hover:bg-[#5B3FF8]/5 transition-colors px-3 py-2 text-[13px] font-medium"
+        style={{ fontFamily: 'var(--ff-body)' }}
+      >
+        <Play className="h-3.5 w-3.5" /> Start Project
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Start Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to start this project? Assigned team members will be able to see it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+              {mutation.isPending ? 'Starting…' : 'Start Project'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Team avatars stack
@@ -369,7 +428,10 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
 
   if (isLoading) {
     return (
-      <div className="bg-[#FAFAFA] px-4 py-3 text-xs text-muted-foreground" style={{ borderBottom: '1px solid rgba(91,63,248,0.06)' }}>
+      <div
+        className="pl-8 pr-4 py-2.5 text-xs text-muted-foreground"
+        style={{ borderBottom: '1px solid #F8F7FF' }}
+      >
         Loading tasks…
       </div>
     );
@@ -382,30 +444,25 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
     setAdding(false); setNewTitle(''); setNewAssignee(''); setNewDeadline(null);
   };
 
+  const taskRowBorder = { borderBottom: '1px solid #F8F7FF' } as const;
+
   return (
     <>
       {empty && !adding && (
         <div
-          className="flex items-center bg-[#FAFAFA] text-sm"
-          style={{ borderBottom: '1px solid rgba(91,63,248,0.06)' }}
+          className="flex items-center gap-3 pl-8 pr-4 py-2.5 text-sm text-muted-foreground"
+          style={taskRowBorder}
         >
-          <div className="w-8 shrink-0" />
-          <div className="flex-1 min-w-0 px-3 py-2.5 text-muted-foreground italic flex items-center gap-3">
-            No tasks yet
-            {canManage && (
-              <button
-                type="button"
-                className="text-primary not-italic hover:underline text-xs font-medium"
-                onClick={() => setAdding(true)}
-              >
-                + Add Task
-              </button>
-            )}
-          </div>
-          <div className="w-[160px] shrink-0" />
-          <div className="w-[140px] shrink-0" />
-          <div className="w-[160px] shrink-0" />
-          <div className="w-[120px] shrink-0" />
+          <span className="italic">No tasks yet</span>
+          {canManage && (
+            <button
+              type="button"
+              className="not-italic text-[13px] font-medium text-[#5B3FF8] hover:underline"
+              onClick={() => setAdding(true)}
+            >
+              + Add Task
+            </button>
+          )}
         </div>
       )}
 
@@ -416,44 +473,35 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
         return (
           <div
             key={t.id}
-            className="flex items-center bg-[#FAFAFA] hover:bg-[#F3F2FA] transition-colors"
-            style={{ borderBottom: '1px solid rgba(91,63,248,0.06)' }}
+            className="flex items-center gap-4 pl-8 pr-4 py-2.5 hover:bg-[#FAFAFA] transition-colors"
+            style={taskRowBorder}
           >
-            {/* Indent + checkbox */}
-            <div className="w-8 shrink-0 flex items-center justify-end pr-1.5">
-              <Checkbox
-                checked={!!t.is_completed}
-                onCheckedChange={() => canToggle && toggleMutation.mutate(t)}
-                disabled={!canToggle || toggleMutation.isPending}
-                aria-label={t.is_completed ? 'Mark as incomplete' : 'Mark as complete'}
-              />
-            </div>
-            {/* Title */}
-            <div className="flex-1 min-w-0 px-3 py-2">
-              <span
-                className={cn(
-                  'text-[13px] font-normal',
-                  t.is_completed && 'line-through text-muted-foreground',
-                )}
-                style={{ fontFamily: 'var(--ff-body)' }}
-              >
-                {t.title}
-              </span>
-            </div>
-            {/* Status (empty) */}
-            <div className="w-[160px] shrink-0" />
-            {/* Deadline */}
-            <div className="w-[140px] shrink-0 px-2 text-xs">
+            <Checkbox
+              checked={!!t.is_completed}
+              onCheckedChange={() => canToggle && toggleMutation.mutate(t)}
+              disabled={!canToggle || toggleMutation.isPending}
+              aria-label={t.is_completed ? 'Mark as incomplete' : 'Mark as complete'}
+            />
+            <span
+              className={cn(
+                'flex-1 min-w-0 text-[13px] font-normal truncate',
+                t.is_completed && 'line-through text-muted-foreground',
+              )}
+              style={{ fontFamily: 'var(--ff-body)' }}
+              title={t.title}
+            >
+              {t.title}
+            </span>
+            <span className="text-xs shrink-0">
               {t.deadline ? (
-                <span className={cn(overdue && 'text-destructive font-medium', !overdue && 'text-foreground')}>
+                <span className={cn(overdue ? 'text-destructive font-medium' : 'text-muted-foreground')}>
                   {format(parseISO(t.deadline), 'MMM d')}
                 </span>
               ) : (
                 <span className="text-muted-foreground">—</span>
               )}
-            </div>
-            {/* Assignee */}
-            <div className="w-[160px] shrink-0 px-2 flex items-center gap-1.5 min-w-0">
+            </span>
+            <div className="flex items-center gap-1.5 shrink-0 min-w-0 w-[160px] justify-end">
               {t.assignee ? (
                 <>
                   <Avatar className="h-5 w-5 shrink-0">
@@ -466,7 +514,6 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
                 <span className="text-xs text-muted-foreground">Unassigned</span>
               )}
             </div>
-            <div className="w-[120px] shrink-0" />
           </div>
         );
       })}
@@ -474,73 +521,46 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
       {/* Inline add row */}
       {canManage && adding && (
         <div
-          className="flex items-start bg-[#FAFAFA]"
-          style={{ borderBottom: '1px solid rgba(91,63,248,0.06)' }}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') cancelAdd();
-          }}
+          className="flex items-center gap-3 pl-8 pr-4 py-2.5"
+          style={taskRowBorder}
+          onKeyDown={(e) => { if (e.key === 'Escape') cancelAdd(); }}
         >
-          <div className="w-8 shrink-0" />
-          <div className="flex-1 min-w-0 px-3 py-2">
-            <Input
-              autoFocus
-              placeholder="Task title…"
-              value={newTitle}
-              onChange={e => setNewTitle(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && newTitle.trim()) {
-                  e.preventDefault();
-                  addMutation.mutate();
-                }
-              }}
-              className="h-8 text-[13px]"
-            />
-          </div>
-          <div className="w-[160px] shrink-0 px-2 py-2 flex items-center gap-1">
-            <Button
-              size="sm"
-              className="h-8 px-3"
-              onClick={() => addMutation.mutate()}
-              disabled={!newTitle.trim() || addMutation.isPending}
-            >
-              {addMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 px-2"
-              onClick={cancelAdd}
-              disabled={addMutation.isPending}
-              aria-label="Cancel"
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-          <div className="w-[140px] shrink-0 px-2 py-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={cn('h-8 w-full justify-start text-xs font-normal', !newDeadline && 'text-muted-foreground')}
-                >
-                  <CalendarIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                  {newDeadline ? format(parseISO(newDeadline), 'MMM d') : 'Date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={newDeadline ? parseISO(newDeadline) : undefined}
-                  onSelect={d => setNewDeadline(d ? toIso(d) : null)}
-                  initialFocus
-                  className={cn('p-3 pointer-events-auto')}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="w-[160px] shrink-0 px-2 py-2">
+          <Input
+            autoFocus
+            placeholder="Task title…"
+            value={newTitle}
+            onChange={e => setNewTitle(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && newTitle.trim()) {
+                e.preventDefault();
+                addMutation.mutate();
+              }
+            }}
+            className="h-8 text-[13px] flex-1 min-w-0"
+          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn('h-8 w-[130px] justify-start text-xs font-normal shrink-0', !newDeadline && 'text-muted-foreground')}
+              >
+                <CalendarIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                {newDeadline ? format(parseISO(newDeadline), 'MMM d') : 'Date'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={newDeadline ? parseISO(newDeadline) : undefined}
+                onSelect={d => setNewDeadline(d ? toIso(d) : null)}
+                initialFocus
+                className={cn('p-3 pointer-events-auto')}
+              />
+            </PopoverContent>
+          </Popover>
+          <div className="w-[160px] shrink-0">
             <SearchableEmployeeSelect
               employees={teamMembers}
               value={newAssignee}
@@ -548,30 +568,40 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
               placeholder="Assign…"
             />
           </div>
-          <div className="w-[120px] shrink-0" />
+          <Button
+            size="sm"
+            className="h-8 px-3 shrink-0"
+            onClick={() => addMutation.mutate()}
+            disabled={!newTitle.trim() || addMutation.isPending}
+          >
+            {addMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 px-2 shrink-0"
+            onClick={cancelAdd}
+            disabled={addMutation.isPending}
+            aria-label="Cancel"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
         </div>
       )}
 
       {/* + Add Task trigger row (when not adding and there are existing tasks) */}
       {canManage && !adding && !empty && (
         <div
-          className="flex items-center bg-[#FAFAFA]"
-          style={{ borderBottom: '1px solid rgba(91,63,248,0.06)' }}
+          className="pl-8 pr-4 py-2"
+          style={taskRowBorder}
         >
-          <div className="w-8 shrink-0" />
-          <div className="flex-1 min-w-0 px-3 py-1.5">
-            <button
-              type="button"
-              className="text-xs text-primary hover:underline font-medium"
-              onClick={() => setAdding(true)}
-            >
-              + Add Task
-            </button>
-          </div>
-          <div className="w-[160px] shrink-0" />
-          <div className="w-[140px] shrink-0" />
-          <div className="w-[160px] shrink-0" />
-          <div className="w-[120px] shrink-0" />
+          <button
+            type="button"
+            className="text-[13px] font-medium text-[#5B3FF8] hover:underline"
+            onClick={() => setAdding(true)}
+          >
+            + Add Task
+          </button>
         </div>
       )}
     </>
@@ -774,7 +804,7 @@ const ProjectsV2 = () => {
   const today = todayIso();
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="min-h-full bg-[#F6F5FF] p-6 space-y-4">
       {/* Header bar: search + filter toggle + add */}
       <div className="flex items-center gap-3">
         <div className="relative max-w-sm flex-1 min-w-[240px]">
@@ -783,13 +813,13 @@ const ProjectsV2 = () => {
             placeholder="Search projects or tasks…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 h-9"
+            className="pl-9 h-9 bg-background"
           />
         </div>
         <Button
           variant={showFilters ? 'secondary' : 'outline'}
           size="sm"
-          className="h-9"
+          className="h-9 bg-background"
           onClick={() => setShowFilters(s => !s)}
           aria-label="Toggle filters"
         >
@@ -806,7 +836,7 @@ const ProjectsV2 = () => {
 
       {/* Filter panel */}
       {showFilters && (
-        <div className="flex flex-wrap gap-3 items-center p-3 rounded-lg border border-border bg-secondary/40">
+        <div className="flex flex-wrap gap-3 items-center p-3 rounded-lg border border-border bg-background/60">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[170px] h-9 bg-background"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
@@ -849,150 +879,119 @@ const ProjectsV2 = () => {
         </div>
       )}
 
-      {/* Table */}
+      {/* List */}
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-md" />)}
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="py-16 text-center text-muted-foreground text-sm">
+          {search || statusFilter !== 'all' || priorityFilter !== 'all' || clientFilter !== 'all'
+            ? 'No matching projects'
+            : 'No projects yet'}
+        </div>
       ) : (
-        <div className="rounded-lg border border-border overflow-hidden bg-background">
-          {/* Sticky header row */}
-          <div
-            className="sticky top-0 z-10 flex items-center"
-            style={{
-              backgroundColor: '#F6F5FF',
-              borderBottom: '1px solid rgba(91,63,248,0.15)',
-            }}
-          >
-            <div className="w-8 shrink-0" />
-            <div
-              className="flex-1 min-w-0 px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Project / Task Name
-            </div>
-            <div
-              className="w-[160px] shrink-0 px-2 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Status
-            </div>
-            <div
-              className="w-[140px] shrink-0 px-2 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Deadline
-            </div>
-            <div
-              className="w-[160px] shrink-0 px-2 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Lead / Assignee
-            </div>
-            <div
-              className="w-[120px] shrink-0 px-2 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Team
-            </div>
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground text-sm">
-              {search || statusFilter !== 'all' || priorityFilter !== 'all' || clientFilter !== 'all'
-                ? 'No matching projects'
-                : 'No projects yet'}
-            </div>
-          ) : (
-            filtered.map((p: any) => {
-              const expanded = expandedIds.has(p.id);
-              const team = teamByProject.get(p.id) ?? [];
-              const isToday = p.internal_deadline === today;
-              return (
-                <div key={p.id}>
-                  {/* Project row */}
-                  <div
-                    className="flex items-center bg-card hover:bg-muted/30 transition-colors"
-                    style={{ borderBottom: '1px solid rgba(91,63,248,0.10)' }}
+        <div>
+          {filtered.map((p: any) => {
+            const expanded = expandedIds.has(p.id);
+            const team = teamByProject.get(p.id) ?? [];
+            const isToday = p.internal_deadline === today;
+            const isPending = p.status === 'pending';
+            return (
+              <div key={p.id}>
+                {/* Project row */}
+                <div
+                  className="flex items-center gap-4 py-4"
+                  style={{ borderBottom: '1px solid #F0EEFF' }}
+                >
+                  <button
+                    type="button"
+                    className="w-6 h-6 shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                    onClick={() => toggleOne(p.id)}
+                    aria-label={expanded ? 'Collapse' : 'Expand'}
                   >
-                    {/* Chevron */}
-                    <button
-                      type="button"
-                      className="w-8 shrink-0 flex items-center justify-center h-12 text-muted-foreground hover:text-foreground"
-                      onClick={() => toggleOne(p.id)}
-                      aria-label={expanded ? 'Collapse' : 'Expand'}
-                    >
-                      {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </button>
-                    {/* Code + name */}
-                    <div className="flex-1 min-w-0 px-3 py-2.5 flex items-center gap-2">
-                      <span className="font-mono text-xs text-muted-foreground shrink-0">{p.project_code}</span>
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/projects/${p.id}`)}
-                        className="text-[14px] font-semibold text-foreground hover:underline truncate text-left min-w-0"
-                        style={{ fontFamily: 'var(--ff-display)' }}
-                        title={p.project_name}
-                      >
-                        {p.project_name}
-                      </button>
-                      {isToday && (
-                        <TooltipProvider delayDuration={200}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span
-                                aria-label="Due today"
-                                className="inline-block h-1.5 w-1.5 rounded-full bg-[#F5A623] shrink-0"
-                              />
-                            </TooltipTrigger>
-                            <TooltipContent side="top">Due today</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-                    {/* Status */}
-                    <div className="w-[160px] shrink-0 px-2">
+                    {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </button>
+
+                  <span className="font-mono text-xs text-muted-foreground shrink-0">{p.project_code}</span>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/projects/${p.id}`)}
+                    className="text-[14px] font-semibold text-foreground hover:underline truncate text-left min-w-0"
+                    style={{ fontFamily: 'var(--ff-display)' }}
+                    title={p.project_name}
+                  >
+                    {p.project_name}
+                  </button>
+
+                  {isToday && (
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            aria-label="Due today"
+                            className="inline-block h-1.5 w-1.5 rounded-full bg-[#F5A623] shrink-0"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="top">Due today</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+
+                  <div className="flex-1" />
+
+                  {/* Status / Start CTA */}
+                  <div className="shrink-0">
+                    {isPending ? (
+                      canEditStatus ? (
+                        <StartProjectButton projectId={p.id} companyId={companyId!} employeeId={employeeId!} />
+                      ) : null
+                    ) : (
                       <StatusCell project={p} canEdit={canEditStatus} companyId={companyId!} employeeId={employeeId!} />
-                    </div>
-                    {/* Deadline */}
-                    <div className="w-[140px] shrink-0 px-2">
-                      <DeadlineCell project={p} canEdit={canEditDeadline} companyId={companyId!} employeeId={employeeId!} />
-                    </div>
-                    {/* Lead */}
-                    <div className="w-[160px] shrink-0 px-2 flex items-center gap-2 min-w-0">
-                      {p.lead ? (
-                        <>
-                          <Avatar className="h-6 w-6 shrink-0">
-                            {p.lead.avatar_url && <AvatarImage src={p.lead.avatar_url} alt={p.lead.full_name} />}
-                            <AvatarFallback className="text-[10px]">{getInitials(p.lead.full_name)}</AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs text-foreground truncate">{p.lead.full_name}</span>
-                        </>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">No lead</span>
-                      )}
-                    </div>
-                    {/* Team */}
-                    <div className="w-[120px] shrink-0 px-2">
-                      {canSeeTeam ? <TeamMembersStack members={team} /> : <span className="text-xs text-muted-foreground">—</span>}
-                    </div>
+                    )}
                   </div>
 
-                  {/* Task rows */}
-                  {expanded && (
-                    <TaskRows
-                      projectId={p.id}
-                      companyId={companyId!}
-                      employeeId={employeeId!}
-                      teamMembers={team}
-                      canManage={canManageTasks}
-                      role={role}
-                    />
-                  )}
+                  {/* Deadline */}
+                  <div className="shrink-0 min-w-[90px] text-right">
+                    <DeadlineCell project={p} canEdit={canEditDeadline} companyId={companyId!} employeeId={employeeId!} />
+                  </div>
+
+                  {/* Lead */}
+                  <div className="shrink-0 flex items-center gap-2 min-w-0 w-[160px]">
+                    {p.lead ? (
+                      <>
+                        <Avatar className="h-6 w-6 shrink-0">
+                          {p.lead.avatar_url && <AvatarImage src={p.lead.avatar_url} alt={p.lead.full_name} />}
+                          <AvatarFallback className="text-[10px]">{getInitials(p.lead.full_name)}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-foreground truncate">{p.lead.full_name}</span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">No lead</span>
+                    )}
+                  </div>
+
+                  {/* Team */}
+                  <div className="shrink-0 w-[100px] flex justify-end">
+                    {canSeeTeam ? <TeamMembersStack members={team} /> : <span className="text-xs text-muted-foreground">—</span>}
+                  </div>
                 </div>
-              );
-            })
-          )}
+
+                {/* Task rows */}
+                {expanded && (
+                  <TaskRows
+                    projectId={p.id}
+                    companyId={companyId!}
+                    employeeId={employeeId!}
+                    teamMembers={team}
+                    canManage={canManageTasks}
+                    role={role}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
