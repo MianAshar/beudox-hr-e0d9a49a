@@ -967,7 +967,8 @@ const ProjectsV2 = () => {
               >
                 {/* Project header row */}
                 <div
-                  className="flex items-center gap-4 px-4 py-3 bg-[#F6F5FF] rounded-t-[10px]"
+                  className="flex items-center gap-4 px-4 py-3 bg-[#EEEBFF] rounded-t-[10px] border-b"
+                  style={{ borderBottomColor: 'rgba(91,63,248,0.15)' }}
                 >
                   <button
                     type="button"
