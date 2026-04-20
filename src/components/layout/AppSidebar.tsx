@@ -42,6 +42,7 @@ const navSections = [
     label: 'WORK',
     items: [
       { title: 'Projects', icon: FolderKanban, path: '/projects' },
+      { title: 'Projects V2', icon: FolderKanban, path: '/projects-v2' },
       { title: 'My Tasks', icon: ListChecks, path: '/my-tasks' },
       { title: 'Clients', icon: Briefcase, path: '/clients' },
       { title: 'Evaluations', icon: ClipboardCheck, path: '/evaluations' },
@@ -69,6 +70,8 @@ const AppSidebar = () => {
     // Exact match for paths that have sub-paths sharing prefixes
     if (path === '/evaluations') return location.pathname === '/evaluations' || (location.pathname.startsWith('/evaluations/') && !location.pathname.startsWith('/evaluations/daily'));
     if (path === '/evaluations/daily') return location.pathname.startsWith('/evaluations/daily');
+    if (path === '/projects') return location.pathname === '/projects' || (location.pathname.startsWith('/projects/') && !location.pathname.startsWith('/projects-v2'));
+    if (path === '/projects-v2') return location.pathname === '/projects-v2';
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
   const width = collapsed ? 64 : 240;
