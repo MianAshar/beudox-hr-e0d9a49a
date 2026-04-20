@@ -634,7 +634,10 @@ const ProjectsV2 = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
+  const [employeeFilter, setEmployeeFilter] = useState<string>('all');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const canFilterByEmployee = isManager || isTeamLead;
 
   // Projects query — same access pattern as Projects page
   const { data: projects, isLoading } = useQuery({
