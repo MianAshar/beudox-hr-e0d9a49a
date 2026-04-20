@@ -76,6 +76,62 @@ interface TeamMember {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Start project CTA
+// ─────────────────────────────────────────────────────────────────────────────
+
+const StartProjectButton = ({
+  projectId, companyId, employeeId,
+}: { projectId: string; companyId: string; employeeId: string }) => {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('projects').update({ status: 'in_progress' }).eq('id', projectId);
+      if (error) throw error;
+      await logProjectActivity({
+        companyId, projectId, employeeId,
+        action: 'project_started', oldValue: 'pending', newValue: 'in_progress',
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects-v2'] });
+      toast({ title: 'Project started' });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast({ title: 'Failed to start project', description: e.message, variant: 'destructive' }),
+  });
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-[#5B3FF8] text-[#5B3FF8] hover:bg-[#5B3FF8]/5 transition-colors px-3 py-2 text-[13px] font-medium"
+        style={{ fontFamily: 'var(--ff-body)' }}
+      >
+        <Play className="h-3.5 w-3.5" /> Start Project
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Start Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to start this project? Assigned team members will be able to see it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+              {mutation.isPending ? 'Starting…' : 'Start Project'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Team avatars stack
 // ─────────────────────────────────────────────────────────────────────────────
 
