@@ -1,197 +1,174 @@
 <!--
 generated_by: tessera
-source_sha: d00bdd87ef74df4d9f3d9037dee4c8e6c466a45a
-generated_at: 2026-04-20T20:34:22.965Z
+source_sha: 62da9ca68a594e1bf650a365c6f4caceaedd0a2a
+generated_at: 2026-04-20T20:39:24.805Z
 action: create
 -->
 
-# Beudox HR - Technical Context for AI Assistants
+# Beudox HR Management System - Technical Context
 
 ## Architecture Overview
 
-Beudox HR is a modern React-based HR management system built with TypeScript, using Supabase as the backend. The application follows a component-driven architecture with clear separation of concerns.
+Beudox HR is a modern React-based single-page application (SPA) built with TypeScript, using Supabase as the backend-as-a-service platform. The application follows a component-driven architecture with clear separation of concerns.
 
-### Technology Stack
-- **Frontend Framework**: React 18 with TypeScript
-- **Build System**: Vite with SWC compiler
-- **Styling**: Tailwind CSS with CSS custom properties for theming
-- **UI Library**: shadcn/ui built on Radix UI primitives
-- **Backend**: Supabase (PostgreSQL + Auth + Real-time + Edge Functions)
-- **State Management**: React Query for server state, Context API for global state
-- **Routing**: React Router v6 with protected routes
+### Frontend Architecture
+- **Framework**: React 18 with modern hooks and concurrent features
+- **Build Tool**: Vite for fast development and optimized production builds
+- **Routing**: React Router v6 with protected routes and role-based access control
+- **State Management**: TanStack Query for server state, React Context for global state
+- **Styling**: Tailwind CSS with shadcn/ui component library
 - **Forms**: React Hook Form with Zod validation
-- **Charts**: Recharts for data visualization
 
-## Key Architectural Patterns
+### Backend Architecture
+- **Database**: PostgreSQL via Supabase
+- **Authentication**: Supabase Auth with role-based permissions
+- **Real-time**: Supabase real-time subscriptions for live updates
+- **Serverless Functions**: Supabase Edge Functions for complex business logic
+
+## Key Design Patterns
 
 ### Component Organization
-- **Atomic Design**: Components organized by complexity (ui → feature → page)
-- **Composition over Inheritance**: Heavy use of render props and compound components
+- **Atomic Design**: Components organized by complexity (ui/, layout/, feature-specific/)
+- **Composition over Inheritance**: Heavy use of React composition patterns
 - **Custom Hooks**: Business logic extracted into reusable hooks
-- **Layout Components**: Consistent layout structure across the application
+- **Compound Components**: Complex UI patterns using compound component patterns
 
 ### Data Flow
-- **React Query**: Centralized data fetching with caching and synchronization
+- **Server State**: TanStack Query manages all API interactions
 - **Optimistic Updates**: Immediate UI feedback with rollback on errors
-- **Real-time Subscriptions**: Live updates for collaborative features
-- **Normalized State**: Consistent data structures across components
+- **Real-time Sync**: Supabase subscriptions for live data updates
+- **Caching Strategy**: Intelligent caching with background refetching
 
-### Authentication & Security
-- **Supabase Auth**: JWT-based authentication with refresh tokens
-- **Role-based Access Control**: Hierarchical permissions (employee → team_lead → hr_manager → ceo)
-- **Row Level Security**: Database-level access control
-- **API Security**: Server-side validation and sanitization
-
-## Core Business Logic
-
-### Employee Management
-- Hierarchical organizational structure with departments and roles
-- Profile management with avatar support and contact information
-- Role-based feature access and data visibility
-
-### Performance Management
-- **Bi-annual Evaluations**: Comprehensive performance reviews with scoring
-- **Daily Feedback**: Quick peer and manager feedback system
-- **Timeline Views**: Historical evaluation tracking with filtering
-- **Recommendation System**: Career development suggestions
-
-### Financial Management
-- **Payroll Processing**: Automated calculations with OT, bonuses, deductions
-- **Expense Tracking**: Monthly expense categorization and reporting
-- **Financial Dashboard**: KPI monitoring with trend analysis
-- **Currency Handling**: PKR (Pakistani Rupee) formatting and calculations
-
-### Leave Management
-- **Multiple Leave Types**: Annual, sick, maternity, etc.
-- **Balance Tracking**: Automatic balance calculations and carry-forward
-- **Approval Workflows**: Multi-level approval process
-- **Calendar Integration**: Leave calendar with conflict detection
-
-## Key Files and Their Purposes
-
-### Application Entrypoints
-- `src/main.tsx`: Application bootstrap and React root rendering
-- `src/pages/Index.tsx`: Main dashboard/home page component
-- `src/App.tsx`: Main application component with routing
-
-### Core Components
-- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and header
-- `src/components/layout/AppSidebar.tsx`: Navigation sidebar with role-based menu items
-- `src/components/layout/TopBar.tsx`: Header with user menu and notifications
-- `src/components/BeudoxLogo.tsx`: Logo component with variant support (default/sidebar)
-- `src/components/NavLink.tsx`: Enhanced NavLink with active state styling
-
-### Feature Components
-- `src/components/evaluations/EvaluationTimeline.tsx`: Evaluation history with filtering and pagination
-- `src/components/finance/FinanceSummary.tsx`: Financial dashboard with charts and KPIs
-- `src/components/SearchableEmployeeSelect.tsx`: Employee selection with search and avatar display
-
-### Utilities and Hooks
-- `src/lib/utils.ts`: Common utility functions (cn for className merging)
-- `src/lib/format-date.ts`: Date formatting utilities
-- `src/lib/role-access.ts`: Role-based permission checking
-- `src/hooks/useAuth.ts`: Authentication state management
-- `src/hooks/use-toast.ts`: Toast notification system
-
-### Integrations
-- `src/integrations/supabase/client.ts`: Supabase client configuration
-- `src/integrations/supabase/types.ts`: Database type definitions
-
-### Configuration Files
-- `vite.config.ts`: Vite build configuration
-- `tailwind.config.ts`: Tailwind CSS customization
-- `tsconfig.json`: TypeScript compiler options
-- `eslint.config.js`: ESLint configuration
-- `supabase/config.toml`: Supabase project configuration
+### Security & Access Control
+- **Role-Based Access**: Hierarchical permissions (CEO > HR Manager > Team Lead > Employee)
+- **Route Protection**: Protected routes with automatic redirects
+- **Data Filtering**: Server-side filtering based on user roles and relationships
 
 ## Database Schema Highlights
 
-### Core Tables
-- `employees`: User profiles with role and department relationships
-- `evaluations`: Bi-annual performance reviews
-- `daily_evaluations`: Daily feedback entries with direction (peer/manager)
-- `leave_requests`: Leave applications with approval workflow
-- `payroll_records`: Payroll calculations and payment history
-- `projects`: Project management with team assignments
-- `monthly_expenses`: Financial expense tracking
-- `notifications`: System notification management
+### Core Entities
+- **employees**: User profiles with role assignments
+- **companies**: Multi-tenant company data
+- **departments**: Organizational structure
+- **evaluations**: Performance reviews (quarterly and daily)
+- **leave_requests**: Time-off management
+- **payroll_records**: Salary processing
+- **projects**: Project management with team assignments
+- **invoices**: Client billing
 
 ### Key Relationships
-- Employees belong to departments and have roles
-- Evaluations reference employees and evaluators
-- Leave requests have approval chains
-- Payroll records link to employees and time periods
-- Projects have team members and tasks
+- Employees belong to companies and departments
+- Evaluations link employees with reviewers
+- Projects have many-to-many relationships with employees
+- Leave requests have approval workflows
+
+## Business Logic
+
+### Evaluation System
+- **Quarterly Evaluations**: Comprehensive performance reviews with recommendations
+- **Daily Evaluations**: Quick feedback with directional ratings
+- **Visibility Rules**: Role-based access to evaluation data
+- **Timeline Views**: Chronological display of all evaluations
+
+### Payroll Processing
+- **Automated Calculations**: Base salary + overtime + bonuses - deductions
+- **Multi-currency Support**: PKR-focused with extensible currency handling
+- **PDF Generation**: Automated payslip generation
+- **Audit Trail**: Complete history of payroll changes
+
+### Leave Management
+- **Balance Tracking**: Automatic calculation of leave entitlements
+- **Approval Workflows**: Hierarchical approval processes
+- **Calendar Integration**: Visual calendar views
+- **Policy Enforcement**: Configurable leave policies
+
+## Performance Optimizations
+
+### Frontend
+- **Code Splitting**: Route-based code splitting
+- **Lazy Loading**: Components loaded on demand
+- **Image Optimization**: Responsive images with fallbacks
+- **Bundle Analysis**: Optimized chunk splitting
+
+### Database
+- **Indexing**: Strategic indexes on frequently queried columns
+- **Query Optimization**: Efficient joins and aggregations
+- **Real-time**: Selective subscriptions to reduce bandwidth
+- **Caching**: Browser and server-side caching strategies
 
 ## Development Workflow
 
-### Component Development
-1. Create component in appropriate directory (`ui/`, `layout/`, feature-specific)
-2. Use TypeScript interfaces for props
-3. Implement responsive design with Tailwind classes
-4. Add loading states and error handling
-5. Write unit tests for complex logic
+### Code Quality
+- **TypeScript**: Strict type checking
+- **ESLint**: Code linting with React-specific rules
+- **Prettier**: Consistent code formatting
+- **Husky**: Git hooks for quality gates
 
-### Data Fetching
-1. Use React Query hooks for server state
-2. Implement proper loading and error states
-3. Add optimistic updates for better UX
-4. Handle real-time subscriptions where needed
+### Testing Strategy
+- **Unit Tests**: Component and utility function testing
+- **Integration Tests**: API interaction testing
+- **E2E Tests**: Playwright for critical user journeys
+- **Visual Testing**: Screenshot comparisons
 
-### Styling Guidelines
-- Use Tailwind utility classes primarily
-- Custom CSS variables for theme colors and fonts
-- Consistent spacing using Tailwind's spacing scale
-- Dark mode support through CSS custom properties
-- Rounded corners: 14px for cards, 8px for buttons
+### Deployment
+- **CI/CD**: Automated testing and deployment
+- **Environment Management**: Separate environments for dev/staging/prod
+- **Database Migrations**: Version-controlled schema changes
+- **Rollback Strategy**: Safe deployment with rollback capabilities
 
-## Common Patterns
+## Integration Points
 
-### Component Props
-```typescript
-interface ComponentProps {
-  // Required props first
-  requiredProp: string;
-  // Optional props with defaults
-  optionalProp?: number;
-  // Event handlers
-  onAction?: (data: SomeType) => void;
-  // Styling props
-  className?: string;
-}
-```
+### External Services
+- **Email**: Supabase email for notifications and invites
+- **File Storage**: Supabase Storage for documents and images
+- **PDF Generation**: Server-side PDF creation for invoices and payslips
+- **Calendar**: Integration with external calendar systems
 
-### Data Fetching
-```typescript
-const { data, isLoading, error } = useQuery({
-  queryKey: ['resource', id],
-  queryFn: () => fetchResource(id),
-  enabled: !!id,
-});
-```
+### API Design
+- **RESTful Endpoints**: Consistent REST API design
+- **GraphQL Alternative**: Supabase provides GraphQL access
+- **Webhooks**: Event-driven integrations
+- **Rate Limiting**: Built-in rate limiting and abuse protection
 
-### Conditional Rendering
-```typescript
-{isLoading ? (
-  <Skeleton className="h-4 w-20" />
-) : (
-  <span>{data?.value}</span>
-)}
-```
+## Scalability Considerations
 
-## Performance Considerations
+### Horizontal Scaling
+- **Stateless Frontend**: Easy horizontal scaling
+- **Database Sharding**: Supabase handles database scaling
+- **CDN**: Static asset delivery optimization
+- **Edge Functions**: Globally distributed serverless functions
 
-- **Code Splitting**: Route-based splitting with React.lazy
-- **Image Optimization**: Next.js Image component for avatars
-- **Query Optimization**: Selective field fetching and pagination
-- **Memoization**: React.memo for expensive components
-- **Bundle Analysis**: Regular bundle size monitoring
+### Performance Monitoring
+- **Real User Monitoring**: Performance metrics collection
+- **Error Tracking**: Comprehensive error logging
+- **Database Monitoring**: Query performance and slow query analysis
+- **Business Metrics**: KPI tracking and alerting
 
-## Testing Strategy
+## Security Measures
 
-- **Unit Tests**: Component logic and utilities with Vitest
-- **Integration Tests**: API interactions and component integration
-- **E2E Tests**: Critical user flows with Playwright
-- **Visual Testing**: Component appearance regression testing
+### Authentication
+- **JWT Tokens**: Secure token-based authentication
+- **Session Management**: Automatic session refresh
+- **Password Policies**: Strong password requirements
+- **MFA Support**: Multi-factor authentication ready
 
-This technical context should help you understand the codebase structure, patterns, and conventions used in Beudox HR.
+### Authorization
+- **Row Level Security**: Database-level access control
+- **API Permissions**: Function-level access control
+- **Audit Logging**: Complete audit trail of all actions
+- **Data Encryption**: Encrypted data at rest and in transit
+
+## Future Enhancements
+
+### Planned Features
+- **Mobile App**: React Native companion app
+- **Advanced Analytics**: BI dashboard integration
+- **API Access**: Third-party integrations
+- **Workflow Automation**: Advanced approval workflows
+- **AI Features**: Automated insights and recommendations
+
+### Technical Debt
+- **Legacy Code**: Gradual migration from older patterns
+- **Performance**: Ongoing optimization efforts
+- **Testing**: Expanding test coverage
+- **Documentation**: Continuous documentation updates

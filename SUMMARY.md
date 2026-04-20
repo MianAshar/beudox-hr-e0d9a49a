@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: d00bdd87ef74df4d9f3d9037dee4c8e6c466a45a
-generated_at: 2026-04-20T20:34:22.965Z
+source_sha: 62da9ca68a594e1bf650a365c6f4caceaedd0a2a
+generated_at: 2026-04-20T20:39:24.805Z
 action: create
 -->
 
@@ -12,168 +12,158 @@ action: create
 **Repository**: MianAshar/beudox-hr-e0d9a49a  
 **Type**: Frontend Application (React/TypeScript)  
 **Primary Language**: TypeScript (149 files)  
-**Total Files**: 201 (1.9MB)  
-**Lines of Code**: ~25,000+ (estimated)
+**Total Files**: 201 (1902KB)  
+**Symbols**: 357 total, 292 public
 
 ## Architecture & Technology Stack
 
 ### Frontend Framework
-- **React 18** with TypeScript for type safety
-- **Vite** as build tool with SWC compiler for fast development
-- **React Router v6** for client-side routing
-- **React Query (TanStack Query)** for server state management
+- **React 18** with TypeScript for type-safe development
+- **Vite** as build tool with SWC for fast compilation
+- **React Router v6** for client-side routing with protected routes
+- **Tailwind CSS** for styling with custom design system
+- **shadcn/ui** component library built on Radix UI primitives
 
-### UI & Styling
-- **Tailwind CSS** with custom design system
-- **shadcn/ui** component library built on Radix UI
-- **Lucide React** for icons
+### Backend & Data
+- **Supabase** (PostgreSQL) as backend-as-a-service
+- **Supabase Auth** for authentication and authorization
+- **TanStack Query** for server state management and caching
+- **Supabase Edge Functions** for serverless business logic
+
+### Key Dependencies
+- **React Hook Form + Zod** for form handling and validation
 - **Recharts** for data visualization
-- **CSS Custom Properties** for theming and dark mode support
+- **TipTap** for rich text editing
+- **React Image Crop** for image manipulation
+- **XLSX** for Excel file processing
 
-### Backend & Database
-- **Supabase** as BaaS (Backend as a Service)
-  - PostgreSQL database with real-time subscriptions
-  - Built-in authentication and authorization
-  - Edge functions for server-side logic
-  - Row Level Security (RLS) for data access control
-- **27 SQL migrations** defining comprehensive HR schema
+## Application Features
 
-### Development Tools
-- **TypeScript** with strict configuration
-- **ESLint** for code quality
-- **Vitest** for unit testing
-- **Playwright** for E2E testing
-- **React Hook Form** with validation
+### Core Functionality
+1. **Employee Management**: Complete CRUD operations for employee data
+2. **Performance Evaluations**: Quarterly and daily evaluation systems
+3. **Leave Management**: Request, approval, and balance tracking
+4. **Payroll Processing**: Automated salary calculations and payslip generation
+5. **Financial Management**: Expense tracking and invoice management
+6. **Project Management**: Team assignments and progress tracking
+7. **HR Administration**: Policies, job descriptions, and organizational settings
 
-## Application Features (Discovered from Code)
-
-### 1. Employee Management
-- Complete employee profiles with avatars, roles, and departments
-- Organizational hierarchy with role-based permissions
-- Employee search and selection components
-
-### 2. Performance Management
-- **Bi-annual Evaluations**: Comprehensive performance reviews with scoring (1-5 scale)
-- **Daily Feedback System**: Peer and manager feedback with direction tracking
-- **Evaluation Timeline**: Historical view of all evaluations with filtering
-- **Recommendation System**: Career development suggestions
-
-### 3. Leave Management
-- Multiple leave types (annual, sick, maternity, etc.)
-- Balance tracking with automatic calculations
-- Approval workflows with multi-level authorization
-- Leave request forms and status tracking
-
-### 4. Payroll & Finance
-- Automated payroll calculations including:
-  - Base salary + overtime (regular + holiday)
-  - Bonuses and loan deductions
-- Monthly expense tracking and categorization
-- Financial dashboard with trend analysis
-- PKR currency formatting and reporting
-
-### 5. Project Management
-- Project creation and team assignment
-- Task tracking and activity logging
-- Team management modals
-- Project status monitoring
-
-### 6. Administrative Features
-- **Settings Management**: Departments, roles, leave types, expense categories
-- **HR Policies**: Rich text editor for company policies
-- **Company Settings**: Organization-wide configuration
-- **Evaluation Parameters**: Configurable performance criteria
-
-### 7. Communication & Notifications
-- Automated notification system for HR events
-- Notification preferences management
-- Real-time updates for collaborative features
+### User Roles & Permissions
+- **CEO**: Full system access
+- **HR Manager**: HR operations and employee management
+- **Team Lead**: Team oversight and evaluations
+- **Employee**: Personal data and limited access
 
 ## Codebase Structure Analysis
 
-### Component Architecture
-- **292 public symbols** across 357 total symbols
-- **Atomic design pattern**: ui → feature → page components
-- **16 custom functions** for business logic
-- **5 interfaces** defining key data structures
+### Component Organization
+- **Atomic Design Pattern**: Components organized by complexity level
+- **Feature-based Structure**: Related components grouped by domain
+- **Reusable UI Library**: Extensive shadcn/ui component usage
+- **Layout Components**: Consistent application layout with sidebar navigation
 
-### Key Component Categories
-- **UI Components** (70+): Buttons, forms, tables, charts, etc.
-- **Layout Components**: AppLayout, AppSidebar, TopBar, UserMenu
-- **Feature Components**: EvaluationTimeline, FinanceSummary, SearchableEmployeeSelect
-- **Business Logic**: Leave utilities, role access control, notifications
+### Key Architectural Patterns
+- **Custom Hooks**: Business logic extracted into reusable hooks
+- **Compound Components**: Complex UI patterns using composition
+- **Protected Routes**: Role-based route protection with automatic redirects
+- **Optimistic Updates**: Immediate UI feedback with error handling
 
-### Data Flow Patterns
-- **React Query** for all server state management
-- **Custom hooks** for complex state logic (useAuth, useToast, useSort)
-- **Context API** for global application state
-- **Optimistic updates** for better user experience
-
-## Database Schema Insights
-
-Based on the 27 Supabase migrations, the system manages:
-
-- **Employee data**: Profiles, roles, departments, contact info
-- **Performance data**: Evaluations, daily feedback, recommendations
-- **Financial data**: Payroll, expenses, bonuses, deductions
-- **Leave data**: Requests, balances, approval workflows
-- **Project data**: Teams, tasks, activity logs
-- **Organizational data**: Departments, roles, policies, settings
-
-## Security & Access Control
-
-- **Role-based permissions**: Employee → Team Lead → HR Manager → CEO
-- **Database-level security**: Row Level Security policies
-- **API security**: Server-side validation in Edge functions
-- **Authentication**: Supabase Auth with JWT tokens
-
-## Key Technical Insights
-
-### Performance Optimizations
-- Code splitting with React.lazy
-- Query caching and background refetching
-- Image optimization for avatars
-- Bundle size management
-
-### Developer Experience
-- Hot module replacement in development
-- Type-safe API calls with generated types
-- Comprehensive component library
-- Consistent code formatting and linting
-
-### Scalability Considerations
-- Modular component architecture
-- Separated business logic from UI
-- Database normalization for complex relationships
-- Real-time subscriptions for live updates
+### Database Integration
+- **27 SQL Migrations**: Comprehensive database schema evolution
+- **Real-time Subscriptions**: Live data updates via Supabase
+- **Edge Functions**: Serverless functions for complex operations
+- **Type Safety**: Generated TypeScript types from database schema
 
 ## Notable Implementation Details
 
 ### Evaluation System
-- Supports both quarterly and daily evaluations
-- Role-based visibility (managers see recommendations, employees don't)
-- Timeline view with unified sorting and filtering
-- Star rating system with decimal precision
+- **Dual Evaluation Types**: Quarterly (comprehensive) and daily (quick feedback)
+- **Role-based Visibility**: Different access levels for different user roles
+- **Timeline Views**: Chronological display of evaluation history
+- **Recommendation System**: Structured feedback with actionable insights
 
-### Financial Dashboard
-- 6-month trend analysis with interactive charts
-- Month-over-month comparison with percentage changes
-- Separate tracking of payroll vs. expenses
-- PKR currency formatting with proper localization
+### Financial Features
+- **Multi-currency Support**: PKR primary with extensible design
+- **Automated Calculations**: Complex payroll formulas with overtime and bonuses
+- **PDF Generation**: Automated document creation for invoices and payslips
+- **Trend Analysis**: 6-month financial trend visualization
 
-### Employee Selection
-- Searchable dropdown with avatar display
-- Support for "All Employees" option
-- Keyboard navigation and accessibility
-- Initials fallback for missing avatars
+### User Experience
+- **Responsive Design**: Mobile-first approach with adaptive layouts
+- **Dark/Light Themes**: User preference-based theming
+- **Real-time Notifications**: Instant feedback for user actions
+- **Loading States**: Comprehensive loading and error handling
 
-### Logo Component
-- Multiple variants (default, sidebar)
-- Configurable size and wordmark display
-- SVG assets with proper fallbacks
+## Development & Testing
+
+### Development Tools
+- **ESLint + TypeScript**: Strict code quality enforcement
+- **Vitest**: Unit testing framework
+- **Playwright**: End-to-end testing
+- **Hot Module Replacement**: Fast development iteration
+
+### Build Configuration
+- **Path Aliases**: `@/` for clean imports
+- **Development Server**: Port 8080 with HMR
+- **Production Optimization**: Code splitting and tree shaking
+- **Asset Optimization**: Image and font optimization
+
+## Security & Performance
+
+### Security Measures
+- **Row Level Security**: Database-level access control
+- **JWT Authentication**: Secure token-based auth
+- **Role-based Access Control**: Hierarchical permission system
+- **Input Validation**: Zod schemas for data validation
+
+### Performance Optimizations
+- **Code Splitting**: Route-based lazy loading
+- **Query Optimization**: Efficient data fetching with caching
+- **Image Optimization**: Responsive images with fallbacks
+- **Bundle Optimization**: Strategic chunk splitting
+
+## Key Files & Components
+
+### Core Application Files
+- `src/main.tsx`: Application entry point
+- `src/App.tsx`: Main routing and layout configuration
+- `src/components/layout/AppLayout.tsx`: Main application layout
+- `src/hooks/useAuth.ts`: Authentication state management
+
+### Feature Components
+- `src/components/evaluations/EvaluationTimeline.tsx`: Evaluation history display
+- `src/components/finance/FinanceSummary.tsx`: Financial dashboard
+- `src/components/SearchableEmployeeSelect.tsx`: Employee selection component
+- `src/components/BeudoxLogo.tsx`: Brand logo component
+
+### Configuration Files
+- `vite.config.ts`: Build configuration
+- `package.json`: Dependencies and scripts
+- `tailwind.config.ts`: Styling configuration
+- `supabase/config.toml`: Backend configuration
+
+## Recommendations for Development
+
+### Code Quality
+- **Consistent Patterns**: Maintain current architectural patterns
+- **Type Safety**: Leverage TypeScript for all new features
+- **Testing Coverage**: Expand unit and integration tests
+- **Documentation**: Keep component documentation current
+
+### Performance
+- **Lazy Loading**: Continue using route-based code splitting
+- **Query Optimization**: Monitor and optimize database queries
+- **Bundle Analysis**: Regular bundle size monitoring
+- **Caching Strategy**: Optimize TanStack Query cache settings
+
+### Maintainability
+- **Modular Architecture**: Keep features loosely coupled
+- **Consistent Naming**: Follow established naming conventions
+- **Error Handling**: Comprehensive error boundaries and logging
+- **Code Reviews**: Maintain high code review standards
 
 ## Conclusion
 
-Beudox HR is a comprehensive, well-architected HR management system built with modern web technologies. The codebase demonstrates strong engineering practices with proper separation of concerns, type safety, and scalable architecture. The application covers all major HR functions with a focus on user experience and data-driven decision making.
+Beudox HR is a well-architected, feature-rich HR management system built with modern web technologies. The codebase demonstrates strong engineering practices with clear separation of concerns, comprehensive type safety, and scalable architecture. The use of Supabase provides a solid foundation for real-time features and complex business logic, while the React/TypeScript stack ensures maintainable and performant frontend code.
 
-The analysis reveals a production-ready application with robust features, proper security implementation, and maintainable code structure suitable for enterprise deployment.
+The application successfully addresses comprehensive HR management needs with an intuitive user interface and robust backend integration, making it suitable for businesses of various sizes requiring professional HR management capabilities.
