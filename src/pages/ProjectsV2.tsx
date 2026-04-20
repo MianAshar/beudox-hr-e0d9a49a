@@ -4,8 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO, isBefore, startOfDay } from 'date-fns';
 import {
   Plus, Search, ChevronDown, ChevronRight, SlidersHorizontal, Loader2,
-  CalendarIcon, X,
+  CalendarIcon, X, Play,
 } from 'lucide-react';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
