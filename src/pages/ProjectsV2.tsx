@@ -430,7 +430,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
   if (isLoading) {
     return (
       <div
-        className="pl-8 pr-4 py-2.5 text-xs text-muted-foreground"
+        className="pl-12 pr-4 py-2.5 text-xs text-muted-foreground"
         style={{ borderBottom: '1px solid #F8F7FF' }}
       >
         Loading tasks…
