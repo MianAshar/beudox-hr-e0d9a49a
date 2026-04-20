@@ -1,76 +1,60 @@
 <!--
 generated_by: tessera
-source_sha: f63f9a4c4df73e5a5f950ac60a182985cba7140d
-generated_at: 2026-04-20T20:13:29.420Z
+source_sha: 78cff6f3879bb425833e882c1fe18dfe70233b60
+generated_at: 2026-04-20T20:24:47.422Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Management System
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, payroll processing, performance evaluations, leave tracking, and organizational workflows.
+A comprehensive Human Resources Management System built with modern web technologies. This application provides a complete suite of HR tools for managing employees, payroll, evaluations, leave, projects, and more.
 
 ## Features
 
 ### Core HR Management
-- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
-- **Role-Based Access Control**: Granular permissions for different user roles (CEO, HR Manager, Team Lead, Employee)
-- **Profile Management**: Detailed employee profiles with personal information, job details, and history
+- **Employee Management**: Complete employee profiles, onboarding, and lifecycle management
+- **Role-Based Access Control**: Granular permissions system with multiple user roles
+- **Organization Settings**: Configure departments, roles, leave types, and company policies
 
 ### Performance & Evaluation
-- **Quarterly Evaluations**: Bi-annual performance reviews with scoring and recommendations
+- **Quarterly Evaluations**: Bi-annual performance reviews with detailed feedback
 - **Daily Evaluations**: Real-time feedback system for continuous improvement
-- **Evaluation Timeline**: Historical view of all evaluations with visibility controls
+- **Evaluation Timeline**: Historical view of all evaluations with ratings and comments
 
-### Financial Management
-- **Payroll Processing**: Automated payroll calculations with overtime, bonuses, and deductions
+### Payroll & Finance
+- **Payroll Processing**: Automated payroll calculations with overtime and bonuses
 - **Expense Tracking**: Monthly expense management and reporting
 - **Finance Dashboard**: Visual analytics with 6-month trend charts
-- **Loan Management**: Employee loan tracking and repayment schedules
+- **Invoice Management**: Client invoicing with PDF generation
 
 ### Leave & Time Management
-- **Leave Management**: Comprehensive leave request system with approval workflows
-- **Leave Balances**: Real-time tracking of leave entitlements
-- **Public Holidays**: Configurable holiday calendar management
+- **Leave Management**: Request, approve, and track various leave types
+- **Attendance Tracking**: Daily attendance monitoring
+- **Public Holidays**: Configurable holiday calendar
 
 ### Project Management
-- **Project Tracking**: Project lifecycle management with team assignments
-- **Client Management**: Client relationship and invoice tracking
-- **Task Management**: Individual and team task assignment and progress tracking
+- **Project Tracking**: Two versions of project management (legacy and v2)
+- **Team Management**: Assign team members and track project progress
+- **Client Management**: Maintain client relationships and project assignments
 
-### Organizational Tools
+### Additional Features
 - **HR Policies**: Rich text policy documents with version control
 - **Job Descriptions**: Structured job posting and description management
-- **Settings Management**: Configurable company settings, departments, roles, and parameters
+- **Loan Management**: Employee loan tracking and deductions
+- **Task Management**: Personal task tracking for employees
 
 ## Technology Stack
 
-### Frontend
-- **React 18** - Modern React with hooks and concurrent features
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and development server
-- **React Router** - Client-side routing
-- **TanStack Query** - Powerful data fetching and caching
-
-### UI & Styling
-- **Tailwind CSS** - Utility-first CSS framework
-- **shadcn/ui** - High-quality React components built on Radix UI
-- **Radix UI** - Accessible, unstyled UI primitives
-- **Lucide React** - Beautiful icon library
-- **Recharts** - Composable charting library
-
-### Backend & Database
-- **Supabase** - Open source Firebase alternative
-  - PostgreSQL database
-  - Real-time subscriptions
-  - Authentication
-  - File storage
-  - Edge functions
-
-### Development Tools
-- **ESLint** - Code linting
-- **Vitest** - Unit testing
-- **Playwright** - End-to-end testing
-- **TypeScript** - Type checking
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite with SWC
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **State Management**: TanStack Query for server state
+- **Routing**: React Router v6
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts for data visualization
+- **Rich Text**: Tiptap for policy editing
+- **Testing**: Vitest + Playwright for E2E
 
 ## Getting Started
 
@@ -111,19 +95,9 @@ A comprehensive Human Resources Management System built with modern web technolo
 
 4. **Database Setup**
    
-   The application uses Supabase migrations. If setting up a new project:
-   ```bash
-   # Install Supabase CLI
-   npm install -g supabase
-   
-   # Link to your project
-   supabase link --project-ref your-project-id
-   
-   # Run migrations
-   supabase db push
-   ```
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
 
-5. **Start Development Server**
+5. **Development Server**
    ```bash
    npm run dev
    # or
@@ -139,31 +113,15 @@ npm run build
 npm run preview
 ```
 
-### Testing
-
-```bash
-# Run unit tests
-npm run test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run e2e tests
-npx playwright test
-```
-
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components
-│   ├── finance/        # Finance-related components
-│   ├── evaluations/    # Evaluation components
-│   ├── leave/          # Leave management components
-│   └── ...
-├── pages/              # Page components and routes
+│   ├── ui/             # shadcn/ui base components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── [feature]/      # Feature-specific components
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations
@@ -171,16 +129,25 @@ src/
 
 supabase/
 ├── migrations/         # Database schema migrations
-├── functions/          # Edge functions
-└── config.toml         # Supabase configuration
+└── functions/          # Edge functions for backend logic
 ```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
+- `npm run test` - Run unit tests
+- `npm run test:watch` - Run tests in watch mode
 
 ## Authentication & Authorization
 
-The application uses Supabase Authentication with role-based access control:
+The application uses Supabase Auth for authentication with role-based access control:
 
 - **CEO**: Full system access
-- **HR Manager**: HR operations and management
+- **HR Manager**: HR operations and employee management
 - **Team Lead**: Team management and evaluations
 - **Employee**: Personal profile and limited access
 
@@ -190,8 +157,9 @@ The application uses Supabase Authentication with role-based access control:
 2. Create a feature branch
 3. Make your changes
 4. Run tests: `npm run test`
-5. Submit a pull request
+5. Run linting: `npm run lint`
+6. Submit a pull request
 
 ## License
 
-This project is proprietary software. All rights reserved.
+This project is private and proprietary to Beudox.
