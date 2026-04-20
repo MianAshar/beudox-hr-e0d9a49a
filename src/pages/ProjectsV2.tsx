@@ -454,7 +454,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
     <>
       {empty && !adding && (
         <div
-          className="flex items-center gap-3 pl-8 pr-4 py-2.5 text-sm text-muted-foreground"
+          className="flex items-center gap-3 pl-12 pr-4 py-2.5 text-sm text-muted-foreground"
           style={taskRowBorder}
         >
           <span className="italic">No tasks yet</span>
