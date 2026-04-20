@@ -438,7 +438,10 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
     );
   }
 
-  const list = tasks ?? [];
+  const allTasks = tasks ?? [];
+  const list = filterAssigneeId
+    ? allTasks.filter((t: any) => t.assigned_to === filterAssigneeId)
+    : allTasks;
   const empty = list.length === 0;
 
   const cancelAdd = () => {
