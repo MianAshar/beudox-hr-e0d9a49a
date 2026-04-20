@@ -804,7 +804,7 @@ const ProjectsV2 = () => {
   const today = todayIso();
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="min-h-full bg-[#F6F5FF] p-6 space-y-4">
       {/* Header bar: search + filter toggle + add */}
       <div className="flex items-center gap-3">
         <div className="relative max-w-sm flex-1 min-w-[240px]">
@@ -813,13 +813,13 @@ const ProjectsV2 = () => {
             placeholder="Search projects or tasks…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 h-9"
+            className="pl-9 h-9 bg-background"
           />
         </div>
         <Button
           variant={showFilters ? 'secondary' : 'outline'}
           size="sm"
-          className="h-9"
+          className="h-9 bg-background"
           onClick={() => setShowFilters(s => !s)}
           aria-label="Toggle filters"
         >
@@ -836,7 +836,7 @@ const ProjectsV2 = () => {
 
       {/* Filter panel */}
       {showFilters && (
-        <div className="flex flex-wrap gap-3 items-center p-3 rounded-lg border border-border bg-secondary/40">
+        <div className="flex flex-wrap gap-3 items-center p-3 rounded-lg border border-border bg-background/60">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[170px] h-9 bg-background"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
@@ -879,150 +879,119 @@ const ProjectsV2 = () => {
         </div>
       )}
 
-      {/* Table */}
+      {/* List */}
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-md" />)}
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="py-16 text-center text-muted-foreground text-sm">
+          {search || statusFilter !== 'all' || priorityFilter !== 'all' || clientFilter !== 'all'
+            ? 'No matching projects'
+            : 'No projects yet'}
+        </div>
       ) : (
-        <div className="rounded-lg border border-border overflow-hidden bg-background">
-          {/* Sticky header row */}
-          <div
-            className="sticky top-0 z-10 flex items-center"
-            style={{
-              backgroundColor: '#F6F5FF',
-              borderBottom: '1px solid rgba(91,63,248,0.15)',
-            }}
-          >
-            <div className="w-8 shrink-0" />
-            <div
-              className="flex-1 min-w-0 px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Project / Task Name
-            </div>
-            <div
-              className="w-[160px] shrink-0 px-2 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Status
-            </div>
-            <div
-              className="w-[140px] shrink-0 px-2 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Deadline
-            </div>
-            <div
-              className="w-[160px] shrink-0 px-2 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Lead / Assignee
-            </div>
-            <div
-              className="w-[120px] shrink-0 px-2 py-2.5 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
-            >
-              Team
-            </div>
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground text-sm">
-              {search || statusFilter !== 'all' || priorityFilter !== 'all' || clientFilter !== 'all'
-                ? 'No matching projects'
-                : 'No projects yet'}
-            </div>
-          ) : (
-            filtered.map((p: any) => {
-              const expanded = expandedIds.has(p.id);
-              const team = teamByProject.get(p.id) ?? [];
-              const isToday = p.internal_deadline === today;
-              return (
-                <div key={p.id}>
-                  {/* Project row */}
-                  <div
-                    className="flex items-center bg-card hover:bg-muted/30 transition-colors"
-                    style={{ borderBottom: '1px solid rgba(91,63,248,0.10)' }}
+        <div>
+          {filtered.map((p: any) => {
+            const expanded = expandedIds.has(p.id);
+            const team = teamByProject.get(p.id) ?? [];
+            const isToday = p.internal_deadline === today;
+            const isPending = p.status === 'pending';
+            return (
+              <div key={p.id}>
+                {/* Project row */}
+                <div
+                  className="flex items-center gap-4 py-4"
+                  style={{ borderBottom: '1px solid #F0EEFF' }}
+                >
+                  <button
+                    type="button"
+                    className="w-6 h-6 shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                    onClick={() => toggleOne(p.id)}
+                    aria-label={expanded ? 'Collapse' : 'Expand'}
                   >
-                    {/* Chevron */}
-                    <button
-                      type="button"
-                      className="w-8 shrink-0 flex items-center justify-center h-12 text-muted-foreground hover:text-foreground"
-                      onClick={() => toggleOne(p.id)}
-                      aria-label={expanded ? 'Collapse' : 'Expand'}
-                    >
-                      {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </button>
-                    {/* Code + name */}
-                    <div className="flex-1 min-w-0 px-3 py-2.5 flex items-center gap-2">
-                      <span className="font-mono text-xs text-muted-foreground shrink-0">{p.project_code}</span>
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/projects/${p.id}`)}
-                        className="text-[14px] font-semibold text-foreground hover:underline truncate text-left min-w-0"
-                        style={{ fontFamily: 'var(--ff-display)' }}
-                        title={p.project_name}
-                      >
-                        {p.project_name}
-                      </button>
-                      {isToday && (
-                        <TooltipProvider delayDuration={200}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span
-                                aria-label="Due today"
-                                className="inline-block h-1.5 w-1.5 rounded-full bg-[#F5A623] shrink-0"
-                              />
-                            </TooltipTrigger>
-                            <TooltipContent side="top">Due today</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-                    {/* Status */}
-                    <div className="w-[160px] shrink-0 px-2">
+                    {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </button>
+
+                  <span className="font-mono text-xs text-muted-foreground shrink-0">{p.project_code}</span>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/projects/${p.id}`)}
+                    className="text-[14px] font-semibold text-foreground hover:underline truncate text-left min-w-0"
+                    style={{ fontFamily: 'var(--ff-display)' }}
+                    title={p.project_name}
+                  >
+                    {p.project_name}
+                  </button>
+
+                  {isToday && (
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            aria-label="Due today"
+                            className="inline-block h-1.5 w-1.5 rounded-full bg-[#F5A623] shrink-0"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="top">Due today</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+
+                  <div className="flex-1" />
+
+                  {/* Status / Start CTA */}
+                  <div className="shrink-0">
+                    {isPending ? (
+                      canEditStatus ? (
+                        <StartProjectButton projectId={p.id} companyId={companyId!} employeeId={employeeId!} />
+                      ) : null
+                    ) : (
                       <StatusCell project={p} canEdit={canEditStatus} companyId={companyId!} employeeId={employeeId!} />
-                    </div>
-                    {/* Deadline */}
-                    <div className="w-[140px] shrink-0 px-2">
-                      <DeadlineCell project={p} canEdit={canEditDeadline} companyId={companyId!} employeeId={employeeId!} />
-                    </div>
-                    {/* Lead */}
-                    <div className="w-[160px] shrink-0 px-2 flex items-center gap-2 min-w-0">
-                      {p.lead ? (
-                        <>
-                          <Avatar className="h-6 w-6 shrink-0">
-                            {p.lead.avatar_url && <AvatarImage src={p.lead.avatar_url} alt={p.lead.full_name} />}
-                            <AvatarFallback className="text-[10px]">{getInitials(p.lead.full_name)}</AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs text-foreground truncate">{p.lead.full_name}</span>
-                        </>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">No lead</span>
-                      )}
-                    </div>
-                    {/* Team */}
-                    <div className="w-[120px] shrink-0 px-2">
-                      {canSeeTeam ? <TeamMembersStack members={team} /> : <span className="text-xs text-muted-foreground">—</span>}
-                    </div>
+                    )}
                   </div>
 
-                  {/* Task rows */}
-                  {expanded && (
-                    <TaskRows
-                      projectId={p.id}
-                      companyId={companyId!}
-                      employeeId={employeeId!}
-                      teamMembers={team}
-                      canManage={canManageTasks}
-                      role={role}
-                    />
-                  )}
+                  {/* Deadline */}
+                  <div className="shrink-0 min-w-[90px] text-right">
+                    <DeadlineCell project={p} canEdit={canEditDeadline} companyId={companyId!} employeeId={employeeId!} />
+                  </div>
+
+                  {/* Lead */}
+                  <div className="shrink-0 flex items-center gap-2 min-w-0 w-[160px]">
+                    {p.lead ? (
+                      <>
+                        <Avatar className="h-6 w-6 shrink-0">
+                          {p.lead.avatar_url && <AvatarImage src={p.lead.avatar_url} alt={p.lead.full_name} />}
+                          <AvatarFallback className="text-[10px]">{getInitials(p.lead.full_name)}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-foreground truncate">{p.lead.full_name}</span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">No lead</span>
+                    )}
+                  </div>
+
+                  {/* Team */}
+                  <div className="shrink-0 w-[100px] flex justify-end">
+                    {canSeeTeam ? <TeamMembersStack members={team} /> : <span className="text-xs text-muted-foreground">—</span>}
+                  </div>
                 </div>
-              );
-            })
-          )}
+
+                {/* Task rows */}
+                {expanded && (
+                  <TaskRows
+                    projectId={p.id}
+                    companyId={companyId!}
+                    employeeId={employeeId!}
+                    teamMembers={team}
+                    canManage={canManageTasks}
+                    role={role}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
