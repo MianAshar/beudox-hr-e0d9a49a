@@ -347,9 +347,10 @@ interface TaskRowsProps {
   teamMembers: TeamMember[];
   canManage: boolean; // can add tasks
   role: string | null | undefined;
+  filterAssigneeId?: string | null;
 }
 
-const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, role }: TaskRowsProps) => {
+const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, role, filterAssigneeId }: TaskRowsProps) => {
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
