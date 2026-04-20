@@ -477,7 +477,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
         return (
           <div
             key={t.id}
-            className="flex items-center gap-4 pl-8 pr-4 py-2.5 hover:bg-[#FAFAFA] transition-colors"
+            className="flex items-center gap-4 pl-12 pr-4 py-2.5 hover:bg-[#FAFAFA] transition-colors"
             style={taskRowBorder}
           >
             <Checkbox
