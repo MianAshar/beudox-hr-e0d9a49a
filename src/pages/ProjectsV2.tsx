@@ -595,10 +595,7 @@ const TaskRows = ({ projectId, companyId, employeeId, teamMembers, canManage, ro
 
       {/* + Add Task trigger row (when not adding and there are existing tasks) */}
       {canManage && !adding && !empty && (
-        <div
-          className="pl-8 pr-4 py-2"
-          style={taskRowBorder}
-        >
+        <div className="pl-12 pr-4 py-2">
           <button
             type="button"
             className="text-[13px] font-medium text-[#5B3FF8] hover:underline"
