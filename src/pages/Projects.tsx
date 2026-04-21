@@ -177,6 +177,7 @@ const Projects = () => {
   const qc = useQueryClient();
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
+  const role = employee?.role_name ?? null;
   const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const canSeeClient = ['hr_manager', 'ceo', 'finance_manager'].some(r => roles.includes(r));
   const canSeeFinancial = ['hr_manager', 'ceo'].some(r => roles.includes(r));
@@ -620,7 +621,7 @@ const ProjectCard = ({
   companyId, employeeId, role,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
-  const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
+  const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].includes(role || '');
   return (
     <div
       className={cn(

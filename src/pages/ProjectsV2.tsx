@@ -619,6 +619,7 @@ const ProjectsV2 = () => {
   const companyId = employee?.company_id;
   const employeeId = employee?.employee_id;
   const roles = employee?.roles ?? [];
+  const role = employee?.role_name ?? null;
 
   const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const isTeamLead = roles.includes('team_lead');

@@ -86,6 +86,7 @@ interface PrefRow {
 const NotificationPreferencesTab = () => {
   const { employee } = useAuth();
   const role = (employee?.role_name || 'employee') as Role;
+  const roles = (employee?.roles?.length ? employee.roles : ['employee']) as Role[];
 
   const [loading, setLoading] = useState(true);
   const [globalInApp, setGlobalInApp] = useState(true);
@@ -96,9 +97,9 @@ const NotificationPreferencesTab = () => {
     () =>
       CATEGORIES.map((cat) => ({
         ...cat,
-        types: cat.types.filter((t) => t.roles.some(r => roles.includes(r))),
+        types: cat.types.filter((t) => t.roles.some(r => roles.includes(r as Role))),
       })).filter((cat) => cat.types.length > 0),
-    [role],
+    [roles],
   );
 
   useEffect(() => {
