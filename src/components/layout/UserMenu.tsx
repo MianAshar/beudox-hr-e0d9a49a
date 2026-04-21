@@ -41,7 +41,9 @@ const UserMenu = () => {
           <div className="flex flex-col">
             <span className="text-[13px] font-semibold text-foreground truncate">{employee.full_name}</span>
             <span className="text-[11px] text-muted-foreground truncate">
-              {employee.role_name ? formatRole(employee.role_name) : employee.designation || 'Employee'}
+              {employee.roles && employee.roles.length > 0
+                ? employee.roles.map(formatRole).join(' · ')
+                : employee.designation || 'Employee'}
             </span>
           </div>
         </DropdownMenuLabel>

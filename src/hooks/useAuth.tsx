@@ -13,7 +13,10 @@ interface EmployeeData {
   company_id: string;
   company_name: string;
   company_slug: string;
+  /** Highest-priority role (kept for backward compatibility). */
   role_name: string | null;
+  /** All roles held by the employee. Permission checks should use this. */
+  roles: string[];
   company_logo_url: string | null;
 }
 
@@ -67,11 +70,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const fetchEmployee = useCallback(async (userId: string) => {
-    const { data, error } = await supabase.rpc('get_employee_by_auth_id', {
-      _auth_id: userId,
-    });
+    const [{ data, error }, rolesRes] = await Promise.all([
+      supabase.rpc('get_employee_by_auth_id', { _auth_id: userId }),
+      supabase.rpc('get_employee_roles_for_auth', { _auth_id: userId }),
+    ]);
+
     if (!error && data && data.length > 0) {
-      setEmployee(data[0] as EmployeeData);
+      const base = data[0] as Omit<EmployeeData, 'roles'>;
+      const rolesList = (rolesRes.data as string[] | null) ?? [];
+      setEmployee({ ...base, roles: rolesList });
     } else {
       setEmployee(null);
     }

@@ -71,7 +71,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   // 3. Authenticated but role not allowed → dashboard
   // /my-profile is universally accessible to all authenticated users.
-  if (location.pathname !== '/my-profile' && !canAccess(employee?.role_name, location.pathname)) {
+  if (location.pathname !== '/my-profile' && !canAccess(employee?.roles, location.pathname)) {
     return <Navigate to="/dashboard" replace />;
   }
 

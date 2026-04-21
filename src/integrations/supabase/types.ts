@@ -2535,6 +2535,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auth_has_any_role: {
+        Args: { _auth_id: string; _roles: string[] }
+        Returns: boolean
+      }
+      auth_has_role: {
+        Args: { _auth_id: string; _role: string }
+        Returns: boolean
+      }
       get_company_id_for_auth: { Args: { _auth_id: string }; Returns: string }
       get_employee_by_auth_id: {
         Args: { _auth_id: string }
@@ -2557,6 +2565,10 @@ export type Database = {
       get_employee_role_for_auth: {
         Args: { _auth_id: string }
         Returns: string
+      }
+      get_employee_roles_for_auth: {
+        Args: { _auth_id: string }
+        Returns: string[]
       }
       get_mau_by_month: {
         Args: { _company_id?: string }

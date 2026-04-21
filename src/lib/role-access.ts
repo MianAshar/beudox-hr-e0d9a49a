@@ -77,13 +77,36 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
   ],
 };
 
-/** Check whether a role can access a given path (exact or starts-with for sub-routes like /employees/:id). */
-export function canAccess(role: string | null | undefined, path: string): boolean {
-  if (!role) return false;
-  if (role === 'ceo') return true;
+/** Normalise input into a roles array. Accepts a single role string, array, null/undefined. */
+function toRoles(roles: string | string[] | null | undefined): string[] {
+  if (!roles) return [];
+  return Array.isArray(roles) ? roles : [roles];
+}
 
-  const allowed = roleRoutes[role as Exclude<AppRole, 'ceo'>];
-  if (!allowed) return false;
+/**
+ * Check whether the user (with one or more roles) can access a given path.
+ * Access is granted if ANY of the user's roles allows the path.
+ * Supports exact match or starts-with for sub-routes like /employees/:id.
+ */
+export function canAccess(roles: string | string[] | null | undefined, path: string): boolean {
+  const list = toRoles(roles);
+  if (list.length === 0) return false;
+  if (list.includes('ceo')) return true;
 
-  return allowed.some(r => path === r || path.startsWith(r + '/'));
+  return list.some(role => {
+    const allowed = roleRoutes[role as Exclude<AppRole, 'ceo'>];
+    if (!allowed) return false;
+    return allowed.some(r => path === r || path.startsWith(r + '/'));
+  });
+}
+
+/** Returns true if the user holds the given role. */
+export function hasRole(roles: string | string[] | null | undefined, role: string): boolean {
+  return toRoles(roles).includes(role);
+}
+
+/** Returns true if the user holds ANY of the given roles. */
+export function hasAnyRole(roles: string | string[] | null | undefined, required: string[]): boolean {
+  const list = toRoles(roles);
+  return required.some(r => list.includes(r));
 }

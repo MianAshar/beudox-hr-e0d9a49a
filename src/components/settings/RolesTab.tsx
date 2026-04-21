@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Lock, Loader2 } from 'lucide-react';
+import { Lock, Loader2, Plus, X } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatRole } from '@/lib/format-role';
@@ -38,7 +44,7 @@ const RolesTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, full_name, designation, avatar_url, employee_roles(role_id, roles(name))')
+        .select('id, full_name, designation, avatar_url, employee_roles(role_id, roles(id, name))')
         .eq('company_id', companyId!)
         .eq('status', 'active')
         .order('full_name');
@@ -48,23 +54,43 @@ const RolesTab = () => {
     enabled: !!companyId,
   });
 
-  const [changingId, setChangingId] = useState<string | null>(null);
+  const [busyEmployeeId, setBusyEmployeeId] = useState<string | null>(null);
 
-  const handleRoleChange = async (employeeId: string, employeeName: string, newRoleId: string) => {
-    setChangingId(employeeId);
+  const addRole = async (employeeId: string, employeeName: string, roleId: string) => {
+    setBusyEmployeeId(employeeId);
     try {
-      await supabase.from('employee_roles').delete().eq('employee_id', employeeId);
-      const { error } = await supabase.from('employee_roles').insert({
-        employee_id: employeeId,
-        role_id: newRoleId,
-      });
+      const { error } = await supabase
+        .from('employee_roles')
+        .insert({ employee_id: employeeId, role_id: roleId });
       if (error) throw error;
-      toast.success(`Role updated for ${employeeName}`);
+      toast.success(`Role added for ${employeeName}`);
       qc.invalidateQueries({ queryKey: ['employees-with-roles'] });
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update role');
+      toast.error(err.message || 'Failed to add role');
     } finally {
-      setChangingId(null);
+      setBusyEmployeeId(null);
+    }
+  };
+
+  const removeRole = async (employeeId: string, employeeName: string, roleId: string, isLast: boolean) => {
+    if (isLast) {
+      toast.error('Employee must have at least one role');
+      return;
+    }
+    setBusyEmployeeId(employeeId);
+    try {
+      const { error } = await supabase
+        .from('employee_roles')
+        .delete()
+        .eq('employee_id', employeeId)
+        .eq('role_id', roleId);
+      if (error) throw error;
+      toast.success(`Role removed for ${employeeName}`);
+      qc.invalidateQueries({ queryKey: ['employees-with-roles'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to remove role');
+    } finally {
+      setBusyEmployeeId(null);
     }
   };
 
@@ -84,7 +110,7 @@ const RolesTab = () => {
             Role Assignments
           </h3>
           <p className="text-[13px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
-            View and change employee roles. CEO role cannot be reassigned.
+            Each employee can hold one or more roles. CEO role cannot be reassigned.
           </p>
         </div>
 
@@ -92,16 +118,20 @@ const RolesTab = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Employee</TableHead>
-              <TableHead>Current Role</TableHead>
-              <TableHead>Change Role</TableHead>
+              <TableHead>Current Roles</TableHead>
+              <TableHead className="w-[160px]">Add Role</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {employees?.map(emp => {
-              const currentRole = (emp.employee_roles as any)?.[0]?.roles?.name;
-              const currentRoleId = (emp.employee_roles as any)?.[0]?.role_id;
-              const isSelf = emp.id === authEmployee?.employee_id;
-              const isCeoRow = currentRole === 'ceo';
+              const empRoles = ((emp.employee_roles as any) ?? [])
+                .map((er: any) => ({ id: er.roles?.id, name: er.roles?.name }))
+                .filter((r: any) => r.id);
+              const empRoleIds = new Set(empRoles.map((r: any) => r.id));
+              const isCeoRow = empRoles.some((r: any) => r.name === 'ceo');
+              const availableToAdd = (roles ?? []).filter(
+                r => r.name !== 'ceo' && !empRoleIds.has(r.id)
+              );
 
               return (
                 <TableRow key={emp.id}>
@@ -122,9 +152,36 @@ const RolesTab = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="text-[12px]">
-                      {currentRole ? formatRole(currentRole) : 'No Role'}
-                    </Badge>
+                    <div className="flex flex-wrap gap-1.5">
+                      {empRoles.length === 0 && (
+                        <span className="text-[12px] text-muted-foreground">No Role</span>
+                      )}
+                      {empRoles.map((r: any) => {
+                        const locked = r.name === 'ceo';
+                        return (
+                          <Badge
+                            key={r.id}
+                            variant="secondary"
+                            className="text-[12px] gap-1 pl-2 pr-1.5 py-0.5"
+                          >
+                            {formatRole(r.name)}
+                            {locked ? (
+                              <Lock className="h-3 w-3 ml-0.5 opacity-60" />
+                            ) : (
+                              <button
+                                type="button"
+                                aria-label={`Remove ${formatRole(r.name)}`}
+                                onClick={() => removeRole(emp.id, emp.full_name, r.id, empRoles.length === 1)}
+                                disabled={busyEmployeeId === emp.id}
+                                className="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors disabled:opacity-50"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </Badge>
+                        );
+                      })}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {isCeoRow ? (
@@ -132,24 +189,31 @@ const RolesTab = () => {
                         <Lock className="h-3.5 w-3.5" />
                         Read-only
                       </div>
-                    ) : changingId === emp.id ? (
+                    ) : busyEmployeeId === emp.id ? (
                       <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    ) : availableToAdd.length === 0 ? (
+                      <span className="text-[11px] text-muted-foreground">All assigned</span>
                     ) : (
-                      <Select
-                        value={currentRoleId || ''}
-                        onValueChange={v => handleRoleChange(emp.id, emp.full_name, v)}
-                      >
-                        <SelectTrigger className="h-8 w-[180px] text-[12px]">
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {roles?.filter(r => r.name !== 'ceo').map(r => (
-                            <SelectItem key={r.id} value={r.id} className="text-[12px]">
-                              {formatRole(r.name)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 text-[12px]">
+                            <Plus className="mr-1 h-3.5 w-3.5" /> Add role
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-[200px] p-1.5">
+                          <div className="space-y-0.5">
+                            {availableToAdd.map(r => (
+                              <button
+                                key={r.id}
+                                onClick={() => addRole(emp.id, emp.full_name, r.id)}
+                                className="w-full text-left px-2 py-1.5 rounded text-[12px] hover:bg-accent transition-colors"
+                              >
+                                {formatRole(r.name)}
+                              </button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     )}
                   </TableCell>
                 </TableRow>

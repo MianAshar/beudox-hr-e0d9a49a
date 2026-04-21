@@ -52,8 +52,8 @@ const Loans = () => {
   const { employee } = useAuth();
   const qc = useQueryClient();
   const companyId = employee?.company_id;
-  const role = employee?.role_name;
-  const isManager = MANAGER_ROLES.includes(role || '');
+  const roles = employee?.roles ?? [];
+  const isManager = roles.some(r => MANAGER_ROLES.includes(r));
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

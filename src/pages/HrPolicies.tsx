@@ -16,7 +16,7 @@ const HrPolicies = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
 
-  const isManager = employee?.role_name === 'hr_manager' || employee?.role_name === 'ceo';
+  const isManager = (employee?.roles ?? []).includes('hr_manager') || (employee?.roles ?? []).includes('ceo');
 
   const { data: policies, isLoading } = useQuery({
     queryKey: ['hr-policies', employee?.company_id, isManager],

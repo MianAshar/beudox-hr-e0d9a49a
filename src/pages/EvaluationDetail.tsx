@@ -26,8 +26,8 @@ const EvaluationDetail = () => {
   const queryClient = useQueryClient();
   const { employee } = useAuth();
   const companyId = employee?.company_id;
-  const role = employee?.role_name;
-  const isManager = role === 'hr_manager' || role === 'ceo';
+  const roles = employee?.roles ?? [];
+  const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const { data: evaluation, isLoading } = useQuery({

@@ -36,11 +36,11 @@ const DailyEvaluationForm = () => {
   const queryClient = useQueryClient();
   const { employee } = useAuth();
   const companyId = employee?.company_id;
-  const role = employee?.role_name;
+  const roles = employee?.roles ?? [];
   const myId = employee?.employee_id;
 
   // Determine direction based on role
-  const isJunior = role === 'employee';
+  const isJunior = roles.includes('employee');
   const direction = isJunior ? 'junior_to_senior' : 'senior_to_junior';
 
   const [revieweeId, setRevieweeId] = useState('');

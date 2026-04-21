@@ -65,8 +65,8 @@ const Clients = () => {
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityCategory>('all');
 
   const companyId = employee?.company_id;
-  const role = employee?.role_name;
-  const showActivity = role === 'ceo' || role === 'hr_manager';
+  const roles = employee?.roles ?? [];
+  const showActivity = ['ceo', 'hr_manager'].some(r => roles.includes(r));
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients', companyId, showInactive],

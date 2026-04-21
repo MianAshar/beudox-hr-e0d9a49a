@@ -12,10 +12,10 @@ import ProjectCategoriesTab from '@/components/settings/ProjectCategoriesTab';
 
 const Settings = () => {
   const { employee } = useAuth();
-  const role = employee?.role_name;
-  const isCeo = role === 'ceo';
-  const isFinance = role === 'finance_manager';
-  const isHr = role === 'hr_manager';
+  const roles = employee?.roles ?? [];
+  const isCeo = roles.includes('ceo');
+  const isFinance = roles.includes('finance_manager');
+  const isHr = roles.includes('hr_manager');
 
   // Only CEO, Finance Manager, and HR Manager can access Settings
   if (!isCeo && !isFinance && !isHr) {

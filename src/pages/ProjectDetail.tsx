@@ -37,19 +37,19 @@ const ProjectDetail = () => {
   const navigate = useNavigate();
   const { employee } = useAuth();
   const qc = useQueryClient();
-  const role = employee?.role_name;
+  const roles = employee?.roles ?? [];
   const companyId = employee?.company_id;
-  const isManager = role === 'hr_manager' || role === 'ceo';
-  const isCeo = role === 'ceo';
-  const isTeamLead = role === 'team_lead';
+  const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const isCeo = roles.includes('ceo');
+  const isTeamLead = roles.includes('team_lead');
   const canEditDetails = isManager;
   const canDeactivate = isManager;
-  const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
+  const canSeeClient = ['hr_manager', 'ceo', 'finance_manager'].some(r => roles.includes(r));
   const canSeeFinancial = isManager;
-  const canManageTasks = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
-  const canManageTeam = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
-  const canSeeActivity = role === 'hr_manager' || role === 'ceo';
-  const canStartProject = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
+  const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
+  const canManageTeam = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
+  const canSeeActivity = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const canStartProject = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
   const employeeId = employee?.employee_id;
 
   const [deactivateOpen, setDeactivateOpen] = useState(false);

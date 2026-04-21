@@ -66,7 +66,7 @@ const PublicHolidays = () => {
   const [endOpen, setEndOpen] = useState(false);
 
   const companyId = employee?.company_id;
-  const canManage = employee?.role_name === 'hr_manager' || employee?.role_name === 'ceo';
+  const canManage = (employee?.roles ?? []).includes('hr_manager') || (employee?.roles ?? []).includes('ceo');
 
   const { data: holidays = [], isLoading } = useQuery({
     queryKey: ['public-holidays', companyId, selectedYear],

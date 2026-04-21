@@ -48,7 +48,7 @@ const InvoiceDetail = () => {
   const { employee } = useAuth();
   const qc = useQueryClient();
   const companyId = employee?.company_id;
-  const isCeo = employee?.role_name === 'ceo';
+  const isCeo = (employee?.roles ?? []).includes('ceo');
 
   // Modals
   const [sendOpen, setSendOpen] = useState(false);

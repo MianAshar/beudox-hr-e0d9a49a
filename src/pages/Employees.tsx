@@ -62,8 +62,8 @@ const Employees = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const companyId = employee?.company_id;
-  const role = employee?.role_name;
-  const canAdd = role === 'hr_manager' || role === 'ceo';
+  const roles = employee?.roles ?? [];
+  const canAdd = ['hr_manager', 'ceo'].some(r => roles.includes(r));
 
   const { data: employees, isLoading } = useQuery({
     queryKey: ['employees-list', companyId],
