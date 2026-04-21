@@ -17,11 +17,14 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2, Lock } from 'lucide-react';
-import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { canManageEmployee, canViewCompensation, isProtectedFromHr } from '@/lib/role-hierarchy';
+import AttendanceTab from '@/components/employee-profile/AttendanceTab';
+import LeaveTab from '@/components/employee-profile/LeaveTab';
+import PayrollTab from '@/components/employee-profile/PayrollTab';
+import DocumentsTab from '@/components/employee-profile/DocumentsTab';
 
 const getInitials = (name: string) =>
   name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -61,7 +64,9 @@ const EmployeeProfile = () => {
   const navigate = useNavigate();
   const { employee: authEmployee } = useAuth();
   const roles = authEmployee?.roles ?? [];
-  const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const isHrOrCeo = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const isFinanceOrCeo = ['finance_manager', 'ceo'].some(r => roles.includes(r));
+  const isManager = isHrOrCeo;
   const [resending, setResending] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -86,7 +91,6 @@ const EmployeeProfile = () => {
   });
 
   const canView = isManager || isSelfView;
-  // HR Manager cannot manage CEO or Director employees
   const canManage = isManager && canManageEmployee(roles, emp);
   const canSeeCompensation = canViewCompensation(roles, emp);
   const isHrBlocked = isManager && !canManage && isProtectedFromHr(emp);
@@ -181,10 +185,11 @@ const EmployeeProfile = () => {
   // Build tabs array based on permissions
   const tabs = [
     { value: 'overview', label: 'Overview' },
-    { value: 'employment', label: 'Employment' },
-    ...(canSeeCompensation ? [{ value: 'compensation', label: 'Compensation' }] : []),
-    { value: 'access', label: 'Portal Access' },
-    { value: 'evaluations', label: 'Evaluations' },
+    ...(isHrOrCeo ? [{ value: 'attendance', label: 'Attendance' }] : []),
+    ...(isHrOrCeo ? [{ value: 'leave', label: 'Leave' }] : []),
+    ...(isFinanceOrCeo && canSeeCompensation ? [{ value: 'payroll', label: 'Payroll' }] : []),
+    ...(isHrOrCeo ? [{ value: 'evaluations', label: 'Evaluations' }] : []),
+    ...(isHrOrCeo ? [{ value: 'documents', label: 'Documents' }] : []),
     ...(canManage ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
@@ -272,7 +277,7 @@ const EmployeeProfile = () => {
           ))}
         </TabsList>
 
-        {/* Overview */}
+        {/* Overview — combined personal, employment, compensation & portal access */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           <SectionCard title="Personal Information">
             <InfoField label="Full Name" value={emp.full_name} />
@@ -281,10 +286,7 @@ const EmployeeProfile = () => {
             <InfoField label="Date of Birth" value={emp.date_of_birth ? formatDate(emp.date_of_birth) : null} />
             <InfoField label="Address" value={emp.address} />
           </SectionCard>
-        </TabsContent>
 
-        {/* Employment */}
-        <TabsContent value="employment" className="mt-6 space-y-6">
           <SectionCard title="Employment Information">
             <InfoField label="Employee Code" value={emp.employee_code} />
             <InfoField label="Designation" value={emp.designation} />
@@ -294,11 +296,8 @@ const EmployeeProfile = () => {
             <InfoField label="Status" value={toTitleCase(emp.status)} />
             <InfoField label="Increment Rule" value={toTitleCase(emp.increment_rule)} />
           </SectionCard>
-        </TabsContent>
 
-        {/* Compensation — hr_manager / ceo only */}
-        {canSeeCompensation && (
-          <TabsContent value="compensation" className="mt-6 space-y-6">
+          {canSeeCompensation && (
             <SectionCard title="Compensation">
               <div>
                 <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Basic Salary</p>
@@ -313,11 +312,8 @@ const EmployeeProfile = () => {
                 </p>
               </div>
             </SectionCard>
-          </TabsContent>
-        )}
+          )}
 
-        {/* Portal Access */}
-        <TabsContent value="access" className="mt-6 space-y-6">
           <SectionCard title="Portal Access">
             <div>
               <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Login Email</p>
@@ -330,12 +326,42 @@ const EmployeeProfile = () => {
           </SectionCard>
         </TabsContent>
 
-        {/* Evaluations */}
-        <TabsContent value="evaluations" className="mt-6">
-          {authEmployee?.company_id && (
-            <EvaluationTimeline employeeId={emp.id} companyId={authEmployee.company_id} />
-          )}
-        </TabsContent>
+        {/* Attendance — HR / CEO only */}
+        {isHrOrCeo && (
+          <TabsContent value="attendance" className="mt-6">
+            <AttendanceTab employeeId={emp.id} />
+          </TabsContent>
+        )}
+
+        {/* Leave — HR / CEO only */}
+        {isHrOrCeo && (
+          <TabsContent value="leave" className="mt-6">
+            <LeaveTab employeeId={emp.id} />
+          </TabsContent>
+        )}
+
+        {/* Payroll — Finance Manager / CEO only, respecting compensation visibility */}
+        {isFinanceOrCeo && canSeeCompensation && (
+          <TabsContent value="payroll" className="mt-6">
+            <PayrollTab employeeId={emp.id} />
+          </TabsContent>
+        )}
+
+        {/* Evaluations — HR / CEO only */}
+        {isHrOrCeo && (
+          <TabsContent value="evaluations" className="mt-6">
+            {authEmployee?.company_id && (
+              <EvaluationTimeline employeeId={emp.id} companyId={authEmployee.company_id} />
+            )}
+          </TabsContent>
+        )}
+
+        {/* Documents — HR / CEO only (placeholder) */}
+        {isHrOrCeo && (
+          <TabsContent value="documents" className="mt-6">
+            <DocumentsTab />
+          </TabsContent>
+        )}
 
         {/* Danger Zone */}
         {canManage && (
