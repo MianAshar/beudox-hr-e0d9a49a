@@ -160,11 +160,9 @@ const MyProfile = () => {
     );
   }
 
-  const roles = (profile.employee_roles || [])
+  const roleNames: string[] = (profile.employee_roles || [])
     .map((er: any) => er.roles?.name)
-    .filter(Boolean)
-    .map((r: string) => formatRole(r))
-    .join(', ');
+    .filter(Boolean);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -220,17 +218,40 @@ const MyProfile = () => {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 flex-1">
-                <InfoField label="Full Name" value={profile.full_name} />
-                <InfoField label="Email" value={profile.email} />
-                <InfoField label="Designation" value={profile.designation} />
-                <InfoField label="Department" value={profile.department} />
-                <InfoField
-                  label="Joining Date"
-                  value={profile.joining_date ? formatDate(profile.joining_date) : null}
-                />
-                <InfoField label="Employee Code" value={profile.employee_code} />
-                <InfoField label="Role(s)" value={roles || null} />
+              <div className="flex-1">
+                <div className="mb-4">
+                  <p className="text-[16px] font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+                    {profile.full_name}
+                  </p>
+                  {roleNames.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {roleNames.map((r) => (
+                        <span
+                          key={r}
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium"
+                          style={{
+                            background: 'hsl(var(--bx-violet-light, var(--accent)))',
+                            color: 'hsl(var(--primary))',
+                            fontFamily: 'var(--ff-body)',
+                          }}
+                        >
+                          {formatRole(r)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                  <InfoField label="Full Name" value={profile.full_name} />
+                  <InfoField label="Email" value={profile.email} />
+                  <InfoField label="Designation" value={profile.designation} />
+                  <InfoField label="Department" value={profile.department} />
+                  <InfoField
+                    label="Joining Date"
+                    value={profile.joining_date ? formatDate(profile.joining_date) : null}
+                  />
+                  <InfoField label="Employee Code" value={profile.employee_code} />
+                </div>
               </div>
             </div>
           </SectionCard>
