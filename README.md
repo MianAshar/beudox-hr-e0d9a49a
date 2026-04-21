@@ -1,35 +1,41 @@
 <!--
 generated_by: tessera
-source_sha: e04aecde5ab46a80a517ec8e335e3f1de4382b8f
-generated_at: 2026-04-21T10:59:09.226Z
+source_sha: 387391b56870e1f87a0608cfe39642ec2a98d0ba
+generated_at: 2026-04-21T11:07:06.080Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources Management System built with modern web technologies, designed to streamline HR operations for organizations of all sizes.
+A comprehensive Human Resources management application built with modern web technologies. Beudox HR provides organizations with tools to manage employees, track attendance, handle payroll, manage projects, and streamline HR operations.
 
 ## Features
 
-### Core HR Functionality
+### Core HR Management
 - **Employee Management**: Complete employee lifecycle management including onboarding, profiles, and offboarding
-- **Attendance Tracking**: Automated attendance monitoring with check-in/check-out, overtime calculation, and reporting
-- **Leave Management**: Comprehensive leave request system with multiple leave types, balances, and approval workflows
-- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and payslip generation
-- **Performance Evaluations**: Regular and daily evaluation systems for employee performance tracking
+- **Attendance Tracking**: Real-time attendance monitoring with check-in/check-out functionality
+- **Leave Management**: Comprehensive leave request and approval system
+- **Payroll Processing**: Automated payroll generation with overtime calculations
 
-### Administrative Features
-- **Organization Settings**: Configure departments, roles, company information, and HR policies
-- **Project Management**: Track projects, assign team members, and monitor project activities
-- **Client Management**: Maintain client relationships and project associations
-- **Invoice Management**: Generate and manage client invoices with PDF export
+### Project & Client Management
+- **Project Management**: Create and manage projects with team assignments
+- **Client Relations**: Maintain client information and project associations
+- **Task Tracking**: Assign and monitor project tasks
+
+### Financial Management
+- **Invoice Generation**: Create and send professional invoices
 - **Finance Dashboard**: Overview of financial metrics and summaries
+- **Expense Tracking**: Manage expense categories and approvals
 
-### User Experience
-- **Role-Based Access Control**: Granular permissions system ensuring users only access authorized features
-- **Responsive Design**: Modern, mobile-friendly interface built with shadcn/ui components
-- **Real-time Notifications**: Toast notifications and activity tracking
-- **Search & Filtering**: Advanced search capabilities across employees, projects, and other entities
+### Performance & Development
+- **Employee Evaluations**: Regular performance reviews and feedback
+- **Daily Evaluations**: Quick daily check-ins and progress tracking
+- **Review Scheduling**: Automated review cycle management
+
+### Administrative Tools
+- **HR Policies**: Create and manage company policies
+- **Job Descriptions**: Maintain detailed job role definitions
+- **Settings Management**: Configure company settings, departments, roles, and more
 
 ## Technology Stack
 
@@ -38,81 +44,67 @@ A comprehensive Human Resources Management System built with modern web technolo
 - **TypeScript** - Type-safe development
 - **Vite** - Fast build tool and development server
 - **React Router** - Client-side routing
-- **TanStack Query** - Powerful data fetching and caching
-
-### UI & Styling
-- **shadcn/ui** - High-quality React components built on Radix UI
 - **Tailwind CSS** - Utility-first CSS framework
-- **Lucide React** - Beautiful icon library
-- **Recharts** - Composable charting library
+- **Radix UI** - Accessible component primitives
 
 ### Backend & Database
-- **Supabase** - Open source Firebase alternative
+- **Supabase** - Backend-as-a-Service providing:
   - PostgreSQL database
-  - Authentication & authorization
+  - Authentication
   - Real-time subscriptions
-  - Edge functions for serverless compute
   - File storage
+  - Edge functions
 
-### Development Tools
-- **ESLint** - Code linting
-- **Vitest** - Unit testing
-- **Playwright** - End-to-end testing
-- **TypeScript** - Type checking
+### State Management & Data Fetching
+- **TanStack Query** - Powerful data synchronization for React
+- **React Hook Form** - Performant forms with easy validation
+- **Zod** - TypeScript-first schema validation
+
+### Additional Libraries
+- **date-fns** - Modern JavaScript date utility library
+- **Recharts** - Composable charting library
+- **TipTap** - Rich text editor
+- **Lucide React** - Beautiful icon library
 
 ## Getting Started
 
 ### Prerequisites
-- **Node.js** 18+ and npm/bun
-- **Supabase** account and project
+- Node.js 18+
+- npm or bun package manager
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd beudox-hr
-   ```
+1. Clone the repository:
+```bash
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+   cd beudox-hr-e0d9a49a
+```
 
-2. **Install dependencies**
-   ```bash
+2. Install dependencies:
+```bash
    npm install
    # or
    bun install
-   ```
+```
 
-3. **Environment Setup**
-   
-   Copy the environment file and configure your Supabase credentials:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update `.env.local` with your Supabase project details:
-   ```env
-   VITE_SUPABASE_URL=your-supabase-url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
-   ```
+3. Set up environment variables:
+   - Copy `.env` and configure your Supabase credentials
+   - Ensure you have the correct Supabase project URL and API keys
 
-4. **Database Setup**
-   
-   The application uses Supabase migrations for database schema. The migrations are located in `supabase/migrations/` and will be applied automatically when you run the Supabase CLI commands.
-
-5. **Start Development Server**
-   ```bash
+4. Start the development server:
+```bash
    npm run dev
    # or
    bun run dev
-   ```
-   
-   The application will be available at `http://localhost:8080`
+```
+
+The application will be available at `http://localhost:8080`
 
 ### Build for Production
 
 ```bash
 npm run build
-# or
-bun run build
+npm run preview
 ```
 
 ## Project Structure
@@ -120,49 +112,38 @@ bun run build
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
+│   ├── ui/             # Base UI components (shadcn/ui)
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── employee-profile/ # Employee profile specific components
-│   ├── leave/          # Leave management components
-│   ├── payroll/        # Payroll components
+│   ├── employee-profile/  # Employee-specific components
+│   ├── finance/        # Financial components
+│   ├── evaluations/    # Evaluation components
 │   └── ...
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
+├── integrations/       # External service integrations
 └── types/              # TypeScript type definitions
-
-supabase/
-├── migrations/         # Database schema migrations
-├── functions/          # Edge functions
-└── config.toml         # Supabase configuration
 ```
 
-## Key Components
+## Authentication & Authorization
 
-### Authentication & Authorization
-- JWT-based authentication via Supabase Auth
-- Role-based access control with granular permissions
-- Protected routes with automatic redirects
+The application uses Supabase Authentication with role-based access control:
 
-### Data Management
-- TanStack Query for server state management
-- Optimistic updates and caching
-- Real-time data synchronization
+- **Authentication**: Email/password and invite-based registration
+- **Authorization**: Route-level and component-level permission checks
+- **Roles**: Configurable roles with specific permissions
 
-### Forms & Validation
-- React Hook Form for form management
-- Zod schemas for validation
-- Rich text editing with Tiptap
+## Database Schema
 
-## API Integration
-
-The application integrates with Supabase for all backend operations:
-
-- **Authentication**: User login, registration, password reset
-- **Database**: CRUD operations on all entities
-- **File Storage**: Document uploads and management
-- **Edge Functions**: Server-side processing (payroll generation, PDF creation, notifications)
+The application uses PostgreSQL with the following main entities:
+- Employees and user accounts
+- Attendance records
+- Leave requests and balances
+- Payroll data
+- Projects and tasks
+- Clients and invoices
+- Evaluations and reviews
+- HR policies and settings
 
 ## Development
 
@@ -170,28 +151,28 @@ The application integrates with Supabase for all backend operations:
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
-- `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
-- `npm run test` - Run unit tests
+- `npm run test` - Run tests with Vitest
 - `npm run test:watch` - Run tests in watch mode
-
-### Code Quality
-
-The project uses ESLint for code linting and follows TypeScript strict mode for type safety. All components are built with accessibility in mind using Radix UI primitives.
 
 ### Testing
 
-Unit tests are written with Vitest and React Testing Library. End-to-end tests use Playwright for comprehensive testing coverage.
+The project uses Vitest for unit testing and Playwright for end-to-end testing.
+
+### Code Quality
+
+- ESLint for code linting
+- TypeScript for type checking
+- Prettier for code formatting (via ESLint)
 
 ## Deployment
 
-The application can be deployed to any static hosting service that supports SPAs:
+The application is designed to be deployed as a static site to any modern hosting platform that supports SPAs:
 
-- **Vercel** - Recommended for React applications
-- **Netlify** - Alternative static hosting
-- **Supabase** - Can host both frontend and backend
-
-Ensure environment variables are configured in your deployment platform.
+- Vercel
+- Netlify
+- AWS S3 + CloudFront
+- Supabase Hosting
 
 ## Contributing
 

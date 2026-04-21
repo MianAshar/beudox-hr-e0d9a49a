@@ -1,399 +1,260 @@
 <!--
 generated_by: tessera
-source_sha: 939657ec2ede9cca1a4aad08f88592834464cc25
-generated_at: 2026-04-16T12:21:14.215Z
+source_sha: 387391b56870e1f87a0608cfe39642ec2a98d0ba
+generated_at: 2026-04-21T11:07:06.081Z
 action: create
 -->
 
-# Beudox HR - Routing Documentation
+# Beudox HR - Routing Structure
 
 ## Overview
 
-Beudox HR uses React Router 6 for client-side routing with a comprehensive route structure supporting role-based access control, nested routes, and protected navigation.
+Beudox HR uses React Router v6 for client-side routing with a comprehensive route structure supporting 30+ pages across multiple HR domains. The routing system implements role-based access control and protected routes.
 
-## Router Configuration
+## Route Hierarchy
 
-### Main Router Setup
-**File**: `src/App.tsx`
-
+### Public Routes
 ```typescript
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Route definitions */}
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+/                     // Root redirect
+/login                 // Authentication
+/forgot-password       // Password recovery
+/set-password          // Password setup (invite/recovery)
 ```
 
-### Route Structure
+### Protected Routes (Require Authentication)
 
-#### Public Routes
+#### Dashboard & Overview
 ```typescript
-<Route path="/" element={<RootRedirect />} />
-<Route path="/login" element={<Login />} />
-<Route path="/forgot-password" element={<ForgotPassword />} />
-<Route path="/set-password" element={<SetPassword />} />
+/dashboard            // Main dashboard
+/my-profile           // Personal profile (all authenticated users)
+/my-tasks             // Personal task list
+/my-payslip           // Personal payslip access
 ```
 
-#### Protected Routes
+#### Employee Management
 ```typescript
-<Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-<Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
-<Route path="/employees/new" element={<ProtectedRoute><EmployeeForm /></ProtectedRoute>} />
-<Route path="/employees/:id" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
-<Route path="/employees/:id/edit" element={<ProtectedRoute><EmployeeForm /></ProtectedRoute>} />
+/employees            // Employee listing
+/employees/new        // Create new employee
+/employees/:id        // Employee profile view
+/employees/:id/edit   // Edit employee
 ```
 
-## Route Protection
-
-### ProtectedRoute Component
-
-**Logic Flow**:
-1. **Loading State**: Show spinner while auth loads
-2. **Password Mode**: Intercept invite/recovery flows
-3. **Authentication**: Redirect to login if not authenticated
-4. **Authorization**: Redirect to dashboard if insufficient permissions
-5. **Render**: Show protected content with layout
-
-**Implementation**:
+#### Project Management
 ```typescript
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, loading, passwordMode, clearPasswordMode, employee } = useAuth();
-  const location = useLocation();
-
-  // 1. Loading auth or employee data
-  if (loading || (session && !employee)) {
-    return <LoadingSpinner />;
-  }
-
-  // 2. Intercept password setup
-  if (session && passwordMode) {
-    return <SetPassword mode={passwordMode} onComplete={clearPasswordMode} />;
-  }
-
-  // 3. Not authenticated
-  if (!session) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // 4. Insufficient permissions
-  if (!canAccess(employee?.role_name, location.pathname)) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  // 5. Authorized - render with layout
-  return <AppLayout>{children}</AppLayout>;
-};
+/projects             // Project listing
+/projects-v2          // Alternative project view
+/projects/new         // Create project
+/projects/:id         // Project detail
+/projects/:id/edit    // Edit project
 ```
 
-## Route Permissions
-
-### Role-Based Access Control
-**File**: `src/lib/role-access.ts`
-
+#### Client & Financial Management
 ```typescript
-export const canAccess = (role: string | undefined, path: string): boolean => {
-  if (!role) return false;
-
-  const permissions: Record<string, string[]> = {
-    ceo: ['*'], // Full access
-    hr_manager: [
-      '/dashboard',
-      '/employees',
-      '/leave',
-      '/evaluations',
-      '/payroll',
-      '/settings',
-      // ... more paths
-    ],
-    team_lead: [
-      '/dashboard',
-      '/employees', // Limited employee access
-      '/evaluations',
-      '/projects',
-      // ... restricted paths
-    ],
-    employee: [
-      '/dashboard',
-      '/my-payslip',
-      '/leave',
-      // ... personal paths only
-    ],
-  };
-
-  const allowedPaths = permissions[role] || [];
-  return allowedPaths.includes('*') || allowedPaths.some(allowedPath => 
-    path.startsWith(allowedPath)
-  );
-};
+/clients              // Client listing
+/clients/:id          // Client detail
+/invoices             // Invoice listing
+/invoices/new         // Create invoice
+/invoices/:id         // Invoice detail
+/invoices/:id/edit    // Edit invoice
+/finance              // Finance dashboard
 ```
 
-### Route Groups by Role
-
-#### CEO Routes
-- **Full Access**: All application routes
-- **Administrative**: Company settings, user management
-- **Financial**: Payroll, invoices, finance dashboard
-
-#### HR Manager Routes
-- **Employee Management**: Full CRUD operations
-- **HR Operations**: Leave, evaluations, policies
-- **Reporting**: Analytics and dashboards
-
-#### Team Lead Routes
-- **Team Management**: Team member profiles
-- **Performance**: Evaluations for team members
-- **Projects**: Project management and assignments
-
-#### Employee Routes
-- **Personal**: Profile, payslips, leave requests
-- **Read-only**: Limited access to team information
-- **Self-service**: Personal data management
-
-## Route Parameters
-
-### Dynamic Routes
-
-#### Employee Routes
+#### HR Administration
 ```typescript
-// Employee profile
-<Route path="/employees/:id" element={<EmployeeProfile />} />
-
-// Employee editing
-<Route path="/employees/:id/edit" element={<EmployeeForm />} />
-
-// Component usage
-const { id } = useParams<{ id: string }>(); // TypeScript support
+/hr-policies          // Policy listing
+/hr-policies/new      // Create policy
+/hr-policies/:id      // Policy detail
+/hr-policies/:id/edit // Edit policy
+/job-descriptions     // Job description listing
+/job-descriptions/new // Create job description
+/job-descriptions/:id // Job description detail
+/job-descriptions/:id/edit // Edit job description
 ```
 
-#### Evaluation Routes
+#### Performance Management
 ```typescript
-// Quarterly evaluation detail
-<Route path="/evaluations/:id" element={<EvaluationDetail />} />
-
-// Daily evaluation detail
-<Route path="/evaluations/daily/:id" element={<DailyEvaluationDetail />} />
+/evaluations          // Performance evaluation listing
+/evaluations/new      // Create evaluation
+/evaluations/:id      // Evaluation detail
+/evaluations/:id/edit // Edit evaluation
+/evaluations/daily    // Daily evaluations listing
+/evaluations/daily/new // Create daily evaluation
+/evaluations/daily/:id // Daily evaluation detail
 ```
 
-#### Project Routes
+#### Administrative Settings
 ```typescript
-// Project detail
-<Route path="/projects/:id" element={<ProjectDetail />} />
-
-// Project editing
-<Route path="/projects/:id/edit" element={<ProjectForm />} />
+/settings             // Main settings page
+/leave                // Leave management
+/payroll              // Payroll processing
+/holidays             // Public holidays
+/loans                // Loan management
 ```
 
-### Query Parameters
+## Route Protection System
 
-#### Filtering and Search
-```typescript
-// Employees with search
-const location = useLocation();
-const searchParams = new URLSearchParams(location.search);
-const search = searchParams.get('search');
-const department = searchParams.get('department');
+### Authentication Guards
+All business routes are wrapped with `ProtectedRoute` component that implements:
 
-// URL: /employees?search=john&department=engineering
-```
+1. **Loading States**: Shows spinner while checking auth
+2. **Session Validation**: Redirects to login if not authenticated
+3. **Employee Data Loading**: Ensures user profile is loaded
+4. **Password Mode Handling**: Intercepts invite/recovery flows
+5. **Permission Checks**: Validates role-based access
 
-#### Pagination
-```typescript
-// Paginated lists
-const page = searchParams.get('page') || '1';
-const limit = searchParams.get('limit') || '20';
+### Permission-Based Routing
+Routes check permissions using `canAccess(employee?.roles, pathname)`:
+- `/my-profile` is accessible to all authenticated users
+- Other routes require specific role permissions
+- Unauthorized access redirects to `/dashboard`
 
-// URL: /employees?page=2&limit=50
-```
+## Route Components
+
+### Page Components
+Each route maps to a component in `src/pages/`:
+
+- **Dashboard.tsx**: Overview with metrics and recent activity
+- **Employees.tsx**: Employee directory with search and filters
+- **EmployeeProfile.tsx**: Tabbed interface (Attendance, Payroll, etc.)
+- **Settings.tsx**: Administrative configuration tabs
+- **Projects.tsx**: Project management interface
+
+### Layout Integration
+Most routes use `AppLayout` component providing:
+- **AppSidebar**: Navigation menu
+- **TopBar**: User menu and notifications
+- **Main Content**: Page-specific content
 
 ## Navigation Components
 
-### NavLink Component
-**File**: `src/components/NavLink.tsx`
-
-Enhanced NavLink with active state styling:
+### Sidebar Navigation
+`AppSidebar.tsx` provides role-based menu items:
 
 ```typescript
-<NavLink
-  to="/dashboard"
-  className="nav-link"
-  activeClassName="nav-link-active"
->
-  Dashboard
-</NavLink>
+// Example menu structure
+const menuItems = [
+  { path: '/dashboard', label: 'Dashboard', icon: Home },
+  { path: '/employees', label: 'Employees', roles: ['admin', 'hr'] },
+  { path: '/projects', label: 'Projects', roles: ['admin', 'manager'] },
+  // ... more items
+];
 ```
+
+### Breadcrumb Navigation
+Context-aware breadcrumbs showing current location:
+- Dashboard > Employees > John Doe
+- Projects > Website Redesign > Tasks
+
+### Quick Actions
+Contextual action buttons based on current route:
+- "Add Employee" on `/employees`
+- "Create Project" on `/projects`
+
+## URL Patterns & Parameters
+
+### Dynamic Routes
+Routes use URL parameters for entity identification:
+
+```typescript
+/employees/:id        // Employee ID
+/projects/:id         // Project ID
+/invoices/:id         // Invoice ID
+/hr-policies/:id      // Policy ID
+```
+
+### Query Parameters
+Additional filtering and state:
+
+```typescript
+/employees?page=1&search=john    // Pagination and search
+/projects?status=active          // Status filtering
+/attendance?month=2024-01        // Date filtering
+```
+
+## Route-Based Code Splitting
+
+### Lazy Loading
+Routes are designed for lazy loading:
+
+```typescript
+const Employees = lazy(() => import('./pages/Employees'));
+const Projects = lazy(() => import('./pages/Projects'));
+
+// In router
+const routes = [
+  { path: '/employees', element: <Employees /> },
+  { path: '/projects', element: <Projects /> },
+];
+```
+
+### Bundle Optimization
+- **Route-based splitting**: Each page loads independently
+- **Shared dependencies**: Common libraries in main bundle
+- **Preloading**: Adjacent routes preload on hover
+
+## Navigation Patterns
 
 ### Programmatic Navigation
-
-#### useNavigate Hook
 ```typescript
-// Navigation after actions
+// After successful creation
 const navigate = useNavigate();
-
-// After creating employee
-navigate(`/employees/${newEmployee.id}`);
+navigate(`/employees/${newEmployeeId}`);
 
 // With state
-navigate('/login', { state: { from: location } });
+navigate('/projects/new', { state: { clientId } });
 ```
 
-#### Link Component
+### Redirect Patterns
 ```typescript
-// Declarative navigation
-import { Link } from 'react-router-dom';
+// Authentication redirect
+if (!session) return <Navigate to="/login" replace />;
 
-<Link to={`/employees/${employee.id}`}>View Profile</Link>
+// Permission redirect
+if (!canAccess(roles, pathname)) return <Navigate to="/dashboard" replace />;
 ```
 
-## Route Data Loading
+### Back Navigation
+Context-aware back buttons using `useNavigate(-1)` or specific routes based on referrer.
 
-### React Query Integration
+## Route Metadata
 
-#### Route-specific Queries
+### Page Titles
+Dynamic document titles based on current route:
+
 ```typescript
-// Employee profile query
-const { data: employee, isLoading } = useQuery({
-  queryKey: ['employee', id],
-  queryFn: () => fetchEmployee(id),
-  enabled: !!id, // Only run when ID is available
-});
+useEffect(() => {
+  document.title = `${pageTitle} | Beudox HR`;
+}, [pageTitle]);
 ```
 
-#### Dependent Queries
-```typescript
-// Evaluations depend on employee data
-const { data: evaluations } = useQuery({
-  queryKey: ['evaluations', employee?.id],
-  queryFn: () => fetchEvaluations(employee.id),
-  enabled: !!employee?.id, // Wait for employee data
-});
-```
-
-### Loading States
-
-#### Route-level Loading
-```typescript
-if (isLoading) {
-  return <LoadingSpinner />;
-}
-```
-
-#### Skeleton Components
-```typescript
-// Content placeholders
-<div className="space-y-4">
-  <Skeleton className="h-8 w-48" />
-  <Skeleton className="h-32 w-full" />
-</div>
-```
+### Route Configuration
+Centralized route configuration for:
+- Page titles
+- Required permissions
+- Navigation labels
+- Icons and descriptions
 
 ## Error Handling
 
-### Route Errors
+### 404 Handling
+Catch-all route for undefined paths:
 ```typescript
-// 404 handling
-<Route path="*" element={<NotFound />} />
-
-// Error boundaries
-<ErrorBoundary>
-  <Routes>
-    {/* Routes */}
-  </Routes>
-</ErrorBoundary>
+{ path: '*', element: <NotFound /> }
 ```
 
-### Navigation Guards
+### Error Boundaries
+Route-level error boundaries for graceful error handling.
 
-#### Confirmation Dialogs
-```typescript
-// Prevent navigation with unsaved changes
-useEffect(() => {
-  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-    if (hasUnsavedChanges) {
-      e.preventDefault();
-      e.returnValue = '';
-    }
-  };
+## Performance Considerations
 
-  window.addEventListener('beforeunload', handleBeforeUnload);
-  return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-}, [hasUnsavedChanges]);
-```
+### Route Preloading
+- **Link prefetching**: Hover states preload route bundles
+- **Data prefetching**: Preload critical data for target routes
+- **Image preloading**: Preload route-specific assets
 
-## Performance Optimization
+### Memory Management
+- **Component cleanup**: Proper cleanup on route changes
+- **Subscription cleanup**: Cancel subscriptions on unmount
+- **Cache management**: Clear stale cache on navigation
 
-### Route-based Code Splitting
-```typescript
-// Lazy load route components
-const Employees = lazy(() => import('./pages/Employees'));
-const EmployeeProfile = lazy(() => import('./pages/EmployeeProfile'));
-
-// Wrap with Suspense
-<Suspense fallback={<LoadingSpinner />}>
-  <Routes>
-    <Route path="/employees" element={<Employees />} />
-    <Route path="/employees/:id" element={<EmployeeProfile />} />
-  </Routes>
-</Suspense>
-```
-
-### Prefetching
-```typescript
-// Prefetch on hover
-<Link
-  to={`/employees/${id}`}
-  onMouseEnter={() => {
-    queryClient.prefetchQuery({
-      queryKey: ['employee', id],
-      queryFn: () => fetchEmployee(id),
-    });
-  }}
->
-  View Employee
-</Link>
-```
-
-## Testing Routes
-
-### Route Testing
-```typescript
-// Test route rendering
-test('renders employees page', () => {
-  render(
-    <MemoryRouter initialEntries={['/employees']}>
-      <Routes>
-        <Route path="/employees" element={<Employees />} />
-      </Routes>
-    </MemoryRouter>
-  );
-  
-  expect(screen.getByText('Employees')).toBeInTheDocument();
-});
-```
-
-### Navigation Testing
-```typescript
-// Test programmatic navigation
-test('navigates after form submission', async () => {
-  const mockNavigate = jest.fn();
-  // Mock useNavigate
-  
-  render(<EmployeeForm />);
-  
-  // Submit form
-  await userEvent.click(screen.getByText('Save'));
-  
-  expect(mockNavigate).toHaveBeenCalledWith('/employees');
-});
-```
-
-This routing documentation provides a comprehensive guide to the Beudox HR application's navigation system, security model, and routing patterns.
+This routing architecture provides a scalable, secure, and performant navigation system supporting complex HR workflows with proper access control and user experience optimizations.
