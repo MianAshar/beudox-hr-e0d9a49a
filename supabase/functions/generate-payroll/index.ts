@@ -226,6 +226,14 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+
+      // Mark arrears as paid for employees whose payroll was just created/updated
+      if (arrearsToMarkPaid.length > 0) {
+        await supabase
+          .from('salary_history')
+          .update({ arrears_paid: true })
+          .in('id', arrearsToMarkPaid);
+      }
     }
 
     // 8. Return all records for this month grouped by department
