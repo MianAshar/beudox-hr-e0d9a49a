@@ -64,7 +64,9 @@ const EmployeeProfile = () => {
   const navigate = useNavigate();
   const { employee: authEmployee } = useAuth();
   const roles = authEmployee?.roles ?? [];
-  const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const isHrOrCeo = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const isFinanceOrCeo = ['finance_manager', 'ceo'].some(r => roles.includes(r));
+  const isManager = isHrOrCeo;
   const [resending, setResending] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -89,7 +91,6 @@ const EmployeeProfile = () => {
   });
 
   const canView = isManager || isSelfView;
-  // HR Manager cannot manage CEO or Director employees
   const canManage = isManager && canManageEmployee(roles, emp);
   const canSeeCompensation = canViewCompensation(roles, emp);
   const isHrBlocked = isManager && !canManage && isProtectedFromHr(emp);
