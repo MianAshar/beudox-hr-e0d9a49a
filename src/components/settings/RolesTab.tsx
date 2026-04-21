@@ -24,6 +24,9 @@ const RolesTab = () => {
   const { employee: authEmployee } = useAuth();
   const qc = useQueryClient();
   const companyId = authEmployee?.company_id;
+  const viewerRoles = authEmployee?.roles ?? [];
+  const isCeoViewer = viewerRoles.includes('ceo');
+  const isHrViewer = !isCeoViewer && viewerRoles.includes('hr_manager');
 
   const { data: roles } = useQuery({
     queryKey: ['company-roles', companyId],
@@ -44,7 +47,7 @@ const RolesTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, full_name, designation, avatar_url, employee_roles(role_id, roles(id, name))')
+        .select('id, full_name, designation, avatar_url, employment_type, employee_roles(role_id, roles(id, name))')
         .eq('company_id', companyId!)
         .eq('status', 'active')
         .order('full_name');
@@ -52,6 +55,13 @@ const RolesTab = () => {
       return data;
     },
     enabled: !!companyId,
+  });
+
+  // Apply HR Manager restrictions: hide CEO accounts entirely
+  const visibleEmployees = (employees ?? []).filter(emp => {
+    if (!isHrViewer) return true;
+    const empRoles = ((emp.employee_roles as any) ?? []).map((er: any) => er.roles?.name);
+    return !empRoles.includes('ceo');
   });
 
   const [busyEmployeeId, setBusyEmployeeId] = useState<string | null>(null);
