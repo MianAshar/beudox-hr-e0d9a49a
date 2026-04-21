@@ -37,10 +37,10 @@ const ReviewScheduleSection = ({ employeeId, firstReviewDate, reviewFrequencyMon
   const nextDate = computeNextReviewDate(firstReviewDate, reviewFrequencyMonths);
   const status = getReviewStatus(nextDate);
 
-  const updateField = async (patch: Record<string, any>) => {
+  const updateField = async (patch: { first_review_date?: string; review_frequency_months?: number }) => {
     setSaving(true);
     try {
-      const { error } = await supabase.from('employees').update(patch).eq('id', employeeId);
+      const { error } = await supabase.from('employees').update(patch as any).eq('id', employeeId);
       if (error) throw error;
       toast.success('Review schedule updated');
       queryClient.invalidateQueries({ queryKey: ['employee-profile', employeeId] });

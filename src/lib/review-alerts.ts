@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { computeNextReviewDate, getReviewStatus } from './review-schedule';
+import { computeNextReviewDate, getReviewStatus } from '@/lib/review-schedule';
 import { format } from 'date-fns';
 
 let lastRunAt = 0;
