@@ -725,26 +725,6 @@ const EmployeeForm = () => {
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label className="text-[12px] text-muted-foreground mb-1.5 block">
-              Increment Rule
-            </Label>
-            <Select
-              value={form.increment_rule}
-              onValueChange={(v) => updateField('increment_rule', v)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {INCREMENT_RULES.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {r.replace('_', ' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       </div>
 
