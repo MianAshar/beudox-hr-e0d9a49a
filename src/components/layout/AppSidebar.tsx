@@ -142,7 +142,7 @@ const AppSidebar = () => {
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 space-y-5">
         {navSections.map(section => {
-          const visibleItems = section.items.filter(item => canAccess(employee?.role_name, item.path));
+          const visibleItems = section.items.filter(item => canAccess(employee?.roles, item.path));
           if (visibleItems.length === 0) return null;
           return (
             <div key={section.label}>
