@@ -16,11 +16,12 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { canManageEmployee, canViewCompensation, isProtectedFromHr } from '@/lib/role-hierarchy';
 
 const getInitials = (name: string) =>
   name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -85,7 +86,10 @@ const EmployeeProfile = () => {
   });
 
   const canView = isManager || isSelfView;
-  const canSeeCompensation = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  // HR Manager cannot manage CEO or Director employees
+  const canManage = isManager && canManageEmployee(roles, emp);
+  const canSeeCompensation = canViewCompensation(roles, emp);
+  const isHrBlocked = isManager && !canManage && isProtectedFromHr(emp);
 
   const handleResendInvite = async () => {
     if (!emp?.email || !emp?.id) return;
