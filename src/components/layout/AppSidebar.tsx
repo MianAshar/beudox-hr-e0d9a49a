@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { canAccess } from '@/lib/role-access';
+import { formatRole } from '@/lib/format-role';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import BeudoxLogo from '@/components/BeudoxLogo';
 
 import {
@@ -187,6 +189,48 @@ const AppSidebar = () => {
           );
         })}
       </nav>
+
+      {/* User zone footer */}
+      {employee && (
+        <div
+          className="border-t shrink-0"
+          style={{
+            borderColor: 'rgba(255,255,255,0.10)',
+            padding: collapsed ? '12px 0' : '12px 16px',
+          }}
+        >
+          <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5'}`}>
+            <Avatar className="h-8 w-8 shrink-0">
+              {employee.avatar_url && <AvatarImage src={employee.avatar_url} alt={employee.full_name} />}
+              <AvatarFallback
+                className="text-[11px] font-semibold"
+                style={{ background: 'rgba(91,63,248,0.35)', color: '#FFFFFF', fontFamily: 'var(--ff-display)' }}
+              >
+                {employee.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-[12px] font-medium truncate"
+                  style={{ color: '#FFFFFF', fontFamily: 'var(--ff-body)' }}
+                >
+                  {employee.full_name}
+                </p>
+                <p
+                  className="text-[10px] truncate"
+                  style={{ color: 'rgba(255,255,255,0.55)', fontFamily: 'var(--ff-body)' }}
+                  title={(employee.roles ?? []).map(formatRole).join(' · ')}
+                >
+                  {employee.roles && employee.roles.length > 0
+                    ? employee.roles.map(formatRole).join(' · ')
+                    : employee.designation || 'Employee'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </aside>
   );
 };
