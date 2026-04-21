@@ -632,6 +632,7 @@ export type Database = {
           in_app_notifications_enabled: boolean | null
           increment_rule: string | null
           joining_date: string | null
+          last_login_at: string | null
           notifications_enabled: boolean
           phone: string | null
           status: string | null
@@ -657,6 +658,7 @@ export type Database = {
           in_app_notifications_enabled?: boolean | null
           increment_rule?: string | null
           joining_date?: string | null
+          last_login_at?: string | null
           notifications_enabled?: boolean
           phone?: string | null
           status?: string | null
@@ -682,6 +684,7 @@ export type Database = {
           in_app_notifications_enabled?: boolean | null
           increment_rule?: string | null
           joining_date?: string | null
+          last_login_at?: string | null
           notifications_enabled?: boolean
           phone?: string | null
           status?: string | null
