@@ -363,7 +363,8 @@ const EmployeeProfile = () => {
           </TabsContent>
         )}
 
-
+        {/* Danger Zone */}
+        {canManage && (
           <TabsContent value="danger" className="mt-6">
             <div className="bg-card rounded-[14px] border border-destructive/20 p-6">
               <h3 className="font-display font-semibold text-[15px] text-foreground mb-1" style={{ fontFamily: 'var(--ff-display)' }}>
