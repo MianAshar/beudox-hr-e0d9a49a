@@ -48,6 +48,9 @@ type PayrollRecord = any;
 const Payroll = () => {
   const { employee } = useAuth();
   const companyId = employee?.company_id;
+  const viewerRoles = employee?.roles ?? [];
+  const isCeoViewer = viewerRoles.includes('ceo');
+  const isHrViewer = !isCeoViewer && viewerRoles.includes('hr_manager');
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(String(now.getMonth() + 1).padStart(2, '0'));
@@ -72,7 +75,7 @@ const Payroll = () => {
     if (!companyId) return;
     const { data } = await supabase
       .from('payroll_records')
-      .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type)')
+      .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type, employee_roles(roles(name)))')
       .eq('company_id', companyId)
       .eq('month_year', monthYear)
       .eq('superseded', false)
@@ -100,7 +103,7 @@ const Payroll = () => {
       if (!companyId) return;
       const { data } = await supabase
         .from('payroll_records')
-        .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type)')
+        .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type, employee_roles(roles(name)))')
         .eq('company_id', companyId)
         .eq('month_year', my)
         .eq('superseded', false)
