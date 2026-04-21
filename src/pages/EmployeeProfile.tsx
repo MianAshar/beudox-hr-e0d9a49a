@@ -413,8 +413,6 @@ const EmployeeProfile = () => {
           </TabsContent>
         )}
 
-        {/* Documents — HR / CEO only (placeholder) */}
-        {isHrOrCeo && (
         {isHrOrCeo && canSeeCompensation && (
           <TabsContent value="salary-history" className="mt-6">
             <SalaryHistoryTab employeeId={emp.id} />
