@@ -1,52 +1,51 @@
 <!--
 generated_by: tessera
-source_sha: 117c538de9ba2c3a55fd1e5f15d80b9accb70ecf
-generated_at: 2026-04-21T11:07:37.158Z
+source_sha: 387391b56870e1f87a0608cfe39642ec2a98d0ba
+generated_at: 2026-04-21T11:09:24.207Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with powerful tools to manage employees, track attendance, handle payroll, manage projects, and streamline HR operations.
+A comprehensive Human Resources Management System built with modern web technologies.
+
+## Overview
+
+Beudox HR is a full-featured HR management application that provides organizations with tools to manage employee data, track attendance, handle leave requests, process payroll, manage projects, and configure company settings. The system is designed to streamline HR operations and improve productivity.
 
 ## Features
 
-### Core HR Management
-- **Employee Management**: Complete employee profiles with personal details, roles, and organizational structure
-- **Attendance Tracking**: Daily attendance records, working hours, overtime tracking, and leave management
-- **Payroll Processing**: Automated payroll generation, payslip management, and salary history
-- **Leave Management**: Leave requests, balances tracking, and approval workflows
+### Employee Management
+- **Employee Profiles**: Comprehensive employee information including personal details, job information, and organizational hierarchy
+- **Attendance Tracking**: Daily attendance records with check-in/check-out times, working hours, and overtime calculations
+- **Leave Management**: Apply for leave, track balances, and manage leave requests
+- **Payroll Processing**: Salary calculations, overtime pay, and payroll summaries
+- **Document Management**: Store and manage employee documents (coming soon)
 
-### Project & Client Management
-- **Project Management**: Project creation, team assignment, task tracking, and activity logging
-- **Client Management**: Client profiles, project associations, and invoice generation
-- **Invoice Management**: Automated invoice creation, PDF generation, and email delivery
-
-### Performance & Development
-- **Employee Evaluations**: Performance reviews, evaluation parameters, and review schedules
-- **Daily Evaluations**: Real-time feedback and performance tracking
-- **Job Descriptions**: Structured job descriptions and role definitions
-
-### Administrative Tools
-- **HR Policies**: Rich text policy documents with full editing capabilities
-- **Company Settings**: Departments, roles, expense categories, and system configuration
+### HR Operations
+- **Project Management**: Create and manage projects, assign team members, and track project activities
+- **Performance Evaluations**: Schedule and conduct employee evaluations
 - **Finance Overview**: Financial summaries and expense tracking
-- **Loan Management**: Employee loan tracking and management
+- **Notifications**: Automated notifications for important HR events
 
-### Security & Access
-- **Role-Based Access Control**: Granular permissions based on user roles
-- **Secure Authentication**: Supabase-powered authentication with password recovery
-- **Audit Logging**: Login tracking and system activity monitoring
+### System Administration
+- **Company Settings**: Configure company information and policies
+- **Department Management**: Organize employees by departments
+- **Role-Based Access Control**: Define roles and permissions
+- **Audit Logs**: Track system activities and login history
 
 ## Technology Stack
 
-- **Frontend**: React 18, TypeScript, Vite
-- **UI Framework**: Radix UI components with Tailwind CSS
-- **Backend**: Supabase (PostgreSQL database + Auth + Edge Functions)
-- **State Management**: TanStack Query for server state
-- **Forms**: React Hook Form with Zod validation
-- **Rich Text Editor**: TipTap
-- **Charts**: Recharts
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS with custom design system
+- **UI Components**: Custom component library (shadcn/ui inspired)
+- **Routing**: React Router
+- **State Management**: React Query for server state
+- **Backend**: Supabase (PostgreSQL database + real-time features)
+- **Authentication**: Supabase Auth
+- **Icons**: Lucide React
+- **Date Handling**: date-fns
 - **Testing**: Vitest + Playwright
 
 ## Getting Started
@@ -61,8 +60,8 @@ A comprehensive Human Resources Management System built with modern web technolo
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
-   cd beudox-hr-e0d9a49a
+   git clone <repository-url>
+   cd beudox-hr
    ```
 
 2. Install dependencies:
@@ -72,101 +71,74 @@ A comprehensive Human Resources Management System built with modern web technolo
    bun install
    ```
 
-3. Set up environment variables:
+3. Create environment variables:
    
    Copy `.env` and update the Supabase configuration:
-   ```env
-   VITE_SUPABASE_PROJECT_ID=your_project_id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   ```
-
-4. Set up the database:
-   
-   Run the Supabase migrations in order:
    ```bash
-   supabase db reset
+   cp .env .env.local
    ```
+   
+   Update the following variables in `.env.local`:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon key
+   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
 
-5. Start the development server:
+4. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
 
-6. Open [http://localhost:5173](http://localhost:5173) in your browser.
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### Database Setup
 
-The application uses Supabase as the backend. The database schema includes tables for:
+The application uses Supabase for the backend. The database schema is managed through migrations located in the `supabase/migrations/` directory.
 
-- Companies, Employees, and Roles
-- Attendance records and Leave management
-- Projects, Clients, and Invoices
-- Payroll and Financial data
-- HR Policies and Job Descriptions
-- Evaluations and Performance tracking
+To set up the database:
 
-All migrations are located in the `supabase/migrations/` directory and should be applied in chronological order.
-
-### Building for Production
-
-```bash
-npm run build
-npm run preview
-```
+1. Install Supabase CLI
+2. Link your project: `supabase link --project-ref <your-project-ref>`
+3. Run migrations: `supabase db push`
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # ShadCN UI components
-│   ├── layout/         # App layout components
-│   ├── employee-profile/  # Employee-specific components
+│   ├── ui/             # Base UI components (buttons, forms, etc.)
+│   ├── layout/         # Layout components (sidebar, header, etc.)
+│   ├── employee-profile/ # Employee profile related components
+│   ├── leave/          # Leave management components
+│   ├── payroll/        # Payroll components
+│   ├── projects/       # Project management components
+│   ├── settings/       # Settings components
 │   └── ...
-├── pages/              # Page components and routing
+├── pages/              # Page components
+├── lib/                # Utility functions and business logic
 ├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations
-└── types/              # TypeScript type definitions
-
-supabase/
-├── migrations/         # Database schema migrations
-├── functions/          # Edge functions for backend logic
-└── config.toml         # Supabase project configuration
+└── integrations/       # External service integrations
 ```
 
-## Development
-
-### Available Scripts
+## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run unit tests
+- `npm run test:e2e` - Run end-to-end tests
 - `npm run lint` - Run ESLint
-- `npm run test` - Run tests with Vitest
-- `npm run test:watch` - Run tests in watch mode
 
-### Code Quality
+## Contributing
 
-The project uses:
-- **ESLint** for code linting
-- **TypeScript** for type checking
-- **Vitest** for unit testing
-- **Playwright** for end-to-end testing
-
-### Contributing
-
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure all tests pass before submitting PRs
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes and test thoroughly
+4. Commit your changes: `git commit -m 'Add your feature'`
+5. Push to the branch: `git push origin feature/your-feature`
+6. Open a Pull Request
 
 ## License
 
 This project is proprietary software. All rights reserved.
-
-## Support
-
-For support and questions, please contact the development team.
