@@ -1,68 +1,70 @@
 <!--
 generated_by: tessera
-source_sha: ade94f0920f354b96c0bb030564c387eefe27139
-generated_at: 2026-04-21T10:39:57.560Z
+source_sha: e04aecde5ab46a80a517ec8e335e3f1de4382b8f
+generated_at: 2026-04-21T10:59:09.226Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources management application built with modern web technologies. Beudox HR streamlines employee management, attendance tracking, payroll processing, leave management, and organizational workflows.
+A comprehensive Human Resources Management System built with modern web technologies, designed to streamline HR operations for organizations of all sizes.
 
 ## Features
 
 ### Core HR Functionality
-- **Employee Management**: Complete employee lifecycle management including profiles, onboarding, and organizational structure
-- **Attendance Tracking**: Real-time attendance monitoring with check-in/check-out, overtime calculation, and reporting
-- **Leave Management**: Comprehensive leave request system with approval workflows and balance tracking
-- **Payroll Processing**: Automated payroll generation with salary calculations, deductions, and payslip generation
-- **Performance Evaluations**: Employee evaluation system with periodic reviews and daily feedback mechanisms
-
-### Organizational Tools
-- **Project Management**: Project tracking with team assignments, task management, and progress monitoring
-- **Client Management**: Client relationship management with project associations and invoicing
-- **Invoice Management**: Professional invoice creation, tracking, and PDF generation
-- **HR Policies**: Digital policy management with rich text editing and version control
-- **Job Descriptions**: Structured job description management for recruitment and role clarity
+- **Employee Management**: Complete employee lifecycle management including onboarding, profiles, and offboarding
+- **Attendance Tracking**: Automated attendance monitoring with check-in/check-out, overtime calculation, and reporting
+- **Leave Management**: Comprehensive leave request system with multiple leave types, balances, and approval workflows
+- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and payslip generation
+- **Performance Evaluations**: Regular and daily evaluation systems for employee performance tracking
 
 ### Administrative Features
+- **Organization Settings**: Configure departments, roles, company information, and HR policies
+- **Project Management**: Track projects, assign team members, and monitor project activities
+- **Client Management**: Maintain client relationships and project associations
+- **Invoice Management**: Generate and manage client invoices with PDF export
+- **Finance Dashboard**: Overview of financial metrics and summaries
+
+### User Experience
 - **Role-Based Access Control**: Granular permissions system ensuring users only access authorized features
-- **Settings Management**: Comprehensive system configuration including departments, roles, leave types, and company settings
-- **Finance Dashboard**: Financial overview with expense tracking and reporting
-- **Loan Management**: Employee loan tracking and repayment management
+- **Responsive Design**: Modern, mobile-friendly interface built with shadcn/ui components
+- **Real-time Notifications**: Toast notifications and activity tracking
+- **Search & Filtering**: Advanced search capabilities across employees, projects, and other entities
 
 ## Technology Stack
 
 ### Frontend
 - **React 18** - Modern React with hooks and concurrent features
-- **TypeScript** - Type-safe development with comprehensive type definitions
+- **TypeScript** - Type-safe development
 - **Vite** - Fast build tool and development server
-- **Tailwind CSS** - Utility-first CSS framework for responsive design
-- **shadcn/ui** - High-quality React components built on Radix UI
-- **React Router** - Client-side routing with protected routes
-- **React Query** - Powerful data fetching and caching
-- **React Hook Form** - Performant forms with validation
-- **Zod** - TypeScript-first schema validation
+- **React Router** - Client-side routing
+- **TanStack Query** - Powerful data fetching and caching
 
-### Backend & Infrastructure
-- **Supabase** - Open source Firebase alternative providing:
-  - PostgreSQL database with real-time subscriptions
-  - Authentication with email/password and social providers
-  - Edge Functions for serverless compute
-  - File storage for documents and assets
-  - Auto-generated API with TypeScript types
+### UI & Styling
+- **shadcn/ui** - High-quality React components built on Radix UI
+- **Tailwind CSS** - Utility-first CSS framework
+- **Lucide React** - Beautiful icon library
+- **Recharts** - Composable charting library
+
+### Backend & Database
+- **Supabase** - Open source Firebase alternative
+  - PostgreSQL database
+  - Authentication & authorization
+  - Real-time subscriptions
+  - Edge functions for serverless compute
+  - File storage
 
 ### Development Tools
-- **ESLint** - Code linting and formatting
-- **Vitest** - Fast unit testing framework
+- **ESLint** - Code linting
+- **Vitest** - Unit testing
 - **Playwright** - End-to-end testing
-- **TypeScript** - Static type checking
+- **TypeScript** - Type checking
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ or Bun
-- npm, yarn, or bun package manager
+- **Node.js** 18+ and npm/bun
+- **Supabase** account and project
 
 ### Installation
 
@@ -81,19 +83,22 @@ A comprehensive Human Resources management application built with modern web tec
 
 3. **Environment Setup**
    
-   Copy the environment file and configure Supabase credentials:
+   Copy the environment file and configure your Supabase credentials:
    ```bash
-   cp .env.example .env
+   cp .env .env.local
    ```
    
-   The `.env` file should contain:
+   Update `.env.local` with your Supabase project details:
    ```env
-   VITE_SUPABASE_PROJECT_ID=your_project_id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_URL=your-supabase-url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
    ```
 
-4. **Start the development server**
+4. **Database Setup**
+   
+   The application uses Supabase migrations for database schema. The migrations are located in `supabase/migrations/` and will be applied automatically when you run the Supabase CLI commands.
+
+5. **Start Development Server**
    ```bash
    npm run dev
    # or
@@ -110,17 +115,12 @@ npm run build
 bun run build
 ```
 
-Preview the production build:
-```bash
-npm run preview
-```
-
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
+│   ├── ui/             # shadcn/ui components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
 │   ├── employee-profile/ # Employee profile specific components
 │   ├── leave/          # Leave management components
@@ -129,30 +129,40 @@ src/
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations
-│   └── supabase/       # Supabase client and types
+├── integrations/       # External service integrations (Supabase)
 └── types/              # TypeScript type definitions
+
+supabase/
+├── migrations/         # Database schema migrations
+├── functions/          # Edge functions
+└── config.toml         # Supabase configuration
 ```
 
-## Authentication & Authorization
+## Key Components
 
-The application uses Supabase Authentication with role-based access control:
+### Authentication & Authorization
+- JWT-based authentication via Supabase Auth
+- Role-based access control with granular permissions
+- Protected routes with automatic redirects
 
-- **Authentication**: Email/password with support for password reset and invitation flows
-- **Authorization**: Route-level protection with role-based permissions
-- **Session Management**: Automatic token refresh and session persistence
+### Data Management
+- TanStack Query for server state management
+- Optimistic updates and caching
+- Real-time data synchronization
 
-## Database Schema
+### Forms & Validation
+- React Hook Form for form management
+- Zod schemas for validation
+- Rich text editing with Tiptap
 
-The application uses a comprehensive PostgreSQL schema managed through Supabase migrations. Key entities include:
+## API Integration
 
-- **Employees**: User profiles with roles, departments, and organizational data
-- **Attendance Records**: Time tracking with check-in/out times and overtime
-- **Leave Requests**: Leave management with approval workflows
-- **Payroll Records**: Salary calculations and payment history
-- **Projects**: Project management with team assignments
-- **Evaluations**: Performance review system
-- **Invoices**: Client billing and payment tracking
+The application integrates with Supabase for all backend operations:
+
+- **Authentication**: User login, registration, password reset
+- **Database**: CRUD operations on all entities
+- **File Storage**: Document uploads and management
+- **Edge Functions**: Server-side processing (payroll generation, PDF creation, notifications)
 
 ## Development
 
@@ -167,39 +177,35 @@ The application uses a comprehensive PostgreSQL schema managed through Supabase 
 
 ### Code Quality
 
-The project maintains high code quality standards:
+The project uses ESLint for code linting and follows TypeScript strict mode for type safety. All components are built with accessibility in mind using Radix UI primitives.
 
-- **TypeScript**: Strict type checking enabled
-- **ESLint**: Comprehensive linting rules
-- **Prettier**: Code formatting (via ESLint)
-- **Testing**: Unit tests with Vitest
-- **E2E Testing**: Playwright for critical user flows
+### Testing
 
-### Contributing
-
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Ensure TypeScript types are properly defined
-4. Test across different screen sizes and browsers
-5. Follow commit message conventions
+Unit tests are written with Vitest and React Testing Library. End-to-end tests use Playwright for comprehensive testing coverage.
 
 ## Deployment
 
-The application is designed to be deployed to modern hosting platforms:
+The application can be deployed to any static hosting service that supports SPAs:
 
-- **Vercel**: Optimized for Vite applications
-- **Netlify**: Static hosting with serverless functions
-- **Railway**: Full-stack deployment with database
-- **Docker**: Containerized deployment
+- **Vercel** - Recommended for React applications
+- **Netlify** - Alternative static hosting
+- **Supabase** - Can host both frontend and backend
 
-## Support
+Ensure environment variables are configured in your deployment platform.
 
-For support and questions:
-- Check the documentation in this README
-- Review the code comments and TypeScript types
-- Examine the Supabase dashboard for database insights
-- Check browser console for client-side errors
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Ensure all tests pass
+6. Submit a pull request
 
 ## License
 
 This project is proprietary software. All rights reserved.
+
+## Support
+
+For support or questions, please contact the development team.
