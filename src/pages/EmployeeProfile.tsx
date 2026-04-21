@@ -59,8 +59,8 @@ const EmployeeProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { employee: authEmployee } = useAuth();
-  const role = authEmployee?.role_name;
-  const isManager = role === 'hr_manager' || role === 'ceo';
+  const roles = authEmployee?.roles ?? [];
+  const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const [resending, setResending] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -85,7 +85,7 @@ const EmployeeProfile = () => {
   });
 
   const canView = isManager || isSelfView;
-  const canSeeCompensation = role === 'hr_manager' || role === 'ceo';
+  const canSeeCompensation = ['hr_manager', 'ceo'].some(r => roles.includes(r));
 
   const handleResendInvite = async () => {
     if (!emp?.email || !emp?.id) return;

@@ -33,7 +33,7 @@ const ClientDetail = () => {
   const { employee } = useAuth();
   const qc = useQueryClient();
   const companyId = employee?.company_id;
-  const isCeo = employee?.role_name === 'ceo';
+  const isCeo = (employee?.roles ?? []).includes('ceo');
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');

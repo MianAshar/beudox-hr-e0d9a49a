@@ -22,8 +22,8 @@ const HrPolicyDetail = () => {
   const [publishing, setPublishing] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const isManager = employee?.role_name === 'hr_manager' || employee?.role_name === 'ceo';
-  const isCeo = employee?.role_name === 'ceo';
+  const isManager = (employee?.roles ?? []).includes('hr_manager') || (employee?.roles ?? []).includes('ceo');
+  const isCeo = (employee?.roles ?? []).includes('ceo');
 
   const { data: policy, isLoading } = useQuery({
     queryKey: ['hr-policy', id],

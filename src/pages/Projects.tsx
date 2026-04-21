@@ -176,15 +176,15 @@ const Projects = () => {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const companyId = employee?.company_id;
-  const role = employee?.role_name;
-  const isManager = role === 'hr_manager' || role === 'ceo';
-  const canSeeClient = role === 'hr_manager' || role === 'ceo' || role === 'finance_manager';
-  const canSeeFinancial = role === 'hr_manager' || role === 'ceo';
-  const canSeeTeam = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
-  const canEditStatus = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
+  const roles = employee?.roles ?? [];
+  const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const canSeeClient = ['hr_manager', 'ceo', 'finance_manager'].some(r => roles.includes(r));
+  const canSeeFinancial = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const canSeeTeam = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
+  const canEditStatus = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
   const canEditDeadline = canEditStatus;
-  const canSeeActivity = role === 'hr_manager' || role === 'ceo';
-  const canManageTeam = role === 'hr_manager' || role === 'ceo' || role === 'team_lead';
+  const canSeeActivity = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const canManageTeam = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
   const employeeId = employee?.employee_id;
 
   const [search, setSearch] = useState('');
@@ -226,7 +226,7 @@ const Projects = () => {
 
       const assignedIds = assignments?.map((assignment) => assignment.project_id) ?? [];
 
-      if (role === 'team_lead') {
+      if (roles.includes('team_lead')) {
         const [leadProjectsResult, assignedProjectsResult] = await Promise.all([
           supabase
             .from('projects')
@@ -620,7 +620,7 @@ const ProjectCard = ({
   companyId, employeeId, role,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
-  const canManageTasks = role === 'ceo' || role === 'hr_manager' || role === 'team_lead';
+  const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
   return (
     <div
       className={cn(

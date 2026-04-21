@@ -118,8 +118,8 @@ const EmployeeForm = () => {
   const queryClient = useQueryClient();
 
   const companyId = authEmployee?.company_id;
-  const role = authEmployee?.role_name;
-  const canAccess = role === 'hr_manager' || role === 'ceo';
+  const roles = authEmployee?.roles ?? [];
+  const canAccess = ['hr_manager', 'ceo'].some(r => roles.includes(r));
 
   const [form, setForm] = useState<FormData>({
     full_name: '',

@@ -48,7 +48,7 @@ const Invoices = () => {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const companyId = employee?.company_id;
-  const isCeo = employee?.role_name === 'ceo';
+  const isCeo = (employee?.roles ?? []).includes('ceo');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [clientFilter, setClientFilter] = useState('all');

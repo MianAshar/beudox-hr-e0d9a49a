@@ -18,9 +18,9 @@ const defaultLeaveTypes = [
 
 const LeaveManagement = () => {
   const { employee } = useAuth();
-  const role = employee?.role_name;
+  const roles = employee?.roles ?? [];
   const companyId = employee?.company_id;
-  const isHrOrCeo = role === 'hr_manager' || role === 'ceo';
+  const isHrOrCeo = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('');
 

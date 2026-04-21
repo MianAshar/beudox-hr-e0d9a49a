@@ -18,8 +18,8 @@ interface Props {
 
 const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
   const { employee } = useAuth();
-  const role = employee?.role_name;
-  const isManager = role === 'hr_manager' || role === 'ceo';
+  const roles = employee?.roles ?? [];
+  const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const myId = employee?.employee_id;
 
   // Quarterly evaluations
@@ -117,7 +117,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
   const filterDaily = (evals: any[], dir: 'received' | 'given') => {
     return evals.filter(ev => {
       if (isManager) return true;
-      if (role === 'team_lead') {
+      if (roles.includes('team_lead')) {
         // team lead sees evals they submitted about this employee + evals this employee submitted about them
         if (dir === 'received' && ev.reviewer_id === myId) return true;
         if (dir === 'given' && ev.reviewee_id === myId) return true;

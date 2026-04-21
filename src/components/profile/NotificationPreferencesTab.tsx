@@ -96,7 +96,7 @@ const NotificationPreferencesTab = () => {
     () =>
       CATEGORIES.map((cat) => ({
         ...cat,
-        types: cat.types.filter((t) => t.roles.includes(role)),
+        types: cat.types.filter((t) => t.roles.some(r => roles.includes(r))),
       })).filter((cat) => cat.types.length > 0),
     [role],
   );

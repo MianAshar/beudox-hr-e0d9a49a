@@ -94,10 +94,10 @@ const StatCard = ({ icon, value, label, variant = 'default', loading }: StatCard
 const Dashboard = () => {
   const { employee, loading: authLoading } = useAuth();
   const companyId = employee?.company_id;
-  const role = employee?.role_name;
+  const roles = employee?.roles ?? [];
 
-  const isHrOrCeo = role === 'hr_manager' || role === 'ceo';
-  const isFinanceOrCeo = role === 'finance_manager' || role === 'ceo';
+  const isHrOrCeo = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const isFinanceOrCeo = ['finance_manager', 'ceo'].some(r => roles.includes(r));
 
   const today = formatDate(new Date());
   const firstName = employee?.full_name || 'there';

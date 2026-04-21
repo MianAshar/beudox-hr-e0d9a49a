@@ -26,7 +26,7 @@ const JobDescriptionDetail = () => {
   const [archiving, setArchiving] = useState(false);
   const [viewVersionId, setViewVersionId] = useState<string | null>(null);
 
-  const isManager = employee?.role_name === 'hr_manager' || employee?.role_name === 'ceo';
+  const isManager = (employee?.roles ?? []).includes('hr_manager') || (employee?.roles ?? []).includes('ceo');
 
   const { data: jd, isLoading } = useQuery({
     queryKey: ['job-description', id],

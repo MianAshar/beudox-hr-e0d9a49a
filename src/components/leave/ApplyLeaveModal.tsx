@@ -27,9 +27,9 @@ interface Props {
 
 const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
   const { employee } = useAuth();
-  const role = employee?.role_name;
+  const roles = employee?.roles ?? [];
   const companyId = employee?.company_id;
-  const isHrOrCeo = role === 'hr_manager' || role === 'ceo';
+  const isHrOrCeo = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const queryClient = useQueryClient();
 
   const [selectedEmployee, setSelectedEmployee] = useState(employee?.employee_id || '');
