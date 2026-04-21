@@ -185,7 +185,7 @@ const EmployeeProfile = () => {
     ...(canSeeCompensation ? [{ value: 'compensation', label: 'Compensation' }] : []),
     { value: 'access', label: 'Portal Access' },
     { value: 'evaluations', label: 'Evaluations' },
-    ...(isManager ? [{ value: 'danger', label: 'Danger Zone' }] : []),
+    ...(canManage ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
   return (
@@ -222,7 +222,7 @@ const EmployeeProfile = () => {
             </div>
           </div>
 
-          {isManager && (
+          {canManage && (
             <div className="flex items-center gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -246,6 +246,12 @@ const EmployeeProfile = () => {
                 <Pencil className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
                 Edit
               </Button>
+            </div>
+          )}
+          {isHrBlocked && (
+            <div className="flex items-center gap-2 text-[12px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+              <Lock className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+              Contact the CEO to make changes to this profile.
             </div>
           )}
         </div>
@@ -332,7 +338,7 @@ const EmployeeProfile = () => {
         </TabsContent>
 
         {/* Danger Zone */}
-        {isManager && (
+        {canManage && (
           <TabsContent value="danger" className="mt-6">
             <div className="bg-card rounded-[14px] border border-destructive/20 p-6">
               <h3 className="font-display font-semibold text-[15px] text-foreground mb-1" style={{ fontFamily: 'var(--ff-display)' }}>
