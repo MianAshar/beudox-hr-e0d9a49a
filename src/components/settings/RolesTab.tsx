@@ -24,6 +24,9 @@ const RolesTab = () => {
   const { employee: authEmployee } = useAuth();
   const qc = useQueryClient();
   const companyId = authEmployee?.company_id;
+  const viewerRoles = authEmployee?.roles ?? [];
+  const isCeoViewer = viewerRoles.includes('ceo');
+  const isHrViewer = !isCeoViewer && viewerRoles.includes('hr_manager');
 
   const { data: roles } = useQuery({
     queryKey: ['company-roles', companyId],
@@ -44,7 +47,7 @@ const RolesTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, full_name, designation, avatar_url, employee_roles(role_id, roles(id, name))')
+        .select('id, full_name, designation, avatar_url, employment_type, employee_roles(role_id, roles(id, name))')
         .eq('company_id', companyId!)
         .eq('status', 'active')
         .order('full_name');
@@ -52,6 +55,13 @@ const RolesTab = () => {
       return data;
     },
     enabled: !!companyId,
+  });
+
+  // Apply HR Manager restrictions: hide CEO accounts entirely
+  const visibleEmployees = (employees ?? []).filter(emp => {
+    if (!isHrViewer) return true;
+    const empRoles = ((emp.employee_roles as any) ?? []).map((er: any) => er.roles?.name);
+    return !empRoles.includes('ceo');
   });
 
   const [busyEmployeeId, setBusyEmployeeId] = useState<string | null>(null);
@@ -123,12 +133,15 @@ const RolesTab = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {employees?.map(emp => {
+            {visibleEmployees.map(emp => {
               const empRoles = ((emp.employee_roles as any) ?? [])
                 .map((er: any) => ({ id: er.roles?.id, name: er.roles?.name }))
                 .filter((r: any) => r.id);
               const empRoleIds = new Set(empRoles.map((r: any) => r.id));
               const isCeoRow = empRoles.some((r: any) => r.name === 'ceo');
+              const isDirectorRow = (emp as any).employment_type === 'director';
+              // HR Manager cannot change roles of Directors (or CEOs, but those are filtered out)
+              const isLockedForViewer = isCeoRow || (isHrViewer && isDirectorRow);
               const availableToAdd = (roles ?? []).filter(
                 r => r.name !== 'ceo' && !empRoleIds.has(r.id)
               );
@@ -157,7 +170,7 @@ const RolesTab = () => {
                         <span className="text-[12px] text-muted-foreground">No Role</span>
                       )}
                       {empRoles.map((r: any) => {
-                        const locked = r.name === 'ceo';
+                        const locked = r.name === 'ceo' || (isHrViewer && isDirectorRow);
                         return (
                           <Badge
                             key={r.id}
@@ -184,7 +197,7 @@ const RolesTab = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {isCeoRow ? (
+                    {isLockedForViewer ? (
                       <div className="flex items-center gap-2 text-[12px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
                         <Lock className="h-3.5 w-3.5" />
                         Read-only

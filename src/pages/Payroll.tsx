@@ -48,6 +48,9 @@ type PayrollRecord = any;
 const Payroll = () => {
   const { employee } = useAuth();
   const companyId = employee?.company_id;
+  const viewerRoles = employee?.roles ?? [];
+  const isCeoViewer = viewerRoles.includes('ceo');
+  const isHrViewer = !isCeoViewer && viewerRoles.includes('hr_manager');
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(String(now.getMonth() + 1).padStart(2, '0'));
@@ -72,7 +75,7 @@ const Payroll = () => {
     if (!companyId) return;
     const { data } = await supabase
       .from('payroll_records')
-      .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type)')
+      .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type, employee_roles(roles(name)))')
       .eq('company_id', companyId)
       .eq('month_year', monthYear)
       .eq('superseded', false)
@@ -100,7 +103,7 @@ const Payroll = () => {
       if (!companyId) return;
       const { data } = await supabase
         .from('payroll_records')
-        .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type)')
+        .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type, employee_roles(roles(name)))')
         .eq('company_id', companyId)
         .eq('month_year', my)
         .eq('superseded', false)
@@ -330,15 +333,23 @@ const Payroll = () => {
           {recs.map(rec => {
             const emp = rec.employees as any;
             const isDirector = emp?.employment_type === 'director';
+            const isCeoEmp = (emp?.employee_roles ?? []).some((er: any) => er?.roles?.name === 'ceo');
+            // HR Manager cannot see compensation of CEO or Director employees
+            const hideSalary = isHrViewer && (isCeoEmp || isDirector);
             const isDraft = rec.status === 'draft';
             const isApproved = rec.status === 'approved';
             const style = statusStyles[rec.status] || statusStyles.draft;
+            const masked = <span className="text-muted-foreground">—</span>;
 
             return (
               <TableRow key={rec.id}>
                 <TableCell className="font-medium text-sm">{emp?.full_name || '—'}</TableCell>
-                <TableCell className="text-right font-mono text-sm">{Number(rec.basic_salary).toLocaleString()}</TableCell>
-                <TableCell className="text-right font-mono text-sm">{Number(rec.allowance).toLocaleString()}</TableCell>
+                <TableCell className="text-right font-mono text-sm">
+                  {hideSalary ? masked : Number(rec.basic_salary).toLocaleString()}
+                </TableCell>
+                <TableCell className="text-right font-mono text-sm">
+                  {hideSalary ? masked : Number(rec.allowance).toLocaleString()}
+                </TableCell>
                 <TableCell className="text-right font-mono text-sm">
                   {isDirector ? '—' : Number(rec.regular_ot_hours).toFixed(1)}
                 </TableCell>
@@ -349,7 +360,7 @@ const Payroll = () => {
                   {isDirector ? '—' : (Number(rec.regular_ot_amount) + Number(rec.holiday_ot_amount)).toLocaleString()}
                 </TableCell>
                 <TableCell className="text-right">
-                  {isDraft ? (
+                  {hideSalary ? masked : isDraft ? (
                     <Input
                       type="number"
                       min="0"
@@ -362,7 +373,7 @@ const Payroll = () => {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  {isDraft && !isDirector ? (
+                  {hideSalary ? masked : isDraft && !isDirector ? (
                     <Input
                       type="number"
                       min="0"
@@ -378,10 +389,10 @@ const Payroll = () => {
                   {isDirector ? '—' : Number(rec.loan_deduction).toLocaleString()}
                 </TableCell>
                 <TableCell className="text-right font-mono text-sm font-semibold">
-                  {Number(rec.total_salary).toLocaleString()}
+                  {hideSalary ? masked : Number(rec.total_salary).toLocaleString()}
                 </TableCell>
                 <TableCell className="text-right font-mono text-sm font-semibold">
-                  {Number(rec.final_payment).toLocaleString()}
+                  {hideSalary ? masked : Number(rec.final_payment).toLocaleString()}
                 </TableCell>
                 <TableCell>
                   <span

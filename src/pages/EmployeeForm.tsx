@@ -204,6 +204,17 @@ const EmployeeForm = () => {
 
   useEffect(() => {
     if (existing) {
+      // Block HR Manager from editing CEO or Director employees
+      const isCeo = (existing as any).employee_roles?.some(
+        (er: any) => roles?.find(r => r.id === er.role_id)?.name === 'ceo'
+      );
+      const isDirector = existing.employment_type === 'director';
+      const isCeoViewer = userRoles.includes('ceo');
+      if (isEdit && !isCeoViewer && userRoles.includes('hr_manager') && (isCeo || isDirector)) {
+        toast.error('Only the CEO can edit this profile');
+        navigate(`/employees/${id}`, { replace: true });
+        return;
+      }
       setForm({
         full_name: existing.full_name || '',
         employee_code: existing.employee_code || '',
@@ -223,7 +234,7 @@ const EmployeeForm = () => {
       });
       setExistingAvatarUrl(existing.avatar_url);
     }
-  }, [existing]);
+  }, [existing, roles, isEdit, userRoles, id, navigate]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
