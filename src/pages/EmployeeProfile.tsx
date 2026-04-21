@@ -17,11 +17,14 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2, Lock } from 'lucide-react';
-import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { canManageEmployee, canViewCompensation, isProtectedFromHr } from '@/lib/role-hierarchy';
+import AttendanceTab from '@/components/employee-profile/AttendanceTab';
+import LeaveTab from '@/components/employee-profile/LeaveTab';
+import PayrollTab from '@/components/employee-profile/PayrollTab';
+import DocumentsTab from '@/components/employee-profile/DocumentsTab';
 
 const getInitials = (name: string) =>
   name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
