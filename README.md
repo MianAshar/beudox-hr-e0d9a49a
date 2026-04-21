@@ -1,89 +1,136 @@
 <!--
 generated_by: tessera
-source_sha: e1a6e79ec4b2a6acf45767ecaf287fd256faaf2b
-generated_at: 2026-04-21T09:07:11.748Z
+source_sha: 651a4c25feeeb88adbcdf2ebb86c77c07fded418
+generated_at: 2026-04-21T09:46:35.790Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources management application built with modern web technologies. Beudox HR streamlines employee management, payroll processing, leave tracking, performance evaluations, project management, and financial reporting for organizations.
+A comprehensive Human Resources (HR) management application built for modern businesses. Beudox HR streamlines employee management, performance evaluations, payroll processing, leave tracking, project management, and financial oversight in a single, intuitive platform.
 
 ## Features
 
-- **Employee Management**: Complete employee profiles, role-based access control, and organizational structure
-- **Payroll Processing**: Automated payroll calculations, overtime tracking, bonuses, and loan deductions
-- **Leave Management**: Leave request workflows, balance tracking, and approval processes
-- **Performance Evaluations**: Quarterly and daily evaluation systems with timeline tracking
-- **Project Management**: Team assignments, activity logging, and project categorization
-- **Financial Dashboard**: Real-time expense tracking and 6-month trend analysis
-- **HR Policies**: Rich text policy management and documentation
-- **Settings Management**: Configurable company settings, departments, roles, and categories
+### Core HR Functionality
+- **Employee Management**: Complete employee profiles with roles, departments, and organizational structure
+- **Performance Evaluations**: Bi-annual evaluations and daily feedback system with role-based visibility
+- **Leave Management**: Request, approve, and track various types of leave with balance monitoring
+- **Payroll Processing**: Automated payroll generation with overtime, bonuses, and deductions
+- **Project Management**: Team assignment, task tracking, and project activity logging
+
+### Administrative Tools
+- **Finance Dashboard**: Monthly expense tracking and payroll summaries with trend analysis
+- **Settings Management**: Configurable departments, roles, leave types, expense categories, and evaluation parameters
+- **Notifications**: Automated notifications for HR events and approvals
+- **Reporting**: Comprehensive reporting across all HR domains
+
+### User Experience
+- **Role-Based Access**: Tailored interfaces for employees, team leads, HR managers, and CEOs
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **Real-time Updates**: Live data synchronization across the application
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Routing**: React Router
-- **UI Components**: shadcn/ui with Tailwind CSS
-- **Backend**: Supabase (PostgreSQL database + Edge Functions)
-- **State Management**: React Query (TanStack Query)
-- **Charts**: Recharts
-- **Testing**: Vitest (unit tests) + Playwright (E2E tests)
-- **Package Manager**: Bun
+### Frontend
+- **React 18** with TypeScript for type-safe development
+- **Vite** for fast development and optimized production builds
+- **React Router** for client-side routing
+- **Tailwind CSS** for utility-first styling
+- **shadcn/ui** component library for consistent UI elements
+- **React Query (TanStack Query)** for efficient data fetching and caching
+- **React Hook Form** for form management
+- **Lucide React** for icons
+
+### Backend & Database
+- **Supabase** for backend-as-a-service including:
+  - PostgreSQL database with real-time subscriptions
+  - Authentication and authorization
+  - File storage for avatars and documents
+  - Edge functions for server-side processing
+
+### Development Tools
+- **ESLint** for code linting
+- **Playwright** for end-to-end testing
+- **Vitest** for unit testing
+- **TypeScript** for static type checking
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js 18+ or Bun
-- Supabase account and project
+- Node.js 18+ and npm or bun
+- A Supabase account and project
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
+   npm install
+   # or
    bun install
    ```
 
-3. Set up environment variables:
+3. **Environment Setup**
    
-   Copy `.env` and update the Supabase configuration:
+   Copy the `.env` file and update the Supabase credentials:
+   ```bash
+   cp .env .env.local
+   ```
+   
+   Update the following variables in `.env.local`:
    ```env
-   VITE_SUPABASE_PROJECT_ID="your-project-id"
-   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
-   VITE_SUPABASE_URL="https://your-project.supabase.co"
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
    ```
 
-4. Run database migrations:
+4. **Database Setup**
    
-   The Supabase migrations are included in the `supabase/migrations/` directory. Apply them to your Supabase project.
-
-5. Start the development server:
+   The application uses Supabase migrations. If setting up a new project:
    ```bash
+   # Install Supabase CLI
+   npm install -g supabase
+   
+   # Link to your project
+   supabase link --project-ref your_project_ref
+   
+   # Apply migrations
+   supabase db push
+   ```
+
+5. **Start Development Server**
+   ```bash
+   npm run dev
+   # or
    bun run dev
    ```
-
-6. Open [http://localhost:5173](http://localhost:5173) in your browser.
+   
+   The application will be available at `http://localhost:5173`
 
 ### Building for Production
 
 ```bash
+npm run build
+# or
 bun run build
 ```
 
-The built files will be in the `dist/` directory.
+The built files will be in the `dist` directory.
 
-### Running Tests
+### Testing
 
-- Unit tests: `bun run test`
-- E2E tests: `bun run test:e2e`
+```bash
+# Run unit tests
+npm run test
+
+# Run e2e tests
+npm run test:e2e
+```
 
 ## Project Structure
 
@@ -91,77 +138,46 @@ The built files will be in the `dist/` directory.
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # App layout components
-│   ├── evaluations/    # Evaluation-related components
-│   ├── finance/        # Financial dashboard components
-│   ├── leave/          # Leave management components
-│   ├── payroll/        # Payroll components
-│   ├── projects/       # Project management components
-│   ├── settings/       # Settings/configuration components
-│   └── hr-policies/    # Policy management components
-├── pages/              # Page components (routes)
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── [feature]/      # Feature-specific components
+│   └── ...
+├── pages/              # Page components (Next.js-style routing)
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations
-│   └── supabase/       # Supabase client and types
-└── test/               # Test files
+├── integrations/       # External service integrations (Supabase)
+├── test/               # Test files
+└── ...
 
 supabase/
 ├── migrations/         # Database schema migrations
-└── functions/          # Edge Functions
+└── functions/          # Edge functions for server-side logic
 ```
 
-## Architecture Overview
+## Key Components
 
-### Frontend Architecture
+### Layout System
+- **AppLayout**: Main application layout with sidebar navigation
+- **AppSidebar**: Collapsible sidebar with role-based menu items
+- **TopBar**: User menu and notifications
 
-The application follows a component-based architecture with:
-
-- **Layout Components**: `AppLayout`, `AppSidebar`, `TopBar` for consistent navigation
-- **Feature Components**: Organized by domain (evaluations, finance, leave, etc.)
-- **UI Components**: Reusable design system components from shadcn/ui
-- **Custom Hooks**: For data fetching, authentication, and state management
-
-### Routing Structure
-
-The app uses React Router for client-side routing. Key routes include:
-
-- `/` - Dashboard/Home page
-- `/evaluations/*` - Evaluation management
-- `/finance` - Financial dashboard
-- `/leave/*` - Leave management
-- `/payroll/*` - Payroll processing
-- `/projects/*` - Project management
-- `/settings/*` - System configuration
-
-### Database Schema
-
-The application uses Supabase with PostgreSQL. Key tables include:
-
-- `employees` - Employee information and profiles
-- `evaluations` - Performance evaluation records
-- `daily_evaluations` - Daily feedback system
-- `payroll_records` - Payroll processing data
-- `leave_requests` - Leave management
-- `projects` - Project information
-- `monthly_expenses` - Financial tracking
-
-### Authentication & Authorization
-
-- **Authentication**: Supabase Auth for user management
-- **Authorization**: Role-based access control with roles like `hr_manager`, `team_lead`, `ceo`, etc.
-- **Permissions**: Component-level access control based on user roles
+### Core Features
+- **EvaluationTimeline**: Displays performance evaluation history
+- **FinanceSummary**: Financial dashboard with trend charts
+- **SearchableEmployeeSelect**: Employee selection component with search
+- **Leave Management**: Request and approval workflow components
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Make your changes and add tests
-4. Run tests: `bun run test`
-5. Commit your changes: `git commit -am 'Add new feature'`
-6. Push to the branch: `git push origin feature/your-feature`
-7. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
 This project is proprietary software. All rights reserved.
+
+## Support
+
+For support and questions, please contact the development team or create an issue in the repository.
