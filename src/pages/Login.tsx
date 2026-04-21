@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { trackLogin } from '@/lib/login-tracking';
 import { Eye, EyeOff, Loader2, Building2 } from 'lucide-react';
 
 const Login = () => {
@@ -74,7 +75,11 @@ const Login = () => {
     setErrors({});
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!error && signInData.user) {
+      // Fire-and-forget login tracking — never blocks the login flow
+      void trackLogin(signInData.user.id);
+    }
     if (error) {
       const isBannedUser = error.code === 'user_banned' || error.message.toLowerCase().includes('banned');
       if (isBannedUser) {
