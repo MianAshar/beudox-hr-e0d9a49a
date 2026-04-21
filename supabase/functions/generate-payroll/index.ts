@@ -111,6 +111,24 @@ Deno.serve(async (req) => {
       loanMap[loan.employee_id] = (loanMap[loan.employee_id] || 0) + Number(loan.monthly_deduction || 0);
     }
 
+    // 4b. Fetch unpaid arrears from approved salary_history
+    const { data: arrearsRows } = await supabase
+      .from('salary_history')
+      .select('id, employee_id, arrears_amount')
+      .eq('company_id', company_id)
+      .eq('status', 'approved')
+      .eq('arrears_paid', false)
+      .gt('arrears_amount', 0);
+
+    const arrearsMap: Record<string, { total: number; ids: string[] }> = {};
+    for (const row of arrearsRows || []) {
+      if (!arrearsMap[row.employee_id]) {
+        arrearsMap[row.employee_id] = { total: 0, ids: [] };
+      }
+      arrearsMap[row.employee_id].total += Number(row.arrears_amount || 0);
+      arrearsMap[row.employee_id].ids.push(row.id);
+    }
+
     // 5. Check existing payroll records for this month (avoid overwriting approved/paid)
     const { data: existingRecords } = await supabase
       .from('payroll_records')
@@ -127,6 +145,7 @@ Deno.serve(async (req) => {
     // 6. Build payroll records
     const upserts: any[] = [];
     const skipped: string[] = [];
+    const arrearsToMarkPaid: string[] = [];
 
     for (const emp of employees) {
       const existing = existingMap[emp.id];
@@ -157,7 +176,8 @@ Deno.serve(async (req) => {
       }
 
       const loanDeduction = loanMap[emp.id] || 0;
-      const bonus = 0;
+      const arrears = arrearsMap[emp.id];
+      const bonus = arrears?.total || 0;
       const dinnerExpense = 0;
 
       const totalSalary = Math.max(0, basicSalary + allowance + regularOtAmount + holidayOtAmount + bonus - loanDeduction);
@@ -180,6 +200,7 @@ Deno.serve(async (req) => {
         final_payment: finalPayment,
         status: 'draft',
         superseded: false,
+        notes: bonus > 0 ? `Includes PKR ${bonus.toLocaleString()} arrears from approved salary increment(s).` : null,
       };
 
       if (existing) {
@@ -187,6 +208,10 @@ Deno.serve(async (req) => {
       }
 
       upserts.push(record);
+
+      if (arrears) {
+        arrearsToMarkPaid.push(...arrears.ids);
+      }
     }
 
     // 7. Upsert into payroll_records
