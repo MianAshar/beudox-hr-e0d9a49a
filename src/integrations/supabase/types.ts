@@ -627,6 +627,7 @@ export type Database = {
           email: string | null
           employee_code: string | null
           employment_type: string | null
+          first_review_date: string | null
           full_name: string
           id: string
           in_app_notifications_enabled: boolean | null
@@ -635,6 +636,7 @@ export type Database = {
           last_login_at: string | null
           notifications_enabled: boolean
           phone: string | null
+          review_frequency_months: number | null
           status: string | null
           updated_at: string | null
         }
@@ -653,6 +655,7 @@ export type Database = {
           email?: string | null
           employee_code?: string | null
           employment_type?: string | null
+          first_review_date?: string | null
           full_name: string
           id?: string
           in_app_notifications_enabled?: boolean | null
@@ -661,6 +664,7 @@ export type Database = {
           last_login_at?: string | null
           notifications_enabled?: boolean
           phone?: string | null
+          review_frequency_months?: number | null
           status?: string | null
           updated_at?: string | null
         }
@@ -679,6 +683,7 @@ export type Database = {
           email?: string | null
           employee_code?: string | null
           employment_type?: string | null
+          first_review_date?: string | null
           full_name?: string
           id?: string
           in_app_notifications_enabled?: boolean | null
@@ -687,6 +692,7 @@ export type Database = {
           last_login_at?: string | null
           notifications_enabled?: boolean
           phone?: string | null
+          review_frequency_months?: number | null
           status?: string | null
           updated_at?: string | null
         }
@@ -2537,7 +2543,10 @@ export type Database = {
       }
       salary_history: {
         Row: {
+          approved_at: string | null
           approved_by: string | null
+          arrears_amount: number | null
+          arrears_paid: boolean | null
           change_type: string
           company_id: string
           created_at: string | null
@@ -2548,10 +2557,18 @@ export type Database = {
           new_salary: number
           previous_allowance: number
           previous_salary: number
+          proposed_by: string | null
           reason: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          status: string | null
         }
         Insert: {
+          approved_at?: string | null
           approved_by?: string | null
+          arrears_amount?: number | null
+          arrears_paid?: boolean | null
           change_type: string
           company_id: string
           created_at?: string | null
@@ -2562,10 +2579,18 @@ export type Database = {
           new_salary?: number
           previous_allowance?: number
           previous_salary?: number
+          proposed_by?: string | null
           reason?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          status?: string | null
         }
         Update: {
+          approved_at?: string | null
           approved_by?: string | null
+          arrears_amount?: number | null
+          arrears_paid?: boolean | null
           change_type?: string
           company_id?: string
           created_at?: string | null
@@ -2576,7 +2601,12 @@ export type Database = {
           new_salary?: number
           previous_allowance?: number
           previous_salary?: number
+          proposed_by?: string | null
           reason?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          status?: string | null
         }
         Relationships: [
           {
@@ -2596,6 +2626,20 @@ export type Database = {
           {
             foreignKeyName: "salary_history_employee_id_fkey"
             columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salary_history_proposed_by_fkey"
+            columns: ["proposed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salary_history_rejected_by_fkey"
+            columns: ["rejected_by"]
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
