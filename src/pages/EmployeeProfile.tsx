@@ -185,10 +185,11 @@ const EmployeeProfile = () => {
   // Build tabs array based on permissions
   const tabs = [
     { value: 'overview', label: 'Overview' },
-    { value: 'employment', label: 'Employment' },
-    ...(canSeeCompensation ? [{ value: 'compensation', label: 'Compensation' }] : []),
-    { value: 'access', label: 'Portal Access' },
-    { value: 'evaluations', label: 'Evaluations' },
+    ...(isHrOrCeo ? [{ value: 'attendance', label: 'Attendance' }] : []),
+    ...(isHrOrCeo ? [{ value: 'leave', label: 'Leave' }] : []),
+    ...(isFinanceOrCeo && canSeeCompensation ? [{ value: 'payroll', label: 'Payroll' }] : []),
+    ...(isHrOrCeo ? [{ value: 'evaluations', label: 'Evaluations' }] : []),
+    ...(isHrOrCeo ? [{ value: 'documents', label: 'Documents' }] : []),
     ...(canManage ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
@@ -276,7 +277,7 @@ const EmployeeProfile = () => {
           ))}
         </TabsList>
 
-        {/* Overview */}
+        {/* Overview — combined personal, employment, compensation & portal access */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           <SectionCard title="Personal Information">
             <InfoField label="Full Name" value={emp.full_name} />
@@ -285,10 +286,7 @@ const EmployeeProfile = () => {
             <InfoField label="Date of Birth" value={emp.date_of_birth ? formatDate(emp.date_of_birth) : null} />
             <InfoField label="Address" value={emp.address} />
           </SectionCard>
-        </TabsContent>
 
-        {/* Employment */}
-        <TabsContent value="employment" className="mt-6 space-y-6">
           <SectionCard title="Employment Information">
             <InfoField label="Employee Code" value={emp.employee_code} />
             <InfoField label="Designation" value={emp.designation} />
@@ -298,11 +296,8 @@ const EmployeeProfile = () => {
             <InfoField label="Status" value={toTitleCase(emp.status)} />
             <InfoField label="Increment Rule" value={toTitleCase(emp.increment_rule)} />
           </SectionCard>
-        </TabsContent>
 
-        {/* Compensation — hr_manager / ceo only */}
-        {canSeeCompensation && (
-          <TabsContent value="compensation" className="mt-6 space-y-6">
+          {canSeeCompensation && (
             <SectionCard title="Compensation">
               <div>
                 <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Basic Salary</p>
@@ -317,11 +312,8 @@ const EmployeeProfile = () => {
                 </p>
               </div>
             </SectionCard>
-          </TabsContent>
-        )}
+          )}
 
-        {/* Portal Access */}
-        <TabsContent value="access" className="mt-6 space-y-6">
           <SectionCard title="Portal Access">
             <div>
               <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Login Email</p>
@@ -334,15 +326,44 @@ const EmployeeProfile = () => {
           </SectionCard>
         </TabsContent>
 
-        {/* Evaluations */}
-        <TabsContent value="evaluations" className="mt-6">
-          {authEmployee?.company_id && (
-            <EvaluationTimeline employeeId={emp.id} companyId={authEmployee.company_id} />
-          )}
-        </TabsContent>
+        {/* Attendance — HR / CEO only */}
+        {isHrOrCeo && (
+          <TabsContent value="attendance" className="mt-6">
+            <AttendanceTab employeeId={emp.id} />
+          </TabsContent>
+        )}
 
-        {/* Danger Zone */}
-        {canManage && (
+        {/* Leave — HR / CEO only */}
+        {isHrOrCeo && (
+          <TabsContent value="leave" className="mt-6">
+            <LeaveTab employeeId={emp.id} />
+          </TabsContent>
+        )}
+
+        {/* Payroll — Finance Manager / CEO only, respecting compensation visibility */}
+        {isFinanceOrCeo && canSeeCompensation && (
+          <TabsContent value="payroll" className="mt-6">
+            <PayrollTab employeeId={emp.id} />
+          </TabsContent>
+        )}
+
+        {/* Evaluations — HR / CEO only */}
+        {isHrOrCeo && (
+          <TabsContent value="evaluations" className="mt-6">
+            {authEmployee?.company_id && (
+              <EvaluationTimeline employeeId={emp.id} companyId={authEmployee.company_id} />
+            )}
+          </TabsContent>
+        )}
+
+        {/* Documents — HR / CEO only (placeholder) */}
+        {isHrOrCeo && (
+          <TabsContent value="documents" className="mt-6">
+            <DocumentsTab />
+          </TabsContent>
+        )}
+
+
           <TabsContent value="danger" className="mt-6">
             <div className="bg-card rounded-[14px] border border-destructive/20 p-6">
               <h3 className="font-display font-semibold text-[15px] text-foreground mb-1" style={{ fontFamily: 'var(--ff-display)' }}>
