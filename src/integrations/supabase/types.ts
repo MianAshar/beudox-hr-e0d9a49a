@@ -1612,6 +1612,75 @@ export type Database = {
           },
         ]
       }
+      login_logs: {
+        Row: {
+          auth_user_id: string | null
+          browser: string | null
+          city: string | null
+          company_id: string | null
+          country: string | null
+          device_type: string | null
+          employee_id: string | null
+          id: string
+          ip_address: string | null
+          latitude: number | null
+          logged_in_at: string | null
+          longitude: number | null
+          os: string | null
+          region: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          auth_user_id?: string | null
+          browser?: string | null
+          city?: string | null
+          company_id?: string | null
+          country?: string | null
+          device_type?: string | null
+          employee_id?: string | null
+          id?: string
+          ip_address?: string | null
+          latitude?: number | null
+          logged_in_at?: string | null
+          longitude?: number | null
+          os?: string | null
+          region?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          auth_user_id?: string | null
+          browser?: string | null
+          city?: string | null
+          company_id?: string | null
+          country?: string | null
+          device_type?: string | null
+          employee_id?: string | null
+          id?: string
+          ip_address?: string | null
+          latitude?: number | null
+          logged_in_at?: string | null
+          longitude?: number | null
+          os?: string | null
+          region?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "login_logs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_expenses: {
         Row: {
           amount: number
