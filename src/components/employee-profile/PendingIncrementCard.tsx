@@ -136,15 +136,15 @@ const PendingIncrementCard = ({ employee, approverEmployeeId }: Props) => {
   const arrears = Number(pending.arrears_amount || 0);
 
   return (
-    <div className="bg-card rounded-[14px] border-2 border-amber-300 p-6">
+    <div className="bg-card rounded-[14px] border-2 p-6" style={{ borderColor: 'hsl(var(--bx-warning-text) / 0.4)' }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-amber-600" />
+          <Clock className="h-4 w-4" style={{ color: 'hsl(var(--bx-warning-text))' }} />
           <h3 className="font-display font-semibold text-[15px] text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
             Pending Increment
           </h3>
         </div>
-        <Badge className="capitalize bg-amber-100 text-amber-900 hover:bg-amber-100 border-0">
+        <Badge className="capitalize border-0 bg-bx-warning-bg text-[hsl(var(--bx-warning-text))] hover:bg-bx-warning-bg">
           {pending.change_type}
         </Badge>
       </div>
