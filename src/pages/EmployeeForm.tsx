@@ -30,7 +30,11 @@ import 'react-image-crop/dist/ReactCrop.css';
 
 const DEPARTMENTS_FALLBACK = ['GC Team', 'MEP Team', 'Admin', 'Director'];
 const EMPLOYMENT_TYPES = ['full_time', 'outsourced', 'director'];
-const INCREMENT_RULES = ['year_1', 'year_2_plus'];
+const REVIEW_FREQUENCIES = [
+  { value: '3', label: 'Every 3 Months' },
+  { value: '6', label: 'Every 6 Months' },
+  { value: '12', label: 'Every 12 Months' },
+];
 
 const employeeSchema = z.object({
   full_name: z.string().trim().min(1, 'Full name is required').max(255),
@@ -44,7 +48,8 @@ const employeeSchema = z.object({
   address: z.string().max(500).optional().or(z.literal('')),
   joining_date: z.string().min(1, 'Joining date is required'),
   employment_type: z.string().optional(),
-  increment_rule: z.string().optional(),
+  first_review_date: z.string().optional().or(z.literal('')),
+  review_frequency_months: z.string().optional(),
   basic_salary: z.string().optional().or(z.literal('')),
   allowance: z.string().optional().or(z.literal('')),
   role_id: z.string().min(1, 'Role is required'),
@@ -133,7 +138,8 @@ const EmployeeForm = () => {
     address: '',
     joining_date: '',
     employment_type: 'full_time',
-    increment_rule: 'year_1',
+    first_review_date: '',
+    review_frequency_months: '6',
     basic_salary: '',
     allowance: '',
     role_id: '',
@@ -227,7 +233,8 @@ const EmployeeForm = () => {
         address: existing.address || '',
         joining_date: existing.joining_date || '',
         employment_type: existing.employment_type || 'full_time',
-        increment_rule: existing.increment_rule || 'year_1',
+        first_review_date: existing.first_review_date || '',
+        review_frequency_months: String(existing.review_frequency_months ?? 6),
         basic_salary: existing.basic_salary?.toString() || '',
         allowance: existing.allowance?.toString() || '',
         role_id: existing.employee_roles?.[0]?.role_id || '',
@@ -341,7 +348,8 @@ const EmployeeForm = () => {
         address: form.address || null,
         joining_date: form.joining_date,
         employment_type: form.employment_type,
-        increment_rule: form.increment_rule,
+        first_review_date: form.first_review_date || null,
+        review_frequency_months: form.review_frequency_months ? parseInt(form.review_frequency_months, 10) : 6,
         basic_salary: form.basic_salary ? parseFloat(form.basic_salary) : 0,
         allowance: form.allowance ? parseFloat(form.allowance) : 0,
         company_id: companyId,
