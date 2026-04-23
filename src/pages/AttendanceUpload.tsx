@@ -149,8 +149,18 @@ const AttendanceUpload = () => {
   const [parseError, setParseError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParseResponse | null>(null);
+  // Mirror parsed records in a ref so re-renders never lose preview data.
+  // Source of truth for confirmImport reads from this ref as a fallback.
+  const parsedRef = useRef<ParseResponse | null>(null);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Helper: keep state and ref in lock-step so the preview persists
+  // until the user explicitly cancels or confirms.
+  const setParsedBoth = (next: ParseResponse | null) => {
+    parsedRef.current = next;
+    setParsed(next);
+  };
 
   // Preload SheetJS as soon as the page mounts so the first upload is instant.
   useEffect(() => { loadSheetJs().catch(() => {}); }, []);
@@ -166,13 +176,13 @@ const AttendanceUpload = () => {
     setYear('');
     setParseError(null);
     setFileName(null);
-    setParsed(null);
+    setParsedBoth(null);
     setSummary(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const cancelPreview = () => {
-    setParsed(null);
+    setParsedBoth(null);
     setParseError(null);
     setFileName(null);
     setStep('select');
@@ -205,13 +215,22 @@ const AttendanceUpload = () => {
       if (!resp || !Array.isArray(resp.records)) {
         throw new Error('AI returned an unexpected response.');
       }
+      // The Edge Function's parsed records array is the SOLE source of truth.
+      // Suppress noisy parser warnings about column shape / inconsistencies —
+      // those reflect raw-CSV structure, not a data problem in the normalised
+      // records we actually render.
+      const filteredWarnings = (resp.warnings ?? []).filter(w => {
+        const s = String(w).toLowerCase();
+        return !s.includes('column') && !s.includes('inconsist');
+      });
+      const cleaned: ParseResponse = { records: resp.records, warnings: filteredWarnings };
       if (resp.records.length === 0) {
-        setParsed(resp);
+        setParsedBoth(cleaned);
         setParseError('AI parser found 0 records in this file. Please check the file format.');
         setStep('preview');
         return;
       }
-      setParsed(resp);
+      setParsedBoth(cleaned);
       setStep('preview');
     } catch (err) {
       console.error(err);
@@ -226,7 +245,8 @@ const AttendanceUpload = () => {
   };
 
   const confirmImport = async () => {
-    if (!parsed || !employee?.company_id) return;
+    const source = parsed ?? parsedRef.current;
+    if (!source || !employee?.company_id) return;
     setStep('importing');
 
     try {
@@ -263,7 +283,7 @@ const AttendanceUpload = () => {
 
       // 3. Fetch all dates already imported for this company within the parsed range
       //    (so we can early-skip duplicates without round-tripping per row)
-      const dates = Array.from(new Set(parsed.records.map(r => r.date))).sort();
+      const dates = Array.from(new Set(source.records.map(r => r.date))).sort();
       const minDate = dates[0];
       const maxDate = dates[dates.length - 1];
       const { data: existing } = await supabase
@@ -320,7 +340,7 @@ const AttendanceUpload = () => {
       let skipped = 0;
       const toInsert: any[] = [];
 
-      for (const r of parsed.records) {
+      for (const r of source.records) {
         const empId = codeToId.get(r.employee_code.trim());
         if (!empId) {
           unmatched.add(r.employee_code.trim());
