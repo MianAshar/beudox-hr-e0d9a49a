@@ -604,6 +604,7 @@ const AttendanceUpload = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Check-in</TableHead>
                     <TableHead>Check-out</TableHead>
+                    <TableHead className="text-right">Hrs</TableHead>
                     <TableHead>Notes</TableHead>
                   </TableRow>
                 </TableHeader>
