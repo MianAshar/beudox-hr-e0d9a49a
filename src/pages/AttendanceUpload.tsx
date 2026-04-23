@@ -574,15 +574,41 @@ const AttendanceUpload = () => {
                 <TableBody>
                   {groupedRecords.map(group => (
                     <Fragment key={group.date}>
-                      <TableRow className="hover:bg-muted/40">
+                      <TableRow className="border-b-0 hover:bg-transparent">
                         <TableCell
                           colSpan={5}
-                          className="sticky top-10 z-10 bg-muted/60 backdrop-blur-sm py-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-y"
+                          className="sticky top-10 z-10 backdrop-blur-sm p-0 border-b-0"
                         >
-                          {formatGroupDate(group.date)}
-                          <span className="ml-2 normal-case font-normal text-[11px] tracking-normal">
-                            · {group.rows.length} record{group.rows.length === 1 ? '' : 's'}
-                          </span>
+                          <div
+                            className="flex items-center gap-2 h-9 pl-4 pr-4"
+                            style={{
+                              backgroundColor: 'rgba(91, 63, 248, 0.08)',
+                              borderLeft: '3px solid #5B3FF8',
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontFamily: 'Syne, sans-serif',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                color: '#5B3FF8',
+                              }}
+                            >
+                              {formatGroupDate(group.date)}
+                            </span>
+                            <span
+                              style={{
+                                backgroundColor: 'rgba(91, 63, 248, 0.12)',
+                                color: '#5B3FF8',
+                                fontSize: '11px',
+                                padding: '2px 8px',
+                                borderRadius: '9999px',
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {group.rows.length} record{group.rows.length === 1 ? '' : 's'}
+                            </span>
+                          </div>
                         </TableCell>
                       </TableRow>
                       {group.rows.map((r, idx) => (
