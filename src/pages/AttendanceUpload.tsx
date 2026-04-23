@@ -678,24 +678,24 @@ const AttendanceUpload = () => {
                                 <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
                               )}
                             </TableCell>
-                            <TableCell className="text-right font-mono text-xs tabular-nums whitespace-nowrap">
+                            <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
                               {wh == null ? (
                                 <span className="text-muted-foreground">—</span>
                               ) : (
                                 <span className="inline-flex items-center gap-1.5 justify-end">
                                   <span
-                                    style={
-                                      isShort
-                                        ? { color: 'rgba(232, 69, 69, 0.8)' }
-                                        : undefined
-                                    }
+                                    style={{
+                                      fontSize: '13px',
+                                      fontWeight: 500,
+                                      color: isShort ? '#E84545' : '#120E36',
+                                    }}
                                   >
                                     {wh.toFixed(2)}h
                                   </span>
                                   {isOT && (
                                     <span
                                       style={{
-                                        backgroundColor: 'rgba(91, 63, 248, 0.10)',
+                                        backgroundColor: 'rgba(91, 63, 248, 0.15)',
                                         color: '#5B3FF8',
                                         fontSize: '10px',
                                         padding: '1px 6px',
