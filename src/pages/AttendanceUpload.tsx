@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { Fragment, useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -410,6 +410,28 @@ const AttendanceUpload = () => {
     }
   };
 
+  // Group records by date asc, then by check-in time asc within each date.
+  const groupedRecords = useMemo(() => {
+    if (!parsed?.records?.length) return [] as { date: string; rows: ParsedRecord[] }[];
+    const map = new Map<string, ParsedRecord[]>();
+    for (const r of parsed.records) {
+      if (!map.has(r.date)) map.set(r.date, []);
+      map.get(r.date)!.push(r);
+    }
+    const dates = Array.from(map.keys()).sort();
+    return dates.map(date => {
+      const rows = map.get(date)!.slice().sort((a, b) => {
+        const am = timeToMinutes(a.check_in);
+        const bm = timeToMinutes(b.check_in);
+        if (am == null && bm == null) return 0;
+        if (am == null) return 1;
+        if (bm == null) return -1;
+        return am - bm;
+      });
+      return { date, rows };
+    });
+  }, [parsed]);
+
   // ---------------- Render ----------------
 
   if (!isAuthorised) {
@@ -424,8 +446,13 @@ const AttendanceUpload = () => {
   const incompleteCount = (parsed?.records.length ?? 0) - completeCount;
   const employeeCount = new Set(parsed?.records.map(r => r.employee_code) ?? []).size;
 
+  const formatGroupDate = (dateStr: string) => {
+    const d = new Date(`${dateStr}T00:00:00${KARACHI_OFFSET}`);
+    return format(d, 'EEEE, dd MMM yyyy');
+  };
+
   return (
-    <div className="p-6 max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
+    <div className="max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
       {/* Step 1: Select month/year + upload */}
       {(step === 'select' || step === 'parsing') && (
         <Card className="p-6 space-y-6">
@@ -498,8 +525,8 @@ const AttendanceUpload = () => {
 
       {/* Step 3: Preview */}
       {step === 'preview' && parsed && (
-        <Card className="p-6 space-y-4">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
+        <Card className="p-6 flex flex-col gap-4 h-[calc(100vh-7rem)]">
+          <div className="flex items-start justify-between gap-4 flex-wrap shrink-0">
             <div>
               <h2 className="text-lg font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
                 Preview parsed records
@@ -518,7 +545,7 @@ const AttendanceUpload = () => {
           </div>
 
           {parsed.warnings && parsed.warnings.length > 0 && (
-            <div className="rounded-md border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">
+            <div className="rounded-md border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900 shrink-0">
               <div className="flex items-center gap-2 font-medium mb-1">
                 <AlertTriangle className="h-4 w-4" /> Parser warnings
               </div>
@@ -529,55 +556,68 @@ const AttendanceUpload = () => {
           )}
 
           {parsed.records.length === 0 ? (
-            <div className="text-sm text-muted-foreground py-8 text-center">
+            <div className="text-sm text-muted-foreground py-8 text-center flex-1">
               No records to preview.
             </div>
           ) : (
-            <div className="overflow-auto border rounded-md" style={{ maxHeight: 480 }}>
+            <div className="flex-1 min-h-0 overflow-y-auto border rounded-md">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 z-20 bg-secondary">
                   <TableRow>
                     <TableHead>Code</TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead>Date</TableHead>
                     <TableHead>Check-in</TableHead>
                     <TableHead>Check-out</TableHead>
                     <TableHead>Notes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {parsed.records.map((r, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell className="font-mono text-xs">{r.employee_code}</TableCell>
-                      <TableCell className="text-sm">{r.name ?? '—'}</TableCell>
-                      <TableCell className="text-sm">{r.date}</TableCell>
-                      <TableCell>
-                        {r.check_in ? (
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
-                            {r.check_in.slice(0, 5)}
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {r.check_out ? (
-                          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
-                            {r.check_out.slice(0, 5)}
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
-                    </TableRow>
+                  {groupedRecords.map(group => (
+                    <Fragment key={group.date}>
+                      <TableRow className="hover:bg-muted/40">
+                        <TableCell
+                          colSpan={5}
+                          className="sticky top-10 z-10 bg-muted/60 backdrop-blur-sm py-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-y"
+                        >
+                          {formatGroupDate(group.date)}
+                          <span className="ml-2 normal-case font-normal text-[11px] tracking-normal">
+                            · {group.rows.length} record{group.rows.length === 1 ? '' : 's'}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                      {group.rows.map((r, idx) => (
+                        <TableRow key={`${group.date}-${idx}`}>
+                          <TableCell className="font-mono text-xs">{r.employee_code}</TableCell>
+                          <TableCell className="text-sm">{r.name ?? '—'}</TableCell>
+                          <TableCell>
+                            {r.check_in ? (
+                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
+                                {r.check_in.slice(0, 5)}
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {r.check_out ? (
+                              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
+                                {r.check_out.slice(0, 5)}
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
+                        </TableRow>
+                      ))}
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 shrink-0 border-t mt-0">
             <Button variant="outline" onClick={cancelPreview}>
               <X className="h-4 w-4 mr-2" /> Cancel
             </Button>
