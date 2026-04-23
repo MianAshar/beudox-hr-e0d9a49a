@@ -153,6 +153,7 @@ const AttendanceUpload = () => {
   // Source of truth for confirmImport reads from this ref as a fallback.
   const parsedRef = useRef<ParseResponse | null>(null);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
+  const [shiftHours, setShiftHours] = useState<number>(8);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Helper: keep state and ref in lock-step so the preview persists
@@ -231,6 +232,21 @@ const AttendanceUpload = () => {
         return;
       }
       setParsedBoth(cleaned);
+      // Fetch shift duration once for preview highlighting
+      try {
+        if (employee?.company_id) {
+          const { data: settingsRow } = await supabase
+            .from('company_settings')
+            .select('shift_start_time, shift_end_time')
+            .eq('company_id', employee.company_id)
+            .maybeSingle();
+          const sStart = timeToMinutes(settingsRow?.shift_start_time ?? '09:00:00') ?? 9 * 60;
+          const sEnd = timeToMinutes(settingsRow?.shift_end_time ?? '18:00:00') ?? 18 * 60;
+          setShiftHours(Math.max(0, (sEnd - sStart) / 60));
+        }
+      } catch {
+        setShiftHours(8);
+      }
       setStep('preview');
     } catch (err) {
       console.error(err);
@@ -588,6 +604,7 @@ const AttendanceUpload = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Check-in</TableHead>
                     <TableHead>Check-out</TableHead>
+                    <TableHead className="text-right">Hrs</TableHead>
                     <TableHead>Notes</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -596,7 +613,7 @@ const AttendanceUpload = () => {
                     <Fragment key={group.date}>
                       <TableRow className="border-b-0 hover:bg-transparent">
                         <TableCell
-                          colSpan={5}
+                          colSpan={6}
                           className="sticky top-10 z-10 backdrop-blur-sm p-0 border-b-0"
                         >
                           <div
@@ -631,31 +648,71 @@ const AttendanceUpload = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                      {group.rows.map((r, idx) => (
-                        <TableRow key={`${group.date}-${idx}`}>
-                          <TableCell className="font-mono text-xs">{r.employee_code}</TableCell>
-                          <TableCell className="text-sm">{r.name ?? '—'}</TableCell>
-                          <TableCell>
-                            {r.check_in ? (
-                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
-                                {r.check_in.slice(0, 5)}
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {r.check_out ? (
-                              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
-                                {r.check_out.slice(0, 5)}
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
-                        </TableRow>
-                      ))}
+                      {group.rows.map((r, idx) => {
+                        const wh = workingHours(r.check_in, r.check_out);
+                        const isShort = wh != null && wh < shiftHours - 0.1;
+                        const isOT = wh != null && wh > shiftHours + 0.1;
+                        const otAmount = isOT && wh != null ? Math.round((wh - shiftHours) * 100) / 100 : 0;
+                        const rowStyle = isShort
+                          ? { backgroundColor: 'rgba(239, 68, 68, 0.04)' }
+                          : undefined;
+                        return (
+                          <TableRow key={`${group.date}-${idx}`} style={rowStyle}>
+                            <TableCell className="font-mono text-xs">{r.employee_code}</TableCell>
+                            <TableCell className="text-sm">{r.name ?? '—'}</TableCell>
+                            <TableCell>
+                              {r.check_in ? (
+                                <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
+                                  {r.check_in.slice(0, 5)}
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {r.check_out ? (
+                                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
+                                  {r.check_out.slice(0, 5)}
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-xs tabular-nums whitespace-nowrap">
+                              {wh == null ? (
+                                <span className="text-muted-foreground">—</span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 justify-end">
+                                  <span
+                                    style={
+                                      isShort
+                                        ? { color: 'rgba(232, 69, 69, 0.8)' }
+                                        : undefined
+                                    }
+                                  >
+                                    {wh.toFixed(2)}h
+                                  </span>
+                                  {isOT && (
+                                    <span
+                                      style={{
+                                        backgroundColor: 'rgba(91, 63, 248, 0.10)',
+                                        color: '#5B3FF8',
+                                        fontSize: '10px',
+                                        padding: '1px 6px',
+                                        borderRadius: '9999px',
+                                        lineHeight: 1.4,
+                                      }}
+                                    >
+                                      +{otAmount}h OT
+                                    </span>
+                                  )}
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </Fragment>
                   ))}
                 </TableBody>
