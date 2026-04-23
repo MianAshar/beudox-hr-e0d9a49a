@@ -232,6 +232,21 @@ const AttendanceUpload = () => {
         return;
       }
       setParsedBoth(cleaned);
+      // Fetch shift duration once for preview highlighting
+      try {
+        if (employee?.company_id) {
+          const { data: settingsRow } = await supabase
+            .from('company_settings')
+            .select('shift_start_time, shift_end_time')
+            .eq('company_id', employee.company_id)
+            .maybeSingle();
+          const sStart = timeToMinutes(settingsRow?.shift_start_time ?? '09:00:00') ?? 9 * 60;
+          const sEnd = timeToMinutes(settingsRow?.shift_end_time ?? '18:00:00') ?? 18 * 60;
+          setShiftHours(Math.max(0, (sEnd - sStart) / 60));
+        }
+      } catch {
+        setShiftHours(8);
+      }
       setStep('preview');
     } catch (err) {
       console.error(err);
