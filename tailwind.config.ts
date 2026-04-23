@@ -16,7 +16,7 @@ export default {
       fontFamily: {
         display: ['Outfit', 'sans-serif'],
         body: ['DM Sans', 'sans-serif'],
-        mono: ['Courier New', 'monospace'],
+        mono: ['DM Sans', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
