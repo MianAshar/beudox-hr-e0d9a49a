@@ -18,9 +18,10 @@ interface Props {
     review_frequency_months: number | null;
   };
   approverEmployeeId: string;
+  readOnly?: boolean;
 }
 
-const PendingIncrementCard = ({ employee, approverEmployeeId }: Props) => {
+const PendingIncrementCard = ({ employee, approverEmployeeId, readOnly = false }: Props) => {
   const queryClient = useQueryClient();
   const [acting, setActing] = useState(false);
   const [showReject, setShowReject] = useState(false);
@@ -58,9 +59,16 @@ const PendingIncrementCard = ({ employee, approverEmployeeId }: Props) => {
       if (updErr) throw updErr;
 
       const freq = employee.review_frequency_months ?? 6;
-      const nextReview = employee.first_review_date
-        ? format(addMonths(parseISO(employee.first_review_date), freq), 'yyyy-MM-dd')
-        : null;
+      // Advance first_review_date strictly past today by stepping in `freq` months
+      let nextReview: string | null = null;
+      if (employee.first_review_date) {
+        const today = new Date();
+        let d = parseISO(employee.first_review_date);
+        for (let i = 0; i < 240 && d <= today; i++) {
+          d = addMonths(d, freq);
+        }
+        nextReview = format(d, 'yyyy-MM-dd');
+      }
       const patch: any = {
         basic_salary: pending.new_salary,
         allowance: pending.new_allowance,
@@ -189,7 +197,13 @@ const PendingIncrementCard = ({ employee, approverEmployeeId }: Props) => {
         )}
       </div>
 
-      {showReject ? (
+      {readOnly ? (
+        <div className="border-t pt-4">
+          <p className="text-[12px] text-muted-foreground italic" style={{ fontFamily: 'var(--ff-body)' }}>
+            Pending CEO approval
+          </p>
+        </div>
+      ) : showReject ? (
         <div className="space-y-3 border-t pt-4">
           <Textarea
             value={rejectReason}
