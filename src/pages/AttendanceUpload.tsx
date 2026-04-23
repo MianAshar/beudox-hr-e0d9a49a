@@ -424,8 +424,35 @@ const AttendanceUpload = () => {
   const incompleteCount = (parsed?.records.length ?? 0) - completeCount;
   const employeeCount = new Set(parsed?.records.map(r => r.employee_code) ?? []).size;
 
+  // Group records by date asc, then by check-in time asc within each date.
+  const groupedRecords = useMemo(() => {
+    if (!parsed?.records?.length) return [] as { date: string; rows: ParsedRecord[] }[];
+    const map = new Map<string, ParsedRecord[]>();
+    for (const r of parsed.records) {
+      if (!map.has(r.date)) map.set(r.date, []);
+      map.get(r.date)!.push(r);
+    }
+    const dates = Array.from(map.keys()).sort();
+    return dates.map(date => {
+      const rows = map.get(date)!.slice().sort((a, b) => {
+        const am = timeToMinutes(a.check_in);
+        const bm = timeToMinutes(b.check_in);
+        if (am == null && bm == null) return 0;
+        if (am == null) return 1;
+        if (bm == null) return -1;
+        return am - bm;
+      });
+      return { date, rows };
+    });
+  }, [parsed]);
+
+  const formatGroupDate = (dateStr: string) => {
+    const d = new Date(`${dateStr}T00:00:00${KARACHI_OFFSET}`);
+    return format(d, 'EEEE, dd MMM yyyy');
+  };
+
   return (
-    <div className="p-6 max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
+    <div className="max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
       {/* Step 1: Select month/year + upload */}
       {(step === 'select' || step === 'parsing') && (
         <Card className="p-6 space-y-6">
