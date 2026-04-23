@@ -410,20 +410,6 @@ const AttendanceUpload = () => {
     }
   };
 
-  // ---------------- Render ----------------
-
-  if (!isAuthorised) {
-    return (
-      <div className="p-8 text-sm text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
-        You don't have permission to access attendance upload.
-      </div>
-    );
-  }
-
-  const completeCount = parsed?.records.filter(r => r.check_in && r.check_out).length ?? 0;
-  const incompleteCount = (parsed?.records.length ?? 0) - completeCount;
-  const employeeCount = new Set(parsed?.records.map(r => r.employee_code) ?? []).size;
-
   // Group records by date asc, then by check-in time asc within each date.
   const groupedRecords = useMemo(() => {
     if (!parsed?.records?.length) return [] as { date: string; rows: ParsedRecord[] }[];
@@ -445,6 +431,20 @@ const AttendanceUpload = () => {
       return { date, rows };
     });
   }, [parsed]);
+
+  // ---------------- Render ----------------
+
+  if (!isAuthorised) {
+    return (
+      <div className="p-8 text-sm text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+        You don't have permission to access attendance upload.
+      </div>
+    );
+  }
+
+  const completeCount = parsed?.records.filter(r => r.check_in && r.check_out).length ?? 0;
+  const incompleteCount = (parsed?.records.length ?? 0) - completeCount;
+  const employeeCount = new Set(parsed?.records.map(r => r.employee_code) ?? []).size;
 
   const formatGroupDate = (dateStr: string) => {
     const d = new Date(`${dateStr}T00:00:00${KARACHI_OFFSET}`);
