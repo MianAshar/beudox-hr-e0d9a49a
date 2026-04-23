@@ -42,6 +42,7 @@ import FinanceSheet from "./pages/FinanceSheet";
 import LeaveManagement from "./pages/LeaveManagement";
 import MyProfile from "./pages/MyProfile";
 import MyTasks from "./pages/MyTasks";
+import AttendanceUpload from "./pages/AttendanceUpload";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -155,6 +156,7 @@ const App = () => (
             <Route path="/leave" element={<ProtectedRoute><LeaveManagement /></ProtectedRoute>} />
             <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
             <Route path="/my-tasks" element={<ProtectedRoute><MyTasks /></ProtectedRoute>} />
+            <Route path="/attendance/upload" element={<ProtectedRoute><AttendanceUpload /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
