@@ -1,53 +1,79 @@
 <!--
 generated_by: tessera
-source_sha: 9fa1d09e6ad40d3c1a2750b2863dbf3a2290aa19
-generated_at: 2026-04-23T11:11:31.257Z
+source_sha: 7b117f53775774b46de6ca00329ecf9e5cbb7248
+generated_at: 2026-04-23T11:34:32.893Z
 action: update
 -->
 
 # Beudox HR Management System
 
-A comprehensive Human Resources management application built with modern web technologies to streamline employee management, attendance tracking, leave management, payroll processing, and organizational workflows.
+A comprehensive Human Resources management application built with modern web technologies. This system provides organizations with tools to manage employees, track attendance, handle payroll, manage leave requests, conduct evaluations, and maintain HR policies.
 
 ## Features
 
-### Employee Management
-- **Employee Profiles**: Complete employee information including personal details, job history, and organizational structure
-- **Attendance Tracking**: Real-time attendance monitoring with check-in/out times, working hours calculation, and overtime tracking
-- **Leave Management**: Comprehensive leave request system with balance tracking, approval workflows, and calendar integration
-- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, deductions, and payslip generation
-- **Performance Reviews**: Structured evaluation system with review schedules, feedback collection, and salary increment proposals
+### Core HR Functionality
+- **Employee Management**: Complete employee lifecycle management including profiles, onboarding, and offboarding
+- **Attendance Tracking**: Daily attendance records with check-in/check-out times, overtime tracking, and absence management
+- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.)
+- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and deductions
+- **Performance Evaluations**: Regular and daily employee evaluations with customizable parameters
 
-### Organizational Tools
-- **Project Management**: Team assignment, task tracking, and project activity logging
-- **Department & Role Management**: Hierarchical organizational structure with customizable roles and permissions
-- **HR Policies**: Rich text policy documentation and management
-- **Expense Tracking**: Expense category management and approval workflows
+### Project & Client Management
+- **Project Management**: Create and manage projects with team assignments and activity tracking
+- **Client Management**: Maintain client relationships and project associations
+- **Task Management**: Assign and track tasks within projects
+
+### Financial Management
+- **Invoice Management**: Generate and manage client invoices
+- **Finance Dashboard**: Overview of financial metrics and reports
+- **Loan Management**: Track employee loans and repayments
 
 ### Administrative Features
-- **Company Settings**: Centralized configuration for company information and policies
-- **User Authentication**: Secure login with role-based access control
-- **Notification System**: Automated notifications for important HR events and deadlines
-- **Audit Logs**: Comprehensive logging of user activities and system changes
+- **HR Policies**: Create and manage company policies with rich text editing
+- **Job Descriptions**: Maintain detailed job descriptions and requirements
+- **Settings Management**: Configure departments, roles, leave types, expense categories, and company information
+- **Public Holidays**: Manage company-wide holiday schedules
+
+### User Experience
+- **Role-based Access Control**: Secure access based on user roles and permissions
+- **Responsive Design**: Mobile-friendly interface built with modern UI components
+- **Real-time Notifications**: Toast notifications and activity feeds
+- **Search & Filtering**: Advanced search and filtering across all modules
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with custom design system
-- **UI Components**: shadcn/ui component library
-- **Routing**: React Router
-- **State Management**: TanStack Query for server state
-- **Backend**: Supabase (PostgreSQL database + real-time subscriptions)
-- **Authentication**: Supabase Auth
-- **File Storage**: Supabase Storage
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
-- **Deployment**: Configured for modern hosting platforms
+### Frontend
+- **React 18** - Modern React with hooks and concurrent features
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and development server
+- **React Router** - Client-side routing
+- **TanStack Query** - Powerful data fetching and caching
+
+### UI & Styling
+- **Tailwind CSS** - Utility-first CSS framework
+- **shadcn/ui** - High-quality React components built on Radix UI
+- **Radix UI** - Accessible, unstyled UI primitives
+- **Lucide React** - Beautiful icon library
+
+### Backend & Database
+- **Supabase** - Open source Firebase alternative
+  - PostgreSQL database
+  - Real-time subscriptions
+  - Authentication & authorization
+  - Edge functions for serverless computing
+  - File storage
+
+### Development Tools
+- **ESLint** - Code linting
+- **TypeScript** - Type checking
+- **Vitest** - Unit testing
+- **Playwright** - End-to-end testing
+- **React Hook Form** - Form management
+- **Zod** - Schema validation
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 18+ or Bun
 - Supabase account and project
 
@@ -61,97 +87,105 @@ A comprehensive Human Resources management application built with modern web tec
 
 2. **Install dependencies**
    ```bash
+   # Using npm
    npm install
-   # or
+   
+   # Or using bun
    bun install
    ```
 
 3. **Environment Setup**
    
-   Copy the `.env` file and configure your Supabase credentials:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables in `.env.local`:
+   The `.env` file is already configured with Supabase credentials. If you need to use different Supabase credentials, update the following variables:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
+   VITE_SUPABASE_PROJECT_ID=your-project-id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+   VITE_SUPABASE_URL=https://your-project.supabase.co
    ```
 
 4. **Database Setup**
    
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   The Supabase migrations are included in the `supabase/migrations/` directory. To apply them:
+   ```bash
+   # Install Supabase CLI if not already installed
+   npm install -g supabase
+   
+   # Link to your project
+   supabase link --project-ref jqhiijbunselslmvhdwe
+   
+   # Apply migrations
+   supabase db push
+   ```
 
-5. **Start Development Server**
+5. **Start the development server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
+   
+   The application will be available at `http://localhost:8080`
 
-6. **Build for Production**
-   ```bash
-   npm run build
-   # or
-   bun run build
-   ```
+### Build for Production
 
-### Testing
-
-- **Unit Tests**: `npm run test`
-- **E2E Tests**: `npm run test:e2e`
-- **Linting**: `npm run lint`
+```bash
+npm run build
+npm run preview
+```
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # Base UI components (shadcn/ui)
+│   ├── ui/             # shadcn/ui components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── employee-profile/ # Employee-specific components
+│   ├── employee-profile/ # Employee profile tabs
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── projects/       # Project management components
-│   └── settings/       # Administrative settings
-├── pages/              # Page components (Next.js style routing)
-├── lib/                # Utility functions and business logic
+│   ├── settings/       # Settings page components
+│   └── ...
+├── pages/              # Page components and routes
 ├── hooks/              # Custom React hooks
-└── integrations/       # External service integrations
+├── lib/                # Utility functions and configurations
+│   ├── utils.ts        # General utilities
+│   ├── role-access.ts  # Role-based access control
+│   ├── format-date.ts  # Date formatting utilities
+│   └── ...
+├── integrations/       # External service integrations
+│   └── supabase/       # Supabase client and types
+└── types/              # TypeScript type definitions
+
 supabase/
-├── migrations/         # Database schema migrations
-└── functions/          # Edge functions for backend logic
+├── migrations/         # Database migrations
+├── functions/          # Edge functions
+└── config.toml         # Supabase configuration
 ```
 
-## Key Components
+## Available Scripts
 
-### Core Components
-- **AppLayout**: Main application layout with sidebar navigation
-- **BeudoxLogo**: Brand logo component with variant support
-- **SearchableEmployeeSelect**: Employee selection with search functionality
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run test` - Run unit tests
+- `npm run test:watch` - Run tests in watch mode
 
-### Feature Components
-- **AttendanceTab**: Monthly attendance view with summary statistics
-- **LeaveBalancesTab**: Leave balance tracking and requests
-- **PayrollSummary**: Payroll overview and processing
-- **EvaluationTimeline**: Performance review timeline
+## Authentication & Authorization
 
-## API Integration
+The application uses Supabase Authentication with role-based access control:
 
-The application integrates with Supabase for:
-- **Database**: PostgreSQL with real-time subscriptions
-- **Authentication**: User management and session handling
-- **Storage**: File uploads and document management
-- **Edge Functions**: Server-side processing for payroll generation and notifications
+- **Authentication**: Email/password authentication with password reset
+- **Authorization**: Role-based permissions checked on route access
+- **Session Management**: Automatic session handling and refresh
 
 ## Contributing
 
-1. Follow the existing code style and component patterns
-2. Write tests for new features
-3. Update documentation for API changes
-4. Use conventional commit messages
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## License
 
