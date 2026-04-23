@@ -358,7 +358,7 @@ const EmployeeProfile = () => {
           </TabsContent>
         )}
 
-        {isHrOrCeo && canSeeCompensation && authEmployee?.employee_id && (
+        {isCeo && canSeeCompensation && authEmployee?.employee_id && (
           <TabsContent value="salary-review" className="mt-6">
             <SalaryReviewTab
               employee={{
@@ -370,7 +370,7 @@ const EmployeeProfile = () => {
                 first_review_date: emp.first_review_date,
                 review_frequency_months: emp.review_frequency_months,
               }}
-              canEdit={canManage}
+              canEdit={isCeo}
               isCeo={isCeo}
               authEmployeeId={authEmployee.employee_id}
             />
