@@ -149,8 +149,18 @@ const AttendanceUpload = () => {
   const [parseError, setParseError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParseResponse | null>(null);
+  // Mirror parsed records in a ref so re-renders never lose preview data.
+  // Source of truth for confirmImport reads from this ref as a fallback.
+  const parsedRef = useRef<ParseResponse | null>(null);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Helper: keep state and ref in lock-step so the preview persists
+  // until the user explicitly cancels or confirms.
+  const setParsedBoth = (next: ParseResponse | null) => {
+    parsedRef.current = next;
+    setParsed(next);
+  };
 
   // Preload SheetJS as soon as the page mounts so the first upload is instant.
   useEffect(() => { loadSheetJs().catch(() => {}); }, []);
