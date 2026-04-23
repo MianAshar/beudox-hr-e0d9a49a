@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { CalendarIcon, AlertTriangle, Clock } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -32,19 +32,48 @@ const ReviewScheduleSection = ({ employeeId, firstReviewDate, reviewFrequencyMon
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [localFirstReviewDate, setLocalFirstReviewDate] = useState<string | null>(firstReviewDate);
+  const [localReviewFrequencyMonths, setLocalReviewFrequencyMonths] = useState<number>(reviewFrequencyMonths ?? 6);
 
-  const freqStr = String(reviewFrequencyMonths ?? 6);
-  const nextDate = computeNextReviewDate(firstReviewDate, reviewFrequencyMonths);
+  useEffect(() => {
+    setLocalFirstReviewDate(firstReviewDate);
+  }, [firstReviewDate]);
+
+  useEffect(() => {
+    setLocalReviewFrequencyMonths(reviewFrequencyMonths ?? 6);
+  }, [reviewFrequencyMonths]);
+
+  const freqStr = String(localReviewFrequencyMonths ?? 6);
+  const nextDate = computeNextReviewDate(localFirstReviewDate, localReviewFrequencyMonths);
   const status = getReviewStatus(nextDate);
 
   const updateField = async (patch: { first_review_date?: string; review_frequency_months?: number }) => {
+    if (patch.first_review_date !== undefined) {
+      setLocalFirstReviewDate(patch.first_review_date);
+    }
+    if (patch.review_frequency_months !== undefined) {
+      setLocalReviewFrequencyMonths(patch.review_frequency_months);
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase.from('employees').update(patch as any).eq('id', employeeId);
       if (error) throw error;
+
+      queryClient.setQueryData(['employee-profile', employeeId], (current: any) => {
+        if (!current) return current;
+        return {
+          ...current,
+          ...(patch.first_review_date !== undefined ? { first_review_date: patch.first_review_date } : {}),
+          ...(patch.review_frequency_months !== undefined ? { review_frequency_months: patch.review_frequency_months } : {}),
+        };
+      });
+
       toast.success('Review schedule updated');
       queryClient.invalidateQueries({ queryKey: ['employee-profile', employeeId] });
     } catch (err: any) {
+      setLocalFirstReviewDate(firstReviewDate);
+      setLocalReviewFrequencyMonths(reviewFrequencyMonths ?? 6);
       toast.error(err.message || 'Failed to update');
     } finally {
       setSaving(false);
@@ -83,18 +112,18 @@ const ReviewScheduleSection = ({ employeeId, firstReviewDate, reviewFrequencyMon
                 size="sm"
                 className={cn(
                   'w-full justify-start text-left font-normal h-9',
-                  !firstReviewDate && 'text-muted-foreground',
+                  !localFirstReviewDate && 'text-muted-foreground',
                 )}
                 disabled={saving}
               >
                 <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                {firstReviewDate ? format(parseISO(firstReviewDate), 'd MMM yyyy') : 'Pick a date'}
+                {localFirstReviewDate ? format(parseISO(localFirstReviewDate), 'd MMM yyyy') : 'Pick a date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={firstReviewDate ? parseISO(firstReviewDate) : undefined}
+                selected={localFirstReviewDate ? parseISO(localFirstReviewDate) : undefined}
                 onSelect={(d) => {
                   if (d) {
                     updateField({ first_review_date: format(d, 'yyyy-MM-dd') });
@@ -108,7 +137,7 @@ const ReviewScheduleSection = ({ employeeId, firstReviewDate, reviewFrequencyMon
           </Popover>
         ) : (
           <p className="text-[13px] text-foreground font-medium">
-            {firstReviewDate ? format(parseISO(firstReviewDate), 'd MMM yyyy') : '—'}
+            {localFirstReviewDate ? format(parseISO(localFirstReviewDate), 'd MMM yyyy') : '—'}
           </p>
         )}
       </div>
