@@ -648,31 +648,71 @@ const AttendanceUpload = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                      {group.rows.map((r, idx) => (
-                        <TableRow key={`${group.date}-${idx}`}>
-                          <TableCell className="font-mono text-xs">{r.employee_code}</TableCell>
-                          <TableCell className="text-sm">{r.name ?? '—'}</TableCell>
-                          <TableCell>
-                            {r.check_in ? (
-                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
-                                {r.check_in.slice(0, 5)}
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {r.check_out ? (
-                              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
-                                {r.check_out.slice(0, 5)}
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
-                        </TableRow>
-                      ))}
+                      {group.rows.map((r, idx) => {
+                        const wh = workingHours(r.check_in, r.check_out);
+                        const isShort = wh != null && wh < shiftHours - 0.1;
+                        const isOT = wh != null && wh > shiftHours + 0.1;
+                        const otAmount = isOT && wh != null ? Math.round((wh - shiftHours) * 100) / 100 : 0;
+                        const rowStyle = isShort
+                          ? { backgroundColor: 'rgba(239, 68, 68, 0.04)' }
+                          : undefined;
+                        return (
+                          <TableRow key={`${group.date}-${idx}`} style={rowStyle}>
+                            <TableCell className="font-mono text-xs">{r.employee_code}</TableCell>
+                            <TableCell className="text-sm">{r.name ?? '—'}</TableCell>
+                            <TableCell>
+                              {r.check_in ? (
+                                <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
+                                  {r.check_in.slice(0, 5)}
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {r.check_out ? (
+                                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
+                                  {r.check_out.slice(0, 5)}
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-xs tabular-nums whitespace-nowrap">
+                              {wh == null ? (
+                                <span className="text-muted-foreground">—</span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 justify-end">
+                                  <span
+                                    style={
+                                      isShort
+                                        ? { color: 'rgba(232, 69, 69, 0.8)' }
+                                        : undefined
+                                    }
+                                  >
+                                    {wh.toFixed(2)}h
+                                  </span>
+                                  {isOT && (
+                                    <span
+                                      style={{
+                                        backgroundColor: 'rgba(91, 63, 248, 0.10)',
+                                        color: '#5B3FF8',
+                                        fontSize: '10px',
+                                        padding: '1px 6px',
+                                        borderRadius: '9999px',
+                                        lineHeight: 1.4,
+                                      }}
+                                    >
+                                      +{otAmount}h OT
+                                    </span>
+                                  )}
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </Fragment>
                   ))}
                 </TableBody>
