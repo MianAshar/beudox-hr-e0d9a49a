@@ -193,7 +193,7 @@ const MyPayslip = () => {
                   .ps-table th { background: #1A1240; color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 16px; text-align: left; }
                   .ps-table th:last-child { text-align: right; }
                   .ps-table td { font-size: 13px; padding: 10px 16px; border-bottom: 1px solid #eee; }
-                  .ps-table td:last-child { text-align: right; font-family: 'Courier New', monospace; font-weight: 500; }
+                  .ps-table td:last-child { text-align: right; font-family: 'DM Sans', sans-serif; font-weight: 500; }
                   .ps-table tr:nth-child(even) td { background: #F6F5FF; }
                   .ps-table .ps-deduction td:last-child { color: #DC2626; }
                   .ps-total-row td { background: #F6F5FF !important; font-weight: 700; font-size: 14px; border-top: 2px solid #ddd; }
