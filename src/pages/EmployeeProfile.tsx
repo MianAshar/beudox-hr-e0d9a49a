@@ -299,33 +299,6 @@ const EmployeeProfile = () => {
             <InfoField label="Status" value={toTitleCase(emp.status)} />
           </SectionCard>
 
-          {isHrOrCeo && canSeeCompensation && (
-            <div className="bg-card rounded-[14px] border p-6">
-              <h3 className="font-display font-semibold text-[15px] text-foreground mb-4" style={{ fontFamily: 'var(--ff-display)' }}>
-                Review Schedule
-              </h3>
-              <ReviewScheduleSection
-                employeeId={emp.id}
-                firstReviewDate={emp.first_review_date}
-                reviewFrequencyMonths={emp.review_frequency_months}
-                canEdit={canManage}
-              />
-            </div>
-          )}
-
-          {isCeo && canSeeCompensation && authEmployee?.employee_id && (
-            <PendingIncrementCard
-              employee={{
-                id: emp.id,
-                full_name: emp.full_name,
-                company_id: emp.company_id,
-                first_review_date: emp.first_review_date,
-                review_frequency_months: emp.review_frequency_months,
-              }}
-              approverEmployeeId={authEmployee.employee_id}
-            />
-          )}
-
           {canSeeCompensation && (
             <SectionCard title="Compensation">
               <div>
@@ -341,30 +314,6 @@ const EmployeeProfile = () => {
                 </p>
               </div>
             </SectionCard>
-          )}
-
-          {isHrOrCeo && canSeeCompensation && canManage && authEmployee?.employee_id && (
-            <div>
-              <Button onClick={() => setProposeOpen(true)} className="gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Propose Increment
-              </Button>
-              <ProposeIncrementModal
-                open={proposeOpen}
-                onOpenChange={setProposeOpen}
-                employee={{
-                  id: emp.id,
-                  full_name: emp.full_name,
-                  company_id: emp.company_id,
-                  basic_salary: emp.basic_salary,
-                  allowance: emp.allowance,
-                  first_review_date: emp.first_review_date,
-                  review_frequency_months: emp.review_frequency_months,
-                }}
-                proposerEmployeeId={authEmployee.employee_id}
-                isCeo={isCeo}
-              />
-            </div>
           )}
 
           <SectionCard title="Portal Access">
@@ -409,9 +358,22 @@ const EmployeeProfile = () => {
           </TabsContent>
         )}
 
-        {isHrOrCeo && canSeeCompensation && (
-          <TabsContent value="salary-history" className="mt-6">
-            <SalaryHistoryTab employeeId={emp.id} />
+        {isHrOrCeo && canSeeCompensation && authEmployee?.employee_id && (
+          <TabsContent value="salary-review" className="mt-6">
+            <SalaryReviewTab
+              employee={{
+                id: emp.id,
+                full_name: emp.full_name,
+                company_id: emp.company_id,
+                basic_salary: emp.basic_salary,
+                allowance: emp.allowance,
+                first_review_date: emp.first_review_date,
+                review_frequency_months: emp.review_frequency_months,
+              }}
+              canEdit={canManage}
+              isCeo={isCeo}
+              authEmployeeId={authEmployee.employee_id}
+            />
           </TabsContent>
         )}
 
