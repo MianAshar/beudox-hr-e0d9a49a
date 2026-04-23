@@ -1,104 +1,94 @@
 <!--
 generated_by: tessera
-source_sha: 5907e75cc306a3ede9543ace57e5bf93a77fd02b
-generated_at: 2026-04-23T22:09:30.254Z
+source_sha: 99d0a0ebeeee26f5bde3db11e6954b24e4e25713
+generated_at: 2026-04-23T22:19:19.082Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies to streamline HR operations, employee management, and organizational workflows.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with tools to manage employees, track attendance, handle payroll, manage leave requests, conduct evaluations, and oversee projects and finances.
 
 ## Features
 
-### Core HR Functionality
-- **Employee Management**: Complete employee lifecycle from onboarding to offboarding
-- **Attendance Tracking**: Automated attendance monitoring with reporting and analytics
-- **Leave Management**: Request, approval, and tracking of various leave types
-- **Payroll Processing**: Automated payroll calculations and payslip generation
-- **Performance Evaluations**: Regular and daily performance assessments
+### Core HR Management
+- **Employee Management**: Complete employee profiles with personal details, roles, and organizational structure
+- **Attendance Tracking**: Automated attendance recording with check-in/out times, overtime calculation, and reporting
+- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.)
+- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and payslip generation
 
-### Organizational Tools
-- **Project Management**: Project tracking, team assignments, and activity logging
-- **Client Management**: Client relationships and invoice generation
-- **HR Policies**: Centralized policy management with rich text editing
-- **Job Descriptions**: Structured job posting and description management
-- **Finance Management**: Financial reporting and expense tracking
+### Performance & Development
+- **Employee Evaluations**: Regular performance reviews and daily evaluation tracking
+- **Salary Reviews**: Increment proposals and salary history management
+- **Job Descriptions**: Create and manage detailed job descriptions and requirements
 
-### Administrative Features
-- **Role-Based Access Control**: Granular permissions system
-- **Settings Management**: Company configuration, departments, roles, and policies
-- **Public Holidays**: Holiday calendar management
-- **Loan Management**: Employee loan tracking and management
+### Project & Finance Management
+- **Project Management**: Track projects, assign team members, and monitor project activities
+- **Client Management**: Maintain client relationships and project associations
+- **Invoice Management**: Generate and manage client invoices with PDF export
+- **Financial Reporting**: Comprehensive finance sheets and expense tracking
+
+### Administrative Tools
+- **HR Policies**: Create and manage company policies with rich text editing
+- **Settings Management**: Configure company settings, departments, roles, and system parameters
+- **Public Holidays**: Manage holiday calendars and scheduling
+- **Loan Management**: Track employee loans and repayments
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Backend**: Supabase (PostgreSQL database, Authentication, Edge Functions)
-- **UI Framework**: shadcn/ui with Radix UI primitives
-- **Styling**: Tailwind CSS with custom design system
-- **State Management**: TanStack Query for server state, React Context for auth
+- **Routing**: React Router DOM
+- **State Management**: TanStack Query (React Query)
+- **UI Components**: Radix UI (shadcn/ui)
+- **Styling**: Tailwind CSS
+- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
 - **Forms**: React Hook Form with Zod validation
-- **Routing**: React Router v6
 - **Charts**: Recharts
-- **Rich Text Editing**: TipTap
-- **Testing**: Vitest with React Testing Library
-- **E2E Testing**: Playwright
+- **Rich Text**: Tiptap
+- **Testing**: Vitest, Playwright
+- **Package Manager**: npm/bun
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or bun package manager
+- npm or bun
 - Supabase account and project
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd beudox-hr
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+   cd beudox-hr-e0d9a49a
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. **Environment Setup**
+3. Set up environment variables:
    
-   Copy the environment file and configure your Supabase credentials:
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Update `.env` with your Supabase project details:
+   Copy `.env` and configure your Supabase credentials:
    ```env
-   VITE_SUPABASE_PROJECT_ID=your-project-id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
    VITE_SUPABASE_URL=https://your-project.supabase.co
    ```
 
-4. **Database Setup**
-   
-   The application uses Supabase migrations. Run the migrations in your Supabase project:
-   ```bash
-   # Migrations are located in supabase/migrations/
-   # Apply them through Supabase dashboard or CLI
-   ```
-
-5. **Development Server**
+4. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
-   
-   The application will be available at `http://localhost:5173`
+
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### Build for Production
 
@@ -108,55 +98,48 @@ npm run build
 bun run build
 ```
 
-Preview the production build:
+### Testing
+
 ```bash
-npm run preview
+# Run unit tests
+npm run test
+
+# Run e2e tests
+npx playwright test
 ```
-
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run lint` - Run ESLint
-- `npm run preview` - Preview production build
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
+│   ├── ui/             # Base UI components (shadcn/ui)
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
 │   ├── employee-profile/  # Employee profile tabs
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
+│   ├── projects/       # Project management components
+│   ├── settings/       # Settings components
 │   └── ...
-├── pages/              # Page components and routes
+├── pages/              # Page components (routes)
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations
-└── types/              # TypeScript type definitions
-
-supabase/
-├── migrations/         # Database migrations
-├── functions/          # Edge functions
-└── config.toml         # Supabase configuration
+└── ...
 ```
 
 ## Authentication & Authorization
 
-The application uses Supabase Authentication with a custom role-based access control system. User roles determine access to different features and pages.
+The application uses Supabase for authentication with role-based access control. Users can have different roles with specific permissions to access various features of the system.
 
 ## Contributing
 
-1. Follow the existing code style and conventions
-2. Write tests for new features
-3. Ensure all tests pass before submitting PRs
-4. Update documentation as needed
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
 
 ## License
 
-This project is proprietary software. All rights reserved.
+This project is private and proprietary to Beudox.
