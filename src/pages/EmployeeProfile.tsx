@@ -16,7 +16,7 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2, Lock, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2, Lock } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -25,10 +25,7 @@ import AttendanceTab from '@/components/employee-profile/AttendanceTab';
 import LeaveTab from '@/components/employee-profile/LeaveTab';
 import PayrollTab from '@/components/employee-profile/PayrollTab';
 import DocumentsTab from '@/components/employee-profile/DocumentsTab';
-import ReviewScheduleSection from '@/components/employee-profile/ReviewScheduleSection';
-import ProposeIncrementModal from '@/components/employee-profile/ProposeIncrementModal';
-import PendingIncrementCard from '@/components/employee-profile/PendingIncrementCard';
-import SalaryHistoryTab from '@/components/employee-profile/SalaryHistoryTab';
+import SalaryReviewTab from '@/components/employee-profile/SalaryReviewTab';
 
 const getInitials = (name: string) =>
   name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -76,7 +73,6 @@ const EmployeeProfile = () => {
   const [deleting, setDeleting] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [proposeOpen, setProposeOpen] = useState(false);
   const queryClient = useQueryClient();
   const isCeo = roles.includes('ceo');
 
@@ -194,8 +190,8 @@ const EmployeeProfile = () => {
     ...(isHrOrCeo ? [{ value: 'attendance', label: 'Attendance' }] : []),
     ...(isHrOrCeo ? [{ value: 'leave', label: 'Leave' }] : []),
     ...(isFinanceOrCeo && canSeeCompensation ? [{ value: 'payroll', label: 'Payroll' }] : []),
-    ...(isHrOrCeo && canSeeCompensation ? [{ value: 'salary-history', label: 'Salary History' }] : []),
     ...(isHrOrCeo ? [{ value: 'evaluations', label: 'Evaluations' }] : []),
+    ...(isHrOrCeo && canSeeCompensation ? [{ value: 'salary-review', label: 'Salary Review' }] : []),
     ...(isHrOrCeo ? [{ value: 'documents', label: 'Documents' }] : []),
     ...(canManage ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
