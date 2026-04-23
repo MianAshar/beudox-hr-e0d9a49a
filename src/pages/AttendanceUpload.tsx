@@ -613,7 +613,7 @@ const AttendanceUpload = () => {
                     <Fragment key={group.date}>
                       <TableRow className="border-b-0 hover:bg-transparent">
                         <TableCell
-                          colSpan={5}
+                          colSpan={6}
                           className="sticky top-10 z-10 backdrop-blur-sm p-0 border-b-0"
                         >
                           <div
