@@ -16,7 +16,7 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2, Lock, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2, Lock } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -25,10 +25,7 @@ import AttendanceTab from '@/components/employee-profile/AttendanceTab';
 import LeaveTab from '@/components/employee-profile/LeaveTab';
 import PayrollTab from '@/components/employee-profile/PayrollTab';
 import DocumentsTab from '@/components/employee-profile/DocumentsTab';
-import ReviewScheduleSection from '@/components/employee-profile/ReviewScheduleSection';
-import ProposeIncrementModal from '@/components/employee-profile/ProposeIncrementModal';
-import PendingIncrementCard from '@/components/employee-profile/PendingIncrementCard';
-import SalaryHistoryTab from '@/components/employee-profile/SalaryHistoryTab';
+import SalaryReviewTab from '@/components/employee-profile/SalaryReviewTab';
 
 const getInitials = (name: string) =>
   name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -76,7 +73,6 @@ const EmployeeProfile = () => {
   const [deleting, setDeleting] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [proposeOpen, setProposeOpen] = useState(false);
   const queryClient = useQueryClient();
   const isCeo = roles.includes('ceo');
 
@@ -194,8 +190,8 @@ const EmployeeProfile = () => {
     ...(isHrOrCeo ? [{ value: 'attendance', label: 'Attendance' }] : []),
     ...(isHrOrCeo ? [{ value: 'leave', label: 'Leave' }] : []),
     ...(isFinanceOrCeo && canSeeCompensation ? [{ value: 'payroll', label: 'Payroll' }] : []),
-    ...(isHrOrCeo && canSeeCompensation ? [{ value: 'salary-history', label: 'Salary History' }] : []),
     ...(isHrOrCeo ? [{ value: 'evaluations', label: 'Evaluations' }] : []),
+    ...(isHrOrCeo && canSeeCompensation ? [{ value: 'salary-review', label: 'Salary Review' }] : []),
     ...(isHrOrCeo ? [{ value: 'documents', label: 'Documents' }] : []),
     ...(canManage ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
@@ -303,33 +299,6 @@ const EmployeeProfile = () => {
             <InfoField label="Status" value={toTitleCase(emp.status)} />
           </SectionCard>
 
-          {isHrOrCeo && canSeeCompensation && (
-            <div className="bg-card rounded-[14px] border p-6">
-              <h3 className="font-display font-semibold text-[15px] text-foreground mb-4" style={{ fontFamily: 'var(--ff-display)' }}>
-                Review Schedule
-              </h3>
-              <ReviewScheduleSection
-                employeeId={emp.id}
-                firstReviewDate={emp.first_review_date}
-                reviewFrequencyMonths={emp.review_frequency_months}
-                canEdit={canManage}
-              />
-            </div>
-          )}
-
-          {isCeo && canSeeCompensation && authEmployee?.employee_id && (
-            <PendingIncrementCard
-              employee={{
-                id: emp.id,
-                full_name: emp.full_name,
-                company_id: emp.company_id,
-                first_review_date: emp.first_review_date,
-                review_frequency_months: emp.review_frequency_months,
-              }}
-              approverEmployeeId={authEmployee.employee_id}
-            />
-          )}
-
           {canSeeCompensation && (
             <SectionCard title="Compensation">
               <div>
@@ -345,30 +314,6 @@ const EmployeeProfile = () => {
                 </p>
               </div>
             </SectionCard>
-          )}
-
-          {isHrOrCeo && canSeeCompensation && canManage && authEmployee?.employee_id && (
-            <div>
-              <Button onClick={() => setProposeOpen(true)} className="gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Propose Increment
-              </Button>
-              <ProposeIncrementModal
-                open={proposeOpen}
-                onOpenChange={setProposeOpen}
-                employee={{
-                  id: emp.id,
-                  full_name: emp.full_name,
-                  company_id: emp.company_id,
-                  basic_salary: emp.basic_salary,
-                  allowance: emp.allowance,
-                  first_review_date: emp.first_review_date,
-                  review_frequency_months: emp.review_frequency_months,
-                }}
-                proposerEmployeeId={authEmployee.employee_id}
-                isCeo={isCeo}
-              />
-            </div>
           )}
 
           <SectionCard title="Portal Access">
@@ -413,9 +358,22 @@ const EmployeeProfile = () => {
           </TabsContent>
         )}
 
-        {isHrOrCeo && canSeeCompensation && (
-          <TabsContent value="salary-history" className="mt-6">
-            <SalaryHistoryTab employeeId={emp.id} />
+        {isHrOrCeo && canSeeCompensation && authEmployee?.employee_id && (
+          <TabsContent value="salary-review" className="mt-6">
+            <SalaryReviewTab
+              employee={{
+                id: emp.id,
+                full_name: emp.full_name,
+                company_id: emp.company_id,
+                basic_salary: emp.basic_salary,
+                allowance: emp.allowance,
+                first_review_date: emp.first_review_date,
+                review_frequency_months: emp.review_frequency_months,
+              }}
+              canEdit={canManage}
+              isCeo={isCeo}
+              authEmployeeId={authEmployee.employee_id}
+            />
           </TabsContent>
         )}
 

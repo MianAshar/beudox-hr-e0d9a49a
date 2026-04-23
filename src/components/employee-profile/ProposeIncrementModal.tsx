@@ -120,14 +120,17 @@ const ProposeIncrementModal = ({ open, onOpenChange, employee, proposerEmployeeI
       if (insertErr) throw insertErr;
 
       if (willApprove) {
-        // Update employee salary + advance review date
-        const nextReview = computeNextReviewDate(employee.first_review_date, employee.review_frequency_months);
-        const advancedReview = nextReview
-          ? format(
-              new Date(nextReview.getFullYear(), nextReview.getMonth() + (employee.review_frequency_months ?? 6), nextReview.getDate()),
-              'yyyy-MM-dd',
-            )
-          : null;
+        // Advance first_review_date strictly past today by stepping in `freq` months
+        const freq = employee.review_frequency_months ?? 6;
+        let advancedReview: string | null = null;
+        if (employee.first_review_date) {
+          const today = new Date();
+          let d = parseISO(employee.first_review_date);
+          for (let i = 0; i < 240 && d <= today; i++) {
+            d = new Date(d.getFullYear(), d.getMonth() + freq, d.getDate());
+          }
+          advancedReview = format(d, 'yyyy-MM-dd');
+        }
         const patch: any = { basic_salary: ns, allowance: na };
         if (advancedReview) patch.first_review_date = advancedReview;
         await supabase.from('employees').update(patch).eq('id', employee.id);
