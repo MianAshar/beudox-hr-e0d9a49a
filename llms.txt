@@ -1,190 +1,152 @@
 <!--
 generated_by: tessera
-source_sha: 1f572027641ba7a2e81e6936f07e1584f6c2c100
-generated_at: 2026-04-23T10:25:48.386Z
+source_sha: ec2e01acba141080ac54074ec9a8a8aea5064674
+generated_at: 2026-04-23T10:41:03.431Z
 action: create
 -->
 
-# Beudox HR Management System - Technical Context
+# Beudox HR - Technical Context for AI Assistants
 
 ## Architecture Overview
 
-Beudox HR is a modern single-page application (SPA) built with React 18 and TypeScript, using Vite as the build tool. The application follows a component-based architecture with clear separation of concerns.
+Beudox HR is a modern React-based Single Page Application (SPA) built with TypeScript and Vite. It follows a component-driven architecture with clear separation of concerns:
 
-### Core Architecture Patterns
+- **Frontend**: Client-side React application with routing
+- **Backend**: Supabase (PostgreSQL database + Auth + Real-time subscriptions)
+- **State Management**: TanStack Query for server state, React Context for global state
+- **UI**: shadcn/ui component library built on Radix UI primitives
+- **Styling**: Tailwind CSS with custom design tokens
 
-- **Component Composition**: Extensive use of React composition patterns with custom hooks for logic reuse
-- **Layout-based Routing**: Protected routes wrapped in AppLayout component with sidebar navigation
-- **Database-First Design**: Schema-driven development with Supabase PostgreSQL
-- **Real-time Updates**: Supabase real-time subscriptions for live data updates
-- **Optimistic Updates**: React Query for server state management with optimistic UI updates
-
-### Key Architectural Decisions
-
-1. **Authentication Flow**
-   - Supabase Auth with custom session management
-   - Password reset and invite flows handled via URL hash detection
-   - Role-based access control with route-level protection
-   - Automatic redirects based on authentication state
-
-2. **State Management Strategy**
-   - React Query for server state (API data, caching, synchronization)
-   - React Context for global app state (auth, theme)
-   - Local component state for UI interactions
-   - URL state for filters and pagination
-
-3. **Component Design System**
-   - shadcn/ui as the foundation (Radix UI primitives)
-   - Tailwind CSS for styling with custom design tokens
-   - Consistent theming with CSS custom properties
-   - Responsive design with mobile-first approach
-
-## Data Flow & Business Logic
-
-### Employee Management
-- CRUD operations for employee records
-- Profile tabs: Attendance, Leave, Payroll, Documents, Reviews
-- Role-based field visibility and editing permissions
-- Bulk operations for HR administrative tasks
-
-### Attendance System
-- Check-in/check-out tracking with geolocation (future)
-- Overtime calculation (regular + holiday OT)
-- Working hours computation with break deductions
-- Monthly summaries with present/absent/late tracking
-
-### Leave Management
-- Leave type configuration (annual, sick, maternity, etc.)
-- Balance tracking with carry-forward rules
-- Approval workflow with multi-level authorization
-- Calendar integration for holiday awareness
-
-### Payroll Processing
-- Automated payroll generation based on attendance
-- Salary components: basic, allowances, deductions
-- Tax calculations and compliance
-- Payslip generation and distribution
-
-### Project Management
-- Two versions: Legacy (projects) and V2 (projects-v2)
-- Team assignment and resource allocation
-- Task tracking with status updates
-- Client association and billing
-
-## Key Files & Their Purposes
-
-### Core Application Files
-- `src/main.tsx` - Application entry point, renders App component
-- `src/App.tsx` - Main routing configuration with protected routes
-- `src/components/layout/AppLayout.tsx` - Main layout wrapper with sidebar and topbar
+## Key Architectural Decisions
 
 ### Authentication & Authorization
-- `src/hooks/useAuth.tsx` - Authentication state management
-- `src/lib/role-access.ts` - Role-based permission checking
-- `src/pages/Login.tsx` - Authentication UI
+- Supabase Auth for user authentication
+- Role-based access control (RBAC) implemented in `src/lib/role-access.ts`
+- Route protection via `ProtectedRoute` component in `src/App.tsx`
+- Password reset and invite flows handled through URL hash detection
 
-### Data Management
-- `src/integrations/supabase/client.ts` - Supabase client configuration
-- `src/integrations/supabase/types.ts` - Database type definitions
-- `src/hooks/useSort.ts` - Table sorting utilities
+### Data Fetching
+- TanStack Query for caching, background refetching, and optimistic updates
+- Supabase client configured in `src/integrations/supabase/client.ts`
+- Real-time subscriptions for live data updates where needed
+
+### Component Structure
+- Atomic design principles with reusable UI components in `src/components/ui/`
+- Page-level components in `src/pages/` following route structure
+- Feature-specific components organized by domain (employee-profile, settings, etc.)
+
+### Form Handling
+- React Hook Form for form state management
+- Zod schemas for validation
+- Integration with shadcn/ui form components
+
+## Key Files and Their Purposes
+
+### Core Application Files
+- `src/App.tsx`: Main application component with routing configuration
+- `src/main.tsx`: Application entry point, renders App with providers
+- `src/pages/Index.tsx`: Root page component (likely redirects to dashboard)
+
+### Authentication
+- `src/hooks/useAuth.tsx`: Authentication context and hooks
+- `src/pages/Login.tsx`: Login page
+- `src/pages/SetPassword.tsx`: Password setup/reset page
+
+### Layout and Navigation
+- `src/components/layout/AppLayout.tsx`: Main application layout wrapper
+- `src/components/layout/AppSidebar.tsx`: Navigation sidebar
+- `src/components/layout/TopBar.tsx`: Top navigation bar
+- `src/components/NavLink.tsx`: Custom navigation link component
+
+### Employee Management
+- `src/pages/Employees.tsx`: Employee listing page
+- `src/pages/EmployeeProfile.tsx`: Individual employee profile
+- `src/components/employee-profile/`: Profile tab components (Attendance, Leave, Payroll, etc.)
 
 ### Business Logic
-- `src/lib/leave-utils.ts` - Leave balance and calculation logic
-- `src/lib/review-schedule.ts` - Performance review scheduling
-- `src/lib/notifications.ts` - Notification system
-- `src/lib/client-activity.ts` - Activity logging and categorization
+- `src/lib/role-access.ts`: Role-based permissions
+- `src/lib/format-date.ts`: Date formatting utilities
+- `src/lib/leave-utils.ts`: Leave calculation logic
+- `src/lib/review-schedule.ts`: Performance review scheduling
+- `src/lib/notifications.ts`: Notification system
 
 ### UI Components
-- `src/components/ui/` - Reusable UI primitives (buttons, forms, tables)
-- `src/components/layout/` - Layout components (sidebar, navigation)
-- `src/components/employee-profile/` - Employee profile specific components
-
-## Database Relationships
-
-### Core Entities
-- **companies** - Multi-tenant company records
-- **employees** - User accounts with role assignments
-- **departments** - Organizational structure
-- **roles** - Permission sets
-
-### HR Operations
-- **attendance_records** - Daily attendance tracking
-- **leave_requests** - Leave applications and approvals
-- **payroll_records** - Salary processing history
-- **evaluations** - Performance reviews
-
-### Business Entities
-- **projects** - Project management
-- **tasks** - Project task tracking
-- **clients** - Client relationship management
-- **invoices** - Billing and invoicing
+- `src/components/ui/`: Complete shadcn/ui component library
+- `src/components/BeudoxLogo.tsx`: Application logo component
+- `src/components/SearchableEmployeeSelect.tsx`: Employee selection dropdown
 
 ### Configuration
-- **hr_policies** - Company policies and procedures
-- **job_descriptions** - Role definitions
-- **public_holidays** - Holiday calendar
-- **expense_categories** - Expense classification
+- `vite.config.ts`: Vite build configuration
+- `tailwind.config.ts`: Tailwind CSS configuration
+- `tsconfig.json`: TypeScript configuration
+- `package.json`: Dependencies and scripts
 
-## API Patterns
+## Database Schema Insights
 
-### Query Patterns
-- React Query hooks for data fetching
-- Optimistic updates for immediate UI feedback
-- Background refetching for data consistency
-- Error boundaries for graceful failure handling
+Based on the migration files in `supabase/migrations/`, the system manages:
 
-### Mutation Patterns
-- Form validation with Zod schemas
-- React Hook Form for form state management
-- Success/error toast notifications
-- Cache invalidation after mutations
-
-### Real-time Subscriptions
-- Supabase real-time for live updates
-- Channel-based subscriptions for specific data changes
-- Automatic UI updates without manual polling
-
-## Configuration & Environment
-
-### Build Configuration
-- Vite with SWC for fast compilation
-- Path aliases (@/ for src/)
-- Development server on port 8080
-- Component tagging for development
-
-### Environment Variables
-- Supabase URL and API keys
-- Environment-specific configurations
-- Feature flags for gradual rollouts
-
-### Testing Setup
-- Vitest for unit testing
-- Playwright for E2E testing
-- Testing Library for component testing
-- Mocked Supabase client for isolated testing
-
-## Performance Considerations
-
-- Code splitting with dynamic imports
-- Image optimization and lazy loading
-- Database query optimization with proper indexing
-- Caching strategies with React Query
-- Bundle analysis and tree shaking
-
-## Security Measures
-
-- Row Level Security (RLS) in Supabase
-- Input validation with Zod schemas
-- XSS protection with React's built-in sanitization
-- CSRF protection via Supabase Auth
-- Secure token handling and storage
+- Employee lifecycle (hiring, roles, departments)
+- Attendance tracking with working hours and overtime
+- Leave management with balances and approvals
+- Payroll processing with salary components
+- Performance evaluations and reviews
+- Project management and client relationships
+- Invoice generation and finance tracking
+- HR policy documentation
 
 ## Development Workflow
 
-- ESLint for code quality
-- TypeScript for type checking
-- Pre-commit hooks for quality gates
-- Automated testing in CI/CD
-- Component documentation with Storybook (planned)
+- **Development Server**: `npm run dev` (runs on port 8080)
+- **Build**: `npm run build` (production build)
+- **Testing**: Vitest for unit tests, Playwright for e2e tests
+- **Linting**: ESLint with React and TypeScript rules
+- **Database**: Supabase CLI for migrations and local development
 
-This technical context provides the foundation for understanding the codebase architecture, data flow, and development patterns used in the Beudox HR Management System.
+## Environment Configuration
+
+Required environment variables (defined in `.env`):
+- `VITE_SUPABASE_URL`: Supabase project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Public Supabase API key
+- `VITE_SUPABASE_PROJECT_ID`: Supabase project ID
+
+## Common Patterns
+
+### Data Fetching
+```typescript
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+const { data, isLoading } = useQuery({
+  queryKey: ['entity', id],
+  queryFn: async () => {
+    const { data, error } = await supabase.from('table').select('*');
+    if (error) throw error;
+    return data;
+  }
+});
+```
+
+### Form Validation
+```typescript
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+const schema = z.object({ name: z.string().min(1) });
+const form = useForm({ resolver: zodResolver(schema) });
+```
+
+### Component Styling
+Uses Tailwind CSS with custom CSS variables for theming:
+- `--ff-body`: Body font family
+- `--ff-display`: Display font family
+- `--bx-success-text`: Success color
+- Custom border radius variables
+
+## Performance Considerations
+
+- Vite for fast development builds
+- React.lazy() for code splitting (not extensively used yet)
+- TanStack Query for intelligent caching
+- Supabase real-time subscriptions for live updates
+- Optimized bundle with SWC compiler
