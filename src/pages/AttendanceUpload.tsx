@@ -176,13 +176,13 @@ const AttendanceUpload = () => {
     setYear('');
     setParseError(null);
     setFileName(null);
-    setParsed(null);
+    setParsedBoth(null);
     setSummary(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const cancelPreview = () => {
-    setParsed(null);
+    setParsedBoth(null);
     setParseError(null);
     setFileName(null);
     setStep('select');
