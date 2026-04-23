@@ -149,7 +149,7 @@ const PendingIncrementCard = ({ employee, approverEmployeeId, readOnly = false }
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4" style={{ color: 'hsl(var(--bx-warning-text))' }} />
           <h3 className="font-display font-semibold text-[15px] text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
-            Pending Increment
+            Pending Increment — Awaiting CEO Approval
           </h3>
         </div>
         <Badge className="capitalize border-0 bg-bx-warning-bg text-[hsl(var(--bx-warning-text))] hover:bg-bx-warning-bg">
