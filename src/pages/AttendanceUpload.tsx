@@ -215,13 +215,22 @@ const AttendanceUpload = () => {
       if (!resp || !Array.isArray(resp.records)) {
         throw new Error('AI returned an unexpected response.');
       }
+      // The Edge Function's parsed records array is the SOLE source of truth.
+      // Suppress noisy parser warnings about column shape / inconsistencies —
+      // those reflect raw-CSV structure, not a data problem in the normalised
+      // records we actually render.
+      const filteredWarnings = (resp.warnings ?? []).filter(w => {
+        const s = String(w).toLowerCase();
+        return !s.includes('column') && !s.includes('inconsist');
+      });
+      const cleaned: ParseResponse = { records: resp.records, warnings: filteredWarnings };
       if (resp.records.length === 0) {
-        setParsed(resp);
+        setParsedBoth(cleaned);
         setParseError('AI parser found 0 records in this file. Please check the file format.');
         setStep('preview');
         return;
       }
-      setParsed(resp);
+      setParsedBoth(cleaned);
       setStep('preview');
     } catch (err) {
       console.error(err);
