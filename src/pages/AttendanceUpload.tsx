@@ -245,7 +245,8 @@ const AttendanceUpload = () => {
   };
 
   const confirmImport = async () => {
-    if (!parsed || !employee?.company_id) return;
+    const source = parsed ?? parsedRef.current;
+    if (!source || !employee?.company_id) return;
     setStep('importing');
 
     try {
