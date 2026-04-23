@@ -573,8 +573,8 @@ const AttendanceUpload = () => {
                 </TableHeader>
                 <TableBody>
                   {groupedRecords.map(group => (
-                    <>
-                      <TableRow key={`g-${group.date}`} className="hover:bg-muted/40">
+                    <Fragment key={group.date}>
+                      <TableRow className="hover:bg-muted/40">
                         <TableCell
                           colSpan={5}
                           className="sticky top-10 z-10 bg-muted/60 backdrop-blur-sm py-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-y"
@@ -610,7 +610,7 @@ const AttendanceUpload = () => {
                           <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
                         </TableRow>
                       ))}
-                    </>
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>
