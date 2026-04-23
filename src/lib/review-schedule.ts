@@ -13,17 +13,11 @@ export function computeNextReviewDate(
   const freq = Number(frequencyMonths) || 6;
   const start = parseISO(firstReviewDate);
   if (!isValid(start)) return null;
-  return addMonths(start, 0) > new Date()
-    ? start // first review still upcoming
-    : advanceUntilFuture(start, freq);
-}
-
-function advanceUntilFuture(start: Date, freqMonths: number): Date {
   const today = new Date();
   let next = start;
-  // safety cap to prevent infinite loops on bad data
-  for (let i = 0; i < 240 && next < today; i++) {
-    next = addMonths(next, freqMonths);
+  // Advance forward until strictly after today
+  for (let i = 0; i < 240 && next <= today; i++) {
+    next = addMonths(next, freq);
   }
   return next;
 }
