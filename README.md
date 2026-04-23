@@ -1,145 +1,217 @@
 <!--
 generated_by: tessera
-source_sha: 99d0a0ebeeee26f5bde3db11e6954b24e4e25713
-generated_at: 2026-04-23T22:19:19.082Z
+source_sha: 6123843e38979f8a1ef95cb5e2946f901bd685f2
+generated_at: 2026-04-23T22:38:10.068Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Management System
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with tools to manage employees, track attendance, handle payroll, manage leave requests, conduct evaluations, and oversee projects and finances.
+A comprehensive Human Resources management application built with modern web technologies. Beudox HR provides organizations with powerful tools to manage employees, track attendance, handle payroll, manage leave requests, conduct evaluations, and oversee various HR operations.
 
-## Features
+## 🚀 Features
 
 ### Core HR Management
-- **Employee Management**: Complete employee profiles with personal details, roles, and organizational structure
-- **Attendance Tracking**: Automated attendance recording with check-in/out times, overtime calculation, and reporting
-- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.)
+- **Employee Management**: Complete employee lifecycle management including onboarding, profiles, and offboarding
+- **Attendance Tracking**: Automated attendance monitoring with check-in/out, overtime calculation, and reporting
+- **Leave Management**: Comprehensive leave request system with multiple leave types and balance tracking
 - **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and payslip generation
 
 ### Performance & Development
-- **Employee Evaluations**: Regular performance reviews and daily evaluation tracking
-- **Salary Reviews**: Increment proposals and salary history management
-- **Job Descriptions**: Create and manage detailed job descriptions and requirements
+- **Employee Evaluations**: Structured performance reviews and feedback systems
+- **Daily Evaluations**: Real-time performance tracking and daily assessments
+- **Salary Reviews**: Automated salary increment proposals and review scheduling
 
-### Project & Finance Management
-- **Project Management**: Track projects, assign team members, and monitor project activities
-- **Client Management**: Maintain client relationships and project associations
-- **Invoice Management**: Generate and manage client invoices with PDF export
-- **Financial Reporting**: Comprehensive finance sheets and expense tracking
+### Project & Resource Management
+- **Project Management**: Project tracking, team assignments, and activity logging
+- **Client Management**: Client relationship management and project associations
+- **Task Management**: Individual and team task assignment and tracking
 
 ### Administrative Tools
-- **HR Policies**: Create and manage company policies with rich text editing
-- **Settings Management**: Configure company settings, departments, roles, and system parameters
-- **Public Holidays**: Manage holiday calendars and scheduling
-- **Loan Management**: Track employee loans and repayments
+- **HR Policies**: Digital policy management and documentation
+- **Job Descriptions**: Structured job role definitions and requirements
+- **Settings Management**: Configurable system settings including departments, roles, and evaluation parameters
+- **Finance Overview**: Financial summaries and expense tracking
 
-## Technology Stack
+### Security & Access
+- **Role-Based Access Control**: Granular permissions system with multiple user roles
+- **Authentication**: Secure login with password recovery and invite system
+- **Audit Logging**: Login tracking and system activity monitoring
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Routing**: React Router DOM
-- **State Management**: TanStack Query (React Query)
-- **UI Components**: Radix UI (shadcn/ui)
-- **Styling**: Tailwind CSS
-- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **Forms**: React Hook Form with Zod validation
-- **Charts**: Recharts
-- **Rich Text**: Tiptap
-- **Testing**: Vitest, Playwright
-- **Package Manager**: npm/bun
+## 🛠 Technology Stack
 
-## Getting Started
+### Frontend
+- **React 18** - Modern React with hooks and concurrent features
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and development server
+- **React Router** - Client-side routing
+- **Tailwind CSS** - Utility-first CSS framework
+- **Radix UI** - Accessible component primitives
+- **React Hook Form** - Performant forms with validation
+- **Zod** - Schema validation
 
-### Prerequisites
+### Backend & Database
+- **Supabase** - Backend-as-a-Service with PostgreSQL database
+- **TanStack Query** - Powerful data fetching and caching
+
+### Development Tools
+- **ESLint** - Code linting
+- **Vitest** - Unit testing
+- **Playwright** - End-to-end testing
+- **TypeScript** - Type checking
+
+## 📋 Prerequisites
 
 - Node.js 18+
-- npm or bun
+- npm or bun package manager
 - Supabase account and project
 
-### Installation
+## 🚀 Getting Started
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
-   cd beudox-hr-e0d9a49a
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   bun install
-   ```
-
-3. Set up environment variables:
-   
-   Copy `.env` and configure your Supabase credentials:
-   ```env
-   VITE_SUPABASE_PROJECT_ID=your_project_id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   ```
-
-4. Start the development server:
-   ```bash
-   npm run dev
-   # or
-   bun run dev
-   ```
-
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-### Build for Production
+### 1. Clone the Repository
 
 ```bash
+git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+cd beudox-hr-e0d9a49a
+```
+
+### 2. Install Dependencies
+
+```bash
+# Using npm
+npm install
+
+# Or using bun (recommended)
+bun install
+```
+
+### 3. Environment Configuration
+
+Create a `.env` file in the root directory with your Supabase credentials:
+
+```env
+VITE_SUPABASE_PROJECT_ID=your_project_id
+VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+VITE_SUPABASE_URL=https://your-project.supabase.co
+```
+
+### 4. Database Setup
+
+The application uses Supabase migrations for database schema. The migrations are located in the `supabase/migrations/` directory and will be automatically applied when you set up your Supabase project.
+
+### 5. Development Server
+
+```bash
+# Using npm
+npm run dev
+
+# Or using bun
+bun run dev
+```
+
+The application will be available at `http://localhost:8080`
+
+### 6. Building for Production
+
+```bash
+# Using npm
 npm run build
-# or
+
+# Or using bun
 bun run build
 ```
 
-### Testing
+## 📜 Available Scripts
+
+- `dev` - Start development server
+- `build` - Build for production
+- `build:dev` - Build for development
+- `preview` - Preview production build
+- `lint` - Run ESLint
+- `test` - Run tests once
+- `test:watch` - Run tests in watch mode
+
+## 🏗 Application Architecture
+
+### Routing Structure
+
+The application uses React Router with protected routes. Key routes include:
+
+- `/` - Root redirect (to dashboard or login)
+- `/login` - Authentication
+- `/dashboard` - Main dashboard
+- `/employees` - Employee management
+- `/attendance/upload` - Attendance data upload
+- `/leave` - Leave management
+- `/payroll` - Payroll processing
+- `/evaluations` - Performance evaluations
+- `/projects` - Project management
+- `/settings` - System configuration
+
+### Component Structure
+
+- **Pages** (`src/pages/`): Top-level route components
+- **Components** (`src/components/`): Reusable UI components
+  - `ui/` - Base UI components (buttons, forms, etc.)
+  - `layout/` - Layout components (sidebar, header, etc.)
+  - Feature-specific components (employee-profile, leave, etc.)
+- **Hooks** (`src/hooks/`): Custom React hooks
+- **Lib** (`src/lib/`): Utility functions and business logic
+- **Integrations** (`src/integrations/`): External service integrations
+
+### State Management
+
+- **TanStack Query**: Server state management and caching
+- **React Context**: Authentication and global state
+- **Local Component State**: Form state and UI interactions
+
+## 🔐 Authentication & Authorization
+
+The application implements role-based access control with the following user roles:
+
+- **Admin**: Full system access
+- **HR Manager**: HR operations and employee management
+- **Manager**: Team management and approvals
+- **Employee**: Personal profile and basic operations
+
+Access control is enforced at the route level and component level using the `canAccess` utility function.
+
+## 🧪 Testing
+
+### Unit Tests
 
 ```bash
-# Run unit tests
 npm run test
+```
 
-# Run e2e tests
+### End-to-End Tests
+
+```bash
 npx playwright test
 ```
 
-## Project Structure
+## 📚 API Integration
 
-```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # Base UI components (shadcn/ui)
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── employee-profile/  # Employee profile tabs
-│   ├── leave/          # Leave management components
-│   ├── payroll/        # Payroll components
-│   ├── projects/       # Project management components
-│   ├── settings/       # Settings components
-│   └── ...
-├── pages/              # Page components (routes)
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations
-└── ...
-```
+The application integrates with Supabase for all backend operations:
 
-## Authentication & Authorization
+- **Database**: PostgreSQL with real-time subscriptions
+- **Authentication**: Supabase Auth
+- **Storage**: File uploads and document management
+- **Edge Functions**: Serverless functions for complex operations
 
-The application uses Supabase for authentication with role-based access control. Users can have different roles with specific permissions to access various features of the system.
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests
-5. Submit a pull request
+4. Add tests if applicable
+5. Ensure linting passes
+6. Submit a pull request
 
-## License
+## 📄 License
 
 This project is private and proprietary to Beudox.
+
+## 🆘 Support
+
+For support or questions, please contact the development team.
