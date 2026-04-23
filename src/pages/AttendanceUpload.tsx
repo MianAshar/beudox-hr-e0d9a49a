@@ -283,7 +283,7 @@ const AttendanceUpload = () => {
 
       // 3. Fetch all dates already imported for this company within the parsed range
       //    (so we can early-skip duplicates without round-tripping per row)
-      const dates = Array.from(new Set(parsed.records.map(r => r.date))).sort();
+      const dates = Array.from(new Set(source.records.map(r => r.date))).sort();
       const minDate = dates[0];
       const maxDate = dates[dates.length - 1];
       const { data: existing } = await supabase
