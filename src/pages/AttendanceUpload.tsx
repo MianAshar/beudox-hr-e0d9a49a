@@ -340,7 +340,7 @@ const AttendanceUpload = () => {
       let skipped = 0;
       const toInsert: any[] = [];
 
-      for (const r of parsed.records) {
+      for (const r of source.records) {
         const empId = codeToId.get(r.employee_code.trim());
         if (!empId) {
           unmatched.add(r.employee_code.trim());
