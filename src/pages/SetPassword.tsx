@@ -68,59 +68,48 @@ const SetPassword = () => {
       .then(({ data }) => setCompany(data));
   }, []);
 
-  // Token exchange on mount
+  // Token exchange on mount — uses tokens captured synchronously at module load
   useEffect(() => {
     const run = async () => {
-      // Step 1: Read hash fragment
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
+      const { accessToken, refreshToken, error: hashError, tokenHash, type } = tokenRef.current;
 
-      // Step 2: If both tokens found in hash
+      // Error in hash (e.g. expired/invalid link)
+      if (hashError) {
+        setView('expired');
+        return;
+      }
+
+      // Hash tokens path
       if (accessToken && refreshToken) {
         const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-
-        // Clear hash from URL immediately
-        window.history.replaceState(null, '', window.location.pathname);
-
         if (error) {
           setView('expired');
           return;
         }
-
         const { data: { session } } = await supabase.auth.getSession();
         setView(session ? 'ready' : 'expired');
         return;
       }
 
-      // Step 3: Fallback to query string token_hash
-      const qParams = new URLSearchParams(window.location.search);
-      const tokenHash = qParams.get('token_hash');
-      const type = qParams.get('type');
-
+      // Fallback: query string token_hash
       if (tokenHash && type) {
         const { error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: type as any,
         });
-
-        window.history.replaceState(null, '', window.location.pathname);
-
         if (error) {
           setView('expired');
           return;
         }
-
         const { data: { session } } = await supabase.auth.getSession();
         setView(session ? 'ready' : 'expired');
         return;
       }
 
-      // Step 4: Nothing found
+      // Nothing found
       navigate('/login', { replace: true });
     };
 
