@@ -24,7 +24,7 @@ const navSections = [
     label: 'PEOPLE',
     items: [
       { title: 'Employees', icon: Users, path: '/employees' },
-      { title: 'Attendance Upload', icon: CalendarCheck, path: '/attendance/upload' },
+      { title: 'Attendance', icon: CalendarCheck, path: '/attendance' },
       { title: 'Public Holidays', icon: Calendar, path: '/holidays' },
       { title: 'Leave Management', icon: CalendarOff, path: '/leave' },
     ],

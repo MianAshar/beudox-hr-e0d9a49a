@@ -12,6 +12,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '@/components/ui/dialog';
 import {
   Loader2, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RotateCw,
 } from 'lucide-react';
@@ -24,18 +28,14 @@ const MONTHS = [
 ];
 
 const SHEETJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-
-// Asia/Karachi is UTC+05:00 year-round (no DST)
 const KARACHI_OFFSET = '+05:00';
-
-// ---------------- Types ----------------
 
 interface ParsedRecord {
   employee_code: string;
   name: string | null;
   date: string;
-  check_in: string | null;   // HH:mm:ss
-  check_out: string | null;  // HH:mm:ss
+  check_in: string | null;
+  check_out: string | null;
   notes?: string | null;
 }
 
@@ -45,9 +45,9 @@ interface ParseResponse {
 }
 
 interface CompanySettings {
-  shift_start_time: string; // HH:mm:ss
-  shift_end_time: string;   // HH:mm:ss
-  late_threshold: number;   // minutes
+  shift_start_time: string;
+  shift_end_time: string;
+  late_threshold: number;
 }
 
 interface ImportSummary {
@@ -57,23 +57,16 @@ interface ImportSummary {
   unmatched: string[];
 }
 
-// Decision per unmatched code: import the rows anyway (with employee_id = null)
-// or skip them entirely.
 type UnmatchedDecision = 'import' | 'skip';
 
 interface UnmatchedEntry {
   employee_code: string;
   name: string | null;
   count: number;
-  decision: UnmatchedDecision;
 }
 
-// ---------------- Helpers ----------------
-
 declare global {
-  interface Window {
-    XLSX?: any;
-  }
+  interface Window { XLSX?: any; }
 }
 
 function loadSheetJs(): Promise<any> {
@@ -98,14 +91,11 @@ async function fileToCsv(file: File): Promise<string> {
   const XLSX = await loadSheetJs();
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: 'array', cellDates: true, cellText: false });
-  // Concatenate all sheets so we don't lose data spread across tabs.
   const parts: string[] = [];
   for (const name of wb.SheetNames) {
     const sheet = wb.Sheets[name];
     const csv = XLSX.utils.sheet_to_csv(sheet, { blankrows: false });
-    if (csv && csv.trim()) {
-      parts.push(`# Sheet: ${name}\n${csv}`);
-    }
+    if (csv && csv.trim()) parts.push(`# Sheet: ${name}\n${csv}`);
   }
   return parts.join('\n\n');
 }
@@ -119,7 +109,6 @@ function timeToMinutes(t: string | null | undefined): number | null {
 
 function isoTimestampKarachi(date: string, time: string | null): string | null {
   if (!time) return null;
-  // Ensure HH:mm:ss
   const m = time.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
   if (!m) return null;
   const hh = m[1].padStart(2, '0');
@@ -138,46 +127,46 @@ function workingHours(checkIn: string | null, checkOut: string | null): number |
 
 function isWeekend(dateStr: string): boolean {
   const d = new Date(`${dateStr}T00:00:00${KARACHI_OFFSET}`);
-  const day = d.getUTCDay(); // since we anchored to Karachi offset, getUTCDay gives the local day
+  const day = d.getUTCDay();
   return day === 0 || day === 6;
 }
 
-// ---------------- Page ----------------
-
 type Step = 'select' | 'parsing' | 'preview' | 'importing' | 'done';
 
-const AttendanceUpload = () => {
+interface AttendanceUploadFlowProps {
+  defaultMonth: string;
+  defaultYear: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+const AttendanceUploadFlow = ({
+  defaultMonth, defaultYear, onSuccess, onCancel,
+}: AttendanceUploadFlowProps) => {
   const { employee } = useAuth();
   const { toast } = useToast();
 
-  const isAuthorised = useMemo(() => {
-    const roles = employee?.roles ?? [];
-    return roles.includes('hr_manager') || roles.includes('ceo');
-  }, [employee]);
-
   const now = new Date();
-  const [month, setMonth] = useState<string>('');
-  const [year, setYear] = useState<string>('');
+  const [month, setMonth] = useState<string>(defaultMonth);
+  const [year, setYear] = useState<string>(defaultYear);
   const [step, setStep] = useState<Step>('select');
   const [parseError, setParseError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParseResponse | null>(null);
-  // Mirror parsed records in a ref so re-renders never lose preview data.
-  // Source of truth for confirmImport reads from this ref as a fallback.
   const parsedRef = useRef<ParseResponse | null>(null);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [shiftHours, setShiftHours] = useState<number>(8);
   const [unmatchedEntries, setUnmatchedEntries] = useState<UnmatchedEntry[]>([]);
+  const [unmatchedCodesSet, setUnmatchedCodesSet] = useState<Set<string>>(new Set());
+  const [showUnmatchedDialog, setShowUnmatchedDialog] = useState(false);
+  const [unmatchedDecision, setUnmatchedDecision] = useState<UnmatchedDecision>('import');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Helper: keep state and ref in lock-step so the preview persists
-  // until the user explicitly cancels or confirms.
   const setParsedBoth = (next: ParseResponse | null) => {
     parsedRef.current = next;
     setParsed(next);
   };
 
-  // Preload SheetJS as soon as the page mounts so the first upload is instant.
   useEffect(() => { loadSheetJs().catch(() => {}); }, []);
 
   const yearOptions = useMemo(() => {
@@ -185,23 +174,12 @@ const AttendanceUpload = () => {
     return [String(y), String(y - 1)];
   }, [now]);
 
-  const reset = () => {
-    setStep('select');
-    setMonth('');
-    setYear('');
-    setParseError(null);
-    setFileName(null);
-    setParsedBoth(null);
-    setSummary(null);
-    setUnmatchedEntries([]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
   const cancelPreview = () => {
     setParsedBoth(null);
     setParseError(null);
     setFileName(null);
     setUnmatchedEntries([]);
+    setUnmatchedCodesSet(new Set());
     setStep('select');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -211,11 +189,7 @@ const AttendanceUpload = () => {
     if (!file) return;
     const lower = file.name.toLowerCase();
     if (!lower.endsWith('.xls') && !lower.endsWith('.xlsx')) {
-      toast({
-        title: 'Unsupported file',
-        description: 'Please upload an .xls or .xlsx file.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Unsupported file', description: 'Please upload an .xls or .xlsx file.', variant: 'destructive' });
       return;
     }
     setFileName(file.name);
@@ -224,18 +198,10 @@ const AttendanceUpload = () => {
     try {
       const csv = await fileToCsv(file);
       if (!csv.trim()) throw new Error('The file appears to be empty.');
-      const { data, error } = await supabase.functions.invoke('parse-attendance-ai', {
-        body: { csv_content: csv },
-      });
+      const { data, error } = await supabase.functions.invoke('parse-attendance-ai', { body: { csv_content: csv } });
       if (error) throw new Error(error.message);
       const resp = data as ParseResponse;
-      if (!resp || !Array.isArray(resp.records)) {
-        throw new Error('AI returned an unexpected response.');
-      }
-      // The Edge Function's parsed records array is the SOLE source of truth.
-      // Suppress noisy parser warnings about column shape / inconsistencies —
-      // those reflect raw-CSV structure, not a data problem in the normalised
-      // records we actually render.
+      if (!resp || !Array.isArray(resp.records)) throw new Error('AI returned an unexpected response.');
       const filteredWarnings = (resp.warnings ?? []).filter(w => {
         const s = String(w).toLowerCase();
         return !s.includes('column') && !s.includes('inconsist');
@@ -248,32 +214,17 @@ const AttendanceUpload = () => {
         return;
       }
       setParsedBoth(cleaned);
-      // Fetch shift duration + employee codes for preview highlighting
-      // and unmatched-code detection.
       try {
         if (employee?.company_id) {
           const [{ data: settingsRow }, { data: empRows }] = await Promise.all([
-            supabase
-              .from('company_settings')
-              .select('shift_start_time, shift_end_time')
-              .eq('company_id', employee.company_id)
-              .maybeSingle(),
-            supabase
-              .from('employees')
-              .select('employee_code')
-              .eq('company_id', employee.company_id),
+            supabase.from('company_settings').select('shift_start_time, shift_end_time').eq('company_id', employee.company_id).maybeSingle(),
+            supabase.from('employees').select('employee_code').eq('company_id', employee.company_id),
           ]);
           const sStart = timeToMinutes(settingsRow?.shift_start_time ?? '09:00:00') ?? 9 * 60;
           const sEnd = timeToMinutes(settingsRow?.shift_end_time ?? '18:00:00') ?? 18 * 60;
           setShiftHours(Math.max(0, (sEnd - sStart) / 60));
 
-          const knownCodes = new Set(
-            (empRows ?? [])
-              .map(e => (e.employee_code ?? '').trim())
-              .filter(Boolean),
-          );
-          // Group parsed records by employee_code; flag those whose code is
-          // not present in the company's employees table.
+          const knownCodes = new Set((empRows ?? []).map(e => (e.employee_code ?? '').trim()).filter(Boolean));
           const grouped = new Map<string, { name: string | null; count: number }>();
           for (const r of cleaned.records) {
             const code = r.employee_code.trim();
@@ -287,47 +238,43 @@ const AttendanceUpload = () => {
             }
           }
           const entries: UnmatchedEntry[] = Array.from(grouped.entries())
-            .map(([employee_code, v]) => ({
-              employee_code,
-              name: v.name,
-              count: v.count,
-              decision: 'skip' as UnmatchedDecision,
-            }))
+            .map(([employee_code, v]) => ({ employee_code, name: v.name, count: v.count }))
             .sort((a, b) => a.employee_code.localeCompare(b.employee_code));
           setUnmatchedEntries(entries);
+          setUnmatchedCodesSet(new Set(entries.map(e => e.employee_code)));
         }
       } catch {
         setShiftHours(8);
         setUnmatchedEntries([]);
+        setUnmatchedCodesSet(new Set());
       }
       setStep('preview');
     } catch (err) {
       console.error(err);
       setParseError((err as Error).message ?? 'Failed to parse file');
       setStep('select');
-      toast({
-        title: 'Parsing failed',
-        description: (err as Error).message ?? 'Unknown error',
-        variant: 'destructive',
-      });
+      toast({ title: 'Parsing failed', description: (err as Error).message ?? 'Unknown error', variant: 'destructive' });
     }
   };
 
-  const confirmImport = async () => {
+  const handleConfirmClick = () => {
+    if (unmatchedEntries.length > 0) {
+      setUnmatchedDecision('import');
+      setShowUnmatchedDialog(true);
+      return;
+    }
+    runImport('skip');
+  };
+
+  const runImport = async (decision: UnmatchedDecision) => {
     const source = parsed ?? parsedRef.current;
     if (!source || !employee?.company_id) return;
+    setShowUnmatchedDialog(false);
     setStep('importing');
 
     try {
       const companyId = employee.company_id;
 
-      // Map current unmatched decisions
-      const decisionByCode = new Map<string, UnmatchedDecision>();
-      for (const u of unmatchedEntries) {
-        decisionByCode.set(u.employee_code, u.decision);
-      }
-
-      // 1. Fetch company settings
       const { data: settingsRow } = await supabase
         .from('company_settings')
         .select('shift_start_time, shift_end_time, late_threshold')
@@ -335,89 +282,54 @@ const AttendanceUpload = () => {
         .maybeSingle();
 
       const settings: CompanySettings = settingsRow ?? {
-        shift_start_time: '09:00:00',
-        shift_end_time: '18:00:00',
-        late_threshold: 0,
+        shift_start_time: '09:00:00', shift_end_time: '18:00:00', late_threshold: 0,
       };
 
       const startMin = timeToMinutes(settings.shift_start_time) ?? 9 * 60;
       const endMin = timeToMinutes(settings.shift_end_time) ?? 18 * 60;
       const lateCutoff = startMin + (settings.late_threshold ?? 0);
-      const shiftHours = Math.max(0, (endMin - startMin) / 60);
+      const shiftHrs = Math.max(0, (endMin - startMin) / 60);
 
-      // 2. Fetch all employees for this company (for code → id mapping)
       const { data: empRows, error: empErr } = await supabase
-        .from('employees')
-        .select('id, employee_code')
-        .eq('company_id', companyId);
+        .from('employees').select('id, employee_code').eq('company_id', companyId);
       if (empErr) throw empErr;
       const codeToId = new Map<string, string>();
-      (empRows ?? []).forEach(e => {
-        if (e.employee_code) codeToId.set(e.employee_code.trim(), e.id);
-      });
+      (empRows ?? []).forEach(e => { if (e.employee_code) codeToId.set(e.employee_code.trim(), e.id); });
 
-      // 3. Fetch existing attendance rows in the parsed date range so we can
-      //    decide insert vs update per row. Match keys: employee_id|date for
-      //    matched rows, and employee_code|date for unmatched (null employee_id) rows.
       const dates = Array.from(new Set(source.records.map(r => r.date))).sort();
       const minDate = dates[0];
       const maxDate = dates[dates.length - 1];
       const { data: existing } = await supabase
-        .from('attendance_records')
-        .select('id, employee_id, employee_code, date')
-        .eq('company_id', companyId)
-        .gte('date', minDate)
-        .lte('date', maxDate);
-      const existingByEmpDate = new Map<string, string>(); // key -> existing row id
+        .from('attendance_records').select('id, employee_id, employee_code, date')
+        .eq('company_id', companyId).gte('date', minDate).lte('date', maxDate);
+      const existingByEmpDate = new Map<string, string>();
       const existingByCodeDate = new Map<string, string>();
       for (const r of existing ?? []) {
-        if (r.employee_id) {
-          existingByEmpDate.set(`${r.employee_id}|${r.date}`, r.id);
-        } else if (r.employee_code) {
-          existingByCodeDate.set(`${r.employee_code.trim()}|${r.date}`, r.id);
-        }
+        if (r.employee_id) existingByEmpDate.set(`${r.employee_id}|${r.date}`, r.id);
+        else if (r.employee_code) existingByCodeDate.set(`${r.employee_code.trim()}|${r.date}`, r.id);
       }
 
-      // 4. Fetch holidays for this company in the range
       const { data: holidays } = await supabase
-        .from('public_holidays')
-        .select('date')
-        .eq('company_id', companyId)
-        .gte('date', minDate)
-        .lte('date', maxDate);
+        .from('public_holidays').select('date')
+        .eq('company_id', companyId).gte('date', minDate).lte('date', maxDate);
       const holidaySet = new Set((holidays ?? []).map(h => h.date));
 
-      // 5. Insert the import batch row first to get its id
       const monthYearFinal = `${year}-${String(MONTHS.indexOf(month) + 1).padStart(2, '0')}`;
 
-      // Get current user's employee id for uploaded_by
       const uploaderEmployeeId = (await supabase
-        .from('employees')
-        .select('id')
+        .from('employees').select('id')
         .eq('auth_user_id', (await supabase.auth.getUser()).data.user?.id ?? '')
-        .eq('company_id', companyId)
-        .maybeSingle()).data?.id;
-
-      if (!uploaderEmployeeId) {
-        throw new Error('Could not resolve current employee for uploaded_by.');
-      }
+        .eq('company_id', companyId).maybeSingle()).data?.id;
+      if (!uploaderEmployeeId) throw new Error('Could not resolve current employee for uploaded_by.');
 
       const { data: importRow, error: importErr } = await supabase
-        .from('attendance_imports')
-        .insert({
-          company_id: companyId,
-          uploaded_by: uploaderEmployeeId,
-          month_year: monthYearFinal,
-          file_name: fileName ?? 'attendance.xlsx',
-          status: 'processing',
-          records_imported: 0,
-          records_skipped: 0,
-        })
-        .select('id')
-        .single();
+        .from('attendance_imports').insert({
+          company_id: companyId, uploaded_by: uploaderEmployeeId, month_year: monthYearFinal,
+          file_name: fileName ?? 'attendance.xlsx', status: 'processing',
+          records_imported: 0, records_skipped: 0,
+        }).select('id').single();
       if (importErr || !importRow) throw importErr ?? new Error('Failed to create import batch.');
 
-      // 6. Build attendance rows — split into inserts and updates.
       let skipped = 0;
       const seenInsertKeys = new Set<string>();
       const toInsert: any[] = [];
@@ -427,13 +339,9 @@ const AttendanceUpload = () => {
         const code = r.employee_code.trim();
         const empId = codeToId.get(code);
 
-        // Resolve unmatched decision: skip by default unless user picked "import".
-        if (!empId) {
-          const decision = decisionByCode.get(code) ?? 'skip';
-          if (decision === 'skip') {
-            skipped++;
-            continue;
-          }
+        if (!empId && decision === 'skip') {
+          skipped++;
+          continue;
         }
 
         const weekend = isWeekend(r.date);
@@ -443,8 +351,7 @@ const AttendanceUpload = () => {
         const isLate = inMin != null && inMin > lateCutoff;
 
         const regularOt = !weekend && !holiday && wh != null
-          ? Math.max(0, Math.round((wh - shiftHours) * 100) / 100)
-          : 0;
+          ? Math.max(0, Math.round((wh - shiftHrs) * 100) / 100) : 0;
         const holidayOt = (weekend || holiday) && wh != null ? wh : 0;
 
         const basePayload: any = {
@@ -455,19 +362,13 @@ const AttendanceUpload = () => {
           check_in: isoTimestampKarachi(r.date, r.check_in),
           check_out: isoTimestampKarachi(r.date, r.check_out),
           working_hours: wh,
-          is_late: isLate,
-          is_absent: false,
-          is_weekend: weekend,
-          is_holiday: holiday,
-          regular_ot_hours: regularOt,
-          holiday_ot_hours: holidayOt,
+          is_late: isLate, is_absent: false, is_weekend: weekend, is_holiday: holiday,
+          regular_ot_hours: regularOt, holiday_ot_hours: holidayOt,
           status: isLate ? 'late' : 'present',
-          source: 'machine_import',
-          import_batch_id: importRow.id,
+          source: 'machine_import', import_batch_id: importRow.id,
           notes: r.notes ?? null,
         };
 
-        // Look up existing row: by employee_id+date if matched, else by code+date.
         const existingId = empId
           ? existingByEmpDate.get(`${empId}|${r.date}`)
           : existingByCodeDate.get(`${code}|${r.date}`);
@@ -476,93 +377,57 @@ const AttendanceUpload = () => {
           toUpdate.push({
             id: existingId,
             payload: {
-              check_in: basePayload.check_in,
-              check_out: basePayload.check_out,
-              working_hours: basePayload.working_hours,
-              is_late: basePayload.is_late,
+              check_in: basePayload.check_in, check_out: basePayload.check_out,
+              working_hours: basePayload.working_hours, is_late: basePayload.is_late,
               regular_ot_hours: basePayload.regular_ot_hours,
               holiday_ot_hours: basePayload.holiday_ot_hours,
-              status: basePayload.status,
-              import_batch_id: importRow.id,
+              status: basePayload.status, import_batch_id: importRow.id,
               source: 'machine_import',
             },
           });
         } else {
-          // Guard against duplicates inside the same file.
           const inFileKey = empId ? `e:${empId}|${r.date}` : `c:${code}|${r.date}`;
-          if (seenInsertKeys.has(inFileKey)) {
-            skipped++;
-            continue;
-          }
+          if (seenInsertKeys.has(inFileKey)) { skipped++; continue; }
           seenInsertKeys.add(inFileKey);
           toInsert.push(basePayload);
         }
       }
 
-      // 7a. Insert in chunks
       let imported = 0;
       const CHUNK = 500;
       for (let i = 0; i < toInsert.length; i += CHUNK) {
         const slice = toInsert.slice(i, i + CHUNK);
         const { error: insErr, count } = await supabase
-          .from('attendance_records')
-          .insert(slice, { count: 'exact' });
-        if (insErr) {
-          console.error('Chunk insert failed', insErr);
-          skipped += slice.length;
-          continue;
-        }
+          .from('attendance_records').insert(slice, { count: 'exact' });
+        if (insErr) { console.error('Chunk insert failed', insErr); skipped += slice.length; continue; }
         imported += count ?? slice.length;
       }
 
-      // 7b. Apply updates (one per existing row — these are duplicates we overwrite)
       let updated = 0;
       for (const u of toUpdate) {
         const { error: updErr } = await supabase
-          .from('attendance_records')
-          .update(u.payload)
-          .eq('id', u.id);
-        if (updErr) {
-          console.error('Update failed', updErr);
-          skipped++;
-          continue;
-        }
+          .from('attendance_records').update(u.payload).eq('id', u.id);
+        if (updErr) { console.error('Update failed', updErr); skipped++; continue; }
         updated++;
       }
 
-      // 8. Finalise the import row (records_skipped reflects only true skips)
-      await supabase
-        .from('attendance_imports')
-        .update({
-          status: 'completed',
-          records_imported: imported + updated,
-          records_skipped: skipped,
-        })
-        .eq('id', importRow.id);
+      await supabase.from('attendance_imports').update({
+        status: 'completed', records_imported: imported + updated, records_skipped: skipped,
+      }).eq('id', importRow.id);
 
-      // Unmatched codes the user explicitly skipped (for the summary banner)
-      const skippedUnmatched = unmatchedEntries
-        .filter(u => u.decision === 'skip')
-        .map(u => u.employee_code);
+      const skippedUnmatched = decision === 'skip'
+        ? unmatchedEntries.map(u => u.employee_code) : [];
 
       setSummary({ imported, updated, skipped, unmatched: skippedUnmatched });
       setStep('done');
-      toast({
-        title: 'Import complete',
-        description: `${imported} imported, ${updated} updated, ${skipped} skipped.`,
-      });
+      toast({ title: 'Import complete', description: `${imported} imported, ${updated} updated, ${skipped} skipped.` });
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Import failed',
-        description: (err as Error).message ?? 'Unknown error',
-        variant: 'destructive',
-      });
+      toast({ title: 'Import failed', description: (err as Error).message ?? 'Unknown error', variant: 'destructive' });
       setStep('preview');
     }
   };
 
-  // Group records by date asc, then by check-in time asc within each date.
   const groupedRecords = useMemo(() => {
     if (!parsed?.records?.length) return [] as { date: string; rows: ParsedRecord[] }[];
     const map = new Map<string, ParsedRecord[]>();
@@ -584,16 +449,6 @@ const AttendanceUpload = () => {
     });
   }, [parsed]);
 
-  // ---------------- Render ----------------
-
-  if (!isAuthorised) {
-    return (
-      <div className="p-8 text-sm text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
-        You don't have permission to access attendance upload.
-      </div>
-    );
-  }
-
   const completeCount = parsed?.records.filter(r => r.check_in && r.check_out).length ?? 0;
   const incompleteCount = (parsed?.records.length ?? 0) - completeCount;
   const employeeCount = new Set(parsed?.records.map(r => r.employee_code) ?? []).size;
@@ -604,8 +459,7 @@ const AttendanceUpload = () => {
   };
 
   return (
-    <div className="max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
-      {/* Step 1: Select month/year + upload */}
+    <div className="space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
       {(step === 'select' || step === 'parsing') && (
         <Card className="p-6 space-y-6">
           <div>
@@ -652,9 +506,7 @@ const AttendanceUpload = () => {
                 <>
                   <FileSpreadsheet className="h-10 w-10 text-muted-foreground mb-3" />
                   <p className="text-sm font-medium text-foreground mb-1">Choose an .xls or .xlsx file</p>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Period: {month} {year}
-                  </p>
+                  <p className="text-xs text-muted-foreground mb-4">Period: {month} {year}</p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -665,19 +517,20 @@ const AttendanceUpload = () => {
                   <Button onClick={() => fileInputRef.current?.click()}>
                     <Upload className="h-4 w-4 mr-2" /> Choose file
                   </Button>
-                  {parseError && (
-                    <p className="text-xs text-destructive mt-3 max-w-md">{parseError}</p>
-                  )}
+                  {parseError && <p className="text-xs text-destructive mt-3 max-w-md">{parseError}</p>}
                 </>
               )}
             </div>
           )}
+
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          </div>
         </Card>
       )}
 
-      {/* Step 3: Preview */}
       {step === 'preview' && parsed && (
-        <Card className="p-6 flex flex-col gap-4 h-[calc(100vh-7rem)]">
+        <Card className="p-6 flex flex-col gap-4 h-[calc(100vh-10rem)]">
           <div className="flex items-start justify-between gap-4 flex-wrap shrink-0">
             <div>
               <h2 className="text-lg font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
@@ -707,10 +560,40 @@ const AttendanceUpload = () => {
             </div>
           )}
 
-          {parsed.records.length === 0 ? (
-            <div className="text-sm text-muted-foreground py-8 text-center flex-1">
-              No records to preview.
+          {unmatchedEntries.length > 0 && (
+            <div
+              className="rounded-md p-3 shrink-0"
+              style={{
+                backgroundColor: 'rgba(245,166,35,0.10)',
+                borderLeft: '3px solid #F5A623',
+              }}
+            >
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: '#F5A623' }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground">
+                    {unmatchedEntries.length} employee code{unmatchedEntries.length === 1 ? '' : 's'} {unmatchedEntries.length === 1 ? 'was' : 'were'} not found in the system.
+                    You can choose to import or skip these records at confirmation.
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {unmatchedEntries.map(u => (
+                      <span
+                        key={u.employee_code}
+                        className="inline-flex items-center gap-1.5 text-xs rounded-full px-2 py-0.5"
+                        style={{ backgroundColor: 'rgba(245,166,35,0.15)', color: '#92400E' }}
+                      >
+                        <span className="font-mono">{u.employee_code}</span>
+                        <span className="opacity-80">{u.name ?? '—'}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
+          )}
+
+          {parsed.records.length === 0 ? (
+            <div className="text-sm text-muted-foreground py-8 text-center flex-1">No records to preview.</div>
           ) : (
             <div className="flex-1 min-h-0 overflow-y-auto border rounded-md">
               <Table>
@@ -728,37 +611,16 @@ const AttendanceUpload = () => {
                   {groupedRecords.map(group => (
                     <Fragment key={group.date}>
                       <TableRow className="border-b-0 hover:bg-transparent">
-                        <TableCell
-                          colSpan={6}
-                          className="sticky top-10 z-10 backdrop-blur-sm p-0 border-b-0"
-                        >
-                          <div
-                            className="flex items-center gap-2 h-9 pl-4 pr-4"
-                            style={{
-                              backgroundColor: 'rgba(91, 63, 248, 0.08)',
-                              borderLeft: '3px solid #5B3FF8',
-                            }}
-                          >
-                            <span
-                              style={{
-                                fontFamily: 'Syne, sans-serif',
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                color: '#5B3FF8',
-                              }}
-                            >
+                        <TableCell colSpan={6} className="sticky top-10 z-10 backdrop-blur-sm p-0 border-b-0">
+                          <div className="flex items-center gap-2 h-9 pl-4 pr-4"
+                            style={{ backgroundColor: 'rgba(91, 63, 248, 0.08)', borderLeft: '3px solid #5B3FF8' }}>
+                            <span style={{ fontFamily: 'Syne, sans-serif', fontSize: '13px', fontWeight: 600, color: '#5B3FF8' }}>
                               {formatGroupDate(group.date)}
                             </span>
-                            <span
-                              style={{
-                                backgroundColor: 'rgba(91, 63, 248, 0.12)',
-                                color: '#5B3FF8',
-                                fontSize: '11px',
-                                padding: '2px 8px',
-                                borderRadius: '9999px',
-                                lineHeight: 1.4,
-                              }}
-                            >
+                            <span style={{
+                              backgroundColor: 'rgba(91, 63, 248, 0.12)', color: '#5B3FF8',
+                              fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                            }}>
                               {group.rows.length} record{group.rows.length === 1 ? '' : 's'}
                             </span>
                           </div>
@@ -769,9 +631,8 @@ const AttendanceUpload = () => {
                         const isShort = wh != null && wh < shiftHours - 0.1;
                         const isOT = wh != null && wh > shiftHours + 0.1;
                         const otAmount = isOT && wh != null ? Math.round((wh - shiftHours) * 100) / 100 : 0;
-                        const rowStyle = isShort
-                          ? { backgroundColor: 'rgba(239, 68, 68, 0.04)' }
-                          : undefined;
+                        const isUnmatched = unmatchedCodesSet.has(r.employee_code.trim());
+                        const rowStyle = isShort ? { backgroundColor: 'rgba(239, 68, 68, 0.04)' } : undefined;
                         return (
                           <TableRow key={`${group.date}-${idx}`} style={rowStyle}>
                             <TableCell className="font-mono text-xs">{r.employee_code}</TableCell>
@@ -799,33 +660,32 @@ const AttendanceUpload = () => {
                                 <span className="text-muted-foreground">—</span>
                               ) : (
                                 <span className="inline-flex items-center gap-1.5 justify-end">
-                                  <span
-                                    style={{
-                                      fontSize: '13px',
-                                      fontWeight: 500,
-                                      color: isShort ? '#E84545' : '#120E36',
-                                    }}
-                                  >
+                                  <span style={{ fontSize: '13px', fontWeight: 500, color: isShort ? '#E84545' : '#120E36' }}>
                                     {formatWorkingHours(wh)}
                                   </span>
                                   {isOT && (
-                                    <span
-                                      style={{
-                                        backgroundColor: 'rgba(91, 63, 248, 0.15)',
-                                        color: '#5B3FF8',
-                                        fontSize: '10px',
-                                        padding: '1px 6px',
-                                        borderRadius: '9999px',
-                                        lineHeight: 1.4,
-                                      }}
-                                    >
+                                    <span style={{
+                                      backgroundColor: 'rgba(91, 63, 248, 0.15)', color: '#5B3FF8',
+                                      fontSize: '10px', padding: '1px 6px', borderRadius: '9999px', lineHeight: 1.4,
+                                    }}>
                                       +{otAmount}h OT
                                     </span>
                                   )}
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
+                            <TableCell className="text-xs">
+                              {isUnmatched ? (
+                                <span
+                                  className="inline-flex items-center text-[10px] font-medium uppercase tracking-wide rounded px-1.5 py-0.5"
+                                  style={{ backgroundColor: 'rgba(245,166,35,0.15)', color: '#92400E' }}
+                                >
+                                  unmatched
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">{r.notes ?? ''}</span>
+                              )}
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -836,73 +696,17 @@ const AttendanceUpload = () => {
             </div>
           )}
 
-          {unmatchedEntries.length > 0 && (
-            <div className="rounded-md border border-orange-200 bg-orange-50 p-4 shrink-0 max-h-[280px] overflow-y-auto">
-              <div className="flex items-center gap-2 font-medium text-sm text-orange-900 mb-1">
-                <AlertTriangle className="h-4 w-4" /> Unmatched Employee Codes
-              </div>
-              <p className="text-xs text-orange-900/80 mb-3">
-                These employee codes don't match anyone in your employee directory.
-                Choose <strong>Import Anyway</strong> to save the rows now (they can be linked
-                to an employee later) or <strong>Skip</strong> to ignore them. Default is Skip.
-              </p>
-              <div className="space-y-1.5">
-                {unmatchedEntries.map(u => (
-                  <div
-                    key={u.employee_code}
-                    className="flex items-center justify-between gap-3 rounded-md border border-orange-200 bg-white px-3 py-2"
-                  >
-                    <div className="min-w-0 flex-1 flex items-center gap-3 text-sm">
-                      <span className="font-mono text-xs text-orange-900 bg-orange-100 px-2 py-0.5 rounded">
-                        {u.employee_code}
-                      </span>
-                      <span className="truncate text-foreground">{u.name ?? '—'}</span>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {u.count} record{u.count === 1 ? '' : 's'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <Button
-                        size="sm"
-                        variant={u.decision === 'import' ? 'default' : 'outline'}
-                        className="h-7 text-xs"
-                        onClick={() => setUnmatchedEntries(prev =>
-                          prev.map(p => p.employee_code === u.employee_code
-                            ? { ...p, decision: 'import' } : p),
-                        )}
-                      >
-                        Import Anyway
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={u.decision === 'skip' ? 'default' : 'outline'}
-                        className="h-7 text-xs"
-                        onClick={() => setUnmatchedEntries(prev =>
-                          prev.map(p => p.employee_code === u.employee_code
-                            ? { ...p, decision: 'skip' } : p),
-                        )}
-                      >
-                        Skip
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="flex justify-end gap-2 pt-2 shrink-0 border-t mt-0">
             <Button variant="outline" onClick={cancelPreview}>
               <X className="h-4 w-4 mr-2" /> Cancel
             </Button>
-            <Button onClick={confirmImport} disabled={parsed.records.length === 0}>
+            <Button onClick={handleConfirmClick} disabled={parsed.records.length === 0}>
               <CheckCircle2 className="h-4 w-4 mr-2" /> Confirm Import
             </Button>
           </div>
         </Card>
       )}
 
-      {/* Step 4: Importing */}
       {step === 'importing' && (
         <Card className="p-10 flex flex-col items-center justify-center text-center">
           <Loader2 className="h-8 w-8 text-primary animate-spin mb-3" />
@@ -911,7 +715,6 @@ const AttendanceUpload = () => {
         </Card>
       )}
 
-      {/* Step 5: Done */}
       {step === 'done' && summary && (
         <Card className="p-6 space-y-4">
           <div className="flex items-center gap-3">
@@ -922,9 +725,7 @@ const AttendanceUpload = () => {
               <h2 className="text-lg font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
                 Import complete
               </h2>
-              <p className="text-sm text-muted-foreground">
-                {format(new Date(), 'PPpp')}
-              </p>
+              <p className="text-sm text-muted-foreground">{format(new Date(), 'PPpp')}</p>
             </div>
           </div>
 
@@ -952,13 +753,9 @@ const AttendanceUpload = () => {
           {summary.unmatched.length > 0 && (
             <div className="rounded-md border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">
               <div className="flex items-center gap-2 font-medium mb-1">
-                <AlertTriangle className="h-4 w-4" /> Unmatched employee codes
+                <AlertTriangle className="h-4 w-4" /> Skipped unmatched codes
               </div>
-              <p className="text-xs mb-2">
-                The following employee codes from the file were not found in your employee directory.
-                Please make sure these codes match exactly what is set on each employee profile, then re-upload.
-              </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 mt-1">
                 {summary.unmatched.map(code => (
                   <Badge key={code} variant="outline" className="font-mono text-xs">{code}</Badge>
                 ))}
@@ -967,14 +764,57 @@ const AttendanceUpload = () => {
           )}
 
           <div className="flex justify-end">
-            <Button onClick={reset}>
+            <Button onClick={onSuccess}>
               <RotateCw className="h-4 w-4 mr-2" /> Done
             </Button>
           </div>
         </Card>
       )}
+
+      {/* Unmatched confirmation dialog */}
+      <Dialog open={showUnmatchedDialog} onOpenChange={setShowUnmatchedDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Unmatched Employee Records</DialogTitle>
+            <DialogDescription>
+              {unmatchedEntries.reduce((sum, u) => sum + u.count, 0)} record{unmatchedEntries.reduce((sum, u) => sum + u.count, 0) === 1 ? '' : 's'} belong to employees not found in the system
+              (codes: {unmatchedEntries.map(u => u.employee_code).join(', ')}). What would you like to do?
+            </DialogDescription>
+          </DialogHeader>
+
+          <RadioGroup
+            value={unmatchedDecision}
+            onValueChange={(v) => setUnmatchedDecision(v as UnmatchedDecision)}
+            className="gap-3"
+          >
+            <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/40">
+              <RadioGroupItem value="import" className="mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground">Import anyway</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Records will be stored without an employee link and can be matched later.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/40">
+              <RadioGroupItem value="skip" className="mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground">Skip unmatched</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Only import records for known employees.
+                </p>
+              </div>
+            </label>
+          </RadioGroup>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUnmatchedDialog(false)}>Cancel</Button>
+            <Button onClick={() => runImport(unmatchedDecision)}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
-export default AttendanceUpload;
+export default AttendanceUploadFlow;
