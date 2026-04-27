@@ -34,6 +34,7 @@ const MandatoryPasswordChange = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<{ new?: string; confirm?: string; general?: string }>({});
   const [submitting, setSubmitting] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   // Block escape key & body scroll while modal is open
   useEffect(() => {
