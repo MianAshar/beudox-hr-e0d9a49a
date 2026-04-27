@@ -72,37 +72,42 @@ const MandatoryPasswordChange = () => {
     setSubmitting(true);
     setErrors({});
     try {
-      const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
-      if (pwError) {
-        setErrors({ general: pwError.message || 'Failed to update password' });
-        setSubmitting(false);
-        return;
-      }
-
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        setErrors({ general: 'Failed to complete setup. Please try again.' });
+        setErrors({ general: 'Session error. Please log in again.' });
         setSubmitting(false);
         return;
       }
 
-      const { error: updateError } = await supabase
+      // Step 1: Update password
+      const { error: passwordError } = await supabase.auth.updateUser({ password: newPassword });
+      if (passwordError) {
+        setErrors({ general: passwordError.message || 'Failed to update password' });
+        setSubmitting(false);
+        return;
+      }
+
+      // Step 2: Update DB flag — MUST complete before navigation
+      const { error: dbError } = await supabase
         .from('employees')
         .update({ must_change_password: false })
         .eq('auth_user_id', user.id);
 
-      if (updateError) {
-        setErrors({ general: 'Failed to complete setup. Please try again.' });
+      if (dbError) {
+        setErrors({ general: 'Password updated but setup could not complete. Please contact support.' });
         setSubmitting(false);
         return;
       }
 
-      // Dismiss modal first, then refresh auth state and navigate
+      // Step 3: Refresh JWT so the app re-reads fresh session/employee state
+      await supabase.auth.refreshSession();
+      refreshEmployee();
+
+      // Step 4: Dismiss modal and navigate
       setSubmitting(false);
       setVisible(false);
-      refreshEmployee();
-      toast.success('Password updated. Welcome to Forte HR Portal!');
       navigate('/dashboard', { replace: true });
+      toast.success('Password updated. Welcome to Forte HR Portal!');
     } catch (err: any) {
       setErrors({ general: err.message || 'Failed to update password' });
       setSubmitting(false);

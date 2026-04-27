@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const base = data[0] as Omit<EmployeeData, 'roles'>;
       const rolesList = (rolesRes.data as string[] | null) ?? [];
       setEmployee({ ...base, roles: rolesList });
-      setMustChangePassword(!!flagRes.data?.must_change_password);
+      setMustChangePassword(flagRes.data?.must_change_password === true);
     } else {
       setEmployee(null);
       setMustChangePassword(false);
