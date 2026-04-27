@@ -572,21 +572,8 @@ const AttendanceUploadFlow = ({
                 <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: '#F5A623' }} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-foreground">
-                    {unmatchedEntries.length} employee code{unmatchedEntries.length === 1 ? '' : 's'} {unmatchedEntries.length === 1 ? 'was' : 'were'} not found in the system.
-                    You can choose to import or skip these records at confirmation.
+                    {unmatchedEntries.length} employee code{unmatchedEntries.length === 1 ? '' : 's'} {unmatchedEntries.length === 1 ? 'was' : 'were'} not found in the system. You can choose to import or skip these records at confirmation.
                   </p>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {unmatchedEntries.map(u => (
-                      <span
-                        key={u.employee_code}
-                        className="inline-flex items-center gap-1.5 text-xs rounded-full px-2 py-0.5"
-                        style={{ backgroundColor: 'rgba(245,166,35,0.15)', color: '#92400E' }}
-                      >
-                        <span className="font-mono">{u.employee_code}</span>
-                        <span className="opacity-80">{u.name ?? '—'}</span>
-                      </span>
-                    ))}
-                  </div>
                 </div>
               </div>
             </div>
@@ -598,13 +585,13 @@ const AttendanceUploadFlow = ({
             <div className="flex-1 min-h-0 overflow-y-auto border rounded-md">
               <Table>
                 <TableHeader className="sticky top-0 z-20 bg-secondary">
-                  <TableRow>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Check-in</TableHead>
-                    <TableHead>Check-out</TableHead>
-                    <TableHead className="text-right">Working Hrs</TableHead>
-                    <TableHead>Notes</TableHead>
+                  <TableRow className="border-b hover:bg-secondary">
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Code</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Name</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check-in</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check-out</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">Working Hrs</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
