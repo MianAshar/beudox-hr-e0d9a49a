@@ -622,6 +622,8 @@ export type Database = {
           company_id: string
           created_at: string | null
           date_of_birth: string | null
+          deactivation_notes: string | null
+          deactivation_reason: string | null
           department: string | null
           designation: string | null
           email: string | null
@@ -650,6 +652,8 @@ export type Database = {
           company_id: string
           created_at?: string | null
           date_of_birth?: string | null
+          deactivation_notes?: string | null
+          deactivation_reason?: string | null
           department?: string | null
           designation?: string | null
           email?: string | null
@@ -678,6 +682,8 @@ export type Database = {
           company_id?: string
           created_at?: string | null
           date_of_birth?: string | null
+          deactivation_notes?: string | null
+          deactivation_reason?: string | null
           department?: string | null
           designation?: string | null
           email?: string | null
