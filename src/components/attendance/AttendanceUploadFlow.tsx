@@ -585,13 +585,13 @@ const AttendanceUploadFlow = ({
             <div className="flex-1 min-h-0 overflow-y-auto border rounded-md">
               <Table>
                 <TableHeader className="sticky top-0 z-20 bg-secondary">
-                  <TableRow>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Check-in</TableHead>
-                    <TableHead>Check-out</TableHead>
-                    <TableHead className="text-right">Working Hrs</TableHead>
-                    <TableHead>Notes</TableHead>
+                  <TableRow className="border-b hover:bg-secondary">
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Code</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Name</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check-in</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check-out</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">Working Hrs</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
