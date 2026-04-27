@@ -928,11 +928,17 @@ const AttendanceUpload = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="rounded-md border p-4">
               <p className="text-xs text-muted-foreground">Records imported</p>
               <p className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
                 {summary.imported}
+              </p>
+            </div>
+            <div className="rounded-md border p-4">
+              <p className="text-xs text-muted-foreground">Records updated</p>
+              <p className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+                {summary.updated}
               </p>
             </div>
             <div className="rounded-md border p-4">
