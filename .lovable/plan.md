@@ -1,63 +1,60 @@
+# Fix "Auth session missing!" on /set-password
 
+## Problem
 
-# Beudox HR — Sprint A0 Foundation Plan
+When a newly invited employee clicks the link in their invite email, the URL contains `?token_hash=...&type=invite` (current Supabase format). The `/set-password` page never exchanges this token for a session — it just renders the form. When the user submits, `supabase.auth.updateUser({ password })` fails with **"Auth session missing!"** because there is no active session yet.
 
-## Overview
-Build the complete foundation: design system, logo component, login screen with Supabase Auth, app shell (sidebar + topbar), empty dashboard, logout, forgot password flow, and RLS policies for the tables needed at login time.
+The legacy hash-fragment format (`#access_token=...`) is partially handled because Supabase auto-processes it, but the new query-string format requires an explicit `verifyOtp` call.
 
-## Database Changes
+## What changes
 
-### 1. RLS Policies for Authentication Flow
-Create policies on the tables queried during login/dashboard:
+### 1. `src/pages/SetPassword.tsx` — verify the token on mount
 
-- **employees**: Authenticated users can SELECT their own row (`auth_user_id = auth.uid()`)
-- **employee_roles**: Authenticated users can SELECT their own roles (`employee_id` matches their employee record)
-- **roles**: Authenticated users can SELECT roles in their company
-- **companies**: Authenticated users can SELECT their own company
+Replace the existing `useEffect` (lines 43–71) with a verification flow that:
 
-Create a `get_employee_by_auth_id` security-definer function that returns the employee row + role name for the logged-in user (avoids RLS recursion issues).
+- Parses the URL on mount, looking at both the **query string** and the **hash fragment** for: `token_hash`, `token`, `type`, `access_token`, `refresh_token`.
+- Picks the right verification path:
+  - **Format A** (current invite emails): `token_hash` + `type` in query string → `supabase.auth.verifyOtp({ token_hash, type })`.
+  - **Format B** (legacy hash fragment): `access_token` + `refresh_token` in hash → `supabase.auth.setSession({ access_token, refresh_token })`.
+  - **Format C**: bare `token` + `type` + `email` in query string → `supabase.auth.verifyOtp({ token, type, email })` (older fallback).
+  - **No params, no existing session** → redirect to `/login`.
+  - **No params but existing session** → treat as already verified (covers internal navigation).
+- Tracks one of three view states: `verifying`, `ready`, `expired`.
+- After successful verification, scrubs the sensitive token params from the URL via `history.replaceState`.
 
-### 2. Reset Password Page Route
-No DB changes needed — uses `supabase.auth.updateUser()`.
+### 2. New view states in the render tree
 
----
+- **`verifying`** — centered spinner with text **"Verifying your invite link..."**, replacing the form.
+- **`expired`** — error card with the message **"This invite link has expired or has already been used. Please ask your HR manager to send a new invite."** and a **"Go to login"** button that calls `signOut()` then navigates to `/login`.
+- **`ready`** — the existing password form (unchanged styling).
+- **`success`** — existing success card (kept).
 
-## Frontend Files to Create/Modify
+All three reuse the current page chrome (gradient background, brand panel, card) so the visual treatment stays consistent.
 
-### Design System & Global Styles
-- **`src/index.css`** — Replace entirely: import Syne + DM Sans fonts, define all `--bx-*` CSS custom variables, override shadcn CSS variables to map to Beudox tokens, set body font to DM Sans, headings to Syne
+### 3. Success behaviour
 
-### Components
-- **`src/components/BeudoxLogo.tsx`** — SVG logo component with `variant` prop (`default` | `sidebar`), renders mark + wordmark per spec
-- **`public/favicon.svg`** — Logo mark only, 32x32
+After `supabase.auth.updateUser({ password })` succeeds:
 
-### Auth
-- **`src/hooks/useAuth.tsx`** — Auth context provider: manages Supabase session via `onAuthStateChange`, fetches employee record + role on login, exposes `{ user, employee, role, company, signOut, loading }`
-- **`src/pages/Login.tsx`** — Split-panel login screen (left: form card on `#F6F5FF`, right: dark panel with dot grid pattern + taglines). Email/password form with inline validation on blur, forgot password link, Supabase `signInWithPassword`
-- **`src/pages/ForgotPassword.tsx`** — Email input, calls `resetPasswordForEmail` with redirect to `/reset-password`
-- **`src/pages/ResetPassword.tsx`** — New password form, detects `type=recovery` in URL hash, calls `updateUser({ password })`
+- Show a sonner toast: **"Password set successfully. Welcome to Beudox!"** (invite mode) or the existing reset-success messaging (recovery mode).
+- Invite → redirect to `/dashboard`.
+- Recovery → sign out, redirect to `/login` (unchanged).
 
-### App Shell
-- **`src/components/layout/AppSidebar.tsx`** — 240px/64px collapsible sidebar on `#1A1240` with: logo area, nav sections with Lucide icons (Dashboard only active for now, rest visible but placeholder), user zone at bottom with name/role/logout
-- **`src/components/layout/TopBar.tsx`** — 64px white bar with page title (Syne 700 26px), breadcrumb
-- **`src/components/layout/AppLayout.tsx`** — Wraps sidebar + topbar + content area (`#F6F5FF` bg, 24px padding, max-width 1280px). Uses SidebarProvider
+### 4. `src/hooks/useAuth.tsx` — detect the query-string format too
 
-### Dashboard
-- **`src/pages/Dashboard.tsx`** — "Welcome back, [Name]" heading (Syne 700), today's date formatted, empty state card
+Update the mount-time detection (lines 58–70) so `passwordMode` is set whether the token arrives in the **hash** or the **query string**. Stop clearing the URL there — the SetPassword page now owns that step (it needs the params to verify the token).
 
-### Routing
-- **`src/App.tsx`** — Update routes: `/` redirects to `/dashboard` if authed or `/login` if not. Add `/login`, `/forgot-password`, `/reset-password`, `/dashboard`. Protected route wrapper checks auth context
+### 5. `src/App.tsx`
 
----
+No structural changes. `SetPasswordRoute` already defaults to `'invite'` mode when none is detected, which covers direct visits and the brief moment before the URL is parsed.
 
-## Architecture Decisions
+## Files touched
 
-- Auth context wraps the entire app; checks session on mount
-- Employee data (name, role, company_id) fetched once on auth and stored in context — no repeated queries
-- Navigation items defined as a config array filtered by role (future-ready), but for now all items shown
-- Sidebar collapse state stored in local state (not persisted)
-- All pages wrapped in `AppLayout` except login/auth pages
+- `src/pages/SetPassword.tsx` — token verification, loading/expired/ready view states, success toast.
+- `src/hooks/useAuth.tsx` — also detect `type=invite` / `type=recovery` in the query string; stop clearing the URL prematurely.
 
-## File Count
-~12 new files, ~3 modified files. No mock data. No features beyond what's listed.
+## What stays the same
 
+- Page layout, branding, gradient, strength meter, password validation rules.
+- Recovery flow (sign-out + redirect to login).
+- `App.tsx` routing.
+- The `delete-employee` and `invite-employee` Edge Functions (already fixed in the previous turn).

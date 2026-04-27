@@ -55,17 +55,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const clearPasswordMode = () => setPasswordMode(null);
 
-  // Check URL hash on mount for invite/recovery tokens
+  // Detect invite/recovery tokens from either the URL hash (legacy format)
+  // or query string (current Supabase invite emails). The actual token
+  // verification happens inside the SetPassword page — here we only set the
+  // mode flag so ProtectedRoute renders the right screen. Do NOT clear the
+  // URL yet — SetPassword still needs the params to verify the token.
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash) {
-      if (hash.includes('type=invite')) {
-        setPasswordMode('invite');
-        window.history.replaceState({}, '', '/set-password');
-      } else if (hash.includes('type=recovery')) {
-        setPasswordMode('recovery');
-        window.history.replaceState({}, '', '/set-password');
-      }
+    const search = window.location.search;
+
+    if (hash.includes('type=invite') || search.includes('type=invite')) {
+      setPasswordMode('invite');
+    } else if (hash.includes('type=recovery') || search.includes('type=recovery')) {
+      setPasswordMode('recovery');
     }
   }, []);
 
