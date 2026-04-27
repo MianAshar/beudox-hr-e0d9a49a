@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: 46101e07edf7db322bf7c596eea3db0981159d6b
-generated_at: 2026-04-23T23:09:17.409Z
+source_sha: 032d6bb634e9897711dc75712a837fea6fe47713
+generated_at: 2026-04-27T09:41:22.591Z
 action: create
 -->
 
@@ -9,192 +9,127 @@ action: create
 
 ## Architecture Overview
 
-Beudox HR is a modern React-based HR management system built with TypeScript, using Supabase as the backend. The application follows a component-driven architecture with clear separation of concerns.
+Beudox HR is a modern React-based Single Page Application (SPA) built with TypeScript, using Vite as the build tool. It follows a component-driven architecture with clear separation of concerns.
 
-### Technology Stack
-- **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS with custom design tokens
-- **UI Components**: shadcn/ui (Radix UI primitives)
-- **Routing**: React Router v6
-- **State Management**: TanStack Query for server state
-- **Backend**: Supabase (PostgreSQL + Auth + Edge Functions)
-- **Build Tool**: Vite with SWC
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript for type safety
+- **Routing**: React Router DOM with protected routes and role-based access control
+- **State Management**: 
+  - React Query (@tanstack/react-query) for server state management
+  - React Context for authentication state
+  - Local component state with React hooks
+- **Styling**: Tailwind CSS with CSS custom properties for theming
+- **UI Components**: shadcn/ui built on Radix UI primitives
+- **Forms**: React Hook Form with Zod schema validation
 
-## Key Architectural Decisions
+### Backend Integration
+- **Database**: Supabase (PostgreSQL with real-time capabilities)
+- **Authentication**: Supabase Auth with email/password and magic links
+- **API**: Direct Supabase client usage with Row Level Security (RLS)
+- **File Storage**: Supabase Storage for documents and assets
+- **Real-time**: Supabase real-time subscriptions for live updates
 
-### Component Architecture
-- Uses shadcn/ui for consistent, accessible UI components
-- Custom design system with "bx" color palette and typography (Outfit/DM Sans)
-- Component composition over inheritance
-- TypeScript interfaces for all component props
+## Key Architectural Patterns
+
+### Component Organization
+- **Pages**: Route-level components in `src/pages/`
+- **Components**: Reusable UI components in `src/components/`
+  - `ui/` - Base UI primitives (buttons, inputs, etc.)
+  - Feature-specific folders (employee-profile/, settings/, etc.)
+- **Hooks**: Custom hooks in `src/hooks/` for shared logic
+- **Lib**: Utility functions in `src/lib/` (formatters, API helpers, etc.)
 
 ### Data Flow
-- TanStack Query for declarative data fetching
-- Supabase client for database operations
-- Real-time subscriptions for live updates
-- Optimistic updates for better UX
+1. **Authentication**: AuthProvider manages session state
+2. **API Calls**: React Query handles data fetching with caching
+3. **Form Submission**: React Hook Form manages form state and validation
+4. **Real-time Updates**: Supabase subscriptions for live data
 
-### Authentication & Security
-- Supabase Auth with JWT tokens
-- Role-based access control (RBAC)
-- Route protection with ProtectedRoute component
-- Password reset and invite flows
-
-### Database Schema
-- PostgreSQL with Supabase
-- Row Level Security (RLS) policies
-- Real-time enabled tables
-- Foreign key relationships for data integrity
+### Role-Based Access Control
+- **Route Protection**: ProtectedRoute component checks permissions
+- **Component-Level**: canAccess utility function for granular control
+- **Roles**: Configurable in database with permission mappings
 
 ## Key Files and Their Purposes
 
 ### Core Application Files
 - `src/main.tsx` - Application entry point, renders App component
-- `src/App.tsx` - Main application component with routing and providers
-- `src/index.css` - Global styles and CSS variables
+- `src/App.tsx` - Main application component with routing setup
+- `src/components/layout/AppLayout.tsx` - Main layout wrapper with sidebar and header
 
 ### Authentication & Authorization
 - `src/hooks/useAuth.tsx` - Authentication state management
-- `src/lib/role-access.ts` - Role-based permission checking
-- `src/components/layout/AppLayout.tsx` - Main layout with navigation
+- `src/lib/role-access.ts` - Permission checking utilities
+- `src/pages/Login.tsx` - Login page component
 
 ### Data Layer
 - `src/integrations/supabase/client.ts` - Supabase client configuration
-- `src/integrations/supabase/types.ts` - Generated TypeScript types
-- `src/hooks/` - Custom hooks for data operations
+- `src/integrations/supabase/types.ts` - Database type definitions
+- `supabase/migrations/` - Database schema migrations
 
-### UI Components
-- `src/components/ui/` - shadcn/ui component library
-- `src/components/layout/` - Layout-specific components
-- `src/components/employee-profile/` - Employee management components
-- `src/components/leave/` - Leave management components
-- `src/components/payroll/` - Payroll components
-
-### Business Logic
-- `src/lib/utils.ts` - Utility functions (cn for class merging)
-- `src/lib/format-date.ts` - Date formatting utilities
-- `src/lib/role-access.ts` - Permission utilities
-- `src/lib/leave-utils.ts` - Leave calculation logic
-- `src/lib/review-schedule.ts` - Performance review scheduling
-
-### Configuration
-- `vite.config.ts` - Vite configuration with React plugin
-- `tailwind.config.ts` - Tailwind with custom theme
-- `tsconfig.json` - TypeScript configuration
-- `package.json` - Dependencies and scripts
+### Business Logic Components
+- `src/components/employee-profile/AttendanceTab.tsx` - Attendance records display
+- `src/components/employee-profile/PayrollTab.tsx` - Payroll information display
+- `src/components/employee-profile/LeaveTab.tsx` - Leave balance and requests
+- `src/components/settings/CompanyTab.tsx` - Company settings management
 
 ## Database Schema Highlights
 
-### Core Entities
-- **employees** - Employee records with profile information
-- **attendance_records** - Daily attendance data
-- **leave_requests** - Leave applications and approvals
-- **payroll_records** - Salary and payroll data
-- **projects** - Project management
-- **evaluations** - Performance reviews
+### Core Tables
+- **employees**: Employee master data
+- **attendance_records**: Daily attendance entries
+- **leave_requests**: Leave applications and approvals
+- **payroll_records**: Payroll processing data
+- **projects**: Project management
+- **evaluations**: Performance reviews
 
 ### Relationships
 - Employees belong to departments and have roles
-- Attendance records link to employees
-- Leave requests reference employees and leave types
-- Projects have team members and tasks
-- Evaluations are scheduled for employees
+- Attendance records link to employees with date-based entries
+- Leave requests have approval workflows
+- Projects have team assignments and tasks
 
-## Common Patterns
+## Common Patterns and Conventions
 
-### Component Structure
-```typescript
-interface ComponentProps {
-  // Props with TypeScript interfaces
-}
-
-const Component = ({ prop }: ComponentProps) => {
-  // Component logic
-  return <div>Content</div>;
-};
-
-export default Component;
-```
+### Component Props
+- Use TypeScript interfaces for component props
+- Optional props with default values
+- Consistent naming (e.g., `onValueChange`, `isLoading`)
 
 ### Data Fetching
-```typescript
-const { data, isLoading, error } = useQuery({
-  queryKey: ['entity', id],
-  queryFn: () => supabase.from('table').select('*').eq('id', id),
-});
-```
-
-### Form Handling
-- React Hook Form with Zod validation
-- shadcn/ui form components
-- Type-safe form schemas
+- React Query for all API calls
+- Query keys follow hierarchical structure: `['entity', 'id', 'sub-entity']`
+- Error handling with toast notifications
 
 ### Styling
 - Tailwind utility classes
-- CSS variables for theming
-- Custom "bx" color palette
-- Responsive design with Tailwind breakpoints
+- CSS custom properties for theme variables
+- Consistent spacing and typography scales
+
+### File Naming
+- PascalCase for components
+- camelCase for utilities and hooks
+- kebab-case for CSS classes and data attributes
 
 ## Development Workflow
 
-### Local Development
-- `npm run dev` starts Vite dev server on port 8080
-- Hot module replacement enabled
-- Component tagging in development mode
+1. **Local Development**: `npm run dev` starts Vite dev server
+2. **Testing**: Vitest for unit tests, Playwright for E2E
+3. **Linting**: ESLint with TypeScript rules
+4. **Building**: Vite production build with optimization
+5. **Database**: Supabase CLI for migrations and local development
 
-### Build Process
-- Vite optimizes for production
-- SWC for fast TypeScript compilation
-- Asset optimization and code splitting
+## Performance Considerations
 
-### Testing
-- Vitest for unit tests
-- Playwright for E2E tests
-- Component testing with React Testing Library
+- **Code Splitting**: Vite handles automatic code splitting
+- **Image Optimization**: Lazy loading and responsive images
+- **Caching**: React Query caches API responses
+- **Bundle Size**: Tree shaking and dynamic imports
 
-## Deployment Considerations
+## Security Measures
 
-- Static site deployment (Vite build output)
-- Supabase handles backend and database
-- Environment variables for configuration
-- CDN for asset delivery
-
-## Security Considerations
-
-- Row Level Security on all database tables
-- JWT token validation
-- Input validation with Zod schemas
-- XSS protection via React's built-in escaping
-- CSRF protection via SameSite cookies
-
-## Performance Optimizations
-
-- Code splitting with dynamic imports
-- Image optimization with lazy loading
-- Query caching with TanStack Query
-- Virtual scrolling for large lists
-- Debounced search inputs
-
-## Accessibility
-
-- Radix UI primitives for ARIA compliance
-- Keyboard navigation support
-- Screen reader friendly
-- High contrast color schemes
-- Focus management
-
-## Internationalization Ready
-
-- Date formatting with date-fns
-- Number formatting utilities
-- Extensible for i18n libraries
-- RTL layout support possible
-
-## Monitoring & Debugging
-
-- React Query DevTools in development
-- Supabase dashboard for database monitoring
-- Error boundaries for graceful error handling
-- Logging utilities for debugging
-
-This technical context should help AI assistants understand the codebase structure, patterns, and conventions used in Beudox HR.
+- **Authentication**: Supabase handles secure authentication
+- **Authorization**: Row Level Security (RLS) policies
+- **Input Validation**: Zod schemas for all form inputs
+- **XSS Protection**: React's built-in XSS prevention
+- **CSRF**: Supabase handles CSRF protection
