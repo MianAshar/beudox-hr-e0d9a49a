@@ -167,6 +167,7 @@ const AttendanceUpload = () => {
   const parsedRef = useRef<ParseResponse | null>(null);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [shiftHours, setShiftHours] = useState<number>(8);
+  const [unmatchedEntries, setUnmatchedEntries] = useState<UnmatchedEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Helper: keep state and ref in lock-step so the preview persists
