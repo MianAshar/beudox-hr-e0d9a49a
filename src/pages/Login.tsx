@@ -194,7 +194,23 @@ const Login = () => {
         {/* Divider */}
         <div style={{ height: 1, background: 'rgba(91,63,248,0.10)', margin: '24px 0' }} />
 
-        {errors.general && (
+        {deactivatedMessage && (
+          <div
+            className="mb-5 flex items-start gap-2.5 rounded-lg px-4 py-3 text-sm"
+            style={{
+              background: '#FEF3C7',
+              border: '1px solid #F5A623',
+              color: '#92400E',
+              fontFamily: 'var(--ff-body)',
+            }}
+            role="alert"
+          >
+            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: '#92400E' }} />
+            <span>{deactivatedMessage}</span>
+          </div>
+        )}
+
+        {errors.general && !deactivatedMessage && (
           <div className="mb-5 rounded-lg border border-destructive/20 bg-[hsl(var(--bx-danger-bg))] px-4 py-3 text-sm text-[hsl(var(--bx-danger-text))]">
             {errors.general}
           </div>
