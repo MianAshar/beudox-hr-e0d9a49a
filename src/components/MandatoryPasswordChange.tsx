@@ -113,6 +113,8 @@ const MandatoryPasswordChange = () => {
   const companyName = employee?.company_name || 'Forte';
   const companyLogo = employee?.company_logo_url;
 
+  if (!visible) return null;
+
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
