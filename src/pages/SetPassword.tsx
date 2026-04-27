@@ -48,6 +48,8 @@ const SetPassword = () => {
   const [view, setView] = useState<View>('verifying');
   const [company, setCompany] = useState<{ name: string; logo_url: string | null } | null>(null);
 
+  const tokenRef = useRef(CAPTURED_TOKENS);
+
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [showPw, setShowPw] = useState(false);
