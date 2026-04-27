@@ -120,23 +120,29 @@ const EmployeeProfile = () => {
     }
   };
 
-  const handleDeactivateReactivate = async () => {
+  const handleDeactivateReactivate = async (opts?: { reason?: string; notes?: string }) => {
     if (!emp?.id) return;
     const isInactive = emp.status === 'inactive';
     setDeactivating(true);
     try {
-      const newStatus = isInactive ? 'active' : 'inactive';
-      const { error: updateError } = await supabase
-        .from('employees')
-        .update({ status: newStatus })
-        .eq('id', emp.id);
-      if (updateError) throw updateError;
       const { error: fnError } = await supabase.functions.invoke('deactivate-employee', {
-        body: { employee_id: emp.id, reactivate: isInactive },
+        body: {
+          employee_id: emp.id,
+          reactivate: isInactive,
+          reason: opts?.reason ?? null,
+          notes: opts?.notes ?? null,
+        },
       });
       if (fnError) throw fnError;
-      toast.success(`${emp.full_name} has been ${isInactive ? 'reactivated' : 'deactivated'}`);
+      toast.success(
+        isInactive
+          ? `${emp.full_name} has been reactivated.`
+          : `${emp.full_name} has been deactivated.`
+      );
       queryClient.invalidateQueries({ queryKey: ['employee-profile', id] });
+      setDeactivateDialogOpen(false);
+      setDeactivationReason('');
+      setDeactivationNotes('');
     } catch (err: any) {
       toast.error(err.message || `Failed to ${isInactive ? 'reactivate' : 'deactivate'} employee`);
     } finally {
@@ -152,14 +158,15 @@ const EmployeeProfile = () => {
         body: { employee_id: emp.id },
       });
       if (error) throw error;
-      toast.success(`${emp.full_name} has been permanently deleted`);
+      toast.success('Employee permanently deleted.');
       navigate('/employees');
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete employee');
     } finally {
       setDeleting(false);
       setDeleteDialogOpen(false);
-      setDeleteConfirmName('');
+      setDeleteConfirmText('');
+      setDeleteStep(1);
     }
   };
 
