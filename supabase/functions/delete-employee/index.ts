@@ -137,6 +137,21 @@ Deno.serve(async (req) => {
         .in("loan_id", loanIds);
     }
 
+    // Delete leave_balance_history rows tied to this employee's leave_balances
+    // BEFORE deleting leave_balances themselves.
+    const { data: balances } = await adminClient
+      .from("leave_balances")
+      .select("id")
+      .eq("employee_id", employeeId);
+
+    if (balances && balances.length > 0) {
+      const balanceIds = balances.map((b) => b.id);
+      await adminClient
+        .from("leave_balance_history")
+        .delete()
+        .in("leave_balance_id", balanceIds);
+    }
+
     // Direct deletes
     const directDeletes: { table: string; column: string }[] = [
       { table: "employee_roles", column: "employee_id" },
@@ -149,7 +164,7 @@ Deno.serve(async (req) => {
       { table: "project_assignments", column: "employee_id" },
       { table: "loans", column: "employee_id" },
       { table: "salary_history", column: "employee_id" },
-      { table: "leave_balance_history", column: "adjusted_by" },
+      { table: "login_logs", column: "employee_id" },
       { table: "notifications", column: "recipient_id" },
     ];
 
