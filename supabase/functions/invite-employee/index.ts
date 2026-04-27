@@ -70,32 +70,76 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Single call: creates auth user AND sends invite email via Supabase's
-    // configured SMTP (Resend). The link redirects to our /set-password route.
+    const redirectTo = 'https://beudox-hr.lovable.app/set-password';
+
+    // Try inviting the user. If they already exist, fall back to a password
+    // recovery link so they can still set their password and gain access.
     const { data: inviteData, error: inviteError } =
-      await adminClient.auth.admin.inviteUserByEmail(email, {
-        redirectTo: 'https://beudox-hr.lovable.app/set-password',
-      });
+      await adminClient.auth.admin.inviteUserByEmail(email, { redirectTo });
+
+    let authUserId: string | undefined = inviteData?.user?.id;
+    let message = `Invite sent to ${email}`;
 
     if (inviteError) {
-      console.error('inviteUserByEmail error:', inviteError);
-      return new Response(
-        JSON.stringify({ error: inviteError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      const alreadyExists =
+        (inviteError as { code?: string }).code === 'email_exists' ||
+        /already been registered/i.test(inviteError.message);
+
+      if (!alreadyExists) {
+        console.error('inviteUserByEmail error:', inviteError);
+        return new Response(
+          JSON.stringify({ error: inviteError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // User already exists in auth — find them and send a recovery link instead.
+      console.log('User already exists, sending recovery link instead.');
+
+      // Find the existing auth user id by paging through users
+      let foundId: string | undefined;
+      let page = 1;
+      while (!foundId && page <= 20) {
+        const { data: list, error: listErr } =
+          await adminClient.auth.admin.listUsers({ page, perPage: 200 });
+        if (listErr) {
+          console.error('listUsers error:', listErr);
+          break;
+        }
+        foundId = list?.users.find(
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
+        )?.id;
+        if (!list || list.users.length < 200) break;
+        page += 1;
+      }
+      authUserId = foundId;
+
+      const { error: linkErr } = await adminClient.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: { redirectTo },
+      });
+      if (linkErr) {
+        console.error('generateLink (recovery) error:', linkErr);
+        return new Response(
+          JSON.stringify({ error: linkErr.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      message = `${email} already had an account — a password reset link was sent instead.`;
     }
 
-    // Link the new auth user to the employee record
-    if (inviteData?.user?.id) {
+    // Link the auth user to the employee record (covers both new and existing users)
+    if (authUserId) {
       await adminClient
         .from('employees')
-        .update({ auth_user_id: inviteData.user.id })
+        .update({ auth_user_id: authUserId })
         .eq('id', employee_id);
       console.log('Linked auth_user_id to employee:', employee_id);
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: `Invite sent to ${email}` }),
+      JSON.stringify({ success: true, message }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
