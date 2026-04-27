@@ -1,127 +1,149 @@
 <!--
 generated_by: tessera
-source_sha: 67591e8333a4b6f04ebb4ea01e67b436a5bfd499
-generated_at: 2026-04-27T10:07:11.644Z
+source_sha: 6de9f53b095a7eb1412b4e47f3213ed1d5192eeb
+generated_at: 2026-04-27T10:11:52.423Z
 action: update
 -->
 
-# Beudox HR Management System
+# Beudox HR
 
-A comprehensive Human Resources management application built with React, TypeScript, and Supabase. Streamlines employee management, attendance tracking, leave requests, payroll processing, and organizational workflows.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, attendance tracking, payroll processing, leave management, project coordination, and organizational workflows.
 
 ## Features
 
-- **Employee Management**: Complete employee profiles with personal information, job details, and organizational hierarchy
-- **Attendance Tracking**: Automated attendance recording with check-in/out times, overtime calculation, and monthly summaries
-- **Leave Management**: Request and approve leave with balance tracking and policy enforcement
-- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and deductions
-- **Performance Reviews**: Scheduled evaluations with increment proposals and salary reviews
-- **Project Management**: Team assignments, task tracking, and project activity logging
-- **Finance & Expenses**: Expense tracking and invoice generation
-- **HR Policies**: Rich text policy documents and organizational guidelines
-- **Settings Management**: Company configuration, departments, roles, and system parameters
+### Core HR Functionality
+- **Employee Management**: Complete employee profiles with personal details, roles, and organizational hierarchy
+- **Attendance Tracking**: Automated attendance recording with check-in/out times, overtime calculation, and reporting
+- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.)
+- **Payroll Processing**: Automated payroll generation with salary calculations, deductions, and payslip generation
+- **Performance Evaluations**: Regular and daily performance reviews with customizable evaluation parameters
+
+### Project & Client Management
+- **Project Management**: Create and manage projects with team assignments, task tracking, and progress monitoring
+- **Client Relations**: Maintain client information and project associations
+- **Invoice Management**: Generate and manage project invoices with PDF export
+
+### Organizational Tools
+- **HR Policies**: Create and manage company policies with rich text editing
+- **Job Descriptions**: Define roles and responsibilities with detailed job specifications
+- **Public Holidays**: Configure and manage company holiday schedules
+- **Loan Management**: Track employee loans and repayment schedules
+- **Finance Overview**: Comprehensive financial reporting and analytics
+
+### Administrative Features
+- **Role-Based Access Control**: Granular permissions system for different user roles
+- **Settings Management**: Configure company settings, departments, roles, and system parameters
+- **Notification System**: Automated notifications for important HR events
+- **Document Storage**: Secure document management for employee files (coming soon)
 
 ## Technology Stack
 
-- **Frontend**: React 18, TypeScript, Vite
-- **UI Framework**: Tailwind CSS, shadcn/ui components
-- **Routing**: React Router
-- **State Management**: React Query for server state, Zustand for local state
-- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **Build Tools**: Vite, ESLint, TypeScript
-- **Testing**: Vitest, Playwright for E2E testing
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Routing**: React Router DOM
+- **State Management**: TanStack Query (React Query)
+- **UI Components**: Radix UI primitives with shadcn/ui
+- **Styling**: Tailwind CSS
+- **Backend**: Supabase (PostgreSQL database with real-time features)
+- **Authentication**: Supabase Auth
+- **Charts**: Recharts
+- **Forms**: React Hook Form with Zod validation
+- **Rich Text**: Tiptap
+- **Testing**: Vitest with React Testing Library
+- **E2E Testing**: Playwright
 
-## Prerequisites
+## Getting Started
+
+### Prerequisites
 
 - Node.js 18+
 - npm or bun package manager
-- Supabase account and project
 
-## Installation
+### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
-   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
-   cd beudox-hr-e0d9a49a
+   git clone <repository-url>
+   cd beudox-hr
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. **Environment Setup**
+3. Set up environment variables:
    
-   Copy the `.env` file and configure your Supabase credentials:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables in `.env.local`:
+   Copy `.env` and configure your Supabase credentials:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
+   VITE_SUPABASE_URL=your-supabase-url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
    ```
 
-4. **Database Setup**
-   
-   The application uses Supabase migrations. Run the migrations in your Supabase project:
-   ```bash
-   # The migrations are located in supabase/migrations/
-   # Apply them through the Supabase dashboard or CLI
-   ```
-
-5. **Start the development server**
+4. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
 
-   The application will be available at `http://localhost:5173`
+5. Open [http://localhost:5173](http://localhost:5173) in your browser
 
-## Available Scripts
+### Build for Production
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run unit tests
-- `npm run test:e2e` - Run end-to-end tests
-- `npm run lint` - Run ESLint
+```bash
+npm run build
+```
+
+### Run Tests
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npx playwright test
+```
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
-│   ├── layout/         # App layout components
-│   ├── employee-profile/  # Employee detail components
-│   ├── leave/          # Leave management components
-│   ├── payroll/        # Payroll components
+│   ├── ui/             # shadcn/ui components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── employee-profile/  # Employee profile tabs
+│   ├── settings/       # Settings page components
 │   └── ...
-├── pages/              # Page components
-├── lib/                # Utility functions and configurations
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
-├── integrations/       # External service integrations
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations (Supabase)
 └── types/              # TypeScript type definitions
-
-supabase/
-├── migrations/         # Database schema migrations
-└── functions/          # Edge functions
 ```
+
+## Database Schema
+
+The application uses Supabase with a comprehensive PostgreSQL schema including:
+- Employee management tables
+- Attendance and time tracking
+- Payroll and compensation
+- Project and task management
+- Leave and holiday management
+- Evaluation and performance data
+- Document storage
+
+Database migrations are located in `supabase/migrations/`.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Follow the existing code style and conventions
+2. Write tests for new features
+3. Update documentation as needed
+4. Ensure all tests pass before submitting PRs
 
 ## License
 
-This project is private and proprietary to Beudox.
+This project is proprietary software. All rights reserved.
