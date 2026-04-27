@@ -1,10 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, Loader2, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 type View = 'verifying' | 'ready' | 'expired';
+
+// Capture hash synchronously at module load — before React renders or clears it
+const _initialHash = typeof window !== 'undefined' ? window.location.hash.substring(1) : '';
+const _initialHashParams = new URLSearchParams(_initialHash);
+const _initialSearchParams = typeof window !== 'undefined'
+  ? new URLSearchParams(window.location.search)
+  : new URLSearchParams();
+const CAPTURED_TOKENS = {
+  accessToken: _initialHashParams.get('access_token'),
+  refreshToken: _initialHashParams.get('refresh_token'),
+  error: _initialHashParams.get('error'),
+  errorCode: _initialHashParams.get('error_code'),
+  tokenHash: _initialSearchParams.get('token_hash'),
+  type: _initialSearchParams.get('type'),
+};
+// Clear the hash immediately so re-reads return nothing
+if (typeof window !== 'undefined' && (_initialHash || window.location.search)) {
+  window.history.replaceState(null, '', window.location.pathname);
+}
 
 const getStrength = (pw: string): { score: number; label: string; color: string } => {
   let score = 0;
