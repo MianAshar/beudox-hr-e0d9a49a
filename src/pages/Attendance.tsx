@@ -137,6 +137,44 @@ const Attendance = () => {
     return format(d, 'EEEE, dd MMM yyyy');
   };
 
+  // TODO: Remove before production
+  const handleClearMonth = async () => {
+    if (!employee?.company_id) return;
+    setClearing(true);
+    try {
+      const monthIndex = MONTHS.indexOf(month);
+      const mm = String(monthIndex + 1).padStart(2, '0');
+      const startDate = `${year}-${mm}-01`;
+      const endDateObj = new Date(parseInt(year, 10), monthIndex + 1, 0);
+      const endDate = `${year}-${mm}-${String(endDateObj.getDate()).padStart(2, '0')}`;
+      const monthYear = `${year}-${mm}`;
+
+      const { error: recErr } = await supabase
+        .from('attendance_records')
+        .delete()
+        .eq('company_id', employee.company_id)
+        .gte('date', startDate)
+        .lte('date', endDate);
+      if (recErr) throw recErr;
+
+      const { error: impErr } = await supabase
+        .from('attendance_imports')
+        .delete()
+        .eq('company_id', employee.company_id)
+        .eq('month_year', monthYear);
+      if (impErr) throw impErr;
+
+      toast.success(`Attendance data cleared for ${month} ${year}`);
+      setClearOpen(false);
+      await fetchRecords();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message ?? 'Failed to clear attendance data');
+    } finally {
+      setClearing(false);
+    }
+  };
+
   return (
     <div className="max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
       <div className="flex items-center justify-between gap-4 flex-wrap">
