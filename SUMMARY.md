@@ -1,91 +1,115 @@
 <!--
 generated_by: tessera
-source_sha: 8b43983087baf01c7a020f61a68274eaa48f5634
-generated_at: 2026-04-27T23:25:20.637Z
+source_sha: ee620c4cb89bbae5b73469faa38110b90495fae1
+generated_at: 2026-04-27T23:33:58.166Z
 action: create
 -->
 
 # Beudox HR Portal - Analysis Summary
 
-## Repository Overview
+## What I Discovered
 
-This is a comprehensive Human Resources management system built as a modern React/TypeScript frontend application. The codebase contains 224 files totaling ~2MB, with TypeScript being the primary language (166 files). The application integrates with Supabase for backend services and database management.
+This repository contains a comprehensive Human Resources Management System called "Beudox HR Portal" (also referred to as "Forte HR Portal" in some components). It's a modern, full-featured web application built with React and TypeScript that provides complete HR functionality for managing employees, attendance, payroll, and organizational operations.
 
-## Key Findings
+## Key Architectural Insights
 
-### Application Purpose
-The Beudox HR Portal is a full-featured HR management system designed to handle:
-- Employee lifecycle management
-- Attendance tracking and reporting
-- Leave request processing
-- Payroll calculation and management
-- Project team assignments
-- Company-wide settings and policies
+### Technology Stack
+- **Frontend**: React 18 + TypeScript + Vite for fast development and building
+- **Backend**: Supabase (PostgreSQL database + Authentication + Edge Functions)
+- **UI Framework**: shadcn/ui components built on Radix UI primitives
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: React Query for server state, Context for auth
+- **Forms**: React Hook Form with Zod validation
+- **Routing**: React Router with protected routes and role-based access
 
-### Architecture Insights
+### Application Structure
+The codebase is well-organized with clear separation of concerns:
+- **Components**: Reusable UI components in `src/components/ui/`, feature-specific components by domain
+- **Pages**: Route-based page components in `src/pages/`
+- **Hooks**: Custom React hooks for business logic
+- **Lib**: Utility functions and business logic
+- **Integrations**: External service configurations
 
-**Frontend Architecture:**
-- Component-based React application with TypeScript
-- Feature-organized component structure (attendance/, payroll/, settings/, etc.)
-- Custom UI component library built on shadcn/ui foundation
-- Responsive design with Tailwind CSS
+### Core Features Identified
+1. **Employee Management**: Complete CRUD operations with detailed profiles
+2. **Attendance Tracking**: Excel import with AI parsing, time calculations, overtime
+3. **Leave Management**: Request/approval system with balance tracking
+4. **Payroll Processing**: Complex salary calculations with PDF generation
+5. **Performance Evaluations**: Regular and daily evaluation systems
+6. **Project Management**: Team assignments and progress tracking
+7. **Financial Management**: Invoicing, client management
+8. **HR Administration**: Policies, job descriptions, company settings
 
-**Backend Integration:**
-- Supabase as the primary backend service
-- PostgreSQL database with extensive schema (33 migration files)
-- Edge functions for serverless processing
-- Real-time subscriptions for live updates
+## Important Files and Their Roles
 
-**Key Components Identified:**
-- `AttendanceUploadFlow`: Complex file upload with AI-powered Excel parsing
-- `MandatoryPasswordChange`: Secure password reset workflow
-- `SearchableEmployeeSelect`: Advanced employee selection with search
-- `AppLayout`: Main application shell with sidebar navigation
+### Application Entry Points
+- `src/main.tsx`: Renders the React app
+- `src/App.tsx`: Main app component with routing and providers
 
-### Technical Stack
-- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS
-- **Backend:** Supabase (Database + Auth + Edge Functions)
-- **Testing:** Vitest for unit tests, Playwright for E2E
-- **Build:** Vite with optimized production builds
+### Key Business Components
+- `AttendanceUploadFlow.tsx`: Complex multi-step attendance import wizard
+- `MandatoryPasswordChange.tsx`: First-login password change modal
+- `SearchableEmployeeSelect.tsx`: Reusable employee selection component
+- `BeudoxLogo.tsx`: Logo component with variant support
 
-### Database Schema
-The application manages complex HR data relationships including:
-- Employee profiles and authentication
-- Attendance records with overtime calculations
-- Leave balances and request workflows
-- Payroll structures and salary history
+### Layout System
+- `AppLayout.tsx`: Main application shell with sidebar
+- `AppSidebar.tsx`: Navigation menu
+- `TopBar.tsx`: Top navigation with user menu
+
+### Authentication Flow
+- Role-based routing protection
+- Mandatory password change on first login
+- JWT-based auth with Supabase
+
+## Business Logic Highlights
+
+### Attendance Processing
+The attendance upload system is particularly sophisticated:
+- Excel file parsing using SheetJS library
+- AI-powered data normalization via Supabase Edge Function
+- Automatic calculation of working hours, overtime, and penalties
+- Handling of unmatched employee codes
+- Batch processing with progress tracking
+
+### Access Control
+- Hierarchical role system with granular permissions
+- Route-level protection
+- Component-level access restrictions
+
+### Data Relationships
+- Complex relationships between employees, departments, roles
+- Attendance data linked to payroll calculations
+- Leave balances and approval workflows
 - Project assignments and team management
-- Company settings and organizational structure
 
-### Security & Access Control
-- Role-based access control system
-- Supabase Row Level Security (RLS)
-- JWT-based authentication
-- Secure file upload handling
+## Technical Implementation Notes
 
-## Architectural Strengths
+### State Management Strategy
+- React Query for API state and caching
+- Context API for authentication state
+- Local state for UI interactions
+- Optimistic updates where appropriate
 
-1. **Modular Component Design**: Well-organized component hierarchy with clear separation of concerns
-2. **Type Safety**: Comprehensive TypeScript usage throughout the codebase
-3. **Scalable Architecture**: Feature-based organization supports team development
-4. **Modern Tooling**: Up-to-date build tools and development practices
-5. **Real-time Capabilities**: Live updates via Supabase subscriptions
+### UI/UX Approach
+- Consistent design system using shadcn/ui
+- Accessible components with Radix UI
+- Toast notifications for user feedback
+- Loading states and error handling
 
-## Notable Implementation Details
+### Development Experience
+- TypeScript for type safety
+- ESLint for code quality
+- Vitest for unit testing
+- Playwright for E2E testing
+- Hot reload development with Vite
 
-- **AI-Powered Data Processing**: Attendance upload uses AI parsing for Excel files
-- **Complex Business Logic**: Sophisticated leave calculations, overtime rules, and payroll processing
-- **Responsive UI**: Mobile-friendly design with adaptive layouts
-- **Accessibility**: Proper ARIA labels and keyboard navigation support
-- **Performance**: Optimized bundle sizes and lazy loading
+## Repository Statistics
+- **Total Files**: 225
+- **Primary Language**: TypeScript (166 files)
+- **Database Migrations**: 34 SQL files indicating complex schema
+- **UI Components**: Extensive component library (70+ UI components)
+- **Public Interfaces**: 68+ React components
+- **Test Coverage**: Basic test setup with Vitest
 
-## Development Readiness
-
-The codebase appears production-ready with:
-- Comprehensive component library
-- Robust error handling
-- Testing infrastructure
-- Build optimization
-- Security best practices
-
-This analysis provides a foundation for understanding the system's architecture and can guide future development and maintenance efforts.
+This is a production-ready, enterprise-grade HR management system with sophisticated features and clean, maintainable code architecture.
