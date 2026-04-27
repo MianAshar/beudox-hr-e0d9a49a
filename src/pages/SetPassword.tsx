@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import BeudoxLogo from '@/components/BeudoxLogo';
-import { Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface SetPasswordProps {
   mode: 'invite' | 'recovery';
@@ -25,6 +26,8 @@ const getStrength = (pw: string): { label: string; percent: number; color: strin
   return { label: 'Very strong', percent: 100, color: '#16A34A' };
 };
 
+type ViewState = 'verifying' | 'ready' | 'expired';
+
 const SetPassword = ({ mode, onComplete }: SetPasswordProps) => {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
@@ -34,41 +37,113 @@ const SetPassword = ({ mode, onComplete }: SetPasswordProps) => {
   const [errors, setErrors] = useState<{ password?: string; confirm?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [view, setView] = useState<ViewState>('verifying');
 
   const isInvite = mode === 'invite';
   const title = isInvite ? 'Set your password' : 'Reset your password';
   const buttonText = isInvite ? 'Set password' : 'Reset password';
   const strength = password.length > 0 ? getStrength(password) : null;
 
-  // On mount: rely on Supabase to auto-process the URL hash and fire onAuthStateChange.
-  // Do NOT manually parse hash or call verifyOtp/exchangeCodeForSession.
+  // On mount: exchange the URL token for an active session BEFORE showing
+  // the form. Supports both the current query-string format
+  // (?token_hash=...&type=invite) and the legacy hash-fragment format
+  // (#access_token=...&refresh_token=...).
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (mounted && data.session) {
-        // Session already established — clear any URL hash and proceed silently.
-        if (window.location.hash) {
-          window.history.replaceState({}, '', '/set-password');
+    const verify = async () => {
+      const search = new URLSearchParams(window.location.search);
+      const hash = new URLSearchParams(
+        window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash
+      );
+
+      const tokenHash = search.get('token_hash') ?? hash.get('token_hash');
+      const token = search.get('token') ?? hash.get('token');
+      const typeParam = (search.get('type') ?? hash.get('type')) as
+        | 'invite'
+        | 'recovery'
+        | 'signup'
+        | 'magiclink'
+        | 'email'
+        | null;
+      const accessToken = hash.get('access_token') ?? search.get('access_token');
+      const refreshToken = hash.get('refresh_token') ?? search.get('refresh_token');
+      const email = search.get('email') ?? hash.get('email') ?? undefined;
+
+      const clearUrl = () => {
+        window.history.replaceState({}, '', '/set-password');
+      };
+
+      try {
+        // Format A — token_hash + type in URL (current invite/recovery emails)
+        if (tokenHash && typeParam) {
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: typeParam,
+          });
+          if (cancelled) return;
+          if (error) {
+            setView('expired');
+            return;
+          }
+          clearUrl();
+          setView('ready');
+          return;
         }
-      }
-    });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Session established from invite/recovery token — clear errors and hash.
-        setErrors({});
-        if (window.location.hash) {
-          window.history.replaceState({}, '', '/set-password');
+        // Format B — access_token + refresh_token in hash fragment (legacy)
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (cancelled) return;
+          if (error) {
+            setView('expired');
+            return;
+          }
+          clearUrl();
+          setView('ready');
+          return;
         }
-      }
-    });
 
-    return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
+        // Format C — bare token + type + email (older fallback)
+        if (token && typeParam && email) {
+          const { error } = await supabase.auth.verifyOtp({
+            token,
+            type: typeParam,
+            email,
+          } as Parameters<typeof supabase.auth.verifyOtp>[0]);
+          if (cancelled) return;
+          if (error) {
+            setView('expired');
+            return;
+          }
+          clearUrl();
+          setView('ready');
+          return;
+        }
+
+        // No token params — accept an existing session (e.g. internal
+        // navigation after a hash was already consumed by the auth client),
+        // otherwise bounce to /login.
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (data.session) {
+          setView('ready');
+        } else {
+          navigate('/login', { replace: true });
+        }
+      } catch (err) {
+        if (!cancelled) setView('expired');
+      }
     };
-  }, []);
+
+    verify();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const validate = () => {
     const errs: typeof errors = {};
