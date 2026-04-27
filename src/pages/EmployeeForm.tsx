@@ -424,7 +424,26 @@ const EmployeeForm = () => {
         toast.success('Employee updated successfully');
         navigate(`/employees/${id}`);
       } else {
-        toast.success('Employee added successfully');
+        // Send invite email via edge function (non-blocking for save success)
+        try {
+          const { data: inviteData, error: inviteErr } =
+            await supabase.functions.invoke('invite-employee', {
+              body: { email: form.email, employee_id: employeeId },
+            });
+          if (inviteErr || (inviteData && inviteData.error)) {
+            console.error('Invite error:', inviteErr || inviteData?.error);
+            toast.warning(
+              'Employee saved but invite email could not be sent. You can resend the invite from the employee profile.'
+            );
+          } else {
+            toast.success(`Employee added. An invite email has been sent to ${form.email}.`);
+          }
+        } catch (inviteCatch) {
+          console.error('Invite invoke failed:', inviteCatch);
+          toast.warning(
+            'Employee saved but invite email could not be sent. You can resend the invite from the employee profile.'
+          );
+        }
         navigate('/employees');
       }
     } catch (err: any) {
