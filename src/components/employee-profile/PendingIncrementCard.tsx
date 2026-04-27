@@ -60,15 +60,12 @@ const PendingIncrementCard = ({ employee, approverEmployeeId, readOnly = false }
       if (updErr) throw updErr;
 
       const freq = employee.review_frequency_months ?? 6;
-      // Advance first_review_date strictly past today by stepping in `freq` months
+      // Advance the next review date by one frequency period from current next review
       let nextReview: string | null = null;
-      if (employee.first_review_date) {
-        const today = new Date();
-        let d = parseISO(employee.first_review_date);
-        for (let i = 0; i < 240 && d <= today; i++) {
-          d = addMonths(d, freq);
-        }
-        nextReview = format(d, 'yyyy-MM-dd');
+      const currentNext = computeNextReviewDate(employee.first_review_date, freq);
+      if (currentNext) {
+        const advanced = new Date(currentNext.getFullYear(), currentNext.getMonth() + freq, currentNext.getDate());
+        nextReview = format(advanced, 'yyyy-MM-dd');
       }
       const patch: any = {
         basic_salary: pending.new_salary,
