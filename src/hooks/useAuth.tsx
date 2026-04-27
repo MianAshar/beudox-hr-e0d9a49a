@@ -25,6 +25,7 @@ interface AuthContextType {
   user: User | null;
   employee: EmployeeData | null;
   loading: boolean;
+  mustChangePassword: boolean;
   signOut: () => Promise<void>;
   refreshEmployee: () => void;
 }
@@ -34,6 +35,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   employee: null,
   loading: true,
+  mustChangePassword: false,
   signOut: async () => {},
   refreshEmployee: () => {},
 });
@@ -45,21 +47,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [employee, setEmployee] = useState<EmployeeData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
   const fetchEmployee = useCallback(async (userId: string) => {
-    const [{ data, error }, rolesRes] = await Promise.all([
+    const [{ data, error }, rolesRes, flagRes] = await Promise.all([
       supabase.rpc('get_employee_by_auth_id', { _auth_id: userId }),
       supabase.rpc('get_employee_roles_for_auth', { _auth_id: userId }),
+      supabase
+        .from('employees')
+        .select('must_change_password')
+        .eq('auth_user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle(),
     ]);
 
     if (!error && data && data.length > 0) {
       const base = data[0] as Omit<EmployeeData, 'roles'>;
       const rolesList = (rolesRes.data as string[] | null) ?? [];
       setEmployee({ ...base, roles: rolesList });
+      setMustChangePassword(!!flagRes.data?.must_change_password);
     } else {
-      // Authenticated session has no matching active employee record.
-      // Sign out to avoid an infinite loading spinner in ProtectedRoute.
       setEmployee(null);
+      setMustChangePassword(false);
       await supabase.auth.signOut();
       setSession(null);
       setUser(null);
@@ -77,6 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setUser(null);
     setEmployee(null);
+    setMustChangePassword(false);
   };
 
   useEffect(() => {
@@ -89,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setTimeout(() => fetchEmployee(session.user.id), 0);
         } else {
           setEmployee(null);
+          setMustChangePassword(false);
         }
         setLoading(false);
       }
@@ -107,7 +118,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchEmployee]);
 
   return (
-    <AuthContext.Provider value={{ session, user, employee, loading, signOut, refreshEmployee }}>
+    <AuthContext.Provider value={{ session, user, employee, loading, mustChangePassword, signOut, refreshEmployee }}>
       {children}
     </AuthContext.Provider>
   );

@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { canAccess } from "@/lib/role-access";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
-import SetPassword from "./pages/SetPassword";
+import MandatoryPasswordChange from "./components/MandatoryPasswordChange";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import EmployeeProfile from "./pages/EmployeeProfile";
@@ -50,7 +50,7 @@ import { Loader2 } from "lucide-react";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, loading, employee } = useAuth();
+  const { session, loading, employee, mustChangePassword } = useAuth();
   const location = useLocation();
 
   // 1. Loading auth or employee data → show spinner, never flash content
@@ -65,13 +65,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   // 2. Not authenticated → login
   if (!session) return <Navigate to="/login" replace />;
 
-  // 3. Authenticated but role not allowed → dashboard
+  // 3. Must change password → block all routes, show only the modal overlay
+  if (mustChangePassword) {
+    return <MandatoryPasswordChange />;
+  }
+
+  // 4. Authenticated but role not allowed → dashboard
   // /my-profile is universally accessible to all authenticated users.
   if (location.pathname !== '/my-profile' && !canAccess(employee?.roles, location.pathname)) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // 4. Authenticated and allowed → render
+  // 5. Authenticated and allowed → render
   return <AppLayout>{children}</AppLayout>;
 };
 
@@ -98,7 +103,7 @@ const App = () => (
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/set-password" element={<SetPassword />} />
+            <Route path="/set-password" element={<Navigate to="/login" replace />} />
             
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />

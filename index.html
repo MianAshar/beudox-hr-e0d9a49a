@@ -29,28 +29,6 @@
 
   <body>
     <div id="root"></div>
-    <script>
-      // Capture Supabase auth tokens from hash before React Router clears them
-      (function() {
-        if (window.location.pathname === '/set-password') {
-          const hash = window.location.hash.substring(1);
-          if (hash) {
-            // Store in sessionStorage before React clears the hash
-            sessionStorage.setItem('supabase_auth_hash', hash);
-
-            // Also check for error
-            const params = new URLSearchParams(hash);
-            if (params.get('error')) {
-              sessionStorage.setItem('supabase_auth_error', params.get('error'));
-              sessionStorage.setItem('supabase_auth_error_code', params.get('error_code'));
-            }
-
-            // Clear hash from URL cleanly
-            window.history.replaceState(null, '', window.location.pathname);
-          }
-        }
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
