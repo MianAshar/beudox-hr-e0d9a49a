@@ -1,77 +1,68 @@
 <!--
 generated_by: tessera
-source_sha: 4ecbd4315761424bce1ba20f63480a717ee88eab
-generated_at: 2026-04-27T10:58:39.484Z
+source_sha: e0ed8c70d23881833472a574a5e0a4b8f1c9ab44
+generated_at: 2026-04-27T11:03:45.531Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built for modern companies. Beudox HR streamlines employee management, attendance tracking, leave requests, payroll processing, performance evaluations, and project management in a single, intuitive web application.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, attendance tracking, leave management, payroll processing, and organizational workflows.
 
 ## Features
 
-### Employee Management
-- Complete employee profiles with personal information, job details, and organizational hierarchy
-- Employee search and filtering capabilities
-- Role-based access control and permissions
+### Core HR Management
+- **Employee Management**: Complete employee profiles with personal details, job information, and organizational hierarchy
+- **Attendance Tracking**: Automated attendance import from biometric devices with AI-powered parsing, overtime calculations, and reporting
+- **Leave Management**: Request, approve, and track various leave types with balance management
+- **Payroll Processing**: Automated payroll generation with salary calculations, deductions, and payslip generation
 
-### Attendance Tracking
-- Automated attendance import from biometric devices (ZKTeco-compatible)
-- Real-time attendance monitoring with check-in/check-out times
-- Overtime calculation and reporting
-- Late arrival tracking and notifications
-- Weekend and holiday management
+### Organizational Tools
+- **Project Management**: Create and manage projects with team assignments and task tracking
+- **Performance Evaluations**: Regular and daily evaluations with customizable parameters
+- **HR Policies**: Rich text policy documents with version control
+- **Job Descriptions**: Structured job descriptions with requirements and responsibilities
 
-### Leave Management
-- Leave request submission and approval workflow
-- Multiple leave types (annual, sick, maternity, etc.)
-- Leave balance tracking and utilization reports
-- Automated leave balance calculations
+### Administrative Features
+- **Role-Based Access Control**: Granular permissions system for different user roles
+- **Company Settings**: Configurable company information, departments, and system parameters
+- **Finance Management**: Invoice generation, expense tracking, and financial reporting
+- **Loan Management**: Employee loan requests and tracking
 
-### Payroll Processing
-- Automated payroll generation based on attendance data
-- Salary structure management with allowances and deductions
-- Payslip generation and distribution
-- Tax calculations and compliance reporting
-
-### Performance Management
-- Employee evaluation and review cycles
-- Performance rating systems
-- Salary review and increment proposals
-- Review schedule management
-
-### Project Management
-- Project creation and team assignment
-- Task tracking and progress monitoring
-- Project activity logging
-- Resource allocation and management
-
-### Administrative Tools
-- Company settings and configuration
-- Department and role management
-- Expense category setup
-- System audit logs and login tracking
+### User Experience
+- **Responsive Design**: Modern, mobile-friendly interface built with shadcn/ui
+- **Real-time Notifications**: Toast notifications and email alerts
+- **Dashboard Analytics**: Comprehensive dashboards with key metrics and insights
+- **Search & Filtering**: Advanced search capabilities across all modules
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **UI Framework**: shadcn/ui components
-- **Styling**: Tailwind CSS
-- **Backend**: Supabase (PostgreSQL database + Edge Functions)
-- **State Management**: React Query (TanStack Query)
-- **Routing**: React Router
-- **Testing**: Vitest + Playwright
-- **Deployment**: Modern web standards
+### Frontend
+- **React 18** with TypeScript for type-safe development
+- **Vite** for fast development and optimized builds
+- **React Router** for client-side routing
+- **Tailwind CSS** for styling with shadcn/ui component library
+- **React Query** for efficient server state management
+- **React Hook Form** with Zod validation for form handling
 
-## Prerequisites
+### Backend & Database
+- **Supabase** for backend-as-a-service (authentication, database, storage, edge functions)
+- **PostgreSQL** database with real-time subscriptions
+- **Supabase Edge Functions** for server-side processing (AI parsing, PDF generation)
 
-- Node.js 18+
-- npm or bun package manager
+### Development Tools
+- **ESLint** and **TypeScript** for code quality
+- **Vitest** for unit testing
+- **Playwright** for end-to-end testing
+- **Prettier** for code formatting
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+ and npm/yarn/bun
 - Supabase account and project
 
-## Installation
+### Installation
 
 1. **Clone the repository**
    ```bash
@@ -83,12 +74,14 @@ A comprehensive Human Resources Management System built for modern companies. Be
    ```bash
    npm install
    # or
+   yarn install
+   # or
    bun install
    ```
 
 3. **Environment Setup**
    
-   Copy the `.env` file and update the Supabase credentials:
+   Copy the `.env` file and update the Supabase configuration:
    ```bash
    cp .env .env.local
    ```
@@ -97,115 +90,87 @@ A comprehensive Human Resources Management System built for modern companies. Be
    ```env
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
    ```
 
 4. **Database Setup**
    
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   The database schema is managed through Supabase migrations. The migrations are located in `supabase/migrations/` and will be applied automatically when you run the Supabase CLI commands.
    
    If using Supabase CLI:
    ```bash
-   supabase db reset
+   supabase start
    ```
 
 5. **Start the development server**
    ```bash
    npm run dev
-   # or
-   bun run dev
    ```
+   
+   The application will be available at `http://localhost:8080`
 
-6. **Build for production**
-   ```bash
-   npm run build
-   # or
-   bun run build
-   ```
+### Build for Production
+
+```bash
+npm run build
+npm run preview
+```
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
-│   ├── layout/         # App layout components
-│   ├── employee-profile/  # Employee profile tabs
+│   ├── ui/             # shadcn/ui components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
 │   ├── attendance/     # Attendance-related components
+│   ├── employee-profile/ # Employee profile tabs
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── settings/       # Admin settings components
 │   └── ...
-├── pages/              # Page components (Next.js Pages Router style)
-├── lib/                # Utility functions and configurations
+├── pages/              # Page components and routes
 ├── hooks/              # Custom React hooks
+├── lib/                # Utility functions and business logic
+│   ├── utils.ts        # General utilities
+│   ├── role-access.ts  # Permission checking
+│   ├── attendance-format.ts # Attendance formatting
+│   └── ...
 ├── integrations/       # External service integrations
-└── test/               # Test files
+│   └── supabase/       # Supabase client and types
+└── types/              # TypeScript type definitions
 
 supabase/
 ├── migrations/         # Database schema migrations
-├── functions/          # Edge Functions
-└── config.toml         # Supabase configuration
+└── functions/          # Edge functions for server-side logic
 ```
 
-## Key Components
+## Key Workflows
 
-### Core Layout
-- `AppLayout`: Main application layout with sidebar navigation
-- `AppSidebar`: Navigation sidebar with role-based menu items
-- `TopBar`: Top navigation bar with user menu and notifications
+### Attendance Processing
+1. Upload Excel/CSV files from biometric devices
+2. AI-powered parsing normalizes data format
+3. Automatic calculation of working hours and overtime
+4. Batch import with conflict resolution
+5. Real-time reporting and analytics
 
-### Employee Features
-- `AttendanceTab`: Employee attendance history and summaries
-- `LeaveBalancesTab`: Leave balance overview and requests
-- `PayrollTab`: Salary history and payslip access
-- `SalaryReviewTab`: Performance reviews and increment proposals
+### Payroll Generation
+1. Configure salary components and deductions
+2. Automated calculation based on attendance and leave data
+3. PDF payslip generation
+4. Approval workflows and distribution
 
-### Administrative Features
-- `AttendanceUploadFlow`: Bulk attendance data import with AI parsing
-- `CompanyTab`: Company-wide settings and configuration
-- `DepartmentsTab`: Department management
-- `RolesTab`: User role and permission management
-
-## API Integration
-
-The application integrates with Supabase for:
-
-- **Database**: PostgreSQL with real-time subscriptions
-- **Authentication**: User management and session handling
-- **File Storage**: Document uploads and avatar storage
-- **Edge Functions**: Server-side processing (attendance parsing, payroll generation, notifications)
-
-## Testing
-
-```bash
-# Run unit tests
-npm run test
-
-# Run E2E tests
-npm run test:e2e
-
-# Run Playwright tests
-npx playwright test
-```
-
-## Deployment
-
-The application can be deployed to any static hosting service:
-
-- Vercel
-- Netlify
-- AWS S3 + CloudFront
-- Supabase Edge Functions for backend logic
+### Leave Management
+1. Employees submit leave requests
+2. Automatic balance checking and approval routing
+3. Calendar integration and conflict detection
+4. Accrual calculations and reporting
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
@@ -213,4 +178,4 @@ This project is proprietary software. All rights reserved.
 
 ## Support
 
-For support and questions, please contact the development team.
+For support and questions, please contact the development team or create an issue in the repository.
