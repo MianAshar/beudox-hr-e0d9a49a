@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: f1c7b24aebbcb16f64ce0b6e0fd35cd6b35dec13
-generated_at: 2026-04-27T12:05:40.623Z
+source_sha: e3b474779bf09d55302d2bc89be1ae87a6a9e9d7
+generated_at: 2026-04-27T12:14:30.064Z
 action: create
 -->
 
@@ -10,136 +10,186 @@ action: create
 ## Repository Overview
 
 **Repository**: MianAshar/beudox-hr-e0d9a49a  
-**Type**: Frontend Application (React + TypeScript)  
-**Primary Purpose**: Human Resources Management System  
-**Technology Stack**: React 18, TypeScript, Vite, Tailwind CSS, Supabase  
-**Lines of Code**: ~20,000+ (estimated from 224 files)  
-**Database**: PostgreSQL via Supabase with 32 migration files
+**Type**: Frontend Application (React/TypeScript)  
+**Primary Language**: TypeScript (167 files)  
+**Total Files**: 224 (2089KB)  
+**Symbols**: 493 total, 368 public
 
-## Key Findings
+## Application Purpose
 
-### Application Architecture
+Beudox HR is a comprehensive Human Resources Management System designed to handle all aspects of employee management for modern businesses. The application provides tools for attendance tracking, payroll processing, leave management, performance evaluations, and organizational workflows.
 
-The codebase implements a modern, component-driven React application with:
+## Architecture Insights
 
-- **Frontend Framework**: React 18 with TypeScript for type safety
-- **Build System**: Vite for fast development and optimized builds
-- **Backend Integration**: Supabase for database, authentication, and serverless functions
-- **UI Framework**: Custom component library built on shadcn/ui with Tailwind CSS
-- **State Management**: React Query for server state, custom hooks for local state
-- **Routing**: React Router (Pages Router pattern)
+### Technology Stack
+- **Frontend Framework**: React 18 with TypeScript
+- **Build System**: Vite for development and production builds
+- **UI Framework**: Tailwind CSS + shadcn/ui (Radix UI components)
+- **Routing**: React Router v6 with protected routes
+- **State Management**: React Query for server state, Context API for global state
+- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
+- **Forms**: React Hook Form with Zod validation
+- **Testing**: Vitest (unit tests), Playwright (E2E tests)
 
-### Core Features Identified
+### Key Architectural Patterns
+1. **Component-Driven Development**: Extensive use of reusable UI components
+2. **Role-Based Access Control**: Granular permissions system
+3. **Provider Pattern**: Multiple context providers for different concerns
+4. **Custom Hooks**: Business logic abstracted into reusable hooks
+5. **Compound Components**: Complex UIs built from simpler primitives
 
-1. **Employee Management**
-   - Comprehensive employee profiles with multiple tabs (attendance, leave, payroll, documents)
-   - Employee search and selection components
-   - Organizational hierarchy and department management
+## Core Features Discovered
 
-2. **Attendance System**
-   - Excel file upload with AI-powered parsing
-   - Automated time calculations (working hours, overtime, late arrivals)
-   - Batch import/update operations with conflict resolution
-   - Attendance history and reporting
+### 1. Authentication & User Management
+- Supabase-based authentication with email/password
+- Role-based access control (Admin, HR Manager, Project Manager, Employee)
+- Password reset and invite flows
+- User profile management with avatar support
 
-3. **Leave Management**
-   - Leave request and approval workflows
-   - Balance tracking for different leave types
-   - Integration with attendance calculations
+### 2. Employee Management
+- Comprehensive employee profiles with personal and professional details
+- Department and role assignments
+- Employee search and filtering capabilities
+- Bulk operations and data import/export
 
-4. **Payroll Processing**
-   - Salary management and increment proposals
-   - Payroll summaries and financial reporting
-   - Overtime and deduction calculations
+### 3. Attendance Tracking
+- Automated import from ZKTeco biometric machines
+- AI-powered Excel/CSV parsing with error handling
+- Working hours calculation with overtime tracking
+- Late arrival detection and reporting
+- Holiday and weekend recognition
+- Batch import with detailed summaries
 
-5. **Administrative Features**
-   - Company settings and configuration
-   - Role-based access control
-   - HR policies with rich text editing
-   - Project management and team assignments
-   - Notification system
+### 4. Leave Management
+- Leave request and approval workflows
+- Balance tracking across multiple leave types
+- Calendar integration for leave planning
+- Automated balance updates
 
-### Technical Implementation Highlights
+### 5. Payroll Processing
+- Automated payroll generation
+- Overtime calculations (regular and holiday)
+- Tax and deduction handling
+- PDF payslip generation
+- Salary history and projections
 
-#### Component Architecture
-- Well-structured component hierarchy with clear separation of concerns
-- Reusable UI components (buttons, forms, tables, charts)
-- Feature-specific component groups (attendance, employee-profile, leave, etc.)
-- Consistent prop interfaces and TypeScript usage
+### 6. Performance Management
+- Regular performance evaluations
+- Daily evaluation system
+- Review scheduling and reminders
+- Goal setting and tracking
+- Performance analytics
 
-#### Data Management
-- Supabase integration with typed database operations
-- React Query for efficient data fetching and caching
-- Real-time subscriptions for live updates
-- Edge functions for server-side processing (AI parsing, notifications)
+### 7. Project & Client Management
+- Project creation and team assignment
+- Client relationship management
+- Project progress tracking
+- Resource allocation
+- Project activity logging
 
-#### User Experience
-- Responsive design with mobile-first approach
-- Loading states and error handling throughout
-- Toast notifications for user feedback
-- Accessible UI components with proper ARIA attributes
+### 8. Financial Management
+- Invoice generation and management
+- Client billing and payment tracking
+- Financial reporting and analytics
+- Expense management
+- Loan tracking for employees
 
-#### Development Practices
-- TypeScript for type safety and better developer experience
-- ESLint and Prettier for code quality
-- Unit tests with Vitest
-- E2E tests with Playwright
-- Modular architecture supporting easy feature additions
+### 9. Content Management
+- HR policy documents with rich text editing
+- Job description management
+- Document storage and version control
+- Public holiday configuration
 
-### Database Schema Insights
+### 10. Administrative Tools
+- Company settings and configuration
+- Department and role management
+- System-wide settings
+- Audit logs and login tracking
+- Notification preferences
 
-The application uses a comprehensive database schema with:
-- **32 migration files** indicating iterative development
-- **Multi-tenant architecture** with company-level data isolation
-- **Complex relationships** between employees, attendance, leave, and payroll
-- **Audit trails** for imports, approvals, and changes
-- **Configurable settings** for company-specific rules
+## Database Schema Insights
 
-### Notable Technical Features
+The application uses a multi-tenant PostgreSQL database via Supabase with the following key entities:
 
-1. **AI-Powered Attendance Parsing**
-   - Excel file processing with SheetJS
-   - Supabase Edge Function for AI data extraction
-   - Intelligent data normalization and validation
+- **employees**: Core user data with company associations
+- **attendance_records**: Time tracking with status flags and calculations
+- **leave_requests**: Vacation and absence management
+- **payroll_records**: Compensation and salary data
+- **projects**: Project management with team relationships
+- **evaluations**: Performance review data
+- **company_settings**: Organization-wide configuration
+- **public_holidays**: Holiday calendar management
 
-2. **Advanced Time Calculations**
-   - Karachi timezone handling (+05:00 offset)
-   - Working hours computation with overtime detection
-   - Holiday and weekend integration
+## Notable Technical Implementations
 
-3. **Flexible Component System**
-   - Customizable logo component with variants
-   - Searchable employee selection with avatars
-   - Complex table components with sorting and filtering
+### 1. Attendance Upload Flow
+A sophisticated multi-step wizard that:
+- Handles Excel/CSV files from various biometric devices
+- Uses AI (Supabase Edge Functions) to parse inconsistent data formats
+- Performs automatic calculations for working hours and overtime
+- Provides detailed preview and error reporting
+- Supports batch processing with rollback capabilities
 
-4. **Robust File Handling**
-   - Excel import with preview and validation
-   - Batch processing with progress tracking
-   - Error recovery and rollback capabilities
+### 2. Role-Based Navigation
+Dynamic sidebar navigation that adapts based on user permissions, showing only accessible features.
 
-## Architecture Assessment
+### 3. Real-time Features
+- Live notifications via Supabase real-time subscriptions
+- Real-time attendance updates
+- Live dashboard metrics
+
+### 4. PDF Generation
+Server-side PDF generation for payslips and invoices using Supabase Edge Functions.
+
+### 5. Rich Text Editing
+Tiptap-based rich text editor for HR policies and other document content.
+
+## Code Quality Observations
 
 ### Strengths
-- **Scalable Architecture**: Component-based design supports easy feature expansion
-- **Type Safety**: Comprehensive TypeScript usage reduces runtime errors
-- **Modern Tooling**: Vite, React Query, and Tailwind provide excellent developer experience
-- **Database Design**: Well-structured schema with proper relationships and constraints
-- **User Experience**: Polished UI with attention to loading states and error handling
+- **Type Safety**: Comprehensive TypeScript usage with strict configuration
+- **Component Reusability**: Well-structured component library with shadcn/ui
+- **Error Handling**: Proper error boundaries and user feedback
+- **Performance**: React Query caching, code splitting, and optimized builds
+- **Accessibility**: Radix UI components provide good accessibility foundations
+- **Testing**: Unit and E2E test setups with modern tools
 
-### Areas for Consideration
-- **Testing Coverage**: While unit tests exist, comprehensive test suite could be expanded
-- **Performance Monitoring**: No visible performance monitoring or analytics integration
-- **Documentation**: Limited inline documentation and API documentation
-- **Accessibility**: While components appear accessible, formal accessibility audit not evident
+### Patterns Used
+- Custom hooks for business logic separation
+- Utility functions for common operations
+- Consistent naming conventions
+- Proper component composition
+- Environment-based configuration
 
-## Development Recommendations
+## Security Considerations
 
-1. **Expand Testing**: Add more integration tests for critical workflows
-2. **Performance Optimization**: Implement code splitting and lazy loading for large components
-3. **Monitoring**: Add error tracking and performance monitoring
-4. **Documentation**: Generate API documentation and component documentation
-5. **Security**: Regular security audits and dependency updates
+- Supabase Row Level Security (RLS) for data access control
+- JWT-based authentication
+- Input validation with Zod schemas
+- Secure file upload handling
+- Role-based API access
 
-## Conclusion
+## Development Workflow
 
-Beudox HR represents a well-architected, feature-rich HR management system with modern development practices. The codebase demonstrates solid engineering principles with room for continued enhancement and scaling. The combination of React, TypeScript, and Supabase provides a robust foundation for enterprise-level HR operations.
+- Modern development setup with Vite
+- ESLint and TypeScript for code quality
+- Automated testing with Vitest and Playwright
+- Supabase for backend development and deployment
+- Environment-based configuration management
+
+## Key Files Analyzed
+
+- `src/App.tsx`: Main application routing and provider setup
+- `src/components/attendance/AttendanceUploadFlow.tsx`: Complex attendance import wizard
+- `src/components/employee-profile/AttendanceTab.tsx`: Attendance data display
+- `src/components/SearchableEmployeeSelect.tsx`: Reusable employee selection component
+- `src/components/BeudoxLogo.tsx`: Logo component with theme variants
+- `src/components/NavLink.tsx`: Enhanced navigation link component
+- `package.json`: Dependencies and build scripts
+- `.env`: Environment configuration
+
+## Summary
+
+Beudox HR represents a well-architected, feature-rich HR management system built with modern web technologies. The codebase demonstrates strong engineering practices with proper separation of concerns, comprehensive TypeScript usage, and scalable architecture. The application successfully handles complex business logic for HR operations while maintaining good developer experience and code maintainability.
+
+The analysis reveals a production-ready application with sophisticated features like AI-powered data processing, real-time updates, and comprehensive role-based access control, making it suitable for enterprise HR management needs.
