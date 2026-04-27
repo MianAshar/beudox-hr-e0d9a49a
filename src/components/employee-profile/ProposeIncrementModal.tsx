@@ -203,6 +203,30 @@ const ProposeIncrementModal = ({ open, onOpenChange, employee, proposerEmployeeI
                 onChange={(e) => setNewSalary(e.target.value)}
                 placeholder="0"
               />
+              {(() => {
+                if (newSalary === '' || newSalary == null) return null;
+                const ns = parseFloat(newSalary);
+                if (Number.isNaN(ns)) return null;
+                if (currentSalary <= 0) return null;
+                const diff = ns - currentSalary;
+                const pct = Math.abs((diff / currentSalary) * 100).toFixed(1);
+                if (diff === 0) {
+                  return (
+                    <p className="mt-1.5" style={{ fontSize: 13, fontWeight: 500, color: '#9490B4' }}>
+                      No change
+                    </p>
+                  );
+                }
+                const isUp = diff > 0;
+                return (
+                  <p
+                    className="mt-1.5"
+                    style={{ fontSize: 13, fontWeight: 500, color: isUp ? '#1DC97A' : '#E84545' }}
+                  >
+                    {isUp ? '+' : '−'} PKR {Math.abs(diff).toLocaleString()} ({pct}% {isUp ? 'increase' : 'decrease'})
+                  </p>
+                );
+              })()}
             </div>
             <div>
               <Label className="text-[12px] mb-1.5 block">New Allowance (PKR)</Label>
