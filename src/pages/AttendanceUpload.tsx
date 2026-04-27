@@ -16,6 +16,7 @@ import {
   Loader2, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RotateCw,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -51,8 +52,20 @@ interface CompanySettings {
 
 interface ImportSummary {
   imported: number;
+  updated: number;
   skipped: number;
   unmatched: string[];
+}
+
+// Decision per unmatched code: import the rows anyway (with employee_id = null)
+// or skip them entirely.
+type UnmatchedDecision = 'import' | 'skip';
+
+interface UnmatchedEntry {
+  employee_code: string;
+  name: string | null;
+  count: number;
+  decision: UnmatchedDecision;
 }
 
 // ---------------- Helpers ----------------
