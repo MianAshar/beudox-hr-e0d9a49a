@@ -36,6 +36,16 @@ const Login = () => {
     fetchCompany();
   }, []);
 
+  // After signOut() clears the session, the component re-renders with no
+  // session. Promote the persisted deactivation message into state so the
+  // banner can render.
+  useEffect(() => {
+    if (!session && deactivationErrorRef.current) {
+      setDeactivatedMessage(deactivationErrorRef.current);
+      deactivationErrorRef.current = null;
+    }
+  }, [session]);
+
   if (authLoading || companyLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: '#F6F5FF' }}>
@@ -44,7 +54,11 @@ const Login = () => {
     );
   }
 
-  if (session) return <Navigate to="/dashboard" replace />;
+  // Don't navigate to the dashboard if we're in the middle of handling a
+  // deactivated-account sign-out — the session may briefly still exist.
+  if (session && !deactivationErrorRef.current && !deactivatedMessage) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const validateEmail = (val: string) => {
     if (!val) return 'Email is required';
