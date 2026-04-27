@@ -34,6 +34,7 @@ const MandatoryPasswordChange = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<{ new?: string; confirm?: string; general?: string }>({});
   const [submitting, setSubmitting] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   // Block escape key & body scroll while modal is open
   useEffect(() => {
@@ -71,19 +72,34 @@ const MandatoryPasswordChange = () => {
     setSubmitting(true);
     setErrors({});
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) {
-        setErrors({ general: error.message || 'Failed to update password' });
+      const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
+      if (pwError) {
+        setErrors({ general: pwError.message || 'Failed to update password' });
         setSubmitting(false);
         return;
       }
+
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase
-          .from('employees')
-          .update({ must_change_password: false })
-          .eq('auth_user_id', user.id);
+      if (!user) {
+        setErrors({ general: 'Failed to complete setup. Please try again.' });
+        setSubmitting(false);
+        return;
       }
+
+      const { error: updateError } = await supabase
+        .from('employees')
+        .update({ must_change_password: false })
+        .eq('auth_user_id', user.id);
+
+      if (updateError) {
+        setErrors({ general: 'Failed to complete setup. Please try again.' });
+        setSubmitting(false);
+        return;
+      }
+
+      // Dismiss modal first, then refresh auth state and navigate
+      setSubmitting(false);
+      setVisible(false);
       refreshEmployee();
       toast.success('Password updated. Welcome to Forte HR Portal!');
       navigate('/dashboard', { replace: true });
@@ -96,6 +112,8 @@ const MandatoryPasswordChange = () => {
   const strength = getStrength(newPassword);
   const companyName = employee?.company_name || 'Forte';
   const companyLogo = employee?.company_logo_url;
+
+  if (!visible) return null;
 
   return (
     <div
