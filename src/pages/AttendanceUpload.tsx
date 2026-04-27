@@ -16,6 +16,7 @@ import {
   Loader2, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RotateCw,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -51,8 +52,20 @@ interface CompanySettings {
 
 interface ImportSummary {
   imported: number;
+  updated: number;
   skipped: number;
   unmatched: string[];
+}
+
+// Decision per unmatched code: import the rows anyway (with employee_id = null)
+// or skip them entirely.
+type UnmatchedDecision = 'import' | 'skip';
+
+interface UnmatchedEntry {
+  employee_code: string;
+  name: string | null;
+  count: number;
+  decision: UnmatchedDecision;
 }
 
 // ---------------- Helpers ----------------
@@ -154,6 +167,7 @@ const AttendanceUpload = () => {
   const parsedRef = useRef<ParseResponse | null>(null);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [shiftHours, setShiftHours] = useState<number>(8);
+  const [unmatchedEntries, setUnmatchedEntries] = useState<UnmatchedEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Helper: keep state and ref in lock-step so the preview persists
@@ -179,6 +193,7 @@ const AttendanceUpload = () => {
     setFileName(null);
     setParsedBoth(null);
     setSummary(null);
+    setUnmatchedEntries([]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -186,6 +201,7 @@ const AttendanceUpload = () => {
     setParsedBoth(null);
     setParseError(null);
     setFileName(null);
+    setUnmatchedEntries([]);
     setStep('select');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -232,20 +248,57 @@ const AttendanceUpload = () => {
         return;
       }
       setParsedBoth(cleaned);
-      // Fetch shift duration once for preview highlighting
+      // Fetch shift duration + employee codes for preview highlighting
+      // and unmatched-code detection.
       try {
         if (employee?.company_id) {
-          const { data: settingsRow } = await supabase
-            .from('company_settings')
-            .select('shift_start_time, shift_end_time')
-            .eq('company_id', employee.company_id)
-            .maybeSingle();
+          const [{ data: settingsRow }, { data: empRows }] = await Promise.all([
+            supabase
+              .from('company_settings')
+              .select('shift_start_time, shift_end_time')
+              .eq('company_id', employee.company_id)
+              .maybeSingle(),
+            supabase
+              .from('employees')
+              .select('employee_code')
+              .eq('company_id', employee.company_id),
+          ]);
           const sStart = timeToMinutes(settingsRow?.shift_start_time ?? '09:00:00') ?? 9 * 60;
           const sEnd = timeToMinutes(settingsRow?.shift_end_time ?? '18:00:00') ?? 18 * 60;
           setShiftHours(Math.max(0, (sEnd - sStart) / 60));
+
+          const knownCodes = new Set(
+            (empRows ?? [])
+              .map(e => (e.employee_code ?? '').trim())
+              .filter(Boolean),
+          );
+          // Group parsed records by employee_code; flag those whose code is
+          // not present in the company's employees table.
+          const grouped = new Map<string, { name: string | null; count: number }>();
+          for (const r of cleaned.records) {
+            const code = r.employee_code.trim();
+            if (!code || knownCodes.has(code)) continue;
+            const cur = grouped.get(code);
+            if (cur) {
+              cur.count += 1;
+              if (!cur.name && r.name) cur.name = r.name;
+            } else {
+              grouped.set(code, { name: r.name ?? null, count: 1 });
+            }
+          }
+          const entries: UnmatchedEntry[] = Array.from(grouped.entries())
+            .map(([employee_code, v]) => ({
+              employee_code,
+              name: v.name,
+              count: v.count,
+              decision: 'skip' as UnmatchedDecision,
+            }))
+            .sort((a, b) => a.employee_code.localeCompare(b.employee_code));
+          setUnmatchedEntries(entries);
         }
       } catch {
         setShiftHours(8);
+        setUnmatchedEntries([]);
       }
       setStep('preview');
     } catch (err) {
@@ -267,6 +320,12 @@ const AttendanceUpload = () => {
 
     try {
       const companyId = employee.company_id;
+
+      // Map current unmatched decisions
+      const decisionByCode = new Map<string, UnmatchedDecision>();
+      for (const u of unmatchedEntries) {
+        decisionByCode.set(u.employee_code, u.decision);
+      }
 
       // 1. Fetch company settings
       const { data: settingsRow } = await supabase
@@ -297,20 +356,27 @@ const AttendanceUpload = () => {
         if (e.employee_code) codeToId.set(e.employee_code.trim(), e.id);
       });
 
-      // 3. Fetch all dates already imported for this company within the parsed range
-      //    (so we can early-skip duplicates without round-tripping per row)
+      // 3. Fetch existing attendance rows in the parsed date range so we can
+      //    decide insert vs update per row. Match keys: employee_id|date for
+      //    matched rows, and employee_code|date for unmatched (null employee_id) rows.
       const dates = Array.from(new Set(source.records.map(r => r.date))).sort();
       const minDate = dates[0];
       const maxDate = dates[dates.length - 1];
       const { data: existing } = await supabase
         .from('attendance_records')
-        .select('employee_id, date')
+        .select('id, employee_id, employee_code, date')
         .eq('company_id', companyId)
         .gte('date', minDate)
         .lte('date', maxDate);
-      const existingKey = new Set(
-        (existing ?? []).map(r => `${r.employee_id}|${r.date}`),
-      );
+      const existingByEmpDate = new Map<string, string>(); // key -> existing row id
+      const existingByCodeDate = new Map<string, string>();
+      for (const r of existing ?? []) {
+        if (r.employee_id) {
+          existingByEmpDate.set(`${r.employee_id}|${r.date}`, r.id);
+        } else if (r.employee_code) {
+          existingByCodeDate.set(`${r.employee_code.trim()}|${r.date}`, r.id);
+        }
+      }
 
       // 4. Fetch holidays for this company in the range
       const { data: holidays } = await supabase
@@ -351,24 +417,24 @@ const AttendanceUpload = () => {
         .single();
       if (importErr || !importRow) throw importErr ?? new Error('Failed to create import batch.');
 
-      // 6. Build attendance rows
-      const unmatched = new Set<string>();
+      // 6. Build attendance rows — split into inserts and updates.
       let skipped = 0;
+      const seenInsertKeys = new Set<string>();
       const toInsert: any[] = [];
+      const toUpdate: { id: string; payload: any }[] = [];
 
       for (const r of source.records) {
-        const empId = codeToId.get(r.employee_code.trim());
+        const code = r.employee_code.trim();
+        const empId = codeToId.get(code);
+
+        // Resolve unmatched decision: skip by default unless user picked "import".
         if (!empId) {
-          unmatched.add(r.employee_code.trim());
-          skipped++;
-          continue;
+          const decision = decisionByCode.get(code) ?? 'skip';
+          if (decision === 'skip') {
+            skipped++;
+            continue;
+          }
         }
-        const dupKey = `${empId}|${r.date}`;
-        if (existingKey.has(dupKey)) {
-          skipped++;
-          continue;
-        }
-        existingKey.add(dupKey); // protect against duplicates inside the same file
 
         const weekend = isWeekend(r.date);
         const holiday = holidaySet.has(r.date);
@@ -381,10 +447,10 @@ const AttendanceUpload = () => {
           : 0;
         const holidayOt = (weekend || holiday) && wh != null ? wh : 0;
 
-        toInsert.push({
+        const basePayload: any = {
           company_id: companyId,
-          employee_id: empId,
-          employee_code: r.employee_code.trim(),
+          employee_id: empId ?? null,
+          employee_code: code,
           date: r.date,
           check_in: isoTimestampKarachi(r.date, r.check_in),
           check_out: isoTimestampKarachi(r.date, r.check_out),
@@ -399,10 +465,41 @@ const AttendanceUpload = () => {
           source: 'machine_import',
           import_batch_id: importRow.id,
           notes: r.notes ?? null,
-        });
+        };
+
+        // Look up existing row: by employee_id+date if matched, else by code+date.
+        const existingId = empId
+          ? existingByEmpDate.get(`${empId}|${r.date}`)
+          : existingByCodeDate.get(`${code}|${r.date}`);
+
+        if (existingId) {
+          toUpdate.push({
+            id: existingId,
+            payload: {
+              check_in: basePayload.check_in,
+              check_out: basePayload.check_out,
+              working_hours: basePayload.working_hours,
+              is_late: basePayload.is_late,
+              regular_ot_hours: basePayload.regular_ot_hours,
+              holiday_ot_hours: basePayload.holiday_ot_hours,
+              status: basePayload.status,
+              import_batch_id: importRow.id,
+              source: 'machine_import',
+            },
+          });
+        } else {
+          // Guard against duplicates inside the same file.
+          const inFileKey = empId ? `e:${empId}|${r.date}` : `c:${code}|${r.date}`;
+          if (seenInsertKeys.has(inFileKey)) {
+            skipped++;
+            continue;
+          }
+          seenInsertKeys.add(inFileKey);
+          toInsert.push(basePayload);
+        }
       }
 
-      // 7. Insert in chunks
+      // 7a. Insert in chunks
       let imported = 0;
       const CHUNK = 500;
       for (let i = 0; i < toInsert.length; i += CHUNK) {
@@ -411,7 +508,6 @@ const AttendanceUpload = () => {
           .from('attendance_records')
           .insert(slice, { count: 'exact' });
         if (insErr) {
-          // If a chunk fails entirely, treat its rows as skipped and keep going
           console.error('Chunk insert failed', insErr);
           skipped += slice.length;
           continue;
@@ -419,21 +515,41 @@ const AttendanceUpload = () => {
         imported += count ?? slice.length;
       }
 
-      // 8. Finalise the import row
+      // 7b. Apply updates (one per existing row — these are duplicates we overwrite)
+      let updated = 0;
+      for (const u of toUpdate) {
+        const { error: updErr } = await supabase
+          .from('attendance_records')
+          .update(u.payload)
+          .eq('id', u.id);
+        if (updErr) {
+          console.error('Update failed', updErr);
+          skipped++;
+          continue;
+        }
+        updated++;
+      }
+
+      // 8. Finalise the import row (records_skipped reflects only true skips)
       await supabase
         .from('attendance_imports')
         .update({
           status: 'completed',
-          records_imported: imported,
+          records_imported: imported + updated,
           records_skipped: skipped,
         })
         .eq('id', importRow.id);
 
-      setSummary({ imported, skipped, unmatched: Array.from(unmatched) });
+      // Unmatched codes the user explicitly skipped (for the summary banner)
+      const skippedUnmatched = unmatchedEntries
+        .filter(u => u.decision === 'skip')
+        .map(u => u.employee_code);
+
+      setSummary({ imported, updated, skipped, unmatched: skippedUnmatched });
       setStep('done');
       toast({
         title: 'Import complete',
-        description: `${imported} record(s) imported, ${skipped} skipped.`,
+        description: `${imported} imported, ${updated} updated, ${skipped} skipped.`,
       });
     } catch (err) {
       console.error(err);
@@ -604,7 +720,7 @@ const AttendanceUpload = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Check-in</TableHead>
                     <TableHead>Check-out</TableHead>
-                    <TableHead className="text-right">Hrs</TableHead>
+                    <TableHead className="text-right">Working Hrs</TableHead>
                     <TableHead>Notes</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -663,7 +779,7 @@ const AttendanceUpload = () => {
                             <TableCell>
                               {r.check_in ? (
                                 <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
-                                  {r.check_in.slice(0, 5)}
+                                  {formatTime12h(r.check_in)}
                                 </Badge>
                               ) : (
                                 <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
@@ -672,7 +788,7 @@ const AttendanceUpload = () => {
                             <TableCell>
                               {r.check_out ? (
                                 <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
-                                  {r.check_out.slice(0, 5)}
+                                  {formatTime12h(r.check_out)}
                                 </Badge>
                               ) : (
                                 <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
@@ -690,7 +806,7 @@ const AttendanceUpload = () => {
                                       color: isShort ? '#E84545' : '#120E36',
                                     }}
                                   >
-                                    {wh.toFixed(2)}h
+                                    {formatWorkingHours(wh)}
                                   </span>
                                   {isOT && (
                                     <span
@@ -717,6 +833,61 @@ const AttendanceUpload = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {unmatchedEntries.length > 0 && (
+            <div className="rounded-md border border-orange-200 bg-orange-50 p-4 shrink-0 max-h-[280px] overflow-y-auto">
+              <div className="flex items-center gap-2 font-medium text-sm text-orange-900 mb-1">
+                <AlertTriangle className="h-4 w-4" /> Unmatched Employee Codes
+              </div>
+              <p className="text-xs text-orange-900/80 mb-3">
+                These employee codes don't match anyone in your employee directory.
+                Choose <strong>Import Anyway</strong> to save the rows now (they can be linked
+                to an employee later) or <strong>Skip</strong> to ignore them. Default is Skip.
+              </p>
+              <div className="space-y-1.5">
+                {unmatchedEntries.map(u => (
+                  <div
+                    key={u.employee_code}
+                    className="flex items-center justify-between gap-3 rounded-md border border-orange-200 bg-white px-3 py-2"
+                  >
+                    <div className="min-w-0 flex-1 flex items-center gap-3 text-sm">
+                      <span className="font-mono text-xs text-orange-900 bg-orange-100 px-2 py-0.5 rounded">
+                        {u.employee_code}
+                      </span>
+                      <span className="truncate text-foreground">{u.name ?? '—'}</span>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {u.count} record{u.count === 1 ? '' : 's'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button
+                        size="sm"
+                        variant={u.decision === 'import' ? 'default' : 'outline'}
+                        className="h-7 text-xs"
+                        onClick={() => setUnmatchedEntries(prev =>
+                          prev.map(p => p.employee_code === u.employee_code
+                            ? { ...p, decision: 'import' } : p),
+                        )}
+                      >
+                        Import Anyway
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={u.decision === 'skip' ? 'default' : 'outline'}
+                        className="h-7 text-xs"
+                        onClick={() => setUnmatchedEntries(prev =>
+                          prev.map(p => p.employee_code === u.employee_code
+                            ? { ...p, decision: 'skip' } : p),
+                        )}
+                      >
+                        Skip
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -757,11 +928,17 @@ const AttendanceUpload = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="rounded-md border p-4">
               <p className="text-xs text-muted-foreground">Records imported</p>
               <p className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
                 {summary.imported}
+              </p>
+            </div>
+            <div className="rounded-md border p-4">
+              <p className="text-xs text-muted-foreground">Records updated</p>
+              <p className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+                {summary.updated}
               </p>
             </div>
             <div className="rounded-md border p-4">

@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
 import { CalendarX2 } from 'lucide-react';
+import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 
 const MONTHS = [
   { value: '01', label: 'January' }, { value: '02', label: 'February' },
@@ -63,7 +64,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
     };
   }, [records]);
 
-  const fmtTime = (t: string | null) => t ? format(parseISO(t), 'HH:mm') : '—';
+  const fmtTime = (t: string | null) => t ? formatTime12h(parseISO(t)) : '—';
 
   return (
     <div className="space-y-6">
@@ -122,7 +123,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                     <TableCell className="text-[13px] text-muted-foreground">{format(d, 'EEEE')}</TableCell>
                     <TableCell className="text-[13px] font-mono">{fmtTime(r.check_in)}</TableCell>
                     <TableCell className="text-[13px] font-mono">{fmtTime(r.check_out)}</TableCell>
-                    <TableCell className="text-[13px] font-mono">{Number(r.working_hours || 0).toFixed(1)}</TableCell>
+                    <TableCell className="text-[13px] font-mono">{r.working_hours == null ? '—' : formatWorkingHours(Number(r.working_hours))}</TableCell>
                     <TableCell className="text-[13px] font-mono">{ot.toFixed(1)}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-[11px] border-0 ${cls}`}>{status}</Badge>
