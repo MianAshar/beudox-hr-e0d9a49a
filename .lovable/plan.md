@@ -1,60 +1,67 @@
-# Fix "Auth session missing!" on /set-password
+## Root cause
 
-## Problem
+The password itself is updating successfully, but `must_change_password` remains `true` in the `employees` row. The client sends the update request, but current RLS only allows `hr_manager` and `ceo` to update `employees`, so a normal `employee` cannot clear their own onboarding flag. That leaves the user in a loop: new password works, dashboard tries to load, refresh reads `must_change_password = true`, and the modal appears again.
 
-When a newly invited employee clicks the link in their invite email, the URL contains `?token_hash=...&type=invite` (current Supabase format). The `/set-password` page never exchanges this token for a session — it just renders the form. When the user submits, `supabase.auth.updateUser({ password })` fails with **"Auth session missing!"** because there is no active session yet.
+## Plan
 
-The legacy hash-fragment format (`#access_token=...`) is partially handled because Supabase auto-processes it, but the new query-string format requires an explicit `verifyOtp` call.
+1. Add a narrowly scoped Supabase migration
+   - Add an `employees_update_own_must_change_password` policy for authenticated users.
+   - Allow a user to update only their own employee row by `auth_user_id = auth.uid()`.
+   - Keep the row constrained to the same authenticated user after update.
+   - This will unblock clearing `must_change_password` without granting employees broad profile-edit access.
 
-## What changes
+2. Update the modal submission handler only where needed
+   - Keep the strict order: `getUser()` → `updateUser({ password })` → update `employees.must_change_password = false` → confirm the flag is now false → refresh session/user state → dismiss modal → navigate.
+   - Add `.eq('auth_user_id', user.id).select('must_change_password').maybeSingle()` to the flag update so the code can confirm the row actually changed instead of treating a no-op as success.
+   - If the update returns no row or still returns `true`, show a clear setup-completion error and stop.
 
-### 1. `src/pages/SetPassword.tsx` — verify the token on mount
+3. Fix the auth refresh race that causes the blank dashboard
+   - Make `refreshEmployee()` return the `fetchEmployee` promise so the modal can `await` it.
+   - After the flag is cleared and `refreshSession()` completes, await the employee refresh before navigating.
+   - Ensure the modal sets loading false before unmounting and navigation.
 
-Replace the existing `useEffect` (lines 43–71) with a verification flow that:
+4. Keep scope limited
+   - Do not touch deactivation login checks.
+   - Do not change the broader auth flow, routes, dashboard, or employee creation logic.
+   - Only change the employee self-update RLS policy, the password-change modal handler, and the auth refresh helper needed by that handler.
 
-- Parses the URL on mount, looking at both the **query string** and the **hash fragment** for: `token_hash`, `token`, `type`, `access_token`, `refresh_token`.
-- Picks the right verification path:
-  - **Format A** (current invite emails): `token_hash` + `type` in query string → `supabase.auth.verifyOtp({ token_hash, type })`.
-  - **Format B** (legacy hash fragment): `access_token` + `refresh_token` in hash → `supabase.auth.setSession({ access_token, refresh_token })`.
-  - **Format C**: bare `token` + `type` + `email` in query string → `supabase.auth.verifyOtp({ token, type, email })` (older fallback).
-  - **No params, no existing session** → redirect to `/login`.
-  - **No params but existing session** → treat as already verified (covers internal navigation).
-- Tracks one of three view states: `verifying`, `ready`, `expired`.
-- After successful verification, scrubs the sensitive token params from the URL via `history.replaceState`.
+## Technical details
 
-### 2. New view states in the render tree
+Expected final success sequence:
 
-- **`verifying`** — centered spinner with text **"Verifying your invite link..."**, replacing the form.
-- **`expired`** — error card with the message **"This invite link has expired or has already been used. Please ask your HR manager to send a new invite."** and a **"Go to login"** button that calls `signOut()` then navigates to `/login`.
-- **`ready`** — the existing password form (unchanged styling).
-- **`success`** — existing success card (kept).
+```ts
+const { data: { user } } = await supabase.auth.getUser();
+await supabase.auth.updateUser({ password: newPassword });
 
-All three reuse the current page chrome (gradient background, brand panel, card) so the visual treatment stays consistent.
+const { data, error } = await supabase
+  .from('employees')
+  .update({ must_change_password: false })
+  .eq('auth_user_id', user.id)
+  .select('must_change_password')
+  .maybeSingle();
 
-### 3. Success behaviour
+if (error || data?.must_change_password !== false) {
+  // show error and keep modal open
+  return;
+}
 
-After `supabase.auth.updateUser({ password })` succeeds:
+await supabase.auth.refreshSession();
+await refreshEmployee();
+setSubmitting(false);
+setVisible(false);
+navigate('/dashboard', { replace: true });
+toast.success('Password updated. Welcome to Forte HR Portal!');
+```
 
-- Show a sonner toast: **"Password set successfully. Welcome to Beudox!"** (invite mode) or the existing reset-success messaging (recovery mode).
-- Invite → redirect to `/dashboard`.
-- Recovery → sign out, redirect to `/login` (unchanged).
+Migration intent:
 
-### 4. `src/hooks/useAuth.tsx` — detect the query-string format too
+```sql
+CREATE POLICY "employees_update_own_must_change_password"
+ON public.employees
+FOR UPDATE
+TO authenticated
+USING (auth_user_id = auth.uid())
+WITH CHECK (auth_user_id = auth.uid());
+```
 
-Update the mount-time detection (lines 58–70) so `passwordMode` is set whether the token arrives in the **hash** or the **query string**. Stop clearing the URL there — the SetPassword page now owns that step (it needs the params to verify the token).
-
-### 5. `src/App.tsx`
-
-No structural changes. `SetPasswordRoute` already defaults to `'invite'` mode when none is detected, which covers direct visits and the brief moment before the URL is parsed.
-
-## Files touched
-
-- `src/pages/SetPassword.tsx` — token verification, loading/expired/ready view states, success toast.
-- `src/hooks/useAuth.tsx` — also detect `type=invite` / `type=recovery` in the query string; stop clearing the URL prematurely.
-
-## What stays the same
-
-- Page layout, branding, gradient, strength meter, password validation rules.
-- Recovery flow (sign-out + redirect to login).
-- `App.tsx` routing.
-- The `delete-employee` and `invite-employee` Edge Functions (already fixed in the previous turn).
+If column-level restriction is available in the migration approach, I will restrict the policy grant to only `must_change_password`; otherwise the existing UI will still only perform the one-field update, and broader manager update policies remain unchanged.
