@@ -14,8 +14,9 @@ import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { CalendarCheck, Plus, Loader2 } from 'lucide-react';
+import { CalendarCheck, Plus, Loader2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 import AttendanceUploadFlow from '@/components/attendance/AttendanceUploadFlow';
 
