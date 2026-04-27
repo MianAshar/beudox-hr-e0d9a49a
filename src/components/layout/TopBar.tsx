@@ -13,7 +13,6 @@ const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/employees': 'Employees',
   '/attendance': 'Attendance',
-  '/attendance/upload': 'Attendance Upload',
   '/holidays': 'Public Holidays',
   '/leave': 'Leave Management',
   '/payroll': 'Payroll',
