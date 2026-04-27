@@ -321,6 +321,12 @@ const AttendanceUpload = () => {
     try {
       const companyId = employee.company_id;
 
+      // Map current unmatched decisions
+      const decisionByCode = new Map<string, UnmatchedDecision>();
+      for (const u of unmatchedEntries) {
+        decisionByCode.set(u.employee_code, u.decision);
+      }
+
       // 1. Fetch company settings
       const { data: settingsRow } = await supabase
         .from('company_settings')
@@ -350,20 +356,27 @@ const AttendanceUpload = () => {
         if (e.employee_code) codeToId.set(e.employee_code.trim(), e.id);
       });
 
-      // 3. Fetch all dates already imported for this company within the parsed range
-      //    (so we can early-skip duplicates without round-tripping per row)
+      // 3. Fetch existing attendance rows in the parsed date range so we can
+      //    decide insert vs update per row. Match keys: employee_id|date for
+      //    matched rows, and employee_code|date for unmatched (null employee_id) rows.
       const dates = Array.from(new Set(source.records.map(r => r.date))).sort();
       const minDate = dates[0];
       const maxDate = dates[dates.length - 1];
       const { data: existing } = await supabase
         .from('attendance_records')
-        .select('employee_id, date')
+        .select('id, employee_id, employee_code, date')
         .eq('company_id', companyId)
         .gte('date', minDate)
         .lte('date', maxDate);
-      const existingKey = new Set(
-        (existing ?? []).map(r => `${r.employee_id}|${r.date}`),
-      );
+      const existingByEmpDate = new Map<string, string>(); // key -> existing row id
+      const existingByCodeDate = new Map<string, string>();
+      for (const r of existing ?? []) {
+        if (r.employee_id) {
+          existingByEmpDate.set(`${r.employee_id}|${r.date}`, r.id);
+        } else if (r.employee_code) {
+          existingByCodeDate.set(`${r.employee_code.trim()}|${r.date}`, r.id);
+        }
+      }
 
       // 4. Fetch holidays for this company in the range
       const { data: holidays } = await supabase
@@ -404,24 +417,24 @@ const AttendanceUpload = () => {
         .single();
       if (importErr || !importRow) throw importErr ?? new Error('Failed to create import batch.');
 
-      // 6. Build attendance rows
-      const unmatched = new Set<string>();
+      // 6. Build attendance rows — split into inserts and updates.
       let skipped = 0;
+      const seenInsertKeys = new Set<string>();
       const toInsert: any[] = [];
+      const toUpdate: { id: string; payload: any }[] = [];
 
       for (const r of source.records) {
-        const empId = codeToId.get(r.employee_code.trim());
+        const code = r.employee_code.trim();
+        const empId = codeToId.get(code);
+
+        // Resolve unmatched decision: skip by default unless user picked "import".
         if (!empId) {
-          unmatched.add(r.employee_code.trim());
-          skipped++;
-          continue;
+          const decision = decisionByCode.get(code) ?? 'skip';
+          if (decision === 'skip') {
+            skipped++;
+            continue;
+          }
         }
-        const dupKey = `${empId}|${r.date}`;
-        if (existingKey.has(dupKey)) {
-          skipped++;
-          continue;
-        }
-        existingKey.add(dupKey); // protect against duplicates inside the same file
 
         const weekend = isWeekend(r.date);
         const holiday = holidaySet.has(r.date);
@@ -434,10 +447,10 @@ const AttendanceUpload = () => {
           : 0;
         const holidayOt = (weekend || holiday) && wh != null ? wh : 0;
 
-        toInsert.push({
+        const basePayload: any = {
           company_id: companyId,
-          employee_id: empId,
-          employee_code: r.employee_code.trim(),
+          employee_id: empId ?? null,
+          employee_code: code,
           date: r.date,
           check_in: isoTimestampKarachi(r.date, r.check_in),
           check_out: isoTimestampKarachi(r.date, r.check_out),
@@ -452,10 +465,41 @@ const AttendanceUpload = () => {
           source: 'machine_import',
           import_batch_id: importRow.id,
           notes: r.notes ?? null,
-        });
+        };
+
+        // Look up existing row: by employee_id+date if matched, else by code+date.
+        const existingId = empId
+          ? existingByEmpDate.get(`${empId}|${r.date}`)
+          : existingByCodeDate.get(`${code}|${r.date}`);
+
+        if (existingId) {
+          toUpdate.push({
+            id: existingId,
+            payload: {
+              check_in: basePayload.check_in,
+              check_out: basePayload.check_out,
+              working_hours: basePayload.working_hours,
+              is_late: basePayload.is_late,
+              regular_ot_hours: basePayload.regular_ot_hours,
+              holiday_ot_hours: basePayload.holiday_ot_hours,
+              status: basePayload.status,
+              import_batch_id: importRow.id,
+              source: 'machine_import',
+            },
+          });
+        } else {
+          // Guard against duplicates inside the same file.
+          const inFileKey = empId ? `e:${empId}|${r.date}` : `c:${code}|${r.date}`;
+          if (seenInsertKeys.has(inFileKey)) {
+            skipped++;
+            continue;
+          }
+          seenInsertKeys.add(inFileKey);
+          toInsert.push(basePayload);
+        }
       }
 
-      // 7. Insert in chunks
+      // 7a. Insert in chunks
       let imported = 0;
       const CHUNK = 500;
       for (let i = 0; i < toInsert.length; i += CHUNK) {
@@ -464,7 +508,6 @@ const AttendanceUpload = () => {
           .from('attendance_records')
           .insert(slice, { count: 'exact' });
         if (insErr) {
-          // If a chunk fails entirely, treat its rows as skipped and keep going
           console.error('Chunk insert failed', insErr);
           skipped += slice.length;
           continue;
@@ -472,21 +515,41 @@ const AttendanceUpload = () => {
         imported += count ?? slice.length;
       }
 
-      // 8. Finalise the import row
+      // 7b. Apply updates (one per existing row — these are duplicates we overwrite)
+      let updated = 0;
+      for (const u of toUpdate) {
+        const { error: updErr } = await supabase
+          .from('attendance_records')
+          .update(u.payload)
+          .eq('id', u.id);
+        if (updErr) {
+          console.error('Update failed', updErr);
+          skipped++;
+          continue;
+        }
+        updated++;
+      }
+
+      // 8. Finalise the import row (records_skipped reflects only true skips)
       await supabase
         .from('attendance_imports')
         .update({
           status: 'completed',
-          records_imported: imported,
+          records_imported: imported + updated,
           records_skipped: skipped,
         })
         .eq('id', importRow.id);
 
-      setSummary({ imported, skipped, unmatched: Array.from(unmatched) });
+      // Unmatched codes the user explicitly skipped (for the summary banner)
+      const skippedUnmatched = unmatchedEntries
+        .filter(u => u.decision === 'skip')
+        .map(u => u.employee_code);
+
+      setSummary({ imported, updated, skipped, unmatched: skippedUnmatched });
       setStep('done');
       toast({
         title: 'Import complete',
-        description: `${imported} record(s) imported, ${skipped} skipped.`,
+        description: `${imported} imported, ${updated} updated, ${skipped} skipped.`,
       });
     } catch (err) {
       console.error(err);
