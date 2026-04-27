@@ -1,60 +1,48 @@
 <!--
 generated_by: tessera
-source_sha: e0ed8c70d23881833472a574a5e0a4b8f1c9ab44
-generated_at: 2026-04-27T11:03:45.531Z
+source_sha: 03da599b9041067096b920d152faa03e7857660f
+generated_at: 2026-04-27T11:14:53.808Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Frontend Application
 
-A comprehensive Human Resources Management System built with modern web technologies. Beudox HR streamlines employee management, attendance tracking, leave management, payroll processing, and organizational workflows.
+A modern, comprehensive Human Resources Management System built as a React-based frontend application. This application provides a complete suite of HR tools including employee management, attendance tracking, leave management, payroll processing, and organizational settings.
 
 ## Features
 
-### Core HR Management
-- **Employee Management**: Complete employee profiles with personal details, job information, and organizational hierarchy
-- **Attendance Tracking**: Automated attendance import from biometric devices with AI-powered parsing, overtime calculations, and reporting
-- **Leave Management**: Request, approve, and track various leave types with balance management
-- **Payroll Processing**: Automated payroll generation with salary calculations, deductions, and payslip generation
+### Core HR Functionality
+- **Employee Management**: Comprehensive employee profiles with personal details, job information, and organizational hierarchy
+- **Attendance Tracking**: Automated attendance import from biometric systems, manual entry, and detailed reporting
+- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, personal)
+- **Payroll Processing**: Salary calculations, overtime tracking, and payroll generation
+- **Performance Reviews**: Employee evaluations, salary reviews, and increment proposals
 
-### Organizational Tools
-- **Project Management**: Create and manage projects with team assignments and task tracking
-- **Performance Evaluations**: Regular and daily evaluations with customizable parameters
-- **HR Policies**: Rich text policy documents with version control
-- **Job Descriptions**: Structured job descriptions with requirements and responsibilities
-
-### Administrative Features
-- **Role-Based Access Control**: Granular permissions system for different user roles
-- **Company Settings**: Configurable company information, departments, and system parameters
-- **Finance Management**: Invoice generation, expense tracking, and financial reporting
-- **Loan Management**: Employee loan requests and tracking
+### Administrative Tools
+- **Company Settings**: Configure departments, roles, leave types, expense categories, and evaluation parameters
+- **User Management**: Role-based access control with granular permissions
+- **Project Management**: Team assignments and project activity tracking
+- **HR Policies**: Rich text editor for policy documents
 
 ### User Experience
-- **Responsive Design**: Modern, mobile-friendly interface built with shadcn/ui
-- **Real-time Notifications**: Toast notifications and email alerts
-- **Dashboard Analytics**: Comprehensive dashboards with key metrics and insights
-- **Search & Filtering**: Advanced search capabilities across all modules
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **Real-time Notifications**: Instant updates on important HR events
+- **Search & Filter**: Advanced search capabilities across all data
+- **Data Visualization**: Charts and summaries for HR metrics
 
 ## Technology Stack
 
-### Frontend
-- **React 18** with TypeScript for type-safe development
-- **Vite** for fast development and optimized builds
-- **React Router** for client-side routing
-- **Tailwind CSS** for styling with shadcn/ui component library
-- **React Query** for efficient server state management
-- **React Hook Form** with Zod validation for form handling
-
-### Backend & Database
-- **Supabase** for backend-as-a-service (authentication, database, storage, edge functions)
-- **PostgreSQL** database with real-time subscriptions
-- **Supabase Edge Functions** for server-side processing (AI parsing, PDF generation)
-
-### Development Tools
-- **ESLint** and **TypeScript** for code quality
-- **Vitest** for unit testing
-- **Playwright** for end-to-end testing
-- **Prettier** for code formatting
+- **Frontend Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS with custom design system
+- **Routing**: React Router
+- **State Management**: React Query for server state, Zustand for client state
+- **Backend Integration**: Supabase (PostgreSQL database, real-time subscriptions, authentication)
+- **UI Components**: Custom component library with Radix UI primitives
+- **Charts**: Recharts for data visualization
+- **Forms**: React Hook Form with validation
+- **Date Handling**: date-fns
+- **Icons**: Lucide React
 
 ## Getting Started
 
@@ -90,92 +78,100 @@ A comprehensive Human Resources Management System built with modern web technolo
    ```env
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
    ```
 
 4. **Database Setup**
    
-   The database schema is managed through Supabase migrations. The migrations are located in `supabase/migrations/` and will be applied automatically when you run the Supabase CLI commands.
-   
-   If using Supabase CLI:
-   ```bash
-   supabase start
-   ```
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
 
-5. **Start the development server**
+5. **Development Server**
    ```bash
    npm run dev
+   # or
+   yarn dev
+   # or
+   bun dev
    ```
    
-   The application will be available at `http://localhost:8080`
+   The application will be available at `http://localhost:5173`
 
 ### Build for Production
 
 ```bash
 npm run build
-npm run preview
+# or
+yarn build
+# or
+bun build
 ```
+
+The built files will be in the `dist/` directory.
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── ui/             # Base UI components (buttons, forms, etc.)
+│   ├── layout/         # Layout components (sidebar, header, etc.)
 │   ├── attendance/     # Attendance-related components
 │   ├── employee-profile/ # Employee profile tabs
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
 │   └── ...
-├── pages/              # Page components and routes
+├── pages/              # Page components (Next.js style routing)
+├── lib/                # Utility functions and configurations
 ├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and business logic
-│   ├── utils.ts        # General utilities
-│   ├── role-access.ts  # Permission checking
-│   ├── attendance-format.ts # Attendance formatting
-│   └── ...
 ├── integrations/       # External service integrations
-│   └── supabase/       # Supabase client and types
-└── types/              # TypeScript type definitions
-
-supabase/
-├── migrations/         # Database schema migrations
-└── functions/          # Edge functions for server-side logic
+└── main.tsx           # Application entry point
 ```
 
-## Key Workflows
+## Key Components
 
-### Attendance Processing
-1. Upload Excel/CSV files from biometric devices
-2. AI-powered parsing normalizes data format
-3. Automatic calculation of working hours and overtime
-4. Batch import with conflict resolution
-5. Real-time reporting and analytics
+### Layout System
+- `AppLayout`: Main application layout with sidebar navigation
+- `AppSidebar`: Collapsible sidebar with menu items
+- `TopBar`: Header with user menu and notifications
+- `NotificationBell`: Real-time notification system
 
-### Payroll Generation
-1. Configure salary components and deductions
-2. Automated calculation based on attendance and leave data
-3. PDF payslip generation
-4. Approval workflows and distribution
+### Core Features
+- `AttendanceUploadFlow`: Complex attendance import with AI parsing
+- `SearchableEmployeeSelect`: Employee search and selection component
+- `BeudoxLogo`: Brand logo component with variant support
+- `NavLink`: Enhanced navigation link with active state styling
 
-### Leave Management
-1. Employees submit leave requests
-2. Automatic balance checking and approval routing
-3. Calendar integration and conflict detection
-4. Accrual calculations and reporting
+## Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests with Vitest
+
+### Code Quality
+
+- **TypeScript**: Strict type checking enabled
+- **ESLint**: Code linting with React and TypeScript rules
+- **Prettier**: Code formatting (via ESLint)
+- **Testing**: Unit tests with Vitest and React Testing Library
+
+### Architecture Patterns
+
+- **Component Composition**: Modular, reusable components
+- **Custom Hooks**: Business logic extracted into reusable hooks
+- **Type Safety**: Comprehensive TypeScript usage
+- **Performance**: React Query for efficient data fetching and caching
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Follow the existing code style and patterns
+2. Write tests for new features
+3. Update documentation as needed
+4. Use conventional commit messages
 
 ## License
 
 This project is proprietary software. All rights reserved.
-
-## Support
-
-For support and questions, please contact the development team or create an issue in the repository.
