@@ -14,8 +14,9 @@ import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { CalendarCheck, Plus, Loader2 } from 'lucide-react';
+import { CalendarCheck, Plus, Loader2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 import AttendanceUploadFlow from '@/components/attendance/AttendanceUploadFlow';
 
@@ -46,11 +47,17 @@ const Attendance = () => {
   const [records, setRecords] = useState<AttendanceRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  // TODO: Remove before production
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const isAuthorised = useMemo(() => {
     const roles = employee?.roles ?? [];
     return roles.includes('hr_manager') || roles.includes('ceo');
   }, [employee]);
+
+  // TODO: Remove before production
+  const isCeo = useMemo(() => (employee?.roles ?? []).includes('ceo'), [employee]);
 
   const yearOptions = useMemo(() => {
     const y = now.getFullYear();
@@ -130,6 +137,44 @@ const Attendance = () => {
     return format(d, 'EEEE, dd MMM yyyy');
   };
 
+  // TODO: Remove before production
+  const handleClearMonth = async () => {
+    if (!employee?.company_id) return;
+    setClearing(true);
+    try {
+      const monthIndex = MONTHS.indexOf(month);
+      const mm = String(monthIndex + 1).padStart(2, '0');
+      const startDate = `${year}-${mm}-01`;
+      const endDateObj = new Date(parseInt(year, 10), monthIndex + 1, 0);
+      const endDate = `${year}-${mm}-${String(endDateObj.getDate()).padStart(2, '0')}`;
+      const monthYear = `${year}-${mm}`;
+
+      const { error: recErr } = await supabase
+        .from('attendance_records')
+        .delete()
+        .eq('company_id', employee.company_id)
+        .gte('date', startDate)
+        .lte('date', endDate);
+      if (recErr) throw recErr;
+
+      const { error: impErr } = await supabase
+        .from('attendance_imports')
+        .delete()
+        .eq('company_id', employee.company_id)
+        .eq('month_year', monthYear);
+      if (impErr) throw impErr;
+
+      toast.success(`Attendance data cleared for ${month} ${year}`);
+      setClearOpen(false);
+      await fetchRecords();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message ?? 'Failed to clear attendance data');
+    } finally {
+      setClearing(false);
+    }
+  };
+
   return (
     <div className="max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -154,11 +199,28 @@ const Attendance = () => {
           </div>
         </div>
 
-        {isAuthorised && (
-          <Button onClick={() => setUploadOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Add Attendance
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* TODO: Remove before production */}
+          {isCeo && (
+            <button
+              type="button"
+              onClick={() => setClearOpen(true)}
+              className="inline-flex items-center gap-2 px-3 h-9 text-sm font-medium bg-white hover:bg-red-50 transition-colors"
+              style={{
+                color: '#991B1B',
+                border: '1px solid rgba(232, 69, 69, 0.3)',
+                borderRadius: '10px',
+              }}
+            >
+              <Trash2 className="h-4 w-4" /> Clear Month Data
+            </button>
+          )}
+          {isAuthorised && (
+            <Button onClick={() => setUploadOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Add Attendance
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card className="overflow-hidden">
@@ -268,6 +330,33 @@ const Attendance = () => {
               fetchRecords();
             }}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* TODO: Remove before production */}
+      <Dialog open={clearOpen} onOpenChange={(v) => !clearing && setClearOpen(v)}>
+        <DialogContent className="max-w-md p-6">
+          <DialogHeader>
+            <DialogTitle style={{ fontFamily: 'var(--ff-display)' }}>Clear Attendance Data?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This will permanently delete all attendance records for {month} {year}. This cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setClearOpen(false)} disabled={clearing}>
+              Cancel
+            </Button>
+            <button
+              type="button"
+              onClick={handleClearMonth}
+              disabled={clearing}
+              className="inline-flex items-center gap-2 px-4 h-10 text-sm font-medium rounded-md disabled:opacity-60"
+              style={{ backgroundColor: '#FEE2E2', color: '#991B1B' }}
+            >
+              {clearing && <Loader2 className="h-4 w-4 animate-spin" />}
+              Clear Data
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
