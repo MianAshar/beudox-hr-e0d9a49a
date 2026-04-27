@@ -80,7 +80,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const rolesList = (rolesRes.data as string[] | null) ?? [];
       setEmployee({ ...base, roles: rolesList });
     } else {
+      // Authenticated session has no matching active employee record
+      // (e.g. account was deactivated). Sign out to avoid an infinite
+      // loading spinner in ProtectedRoute.
       setEmployee(null);
+      await supabase.auth.signOut();
+      setSession(null);
+      setUser(null);
     }
   }, []);
 
