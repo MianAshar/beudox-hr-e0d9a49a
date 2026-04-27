@@ -27,7 +27,7 @@ interface AuthContextType {
   loading: boolean;
   mustChangePassword: boolean;
   signOut: () => Promise<void>;
-  refreshEmployee: () => void;
+  refreshEmployee: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -37,7 +37,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   mustChangePassword: false,
   signOut: async () => {},
-  refreshEmployee: () => {},
+  refreshEmployee: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -75,9 +75,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const refreshEmployee = useCallback(() => {
+  const refreshEmployee = useCallback(async () => {
     if (user) {
-      fetchEmployee(user.id);
+      await fetchEmployee(user.id);
     }
   }, [user, fetchEmployee]);
 
