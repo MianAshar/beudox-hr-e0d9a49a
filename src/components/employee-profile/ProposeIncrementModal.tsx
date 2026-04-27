@@ -175,9 +175,9 @@ const ProposeIncrementModal = ({ open, onOpenChange, employee, proposerEmployeeI
     <Dialog open={open} onOpenChange={close}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Propose Increment</DialogTitle>
+          <DialogTitle>Review</DialogTitle>
           <DialogDescription>
-            Submit a salary change proposal for {employee.full_name}.
+            Submit a salary change review for {employee.full_name}.
           </DialogDescription>
         </DialogHeader>
 
