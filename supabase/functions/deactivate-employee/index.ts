@@ -64,10 +64,22 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const employeeId = body.employee_id;
     const reactivate = body.reactivate === true;
+    const reason = typeof body.reason === "string" ? body.reason : null;
+    const notes = typeof body.notes === "string" ? body.notes : null;
 
     if (!employeeId || typeof employeeId !== "string") {
       return new Response(
         JSON.stringify({ error: "employee_id is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!reactivate && !reason) {
+      return new Response(
+        JSON.stringify({ error: "reason is required for deactivation" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -92,17 +104,63 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Ban or unban the auth user
-    if (emp.auth_user_id) {
-      const { error: updateError } =
-        await adminClient.auth.admin.updateUserById(emp.auth_user_id, {
-          ban_duration: reactivate ? "none" : "876600h", // ~100 years
-        });
+    if (reactivate) {
+      // Reactivation: unban the auth user (if still linked) and clear deactivation fields.
+      if (emp.auth_user_id) {
+        const { error: updateError } =
+          await adminClient.auth.admin.updateUserById(emp.auth_user_id, {
+            ban_duration: "none",
+          });
+        if (updateError) {
+          console.error("Auth user unban error:", updateError);
+        }
+      }
 
-      if (updateError) {
-        console.error("Auth user update error:", updateError);
+      const { error: empUpdateError } = await adminClient
+        .from("employees")
+        .update({
+          status: "active",
+          deactivation_reason: null,
+          deactivation_notes: null,
+        })
+        .eq("id", employeeId);
+
+      if (empUpdateError) {
+        console.error("Employee reactivation error:", empUpdateError);
         return new Response(
-          JSON.stringify({ error: "Failed to update auth user" }),
+          JSON.stringify({ error: "Failed to reactivate employee" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    } else {
+      // Deactivation: revoke any active session, then null the auth_user_id link
+      // and persist the deactivation reason/notes on the employee row.
+      if (emp.auth_user_id) {
+        // Sign out / invalidate all sessions for this user
+        const { error: signOutError } =
+          await adminClient.auth.admin.signOut(emp.auth_user_id, "global");
+        if (signOutError) {
+          console.error("Sign out error (non-fatal):", signOutError);
+        }
+      }
+
+      const { error: empUpdateError } = await adminClient
+        .from("employees")
+        .update({
+          status: "inactive",
+          auth_user_id: null,
+          deactivation_reason: reason,
+          deactivation_notes: notes,
+        })
+        .eq("id", employeeId);
+
+      if (empUpdateError) {
+        console.error("Employee deactivation error:", empUpdateError);
+        return new Response(
+          JSON.stringify({ error: "Failed to deactivate employee" }),
           {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
