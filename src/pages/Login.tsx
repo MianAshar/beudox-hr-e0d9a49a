@@ -91,7 +91,10 @@ const Login = () => {
       return;
     }
     setErrors({});
+    setDeactivatedMessage(null);
     setLoading(true);
+
+    const DEACTIVATED_MSG = 'Your account has been deactivated. Please contact your HR manager.';
 
     const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
     if (!error && signInData.user) {
@@ -107,8 +110,11 @@ const Login = () => {
         .maybeSingle();
 
       if (empStatus?.status === 'inactive') {
+        // Persist the message in a ref BEFORE signOut() — the auth state
+        // change re-renders the component and would otherwise wipe local state.
+        deactivationErrorRef.current = DEACTIVATED_MSG;
+        setPassword('');
         await supabase.auth.signOut();
-        setErrors({ general: 'Your account has been deactivated. Please contact your HR manager.' });
         setLoading(false);
         return;
       }
@@ -119,7 +125,8 @@ const Login = () => {
     if (error) {
       const isBannedUser = error.code === 'user_banned' || error.message.toLowerCase().includes('banned');
       if (isBannedUser) {
-        setErrors({ general: 'Your account has been deactivated. Please contact your HR manager.' });
+        setDeactivatedMessage(DEACTIVATED_MSG);
+        setPassword('');
         setLoading(false);
         return;
       }
@@ -129,7 +136,8 @@ const Login = () => {
         .eq('email', email)
         .maybeSingle();
       if (empData?.status === 'inactive') {
-        setErrors({ general: 'Your account has been deactivated. Please contact your HR manager.' });
+        setDeactivatedMessage(DEACTIVATED_MSG);
+        setPassword('');
       } else {
         setErrors({ general: 'Invalid email or password' });
       }
