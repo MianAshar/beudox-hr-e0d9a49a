@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { canAccess } from "@/lib/role-access";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
-import SetPassword from "./pages/SetPassword";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import EmployeeProfile from "./pages/EmployeeProfile";
@@ -50,7 +49,7 @@ import { Loader2 } from "lucide-react";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, loading, passwordMode, clearPasswordMode, employee } = useAuth();
+  const { session, loading, employee } = useAuth();
   const location = useLocation();
 
   // 1. Loading auth or employee data → show spinner, never flash content
@@ -60,11 +59,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
-
-  // Intercept invite/recovery before showing dashboard
-  if (session && passwordMode) {
-    return <SetPassword mode={passwordMode} onComplete={clearPasswordMode} />;
   }
 
   // 2. Not authenticated → login
@@ -81,7 +75,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const RootRedirect = () => {
-  const { session, loading, passwordMode, clearPasswordMode } = useAuth();
+  const { session, loading } = useAuth();
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -89,20 +83,7 @@ const RootRedirect = () => {
       </div>
     );
   }
-  // Intercept at root too
-  if (session && passwordMode) {
-    return <SetPassword mode={passwordMode} onComplete={clearPasswordMode} />;
-  }
   return <Navigate to={session ? "/dashboard" : "/login"} replace />;
-};
-
-// Public route for invite/recovery email links. Detects token type from URL hash.
-const SetPasswordRoute = () => {
-  const { passwordMode, clearPasswordMode } = useAuth();
-  // Default to 'invite' if no mode detected yet (covers the brief moment before
-  // useAuth's hash-detection effect runs, and direct navigations).
-  const mode = passwordMode ?? 'invite';
-  return <SetPassword mode={mode} onComplete={clearPasswordMode} />;
 };
 
 const App = () => (
@@ -116,7 +97,7 @@ const App = () => (
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/set-password" element={<SetPasswordRoute />} />
+            
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
             <Route path="/employees/new" element={<ProtectedRoute><EmployeeForm /></ProtectedRoute>} />

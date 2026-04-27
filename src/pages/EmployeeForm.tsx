@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { sendNotification, getEmployeeIdsByRole, uniqueRecipients } from '@/lib/notifications';
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
@@ -416,18 +416,6 @@ const EmployeeForm = () => {
           .eq('id', employeeId);
       }
 
-      // Send invite for new employees
-      if (!isEdit && employeeId) {
-        try {
-          await supabase.functions.invoke('invite-employee', {
-            body: { email: form.email, employee_id: employeeId },
-          });
-        } catch (inviteErr: any) {
-          console.error('Invite error:', inviteErr);
-          toast.warning('Employee saved but invite email failed to send');
-        }
-      }
-
       queryClient.invalidateQueries({ queryKey: ['employees-list'] });
       queryClient.invalidateQueries({ queryKey: ['employee-profile'] });
       queryClient.invalidateQueries({ queryKey: ['employee-edit'] });
@@ -436,22 +424,7 @@ const EmployeeForm = () => {
         toast.success('Employee updated successfully');
         navigate(`/employees/${id}`);
       } else {
-        // TODO: Re-enable after invite email is fixed
-        // if (companyId && employeeId) {
-        //   const mgrs = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
-        //   if (mgrs.length > 0) {
-        //     sendNotification({
-        //       companyId,
-        //       recipientIds: mgrs,
-        //       type: 'employee_onboarded',
-        //       title: 'New Employee Added',
-        //       message: `${form.full_name} has been added to the system.`,
-        //       referenceType: 'employee',
-        //       referenceId: employeeId,
-        //     });
-        //   }
-        // }
-        toast.success(`Employee added. Invite sent to ${form.email}`);
+        toast.success('Employee added successfully');
         navigate('/employees');
       }
     } catch (err: any) {

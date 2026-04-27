@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { trackLogin } from '@/lib/login-tracking';
-import { Eye, EyeOff, Loader2, Building2, AlertTriangle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Building2 } from 'lucide-react';
 
 const Login = () => {
   const { session, loading: authLoading } = useAuth();
@@ -11,16 +11,12 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
-  const [deactivatedMessage, setDeactivatedMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
   const [company, setCompany] = useState<{ name: string; logo_url: string | null } | null>(null);
   const [companyLoading, setCompanyLoading] = useState(true);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
-  // Persists across the re-render triggered by supabase.auth.signOut() so the
-  // message survives the auth state change that would otherwise wipe local state.
-  const deactivationErrorRef = useRef<string | null>(null);
 
   useEffect(() => {
     const fetchCompany = async () => {
@@ -36,16 +32,6 @@ const Login = () => {
     fetchCompany();
   }, []);
 
-  // After signOut() clears the session, the component re-renders with no
-  // session. Promote the persisted deactivation message into state so the
-  // banner can render.
-  useEffect(() => {
-    if (!session && deactivationErrorRef.current) {
-      setDeactivatedMessage(deactivationErrorRef.current);
-      deactivationErrorRef.current = null;
-    }
-  }, [session]);
-
   if (authLoading || companyLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: '#F6F5FF' }}>
@@ -54,9 +40,7 @@ const Login = () => {
     );
   }
 
-  // Don't navigate to the dashboard if we're in the middle of handling a
-  // deactivated-account sign-out — the session may briefly still exist.
-  if (session && !deactivationErrorRef.current && !deactivatedMessage) {
+  if (session) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -91,50 +75,15 @@ const Login = () => {
       return;
     }
     setErrors({});
-    setDeactivatedMessage(null);
     setLoading(true);
-
-    const DEACTIVATED_MSG = 'Your account has been deactivated. Please contact your HR manager.';
 
     const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
     if (!error && signInData.user) {
-      // Verify the employee is still active before letting the app boot.
-      // We use a SECURITY DEFINER RPC because deactivated employees have
-      // auth_user_id = NULL on their employees row, so RLS hides it from a
-      // direct SELECT — the RPC bypasses RLS but only returns the status
-      // field, which is safe to expose by email.
-      const { data: empStatus } = await supabase
-        .rpc('get_employee_status_by_email', { _email: email });
-
-      if (empStatus === 'inactive') {
-        // Persist the message in a ref BEFORE signOut() — the auth state
-        // change re-renders the component and would otherwise wipe local state.
-        deactivationErrorRef.current = DEACTIVATED_MSG;
-        setPassword('');
-        await supabase.auth.signOut();
-        setLoading(false);
-        return;
-      }
-
       // Fire-and-forget login tracking — never blocks the login flow
       void trackLogin(signInData.user.id);
     }
     if (error) {
-      const isBannedUser = error.code === 'user_banned' || error.message.toLowerCase().includes('banned');
-      if (isBannedUser) {
-        setDeactivatedMessage(DEACTIVATED_MSG);
-        setPassword('');
-        setLoading(false);
-        return;
-      }
-      const { data: empStatus } = await supabase
-        .rpc('get_employee_status_by_email', { _email: email });
-      if (empStatus === 'inactive') {
-        setDeactivatedMessage(DEACTIVATED_MSG);
-        setPassword('');
-      } else {
-        setErrors({ general: 'Invalid email or password' });
-      }
+      setErrors({ general: 'Invalid email or password' });
     }
     setLoading(false);
   };
@@ -188,23 +137,7 @@ const Login = () => {
         {/* Divider */}
         <div style={{ height: 1, background: 'rgba(91,63,248,0.10)', margin: '24px 0' }} />
 
-        {deactivatedMessage && (
-          <div
-            className="mb-5 flex items-start gap-2.5 rounded-lg px-4 py-3 text-sm"
-            style={{
-              background: '#FEF3C7',
-              border: '1px solid #F5A623',
-              color: '#92400E',
-              fontFamily: 'var(--ff-body)',
-            }}
-            role="alert"
-          >
-            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: '#92400E' }} />
-            <span>{deactivatedMessage}</span>
-          </div>
-        )}
-
-        {errors.general && !deactivatedMessage && (
+        {errors.general && (
           <div className="mb-5 rounded-lg border border-destructive/20 bg-[hsl(var(--bx-danger-bg))] px-4 py-3 text-sm text-[hsl(var(--bx-danger-text))]">
             {errors.general}
           </div>
