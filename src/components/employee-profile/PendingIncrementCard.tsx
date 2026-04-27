@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Check, X, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { sendNotification, getEmployeeIdsByRole } from '@/lib/notifications';
+import { computeNextReviewDate } from '@/lib/review-schedule';
 
 interface Props {
   employee: {
