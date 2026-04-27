@@ -117,7 +117,13 @@ const SalaryReviewTab = ({ employee, canEdit, isCeo, authEmployeeId }: Props) =>
         <h3 className="font-display font-semibold text-[15px] text-foreground mb-3" style={{ fontFamily: 'var(--ff-display)' }}>
           Salary History
         </h3>
-        <SalaryHistoryTab employeeId={employee.id} />
+        <SalaryHistoryTab
+          employeeId={employee.id}
+          isCeo={isCeo}
+          employeeName={employee.full_name}
+          reviewFrequencyMonths={employee.review_frequency_months}
+          firstReviewDate={employee.first_review_date}
+        />
       </div>
     </div>
   );
