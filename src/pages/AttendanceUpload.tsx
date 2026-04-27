@@ -836,6 +836,61 @@ const AttendanceUpload = () => {
             </div>
           )}
 
+          {unmatchedEntries.length > 0 && (
+            <div className="rounded-md border border-orange-200 bg-orange-50 p-4 shrink-0 max-h-[280px] overflow-y-auto">
+              <div className="flex items-center gap-2 font-medium text-sm text-orange-900 mb-1">
+                <AlertTriangle className="h-4 w-4" /> Unmatched Employee Codes
+              </div>
+              <p className="text-xs text-orange-900/80 mb-3">
+                These employee codes don't match anyone in your employee directory.
+                Choose <strong>Import Anyway</strong> to save the rows now (they can be linked
+                to an employee later) or <strong>Skip</strong> to ignore them. Default is Skip.
+              </p>
+              <div className="space-y-1.5">
+                {unmatchedEntries.map(u => (
+                  <div
+                    key={u.employee_code}
+                    className="flex items-center justify-between gap-3 rounded-md border border-orange-200 bg-white px-3 py-2"
+                  >
+                    <div className="min-w-0 flex-1 flex items-center gap-3 text-sm">
+                      <span className="font-mono text-xs text-orange-900 bg-orange-100 px-2 py-0.5 rounded">
+                        {u.employee_code}
+                      </span>
+                      <span className="truncate text-foreground">{u.name ?? '—'}</span>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {u.count} record{u.count === 1 ? '' : 's'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button
+                        size="sm"
+                        variant={u.decision === 'import' ? 'default' : 'outline'}
+                        className="h-7 text-xs"
+                        onClick={() => setUnmatchedEntries(prev =>
+                          prev.map(p => p.employee_code === u.employee_code
+                            ? { ...p, decision: 'import' } : p),
+                        )}
+                      >
+                        Import Anyway
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={u.decision === 'skip' ? 'default' : 'outline'}
+                        className="h-7 text-xs"
+                        onClick={() => setUnmatchedEntries(prev =>
+                          prev.map(p => p.employee_code === u.employee_code
+                            ? { ...p, decision: 'skip' } : p),
+                        )}
+                      >
+                        Skip
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2 pt-2 shrink-0 border-t mt-0">
             <Button variant="outline" onClick={cancelPreview}>
               <X className="h-4 w-4 mr-2" /> Cancel
