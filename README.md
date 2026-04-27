@@ -1,104 +1,95 @@
 <!--
 generated_by: tessera
-source_sha: e3b474779bf09d55302d2bc89be1ae87a6a9e9d7
-generated_at: 2026-04-27T12:14:30.064Z
+source_sha: eec11b4d7032811604f4f45f4103c46d4f651a70
+generated_at: 2026-04-27T12:16:07.535Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built for modern businesses. Beudox HR streamlines employee management, attendance tracking, payroll processing, and organizational workflows.
+A comprehensive Human Resources Management System built as a modern React frontend application. Beudox HR streamlines HR operations including employee management, attendance tracking, leave requests, payroll processing, and performance evaluations.
 
 ## Features
 
-### Core HR Management
-- **Employee Profiles**: Complete employee information management with roles, departments, and personal details
-- **Attendance Tracking**: Automated attendance import from ZKTeco machines with AI-powered parsing
-- **Leave Management**: Request, approve, and track employee leave balances
-- **Payroll Processing**: Automated payroll generation with overtime calculations
-- **Performance Evaluations**: Regular and daily performance reviews with scheduling
-
-### Organizational Tools
-- **Project Management**: Track projects, assign team members, and monitor progress
-- **Client Management**: Maintain client relationships and project associations
-- **Invoice Generation**: Create and manage client invoices with PDF export
-- **HR Policies**: Rich text policy documents with version control
-- **Job Descriptions**: Structured job posting and description management
+### Core HR Functionality
+- **Employee Management**: Complete employee profiles with personal details, job information, and organizational structure
+- **Attendance Tracking**: Automated attendance import from biometric systems, manual entry, and comprehensive reporting
+- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, personal)
+- **Payroll Processing**: Automated payroll calculations with overtime, deductions, and salary history
+- **Performance Reviews**: Employee evaluations, salary reviews, and increment proposals
+- **Project Management**: Team assignments, project tracking, and activity logging
 
 ### Administrative Features
-- **Role-Based Access Control**: Granular permissions for different user types
-- **Company Settings**: Configure departments, leave types, evaluation parameters
-- **Public Holidays**: Manage company-wide holiday schedules
-- **Loan Management**: Track employee loans and repayments
-- **Finance Dashboard**: Comprehensive financial overview and reporting
+- **Company Settings**: Configure departments, roles, leave types, expense categories
+- **User Roles & Permissions**: Granular access control for different user types
+- **Notifications**: Automated alerts for reviews, approvals, and system events
+- **Audit Logs**: Login tracking and system activity monitoring
 
 ## Technology Stack
 
-- **Frontend**: React 18, TypeScript, Vite
-- **UI Framework**: Tailwind CSS, shadcn/ui (Radix UI components)
-- **Routing**: React Router v6
-- **State Management**: React Query (TanStack Query)
-- **Backend**: Supabase (PostgreSQL, Authentication, Edge Functions)
-- **Forms**: React Hook Form with Zod validation
-- **Charts**: Recharts
-- **Rich Text**: Tiptap
-- **Testing**: Vitest, Playwright
-- **Build Tools**: Vite, ESLint, TypeScript
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **UI Framework**: shadcn/ui components with Tailwind CSS
+- **Backend**: Supabase (PostgreSQL database + real-time subscriptions)
+- **State Management**: React Query for server state, Zustand for client state
+- **Routing**: React Router
+- **Forms**: React Hook Form with validation
+- **Charts**: Recharts for data visualization
+- **Date Handling**: date-fns
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
-- npm or bun
+- npm or bun package manager
 - Supabase account and project
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd beudox-hr
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+   cd beudox-hr-e0d9a49a
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. Configure environment variables:
+3. **Environment Configuration**
    
-   Copy `.env` and update the Supabase configuration:
+   Copy the `.env` file and update the Supabase credentials:
+   ```bash
+   cp .env .env.local
+   ```
+   
+   Update the following variables in `.env.local`:
    ```env
-   VITE_SUPABASE_PROJECT_ID=your_project_id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
    ```
 
-4. Start the development server:
+4. **Database Setup**
+   
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   
+   Alternatively, if using Supabase CLI:
+   ```bash
+   supabase db reset
+   ```
+
+5. **Start the development server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
-
-5. Open [http://localhost:5173](http://localhost:5173) in your browser
-
-### Database Setup
-
-The application uses Supabase as the backend. The database schema includes tables for:
-
-- Employees and user authentication
-- Attendance records
-- Leave requests and balances
-- Payroll data
-- Projects and clients
-- Evaluations and reviews
-- Company settings and configurations
-
-Database migrations are located in `supabase/migrations/` and should be applied to your Supabase project.
+   
+   The application will be available at `http://localhost:5173`
 
 ### Build for Production
 
@@ -112,57 +103,50 @@ npm run preview
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── employee-profile/  # Employee profile tabs
-│   ├── attendance/     # Attendance-related components
-│   ├── leave/          # Leave management components
+│   ├── ui/             # shadcn/ui base components
+│   ├── layout/         # App layout components
+│   ├── employee-profile/  # Employee detail components
+│   ├── attendance/     # Attendance management
+│   ├── leave/          # Leave management
 │   ├── payroll/        # Payroll components
-│   ├── projects/       # Project management components
-│   ├── settings/       # Settings components
 │   └── ...
-├── pages/              # Route components
-├── hooks/              # Custom React hooks
+├── pages/              # Page components
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
+├── hooks/              # Custom React hooks
+├── integrations/       # External service integrations
 └── types/              # TypeScript type definitions
-
-supabase/
-├── functions/          # Edge functions for AI parsing, PDF generation
-├── migrations/         # Database schema migrations
-└── config.toml         # Supabase configuration
 ```
 
-## Key Features Explained
+## Key Components
 
-### Attendance Upload Flow
+### AttendanceUploadFlow
+A sophisticated component for importing attendance data from biometric systems. Features:
+- Excel file parsing with AI-powered data normalization
+- Preview and validation of imported records
+- Handling of unmatched employee codes
+- Batch processing with progress tracking
 
-The system supports automated attendance import from ZKTeco biometric machines:
+### SearchableEmployeeSelect
+A searchable dropdown component for employee selection with:
+- Real-time filtering by name or designation
+- Avatar display and employee details
+- Support for "All Employees" option
 
-1. Upload Excel/CSV files exported from ZKTeco devices
-2. AI-powered parsing normalizes data and handles various formats
-3. Automatic calculation of working hours, overtime, and late arrivals
-4. Support for unmatched employee codes with import/skip options
-5. Batch processing with detailed import summaries
+### Employee Profile Tabs
+Comprehensive employee detail views including:
+- Personal and job information
+- Attendance history with summaries
+- Leave balances and requests
+- Payroll history and salary reviews
+- Document management
 
-### Role-Based Access
+## API Integration
 
-The application implements comprehensive role-based access control:
-
-- **Admin**: Full system access
-- **HR Manager**: Employee management, attendance, payroll
-- **Project Manager**: Project and client management
-- **Employee**: Personal profile, leave requests, timesheets
-
-### Payroll Processing
-
-Automated payroll generation includes:
-
-- Base salary calculations
-- Overtime (regular and holiday) tracking
-- Leave deductions
-- Tax calculations
-- PDF payslip generation
+The application integrates with Supabase for:
+- **Database**: PostgreSQL with real-time subscriptions
+- **Authentication**: Supabase Auth for user management
+- **Storage**: File uploads for documents and avatars
+- **Edge Functions**: Serverless functions for complex operations like attendance parsing
 
 ## Development
 
@@ -170,19 +154,16 @@ Automated payroll generation includes:
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests with Vitest
 - `npm run lint` - Run ESLint
-- `npm run test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-
-### Testing
-
-The project uses Vitest for unit testing and Playwright for end-to-end testing.
 
 ### Code Quality
 
-- TypeScript for type safety
-- ESLint for code linting
-- Prettier for code formatting (via ESLint)
+- **TypeScript**: Strict type checking enabled
+- **ESLint**: Code linting with React and TypeScript rules
+- **Prettier**: Code formatting
+- **Vitest**: Unit testing framework
 
 ## Contributing
 
@@ -196,7 +177,3 @@ The project uses Vitest for unit testing and Playwright for end-to-end testing.
 ## License
 
 This project is proprietary software. All rights reserved.
-
-## Support
-
-For support or questions, please contact the development team.
