@@ -50,40 +50,57 @@ const SetPassword = () => {
   // Token exchange on mount
   useEffect(() => {
     const run = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
+      // Step 1: Read hash fragment
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
 
-      const queryParams = new URLSearchParams(window.location.search);
-      const tokenHash = queryParams.get('token_hash');
-      const type = queryParams.get('type');
-
-      let attempted = false;
-
+      // Step 2: If both tokens found in hash
       if (accessToken && refreshToken) {
-        attempted = true;
-        await supabase.auth.setSession({
+        const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-      } else if (tokenHash && type) {
-        attempted = true;
-        await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: type as any,
-        });
-      }
 
-      if (!attempted) {
-        navigate('/login', { replace: true });
+        // Clear hash from URL immediately
+        window.history.replaceState(null, '', window.location.pathname);
+
+        if (error) {
+          setView('expired');
+          return;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        setView(session ? 'ready' : 'expired');
         return;
       }
 
-      // Clear params to prevent re-use
-      window.history.replaceState({}, '', '/set-password');
+      // Step 3: Fallback to query string token_hash
+      const qParams = new URLSearchParams(window.location.search);
+      const tokenHash = qParams.get('token_hash');
+      const type = qParams.get('type');
 
-      const { data: { session } } = await supabase.auth.getSession();
-      setView(session ? 'ready' : 'expired');
+      if (tokenHash && type) {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: type as any,
+        });
+
+        window.history.replaceState(null, '', window.location.pathname);
+
+        if (error) {
+          setView('expired');
+          return;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        setView(session ? 'ready' : 'expired');
+        return;
+      }
+
+      // Step 4: Nothing found
+      navigate('/login', { replace: true });
     };
 
     run();
