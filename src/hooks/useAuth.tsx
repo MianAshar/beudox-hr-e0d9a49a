@@ -25,9 +25,20 @@ interface AuthContextType {
   user: User | null;
   employee: EmployeeData | null;
   loading: boolean;
+  mustChangePassword: boolean;
   signOut: () => Promise<void>;
   refreshEmployee: () => void;
 }
+
+const AuthContext = createContext<AuthContextType>({
+  session: null,
+  user: null,
+  employee: null,
+  loading: true,
+  mustChangePassword: false,
+  signOut: async () => {},
+  refreshEmployee: () => {},
+});
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
