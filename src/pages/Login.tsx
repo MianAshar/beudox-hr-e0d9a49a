@@ -77,6 +77,24 @@ const Login = () => {
 
     const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
     if (!error && signInData.user) {
+      // Verify the employee is still active before letting the app boot.
+      // Deactivated employees may still successfully authenticate (e.g. before
+      // ban propagation, or via leftover sessions), which would otherwise
+      // leave the app stuck on a loading screen because the employee lookup
+      // returns nothing.
+      const { data: empStatus } = await supabase
+        .from('employees')
+        .select('status')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (empStatus?.status === 'inactive') {
+        await supabase.auth.signOut();
+        setErrors({ general: 'Your account has been deactivated. Please contact your HR manager.' });
+        setLoading(false);
+        return;
+      }
+
       // Fire-and-forget login tracking — never blocks the login flow
       void trackLogin(signInData.user.id);
     }
