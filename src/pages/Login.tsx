@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { trackLogin } from '@/lib/login-tracking';
-import { Eye, EyeOff, Loader2, Building2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Building2, AlertTriangle } from 'lucide-react';
 
 const Login = () => {
   const { session, loading: authLoading } = useAuth();
