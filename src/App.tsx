@@ -66,7 +66,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!session) return <Navigate to="/login" replace />;
 
   // 3. Must change password → block all routes, show only the modal overlay
-  if (mustChangePassword) {
+  if (mustChangePassword === true) {
     return <MandatoryPasswordChange />;
   }
 
