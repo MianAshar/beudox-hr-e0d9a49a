@@ -10,16 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Pencil, Send, ShieldOff, ShieldCheck, Trash2, Lock, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Lock, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -71,15 +64,10 @@ const EmployeeProfile = () => {
   const isHrOrCeo = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const isFinanceOrCeo = ['finance_manager', 'ceo'].some(r => roles.includes(r));
   const isManager = isHrOrCeo;
-  const [resending, setResending] = useState(false);
-  const [deactivating, setDeactivating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
-  const [deactivationReason, setDeactivationReason] = useState<string>('');
-  const [deactivationNotes, setDeactivationNotes] = useState<string>('');
   const queryClient = useQueryClient();
   const isCeo = roles.includes('ceo');
 
@@ -103,52 +91,6 @@ const EmployeeProfile = () => {
   const canManage = isManager && canManageEmployee(roles, emp);
   const canSeeCompensation = canViewCompensation(roles, emp);
   const isHrBlocked = isManager && !canManage && isProtectedFromHr(emp);
-
-  const handleResendInvite = async () => {
-    if (!emp?.email || !emp?.id) return;
-    setResending(true);
-    try {
-      const { error } = await supabase.functions.invoke('invite-employee', {
-        body: { email: emp.email, employee_id: emp.id },
-      });
-      if (error) throw error;
-      toast.success(`Invite resent to ${emp.email}`);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to resend invite');
-    } finally {
-      setResending(false);
-    }
-  };
-
-  const handleDeactivateReactivate = async (opts?: { reason?: string; notes?: string }) => {
-    if (!emp?.id) return;
-    const isInactive = emp.status === 'inactive';
-    setDeactivating(true);
-    try {
-      const { error: fnError } = await supabase.functions.invoke('deactivate-employee', {
-        body: {
-          employee_id: emp.id,
-          reactivate: isInactive,
-          reason: opts?.reason ?? null,
-          notes: opts?.notes ?? null,
-        },
-      });
-      if (fnError) throw fnError;
-      toast.success(
-        isInactive
-          ? `${emp.full_name} has been reactivated.`
-          : `${emp.full_name} has been deactivated.`
-      );
-      queryClient.invalidateQueries({ queryKey: ['employee-profile', id] });
-      setDeactivateDialogOpen(false);
-      setDeactivationReason('');
-      setDeactivationNotes('');
-    } catch (err: any) {
-      toast.error(err.message || `Failed to ${isInactive ? 'reactivate' : 'deactivate'} employee`);
-    } finally {
-      setDeactivating(false);
-    }
-  };
 
   const handleDelete = async () => {
     if (!emp?.id) return;
