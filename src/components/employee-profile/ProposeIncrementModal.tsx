@@ -120,16 +120,13 @@ const ProposeIncrementModal = ({ open, onOpenChange, employee, proposerEmployeeI
       if (insertErr) throw insertErr;
 
       if (willApprove) {
-        // Advance first_review_date strictly past today by stepping in `freq` months
+        // Advance next review date by one frequency period from the current next review
         const freq = employee.review_frequency_months ?? 6;
         let advancedReview: string | null = null;
-        if (employee.first_review_date) {
-          const today = new Date();
-          let d = parseISO(employee.first_review_date);
-          for (let i = 0; i < 240 && d <= today; i++) {
-            d = new Date(d.getFullYear(), d.getMonth() + freq, d.getDate());
-          }
-          advancedReview = format(d, 'yyyy-MM-dd');
+        const currentNext = computeNextReviewDate(employee.first_review_date, freq);
+        if (currentNext) {
+          const advanced = new Date(currentNext.getFullYear(), currentNext.getMonth() + freq, currentNext.getDate());
+          advancedReview = format(advanced, 'yyyy-MM-dd');
         }
         const patch: any = { basic_salary: ns, allowance: na };
         if (advancedReview) patch.first_review_date = advancedReview;
@@ -206,6 +203,30 @@ const ProposeIncrementModal = ({ open, onOpenChange, employee, proposerEmployeeI
                 onChange={(e) => setNewSalary(e.target.value)}
                 placeholder="0"
               />
+              {(() => {
+                if (newSalary === '' || newSalary == null) return null;
+                const ns = parseFloat(newSalary);
+                if (Number.isNaN(ns)) return null;
+                if (currentSalary <= 0) return null;
+                const diff = ns - currentSalary;
+                const pct = Math.abs((diff / currentSalary) * 100).toFixed(1);
+                if (diff === 0) {
+                  return (
+                    <p className="mt-1.5" style={{ fontSize: 13, fontWeight: 500, color: '#9490B4' }}>
+                      No change
+                    </p>
+                  );
+                }
+                const isUp = diff > 0;
+                return (
+                  <p
+                    className="mt-1.5"
+                    style={{ fontSize: 13, fontWeight: 500, color: isUp ? '#1DC97A' : '#E84545' }}
+                  >
+                    {isUp ? '+' : '−'} PKR {Math.abs(diff).toLocaleString()} ({pct}% {isUp ? 'increase' : 'decrease'})
+                  </p>
+                );
+              })()}
             </div>
             <div>
               <Label className="text-[12px] mb-1.5 block">New Allowance (PKR)</Label>
