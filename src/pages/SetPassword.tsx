@@ -169,6 +169,11 @@ const SetPassword = ({ mode, onComplete }: SetPasswordProps) => {
     }
 
     setSuccess(true);
+    if (isInvite) {
+      toast.success('Password set successfully. Welcome to Beudox!');
+    } else {
+      toast.success('Password reset successfully. Please sign in.');
+    }
     setTimeout(() => {
       if (isInvite) {
         onComplete();
