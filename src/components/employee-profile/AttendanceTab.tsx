@@ -104,7 +104,6 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                 <TableHead>Check Out</TableHead>
                 <TableHead>Working Hrs</TableHead>
                 <TableHead>OT Hrs</TableHead>
-                {/* header already says Working Hrs */}
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -124,7 +123,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                     <TableCell className="text-[13px] text-muted-foreground">{format(d, 'EEEE')}</TableCell>
                     <TableCell className="text-[13px] font-mono">{fmtTime(r.check_in)}</TableCell>
                     <TableCell className="text-[13px] font-mono">{fmtTime(r.check_out)}</TableCell>
-                    <TableCell className="text-[13px] font-mono">{Number(r.working_hours || 0).toFixed(1)}</TableCell>
+                    <TableCell className="text-[13px] font-mono">{r.working_hours == null ? '—' : formatWorkingHours(Number(r.working_hours))}</TableCell>
                     <TableCell className="text-[13px] font-mono">{ot.toFixed(1)}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-[11px] border-0 ${cls}`}>{status}</Badge>
