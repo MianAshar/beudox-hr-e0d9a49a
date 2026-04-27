@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
 import { CalendarX2 } from 'lucide-react';
+import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 
 const MONTHS = [
   { value: '01', label: 'January' }, { value: '02', label: 'February' },
@@ -63,7 +64,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
     };
   }, [records]);
 
-  const fmtTime = (t: string | null) => t ? format(parseISO(t), 'HH:mm') : '—';
+  const fmtTime = (t: string | null) => t ? formatTime12h(parseISO(t)) : '—';
 
   return (
     <div className="space-y-6">
@@ -103,6 +104,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                 <TableHead>Check Out</TableHead>
                 <TableHead>Working Hrs</TableHead>
                 <TableHead>OT Hrs</TableHead>
+                {/* header already says Working Hrs */}
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
