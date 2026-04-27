@@ -87,27 +87,31 @@ const MandatoryPasswordChange = () => {
         return;
       }
 
-      // Step 2: Update DB flag — MUST complete before navigation
-      const { error: dbError } = await supabase
+      // Step 2: Update DB flag — MUST complete before navigation. Confirm the row actually changed.
+      const { data: updatedRow, error: dbError } = await supabase
         .from('employees')
         .update({ must_change_password: false })
-        .eq('auth_user_id', user.id);
+        .eq('auth_user_id', user.id)
+        .select('must_change_password')
+        .maybeSingle();
 
-      if (dbError) {
-        setErrors({ general: 'Password updated but setup could not complete. Please contact support.' });
+      if (dbError || !updatedRow || updatedRow.must_change_password !== false) {
+        setErrors({
+          general: 'Password updated but we could not finalize your setup. Please contact your administrator.',
+        });
         setSubmitting(false);
         return;
       }
 
-      // Step 3: Refresh JWT so the app re-reads fresh session/employee state
+      // Step 3: Refresh JWT and re-fetch employee state before navigating
       await supabase.auth.refreshSession();
-      refreshEmployee();
+      await refreshEmployee();
 
       // Step 4: Dismiss modal and navigate
       setSubmitting(false);
       setVisible(false);
-      navigate('/dashboard', { replace: true });
       toast.success('Password updated. Welcome to Forte HR Portal!');
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setErrors({ general: err.message || 'Failed to update password' });
       setSubmitting(false);
