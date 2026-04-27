@@ -47,11 +47,17 @@ const Attendance = () => {
   const [records, setRecords] = useState<AttendanceRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  // TODO: Remove before production
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const isAuthorised = useMemo(() => {
     const roles = employee?.roles ?? [];
     return roles.includes('hr_manager') || roles.includes('ceo');
   }, [employee]);
+
+  // TODO: Remove before production
+  const isCeo = useMemo(() => (employee?.roles ?? []).includes('ceo'), [employee]);
 
   const yearOptions = useMemo(() => {
     const y = now.getFullYear();
