@@ -120,16 +120,13 @@ const ProposeIncrementModal = ({ open, onOpenChange, employee, proposerEmployeeI
       if (insertErr) throw insertErr;
 
       if (willApprove) {
-        // Advance first_review_date strictly past today by stepping in `freq` months
+        // Advance next review date by one frequency period from the current next review
         const freq = employee.review_frequency_months ?? 6;
         let advancedReview: string | null = null;
-        if (employee.first_review_date) {
-          const today = new Date();
-          let d = parseISO(employee.first_review_date);
-          for (let i = 0; i < 240 && d <= today; i++) {
-            d = new Date(d.getFullYear(), d.getMonth() + freq, d.getDate());
-          }
-          advancedReview = format(d, 'yyyy-MM-dd');
+        const currentNext = computeNextReviewDate(employee.first_review_date, freq);
+        if (currentNext) {
+          const advanced = new Date(currentNext.getFullYear(), currentNext.getMonth() + freq, currentNext.getDate());
+          advancedReview = format(advanced, 'yyyy-MM-dd');
         }
         const patch: any = { basic_salary: ns, allowance: na };
         if (advancedReview) patch.first_review_date = advancedReview;
