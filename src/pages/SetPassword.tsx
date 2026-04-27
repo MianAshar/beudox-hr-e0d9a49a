@@ -238,7 +238,41 @@ const SetPassword = ({ mode, onComplete }: SetPasswordProps) => {
             <BeudoxLogo variant="default" size={48} />
           </div>
 
-          {success ? (
+          {view === 'verifying' ? (
+            <div className="text-center py-6">
+              <Loader2 className="mx-auto h-10 w-10 mb-5 animate-spin" style={{ color: '#5B3FF8' }} />
+              <h1 className="text-[22px] font-bold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+                Verifying your invite link...
+              </h1>
+              <p className="text-[14px] text-muted-foreground mt-2" style={{ fontFamily: 'var(--ff-body)' }}>
+                Hang tight, this only takes a moment.
+              </p>
+            </div>
+          ) : view === 'expired' ? (
+            <div className="text-center">
+              <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full" style={{ background: 'rgba(239, 68, 68, 0.10)' }}>
+                <AlertTriangle className="h-6 w-6" style={{ color: '#EF4444' }} />
+              </div>
+              <h1 className="text-[24px] font-bold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+                Link no longer valid
+              </h1>
+              <p className="text-[14px] text-muted-foreground mt-3" style={{ fontFamily: 'var(--ff-body)' }}>
+                This invite link has expired or has already been used. Please ask your HR manager to send a new invite.
+              </p>
+              <button
+                type="button"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  onComplete();
+                  navigate('/login', { replace: true });
+                }}
+                className="mt-6 w-full h-12 rounded-[var(--radius-md)] bg-primary text-primary-foreground text-[14px] font-medium hover:bg-[hsl(var(--bx-violet-dark))] transition-colors"
+                style={{ fontFamily: 'var(--ff-body)' }}
+              >
+                Go to login
+              </button>
+            </div>
+          ) : success ? (
             <div className="text-center">
               <CheckCircle className="mx-auto h-12 w-12 mb-4" style={{ color: '#22C55E' }} />
               <h1 className="text-[28px] font-bold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
