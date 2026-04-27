@@ -243,6 +243,24 @@ Deno.serve(async (req) => {
 
     if (deleteEmpError) {
       console.error("Error deleting employee:", deleteEmpError);
+      // Do NOT abort — we still want to remove the auth user below if possible,
+      // otherwise we leave behind an orphaned auth.users row that blocks
+      // re-inviting the same email later.
+    }
+
+    // Always attempt to hard-delete the auth user so the email can be reused.
+    if (emp.auth_user_id) {
+      const { error: authDeleteError } =
+        await adminClient.auth.admin.deleteUser(emp.auth_user_id);
+
+      if (authDeleteError) {
+        console.error("Error deleting auth user:", authDeleteError);
+      } else {
+        console.log("Deleted auth user:", emp.auth_user_id);
+      }
+    }
+
+    if (deleteEmpError) {
       return new Response(
         JSON.stringify({ error: "Failed to delete employee record" }),
         {
@@ -250,17 +268,6 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
-    }
-
-    // Delete auth user
-    if (emp.auth_user_id) {
-      const { error: authDeleteError } =
-        await adminClient.auth.admin.deleteUser(emp.auth_user_id);
-
-      if (authDeleteError) {
-        console.error("Error deleting auth user:", authDeleteError);
-        // Employee data already deleted, log but don't fail
-      }
     }
 
     return new Response(
