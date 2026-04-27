@@ -1,52 +1,55 @@
 <!--
 generated_by: tessera
-source_sha: 032d6bb634e9897711dc75712a837fea6fe47713
-generated_at: 2026-04-27T09:41:22.591Z
+source_sha: c85664e8a405e7b31d00ee8299ac77107e6d5b1b
+generated_at: 2026-04-27T09:57:37.603Z
 action: update
 -->
 
 # Beudox HR
 
-A comprehensive Human Resources Management System built for modern businesses. Beudox HR streamlines employee management, attendance tracking, payroll processing, leave management, and organizational workflows.
+A comprehensive Human Resources Management System built with modern web technologies. Beudox HR provides organizations with powerful tools to manage employees, track attendance, handle payroll, manage projects, and streamline HR operations.
 
 ## Features
 
 ### Core HR Management
-- **Employee Management**: Complete employee lifecycle management including onboarding, profiles, and organizational structure
-- **Attendance Tracking**: Automated attendance monitoring with manual upload capabilities and detailed reporting
-- **Leave Management**: Comprehensive leave request and approval system with balance tracking
-- **Payroll Processing**: Automated payroll generation with payslip distribution
-
-### Organizational Tools
-- **Project Management**: Project tracking, team assignments, and activity logging
-- **Client Management**: Client relationship management with detailed profiles
-- **Invoice Management**: Invoice creation, tracking, and financial reporting
-- **HR Policies**: Centralized policy management with rich text editing
-- **Job Descriptions**: Structured job description management
+- **Employee Management**: Complete employee profiles with personal details, roles, and organizational structure
+- **Attendance Tracking**: Automated attendance recording with check-in/out times, overtime calculation, and reporting
+- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.)
+- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and payslip generation
 
 ### Performance & Evaluation
-- **Employee Evaluations**: Regular performance reviews and feedback cycles
-- **Daily Evaluations**: Daily check-ins and progress tracking
-- **Salary Reviews**: Automated salary review scheduling and increment proposals
+- **Employee Evaluations**: Scheduled performance reviews with customizable parameters
+- **Daily Evaluations**: Real-time feedback and performance tracking
+- **Salary Reviews**: Increment proposals and salary history tracking
 
-### Administrative Features
-- **Role-Based Access Control**: Granular permissions system for different user roles
-- **Settings Management**: Configurable company settings, departments, roles, and policies
-- **Finance Dashboard**: Comprehensive financial overview and reporting
-- **Loan Management**: Employee loan tracking and management
+### Project Management
+- **Project Tracking**: Create and manage projects with team assignments
+- **Client Management**: Maintain client relationships and project associations
+- **Task Management**: Assign and track project tasks
+
+### Administrative Tools
+- **HR Policies**: Create and manage company policies with rich text editing
+- **Job Descriptions**: Define roles and responsibilities
+- **Settings Management**: Configure departments, roles, leave types, and system parameters
+- **Finance Overview**: Track expenses, invoices, and financial summaries
+
+### Security & Access
+- **Role-Based Access Control**: Granular permissions for different user roles
+- **Secure Authentication**: Supabase-powered authentication with password recovery
+- **Audit Logging**: Track user activities and login history
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with shadcn/ui components
-- **State Management**: React Query for server state
 - **Routing**: React Router DOM
-- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **UI Components**: Radix UI primitives with custom theming
+- **State Management**: React Query (TanStack Query)
+- **Backend**: Supabase (PostgreSQL database + Auth + Edge Functions)
 - **Forms**: React Hook Form with Zod validation
-- **Charts**: Recharts for data visualization
-- **Rich Text**: Tiptap editor for policy documents
+- **Charts**: Recharts
+- **Rich Text**: Tiptap
+- **Testing**: Vitest + Playwright
 
 ## Getting Started
 
@@ -54,62 +57,58 @@ A comprehensive Human Resources Management System built for modern businesses. B
 
 - Node.js 18+
 - npm or bun package manager
-- Supabase account and project
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. **Environment Setup**
-   
-   Copy the `.env` file and configure your Supabase credentials:
+3. Create environment file:
    ```bash
    cp .env .env.local
    ```
-   
-   Update the following variables in `.env.local`:
+
+4. Configure environment variables in `.env.local`:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
    ```
 
-4. **Database Setup**
-   
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
-
-5. **Start Development Server**
+5. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
 
-6. **Build for Production**
-   ```bash
-   npm run build
-   npm run preview
-   ```
+6. Open [http://localhost:8080](http://localhost:8080) in your browser
 
-## Available Scripts
+### Build for Production
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests with Vitest
-- `npm run test:watch` - Run tests in watch mode
+```bash
+npm run build
+npm run preview
+```
+
+### Testing
+
+```bash
+# Run unit tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+```
 
 ## Project Structure
 
@@ -117,33 +116,40 @@ A comprehensive Human Resources Management System built for modern businesses. B
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── layout/         # App layout components
 │   ├── employee-profile/  # Employee profile tabs
-│   ├── settings/       # Settings page components
 │   └── ...
 ├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
+├── integrations/       # External service integrations
 └── types/              # TypeScript type definitions
+
+supabase/
+├── migrations/         # Database schema migrations
+├── functions/          # Edge functions
+└── config.toml         # Supabase configuration
 ```
 
-## Authentication & Authorization
+## Database Schema
 
-The application uses Supabase Authentication with role-based access control:
+The application uses Supabase with PostgreSQL. Key tables include:
 
-- **Authentication**: Email/password with magic link support
-- **Authorization**: Route-level and component-level permission checks
-- **Roles**: Configurable roles with granular permissions
+- `employees` - Employee information and profiles
+- `attendance_records` - Daily attendance data
+- `leave_requests` - Leave applications and approvals
+- `payroll_records` - Salary and payroll data
+- `projects` - Project information and assignments
+- `evaluations` - Performance review data
+- `hr_policies` - Company policies and documents
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `npm run test`
-5. Run linting: `npm run lint`
-6. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit changes: `git commit -am 'Add new feature'`
+4. Push to branch: `git push origin feature/your-feature`
+5. Submit a pull request
 
 ## License
 
