@@ -2692,6 +2692,10 @@ export type Database = {
         Args: { _auth_id: string }
         Returns: string[]
       }
+      get_employee_status_by_email: {
+        Args: { _email: string }
+        Returns: string
+      }
       get_mau_by_month: {
         Args: { _company_id?: string }
         Returns: {

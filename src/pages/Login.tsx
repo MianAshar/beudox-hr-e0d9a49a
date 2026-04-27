@@ -99,17 +99,14 @@ const Login = () => {
     const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
     if (!error && signInData.user) {
       // Verify the employee is still active before letting the app boot.
-      // Deactivated employees may still successfully authenticate (e.g. before
-      // ban propagation, or via leftover sessions), which would otherwise
-      // leave the app stuck on a loading screen because the employee lookup
-      // returns nothing.
+      // We use a SECURITY DEFINER RPC because deactivated employees have
+      // auth_user_id = NULL on their employees row, so RLS hides it from a
+      // direct SELECT — the RPC bypasses RLS but only returns the status
+      // field, which is safe to expose by email.
       const { data: empStatus } = await supabase
-        .from('employees')
-        .select('status')
-        .eq('email', email)
-        .maybeSingle();
+        .rpc('get_employee_status_by_email', { _email: email });
 
-      if (empStatus?.status === 'inactive') {
+      if (empStatus === 'inactive') {
         // Persist the message in a ref BEFORE signOut() — the auth state
         // change re-renders the component and would otherwise wipe local state.
         deactivationErrorRef.current = DEACTIVATED_MSG;
@@ -130,12 +127,9 @@ const Login = () => {
         setLoading(false);
         return;
       }
-      const { data: empData } = await supabase
-        .from('employees')
-        .select('status')
-        .eq('email', email)
-        .maybeSingle();
-      if (empData?.status === 'inactive') {
+      const { data: empStatus } = await supabase
+        .rpc('get_employee_status_by_email', { _email: email });
+      if (empStatus === 'inactive') {
         setDeactivatedMessage(DEACTIVATED_MSG);
         setPassword('');
       } else {
