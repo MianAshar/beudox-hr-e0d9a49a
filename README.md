@@ -1,109 +1,93 @@
 <!--
 generated_by: tessera
-source_sha: 03da599b9041067096b920d152faa03e7857660f
-generated_at: 2026-04-27T11:14:53.808Z
+source_sha: f1c7b24aebbcb16f64ce0b6e0fd35cd6b35dec13
+generated_at: 2026-04-27T12:05:40.623Z
 action: update
 -->
 
-# Beudox HR Frontend Application
+# Beudox HR
 
-A modern, comprehensive Human Resources Management System built as a React-based frontend application. This application provides a complete suite of HR tools including employee management, attendance tracking, leave management, payroll processing, and organizational settings.
+A comprehensive Human Resources Management System built as a modern web application for managing employee data, attendance, leave, payroll, and organizational workflows.
 
 ## Features
 
-### Core HR Functionality
-- **Employee Management**: Comprehensive employee profiles with personal details, job information, and organizational hierarchy
-- **Attendance Tracking**: Automated attendance import from biometric systems, manual entry, and detailed reporting
-- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, personal)
-- **Payroll Processing**: Salary calculations, overtime tracking, and payroll generation
-- **Performance Reviews**: Employee evaluations, salary reviews, and increment proposals
-
-### Administrative Tools
-- **Company Settings**: Configure departments, roles, leave types, expense categories, and evaluation parameters
-- **User Management**: Role-based access control with granular permissions
-- **Project Management**: Team assignments and project activity tracking
-- **HR Policies**: Rich text editor for policy documents
-
-### User Experience
-- **Responsive Design**: Optimized for desktop and mobile devices
-- **Real-time Notifications**: Instant updates on important HR events
-- **Search & Filter**: Advanced search capabilities across all data
-- **Data Visualization**: Charts and summaries for HR metrics
+- **Employee Management**: Complete employee profiles with personal details, job information, and organizational hierarchy
+- **Attendance Tracking**: Automated attendance import from Excel files, time tracking, overtime calculation, and reporting
+- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.)
+- **Payroll Processing**: Salary management, increment proposals, payroll summaries, and financial reporting
+- **HR Policies**: Rich text editor for creating and managing company policies
+- **Project Management**: Team assignments, project tracking, and activity logging
+- **Settings & Administration**: Company settings, department management, role-based access control
+- **Notifications**: Automated alerts for reviews, approvals, and important HR events
 
 ## Technology Stack
 
-- **Frontend Framework**: React 18 with TypeScript
+- **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with custom design system
+- **UI Components**: Custom component library with shadcn/ui foundation
+- **Backend**: Supabase (PostgreSQL database + Auth + Edge Functions)
+- **State Management**: React Query for server state, custom hooks for local state
 - **Routing**: React Router
-- **State Management**: React Query for server state, Zustand for client state
-- **Backend Integration**: Supabase (PostgreSQL database, real-time subscriptions, authentication)
-- **UI Components**: Custom component library with Radix UI primitives
-- **Charts**: Recharts for data visualization
 - **Forms**: React Hook Form with validation
+- **Charts**: Custom chart components
+- **File Processing**: SheetJS for Excel file handling
 - **Date Handling**: date-fns
-- **Icons**: Lucide React
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm/yarn/bun
+
+- Node.js 18+
+- npm or bun package manager
 - Supabase account and project
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
-   # or
-   yarn install
    # or
    bun install
    ```
 
-3. **Environment Setup**
+3. Set up environment variables:
    
-   Copy the `.env` file and update the Supabase configuration:
+   Copy `.env` and update the Supabase credentials:
    ```bash
    cp .env .env.local
    ```
    
    Update the following variables in `.env.local`:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
-   ```
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
+   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
 
-4. **Database Setup**
+4. Run database migrations:
    
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
+   The SQL migrations are located in `supabase/migrations/`. Apply them to your Supabase database.
 
-5. **Development Server**
+5. Start the development server:
    ```bash
    npm run dev
    # or
-   yarn dev
-   # or
-   bun dev
+   bun run dev
    ```
-   
-   The application will be available at `http://localhost:5173`
+
+6. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### Build for Production
 
 ```bash
 npm run build
 # or
-yarn build
-# or
-bun build
+bun run build
 ```
 
 The built files will be in the `dist/` directory.
@@ -120,26 +104,34 @@ src/
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
 │   └── ...
-├── pages/              # Page components (Next.js style routing)
+├── pages/              # Page components (Next.js Pages Router style)
 ├── lib/                # Utility functions and configurations
 ├── hooks/              # Custom React hooks
-├── integrations/       # External service integrations
-└── main.tsx           # Application entry point
+├── integrations/       # External service integrations (Supabase)
+└── test/               # Test files
+
+supabase/
+├── migrations/         # Database schema migrations
+├── functions/          # Edge functions for server-side logic
+└── config.toml         # Supabase configuration
 ```
 
 ## Key Components
 
-### Layout System
-- `AppLayout`: Main application layout with sidebar navigation
-- `AppSidebar`: Collapsible sidebar with menu items
-- `TopBar`: Header with user menu and notifications
-- `NotificationBell`: Real-time notification system
+### Core Components
 
-### Core Features
-- `AttendanceUploadFlow`: Complex attendance import with AI parsing
-- `SearchableEmployeeSelect`: Employee search and selection component
-- `BeudoxLogo`: Brand logo component with variant support
-- `NavLink`: Enhanced navigation link with active state styling
+- **AppLayout**: Main application layout with sidebar navigation
+- **BeudoxLogo**: Company logo component with variant support
+- **NavLink**: Enhanced navigation link with active state styling
+- **SearchableEmployeeSelect**: Employee selection component with search functionality
+
+### Feature Components
+
+- **AttendanceUploadFlow**: Complex workflow for importing attendance data from Excel files
+- **AttendanceTab**: Employee attendance history and summary view
+- **LeaveBalancesTab**: Leave balance management
+- **PayrollSummary**: Payroll data visualization
+- **EvaluationTimeline**: Performance evaluation tracking
 
 ## Development
 
@@ -148,29 +140,31 @@ src/
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
+- `npm run test` - Run tests
 - `npm run lint` - Run ESLint
-- `npm run test` - Run tests with Vitest
+
+### Testing
+
+The project includes unit tests using Vitest. Run tests with:
+
+```bash
+npm run test
+```
 
 ### Code Quality
 
-- **TypeScript**: Strict type checking enabled
-- **ESLint**: Code linting with React and TypeScript rules
-- **Prettier**: Code formatting (via ESLint)
-- **Testing**: Unit tests with Vitest and React Testing Library
-
-### Architecture Patterns
-
-- **Component Composition**: Modular, reusable components
-- **Custom Hooks**: Business logic extracted into reusable hooks
-- **Type Safety**: Comprehensive TypeScript usage
-- **Performance**: React Query for efficient data fetching and caching
+- ESLint for code linting
+- TypeScript for type safety
+- Prettier for code formatting (via ESLint)
 
 ## Contributing
 
-1. Follow the existing code style and patterns
-2. Write tests for new features
-3. Update documentation as needed
-4. Use conventional commit messages
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Ensure all tests pass
+6. Submit a pull request
 
 ## License
 
