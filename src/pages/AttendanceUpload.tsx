@@ -720,7 +720,7 @@ const AttendanceUpload = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Check-in</TableHead>
                     <TableHead>Check-out</TableHead>
-                    <TableHead className="text-right">Hrs</TableHead>
+                    <TableHead className="text-right">Working Hrs</TableHead>
                     <TableHead>Notes</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -779,7 +779,7 @@ const AttendanceUpload = () => {
                             <TableCell>
                               {r.check_in ? (
                                 <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
-                                  {r.check_in.slice(0, 5)}
+                                  {formatTime12h(r.check_in)}
                                 </Badge>
                               ) : (
                                 <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
@@ -788,7 +788,7 @@ const AttendanceUpload = () => {
                             <TableCell>
                               {r.check_out ? (
                                 <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
-                                  {r.check_out.slice(0, 5)}
+                                  {formatTime12h(r.check_out)}
                                 </Badge>
                               ) : (
                                 <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
@@ -806,7 +806,7 @@ const AttendanceUpload = () => {
                                       color: isShort ? '#E84545' : '#120E36',
                                     }}
                                   >
-                                    {wh.toFixed(2)}h
+                                    {formatWorkingHours(wh)}
                                   </span>
                                   {isOT && (
                                     <span
