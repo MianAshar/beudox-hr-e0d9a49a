@@ -20,15 +20,11 @@ interface EmployeeData {
   company_logo_url: string | null;
 }
 
-type PasswordMode = 'invite' | 'recovery' | null;
-
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   employee: EmployeeData | null;
   loading: boolean;
-  passwordMode: PasswordMode;
-  clearPasswordMode: () => void;
   signOut: () => Promise<void>;
   refreshEmployee: () => void;
 }
@@ -38,8 +34,6 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   employee: null,
   loading: true,
-  passwordMode: null,
-  clearPasswordMode: () => {},
   signOut: async () => {},
   refreshEmployee: () => {},
 });
@@ -51,25 +45,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [employee, setEmployee] = useState<EmployeeData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [passwordMode, setPasswordMode] = useState<PasswordMode>(null);
-
-  const clearPasswordMode = () => setPasswordMode(null);
-
-  // Detect invite/recovery tokens from either the URL hash (legacy format)
-  // or query string (current Supabase invite emails). The actual token
-  // verification happens inside the SetPassword page — here we only set the
-  // mode flag so ProtectedRoute renders the right screen. Do NOT clear the
-  // URL yet — SetPassword still needs the params to verify the token.
-  useEffect(() => {
-    const hash = window.location.hash;
-    const search = window.location.search;
-
-    if (hash.includes('type=invite') || search.includes('type=invite')) {
-      setPasswordMode('invite');
-    } else if (hash.includes('type=recovery') || search.includes('type=recovery')) {
-      setPasswordMode('recovery');
-    }
-  }, []);
 
   const fetchEmployee = useCallback(async (userId: string) => {
     const [{ data, error }, rolesRes] = await Promise.all([
@@ -82,9 +57,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const rolesList = (rolesRes.data as string[] | null) ?? [];
       setEmployee({ ...base, roles: rolesList });
     } else {
-      // Authenticated session has no matching active employee record
-      // (e.g. account was deactivated). Sign out to avoid an infinite
-      // loading spinner in ProtectedRoute.
+      // Authenticated session has no matching active employee record.
+      // Sign out to avoid an infinite loading spinner in ProtectedRoute.
       setEmployee(null);
       await supabase.auth.signOut();
       setSession(null);
@@ -103,7 +77,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setUser(null);
     setEmployee(null);
-    setPasswordMode(null);
   };
 
   useEffect(() => {
@@ -111,11 +84,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-
-        // Detect PASSWORD_RECOVERY event from Supabase
-        if (event === 'PASSWORD_RECOVERY') {
-          setPasswordMode('recovery');
-        }
 
         if (session?.user) {
           setTimeout(() => fetchEmployee(session.user.id), 0);
@@ -139,7 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchEmployee]);
 
   return (
-    <AuthContext.Provider value={{ session, user, employee, loading, passwordMode, clearPasswordMode, signOut, refreshEmployee }}>
+    <AuthContext.Provider value={{ session, user, employee, loading, signOut, refreshEmployee }}>
       {children}
     </AuthContext.Provider>
   );
