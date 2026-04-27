@@ -11,12 +11,16 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+  const [deactivatedMessage, setDeactivatedMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
   const [company, setCompany] = useState<{ name: string; logo_url: string | null } | null>(null);
   const [companyLoading, setCompanyLoading] = useState(true);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  // Persists across the re-render triggered by supabase.auth.signOut() so the
+  // message survives the auth state change that would otherwise wipe local state.
+  const deactivationErrorRef = useRef<string | null>(null);
 
   useEffect(() => {
     const fetchCompany = async () => {
