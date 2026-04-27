@@ -193,6 +193,7 @@ const AttendanceUpload = () => {
     setFileName(null);
     setParsedBoth(null);
     setSummary(null);
+    setUnmatchedEntries([]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -200,6 +201,7 @@ const AttendanceUpload = () => {
     setParsedBoth(null);
     setParseError(null);
     setFileName(null);
+    setUnmatchedEntries([]);
     setStep('select');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -246,20 +248,57 @@ const AttendanceUpload = () => {
         return;
       }
       setParsedBoth(cleaned);
-      // Fetch shift duration once for preview highlighting
+      // Fetch shift duration + employee codes for preview highlighting
+      // and unmatched-code detection.
       try {
         if (employee?.company_id) {
-          const { data: settingsRow } = await supabase
-            .from('company_settings')
-            .select('shift_start_time, shift_end_time')
-            .eq('company_id', employee.company_id)
-            .maybeSingle();
+          const [{ data: settingsRow }, { data: empRows }] = await Promise.all([
+            supabase
+              .from('company_settings')
+              .select('shift_start_time, shift_end_time')
+              .eq('company_id', employee.company_id)
+              .maybeSingle(),
+            supabase
+              .from('employees')
+              .select('employee_code')
+              .eq('company_id', employee.company_id),
+          ]);
           const sStart = timeToMinutes(settingsRow?.shift_start_time ?? '09:00:00') ?? 9 * 60;
           const sEnd = timeToMinutes(settingsRow?.shift_end_time ?? '18:00:00') ?? 18 * 60;
           setShiftHours(Math.max(0, (sEnd - sStart) / 60));
+
+          const knownCodes = new Set(
+            (empRows ?? [])
+              .map(e => (e.employee_code ?? '').trim())
+              .filter(Boolean),
+          );
+          // Group parsed records by employee_code; flag those whose code is
+          // not present in the company's employees table.
+          const grouped = new Map<string, { name: string | null; count: number }>();
+          for (const r of cleaned.records) {
+            const code = r.employee_code.trim();
+            if (!code || knownCodes.has(code)) continue;
+            const cur = grouped.get(code);
+            if (cur) {
+              cur.count += 1;
+              if (!cur.name && r.name) cur.name = r.name;
+            } else {
+              grouped.set(code, { name: r.name ?? null, count: 1 });
+            }
+          }
+          const entries: UnmatchedEntry[] = Array.from(grouped.entries())
+            .map(([employee_code, v]) => ({
+              employee_code,
+              name: v.name,
+              count: v.count,
+              decision: 'skip' as UnmatchedDecision,
+            }))
+            .sort((a, b) => a.employee_code.localeCompare(b.employee_code));
+          setUnmatchedEntries(entries);
         }
       } catch {
         setShiftHours(8);
+        setUnmatchedEntries([]);
       }
       setStep('preview');
     } catch (err) {
