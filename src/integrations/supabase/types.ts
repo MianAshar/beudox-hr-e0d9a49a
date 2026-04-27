@@ -636,6 +636,7 @@ export type Database = {
           increment_rule: string | null
           joining_date: string | null
           last_login_at: string | null
+          must_change_password: boolean | null
           notifications_enabled: boolean
           phone: string | null
           review_frequency_months: number | null
@@ -666,6 +667,7 @@ export type Database = {
           increment_rule?: string | null
           joining_date?: string | null
           last_login_at?: string | null
+          must_change_password?: boolean | null
           notifications_enabled?: boolean
           phone?: string | null
           review_frequency_months?: number | null
@@ -696,6 +698,7 @@ export type Database = {
           increment_rule?: string | null
           joining_date?: string | null
           last_login_at?: string | null
+          must_change_password?: boolean | null
           notifications_enabled?: boolean
           phone?: string | null
           review_frequency_months?: number | null
