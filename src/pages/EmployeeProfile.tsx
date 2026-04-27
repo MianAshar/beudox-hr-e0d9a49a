@@ -420,63 +420,186 @@ const EmployeeProfile = () => {
                 These actions affect the employee's access and data.
               </p>
               <div className="flex items-center gap-3">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2" disabled={deactivating}>
-                      {emp.status === 'inactive'
-                        ? <ShieldCheck className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
-                        : <ShieldOff className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />}
-                      {emp.status === 'inactive' ? 'Reactivate' : 'Deactivate'}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        {emp.status === 'inactive' ? 'Reactivate' : 'Deactivate'} {emp.full_name}?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {emp.status === 'inactive'
-                          ? `${emp.full_name} will regain access to the portal and can log in again.`
-                          : `${emp.full_name} will lose access to the portal immediately. Their data will be retained and they can be reactivated later.`}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeactivateReactivate}>
-                        {emp.status === 'inactive' ? 'Reactivate' : 'Deactivate'}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-
-                <Dialog open={deleteDialogOpen} onOpenChange={(open) => { setDeleteDialogOpen(open); if (!open) setDeleteConfirmName(''); }}>
-                  <DialogTrigger asChild>
-                    <Button variant="destructive" size="sm" className="gap-2" disabled={deleting}>
-                      <Trash2 className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
-                      Delete
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Permanently delete {emp.full_name}?</DialogTitle>
-                      <DialogDescription>
-                        This will delete all their data including attendance, payroll records, and evaluations. This cannot be undone.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-2">
-                      <p className="text-[13px] text-foreground mb-2" style={{ fontFamily: 'var(--ff-body)' }}>
-                        Type <strong>{emp.full_name}</strong> to confirm:
-                      </p>
-                      <Input value={deleteConfirmName} onChange={(e) => setDeleteConfirmName(e.target.value)} placeholder={emp.full_name} />
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-                      <Button variant="destructive" disabled={deleteConfirmName !== emp.full_name || deleting} onClick={handleDelete}>
-                        {deleting ? 'Deleting…' : 'Delete permanently'}
+                {emp.status === 'inactive' ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2" disabled={deactivating}>
+                        <ShieldCheck className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                        Reactivate
                       </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Reactivate {emp.full_name}?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {emp.full_name} will regain access to the portal and can log in again.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeactivateReactivate()}>
+                          Reactivate
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : (
+                  <Dialog
+                    open={deactivateDialogOpen}
+                    onOpenChange={(open) => {
+                      setDeactivateDialogOpen(open);
+                      if (!open) {
+                        setDeactivationReason('');
+                        setDeactivationNotes('');
+                      }
+                    }}
+                  >
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2" disabled={deactivating}>
+                        <ShieldOff className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                        Deactivate
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Deactivate Employee</DialogTitle>
+                        <DialogDescription>
+                          This will revoke {emp.full_name}'s portal access. You can reactivate them later.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="py-2 space-y-4">
+                        <div>
+                          <Label className="text-[12px] font-medium text-foreground mb-2 block" style={{ fontFamily: 'var(--ff-body)' }}>
+                            Reason for deactivation <span className="text-destructive">*</span>
+                          </Label>
+                          <RadioGroup value={deactivationReason} onValueChange={setDeactivationReason} className="gap-2">
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="resigned" id="reason-resigned" />
+                              <Label htmlFor="reason-resigned" className="text-[13px] font-normal cursor-pointer" style={{ fontFamily: 'var(--ff-body)' }}>
+                                Employee Resigned
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="fired" id="reason-fired" />
+                              <Label htmlFor="reason-fired" className="text-[13px] font-normal cursor-pointer" style={{ fontFamily: 'var(--ff-body)' }}>
+                                Employee Fired
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="other" id="reason-other" />
+                              <Label htmlFor="reason-other" className="text-[13px] font-normal cursor-pointer" style={{ fontFamily: 'var(--ff-body)' }}>
+                                Other
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                        {deactivationReason === 'other' && (
+                          <div>
+                            <Label className="text-[12px] font-medium text-foreground mb-1.5 block" style={{ fontFamily: 'var(--ff-body)' }}>
+                              Additional notes
+                            </Label>
+                            <Textarea
+                              value={deactivationNotes}
+                              onChange={(e) => setDeactivationNotes(e.target.value)}
+                              placeholder="Optional notes…"
+                              className="min-h-[72px]"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeactivateDialogOpen(false)}>Cancel</Button>
+                        <Button
+                          variant="destructive"
+                          disabled={!deactivationReason || deactivating}
+                          onClick={() =>
+                            handleDeactivateReactivate({
+                              reason: deactivationReason,
+                              notes: deactivationReason === 'other' ? deactivationNotes.trim() || undefined : undefined,
+                            })
+                          }
+                        >
+                          {deactivating ? 'Deactivating…' : 'Deactivate'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+
+                {isCeo && (
+                  <Dialog
+                    open={deleteDialogOpen}
+                    onOpenChange={(open) => {
+                      setDeleteDialogOpen(open);
+                      if (!open) {
+                        setDeleteConfirmText('');
+                        setDeleteStep(1);
+                      }
+                    }}
+                  >
+                    <DialogTrigger asChild>
+                      <Button variant="destructive" size="sm" className="gap-2" disabled={deleting}>
+                        <Trash2 className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                        Delete
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      {deleteStep === 1 ? (
+                        <>
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4 text-destructive" style={{ strokeWidth: 2 }} />
+                              Permanently Delete Employee?
+                            </DialogTitle>
+                            <DialogDescription asChild>
+                              <p className="text-destructive text-[13px] leading-relaxed" style={{ fontFamily: 'var(--ff-body)' }}>
+                                This will permanently delete <strong>{emp.full_name}</strong> and ALL their data including attendance records, payroll history, loans, evaluations, and salary history. This cannot be undone.
+                              </p>
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+                            <Button variant="destructive" onClick={() => setDeleteStep(2)}>
+                              Yes, Delete Permanently
+                            </Button>
+                          </DialogFooter>
+                        </>
+                      ) : (
+                        <>
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4 text-destructive" style={{ strokeWidth: 2 }} />
+                              Final Confirmation
+                            </DialogTitle>
+                            <DialogDescription>
+                              Type <strong>DELETE</strong> to confirm permanent deletion of {emp.full_name}.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="py-2">
+                            <Input
+                              value={deleteConfirmText}
+                              onChange={(e) => setDeleteConfirmText(e.target.value)}
+                              placeholder="DELETE"
+                              autoFocus
+                            />
+                          </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => { setDeleteStep(1); setDeleteConfirmText(''); }}>
+                              Back
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              disabled={deleteConfirmText !== 'DELETE' || deleting}
+                              onClick={handleDelete}
+                            >
+                              {deleting ? 'Deleting…' : 'Delete Permanently'}
+                            </Button>
+                          </DialogFooter>
+                        </>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
             </div>
           </TabsContent>
