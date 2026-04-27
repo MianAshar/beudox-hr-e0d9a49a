@@ -161,11 +161,28 @@ const Attendance = () => {
           </div>
         </div>
 
-        {isAuthorised && (
-          <Button onClick={() => setUploadOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Add Attendance
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* TODO: Remove before production */}
+          {isCeo && (
+            <button
+              type="button"
+              onClick={() => setClearOpen(true)}
+              className="inline-flex items-center gap-2 px-3 h-9 text-sm font-medium bg-white hover:bg-red-50 transition-colors"
+              style={{
+                color: '#991B1B',
+                border: '1px solid rgba(232, 69, 69, 0.3)',
+                borderRadius: '10px',
+              }}
+            >
+              <Trash2 className="h-4 w-4" /> Clear Month Data
+            </button>
+          )}
+          {isAuthorised && (
+            <Button onClick={() => setUploadOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Add Attendance
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card className="overflow-hidden">
