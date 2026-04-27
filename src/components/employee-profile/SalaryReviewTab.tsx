@@ -84,12 +84,12 @@ const SalaryReviewTab = ({ employee, canEdit, isCeo, authEmployeeId }: Props) =>
                     disabled={!!hasPending}
                   >
                     <TrendingUp className="h-4 w-4" />
-                    Propose Increment
+                    Review
                   </Button>
                 </span>
               </TooltipTrigger>
               {hasPending && (
-                <TooltipContent>A proposal is already pending CEO approval.</TooltipContent>
+                <TooltipContent>A review is already pending CEO approval.</TooltipContent>
               )}
             </Tooltip>
           </TooltipProvider>
