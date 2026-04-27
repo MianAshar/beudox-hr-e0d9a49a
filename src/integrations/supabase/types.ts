@@ -153,7 +153,7 @@ export type Database = {
           created_at: string | null
           date: string
           employee_code: string | null
-          employee_id: string
+          employee_id: string | null
           holiday_ot_hours: number | null
           id: string
           import_batch_id: string | null
@@ -176,7 +176,7 @@ export type Database = {
           created_at?: string | null
           date: string
           employee_code?: string | null
-          employee_id: string
+          employee_id?: string | null
           holiday_ot_hours?: number | null
           id?: string
           import_batch_id?: string | null
@@ -199,7 +199,7 @@ export type Database = {
           created_at?: string | null
           date?: string
           employee_code?: string | null
-          employee_id?: string
+          employee_id?: string | null
           holiday_ot_hours?: number | null
           id?: string
           import_batch_id?: string | null
