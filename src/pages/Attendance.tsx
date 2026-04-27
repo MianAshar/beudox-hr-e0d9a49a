@@ -332,6 +332,33 @@ const Attendance = () => {
           />
         </DialogContent>
       </Dialog>
+
+      {/* TODO: Remove before production */}
+      <Dialog open={clearOpen} onOpenChange={(v) => !clearing && setClearOpen(v)}>
+        <DialogContent className="max-w-md p-6">
+          <DialogHeader>
+            <DialogTitle style={{ fontFamily: 'var(--ff-display)' }}>Clear Attendance Data?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This will permanently delete all attendance records for {month} {year}. This cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setClearOpen(false)} disabled={clearing}>
+              Cancel
+            </Button>
+            <button
+              type="button"
+              onClick={handleClearMonth}
+              disabled={clearing}
+              className="inline-flex items-center gap-2 px-4 h-10 text-sm font-medium rounded-md disabled:opacity-60"
+              style={{ backgroundColor: '#FEE2E2', color: '#991B1B' }}
+            >
+              {clearing && <Loader2 className="h-4 w-4 animate-spin" />}
+              Clear Data
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
