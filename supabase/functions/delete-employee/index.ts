@@ -152,7 +152,21 @@ Deno.serve(async (req) => {
         .in("leave_balance_id", balanceIds);
     }
 
-    // Direct deletes
+    // Delete daily_evaluation_scores tied to evaluations where this employee was the reviewer
+    const { data: reviewerEvals } = await adminClient
+      .from("daily_evaluations")
+      .select("id")
+      .eq("reviewer_id", employeeId);
+
+    if (reviewerEvals && reviewerEvals.length > 0) {
+      const ids = reviewerEvals.map((e) => e.id);
+      await adminClient
+        .from("daily_evaluation_scores")
+        .delete()
+        .in("daily_evaluation_id", ids);
+    }
+
+    // Direct deletes (rows owned by this employee)
     const directDeletes: { table: string; column: string }[] = [
       { table: "employee_roles", column: "employee_id" },
       { table: "attendance_records", column: "employee_id" },
@@ -160,12 +174,15 @@ Deno.serve(async (req) => {
       { table: "leave_requests", column: "employee_id" },
       { table: "leave_balances", column: "employee_id" },
       { table: "daily_evaluations", column: "reviewee_id" },
+      { table: "daily_evaluations", column: "reviewer_id" },
       { table: "evaluations", column: "employee_id" },
       { table: "project_assignments", column: "employee_id" },
       { table: "loans", column: "employee_id" },
       { table: "salary_history", column: "employee_id" },
       { table: "login_logs", column: "employee_id" },
       { table: "notifications", column: "recipient_id" },
+      { table: "notification_preferences", column: "employee_id" },
+      { table: "project_activity_logs", column: "employee_id" },
     ];
 
     for (const { table, column } of directDeletes) {
@@ -175,7 +192,46 @@ Deno.serve(async (req) => {
         .eq(column, employeeId);
 
       if (error) {
-        console.error(`Error deleting from ${table}:`, error);
+        console.error(`Error deleting from ${table}.${column}:`, error);
+      }
+    }
+
+    // Nullify "actor" references on rows owned by other entities so the
+    // employee row can be deleted without violating FK constraints.
+    const nullifyRefs: { table: string; column: string }[] = [
+      { table: "projects", column: "project_lead_id" },
+      { table: "project_tasks", column: "completed_by" },
+      { table: "project_tasks", column: "created_by" },
+      { table: "project_tasks", column: "assigned_to" },
+      { table: "project_assignments", column: "assigned_by" },
+      { table: "attendance_imports", column: "uploaded_by" },
+      { table: "leave_balance_history", column: "adjusted_by" },
+      { table: "leave_requests", column: "actioned_by" },
+      { table: "payroll_records", column: "approved_by" },
+      { table: "payroll_records", column: "payment_processed_by" },
+      { table: "loans", column: "granted_by" },
+      { table: "loan_monthly_overrides", column: "created_by" },
+      { table: "office_expenses", column: "approved_by" },
+      { table: "office_expenses", column: "added_by" },
+      { table: "outsourcing_records", column: "added_by" },
+      { table: "evaluations", column: "evaluated_by" },
+      { table: "salary_history", column: "approved_by" },
+      { table: "salary_history", column: "rejected_by" },
+      { table: "salary_history", column: "proposed_by" },
+      { table: "invoices", column: "generated_by" },
+      { table: "invoice_payments", column: "recorded_by" },
+      { table: "hr_documents", column: "created_by" },
+      { table: "hr_documents", column: "updated_by" },
+    ];
+
+    for (const { table, column } of nullifyRefs) {
+      const { error } = await adminClient
+        .from(table)
+        .update({ [column]: null })
+        .eq(column, employeeId);
+
+      if (error) {
+        console.error(`Error nullifying ${table}.${column}:`, error);
       }
     }
 
