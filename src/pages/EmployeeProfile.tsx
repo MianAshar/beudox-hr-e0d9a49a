@@ -199,24 +199,6 @@ const EmployeeProfile = () => {
 
           {canManage && (
             <div className="flex items-center gap-2">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2" disabled={!emp.email || resending}>
-                    <Send className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
-                    Resend Invite
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Resend invite?</AlertDialogTitle>
-                    <AlertDialogDescription>Resend invite to <strong>{emp.email}</strong>?</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleResendInvite}>Confirm</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
               <Button size="sm" className="gap-2" onClick={() => navigate(`/employees/${id}/edit`)}>
                 <Pencil className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
                 Edit
