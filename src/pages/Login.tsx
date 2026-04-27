@@ -101,7 +101,7 @@ const Login = () => {
     if (error) {
       const isBannedUser = error.code === 'user_banned' || error.message.toLowerCase().includes('banned');
       if (isBannedUser) {
-        setErrors({ general: 'Your account has been deactivated. Please contact your HR Manager or system administrator.' });
+        setErrors({ general: 'Your account has been deactivated. Please contact your HR manager.' });
         setLoading(false);
         return;
       }
@@ -111,7 +111,7 @@ const Login = () => {
         .eq('email', email)
         .maybeSingle();
       if (empData?.status === 'inactive') {
-        setErrors({ general: 'Your account has been deactivated. Please contact your HR Manager or system administrator.' });
+        setErrors({ general: 'Your account has been deactivated. Please contact your HR manager.' });
       } else {
         setErrors({ general: 'Invalid email or password' });
       }
