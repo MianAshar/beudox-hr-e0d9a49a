@@ -241,6 +241,17 @@ const EmployeeProfile = () => {
               <p className="text-muted-foreground text-[13px] mt-0.5" style={{ fontFamily: 'var(--ff-body)' }}>
                 {emp.designation || '—'} · {emp.department || '—'}
               </p>
+              {emp.status === 'inactive' && (emp as any).deactivation_reason && (
+                <div className="mt-2 text-[12px]" style={{ fontFamily: 'var(--ff-body)' }}>
+                  <span className="text-muted-foreground">Deactivated · </span>
+                  <span className="text-foreground font-medium">
+                    {toTitleCase((emp as any).deactivation_reason)}
+                  </span>
+                  {(emp as any).deactivation_notes && (
+                    <span className="text-muted-foreground"> — {(emp as any).deactivation_notes}</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
