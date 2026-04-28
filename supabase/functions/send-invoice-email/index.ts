@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Beudox <noreply@beudox.com>',
+        from: 'Forte <noreply@beudox.com>',
         to: [to_email],
         subject: subject || invoice.title,
         html: `
