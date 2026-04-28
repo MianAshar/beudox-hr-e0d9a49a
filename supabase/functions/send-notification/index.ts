@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
                     <p style="font-size: 16px; color: #1a1a2e;">${payload.message}</p>
                   </div>
                   <div style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 24px; color: #888; font-size: 12px;">
-                    <p>This email was sent from Beudox HR Platform.</p>
+                    <p>This email was sent from Forte HR Platform.</p>
                   </div>
                 </div>
               `,
