@@ -12,7 +12,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Pencil, Trash2, Lock, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Lock, AlertTriangle, UserX, UserCheck } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -68,6 +71,13 @@ const EmployeeProfile = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deactivateOpen, setDeactivateOpen] = useState(false);
+  const [deactReason, setDeactReason] = useState<'resigned' | 'fired' | 'other'>('resigned');
+  const [deactCustom, setDeactCustom] = useState('');
+  const [deactivating, setDeactivating] = useState(false);
+  const [reactivateOpen, setReactivateOpen] = useState(false);
+  const [reactReason, setReactReason] = useState('');
+  const [reactivating, setReactivating] = useState(false);
   const queryClient = useQueryClient();
   const isCeo = roles.includes('ceo');
 
@@ -109,6 +119,61 @@ const EmployeeProfile = () => {
       setDeleteDialogOpen(false);
       setDeleteConfirmText('');
       setDeleteStep(1);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    if (!emp?.id) return;
+    if (deactReason === 'other' && !deactCustom.trim()) {
+      toast.error('Please provide a reason.');
+      return;
+    }
+    setDeactivating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('deactivate-employee', {
+        body: {
+          employee_id: emp.id,
+          reason: deactReason,
+          custom_reason: deactReason === 'other' ? deactCustom.trim() : undefined,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Employee deactivated. They can no longer sign in.');
+      setDeactivateOpen(false);
+      setDeactReason('resigned');
+      setDeactCustom('');
+      queryClient.invalidateQueries({ queryKey: ['employee-profile', id] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to deactivate employee');
+    } finally {
+      setDeactivating(false);
+    }
+  };
+
+  const handleReactivate = async () => {
+    if (!emp?.id) return;
+    if (!reactReason.trim()) {
+      toast.error('Please provide a reason for reactivation.');
+      return;
+    }
+    setReactivating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('reactivate-employee', {
+        body: { employee_id: emp.id, reason: reactReason.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Employee reactivated. They can sign in again.');
+      setReactivateOpen(false);
+      setReactReason('');
+      queryClient.invalidateQueries({ queryKey: ['employee-profile', id] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to reactivate employee');
+    } finally {
+      setReactivating(false);
     }
   };
 
@@ -332,7 +397,101 @@ const EmployeeProfile = () => {
               <p className="text-muted-foreground text-[12px] mb-4" style={{ fontFamily: 'var(--ff-body)' }}>
                 These actions affect the employee's access and data.
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                {emp.status === 'inactive' ? (
+                  <Dialog open={reactivateOpen} onOpenChange={(open) => { setReactivateOpen(open); if (!open) setReactReason(''); }}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="gap-2" disabled={reactivating}>
+                        <UserCheck className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                        Reactivate Account
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Reactivate {emp.full_name}?</DialogTitle>
+                        <DialogDescription>
+                          The employee will regain access to the portal and receive an email notification.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-2 py-2">
+                        <Label htmlFor="react-reason" className="text-[13px]">Reason for reactivation</Label>
+                        <Textarea
+                          id="react-reason"
+                          value={reactReason}
+                          onChange={(e) => setReactReason(e.target.value)}
+                          placeholder="e.g. Returning from leave, rehired after resignation…"
+                          maxLength={500}
+                          rows={3}
+                          autoFocus
+                        />
+                        <p className="text-[11px] text-muted-foreground">{reactReason.length}/500</p>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setReactivateOpen(false)} disabled={reactivating}>Cancel</Button>
+                        <Button onClick={handleReactivate} disabled={reactivating || !reactReason.trim()}>
+                          {reactivating ? 'Reactivating…' : 'Reactivate Account'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <Dialog open={deactivateOpen} onOpenChange={(open) => { setDeactivateOpen(open); if (!open) { setDeactReason('resigned'); setDeactCustom(''); } }}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive" disabled={deactivating}>
+                        <UserX className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                        Deactivate Account
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Deactivate {emp.full_name}?</DialogTitle>
+                        <DialogDescription>
+                          This employee will no longer be able to sign in. All their data is retained and the account can be reactivated later.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-3 py-2">
+                        <Label className="text-[13px]">Reason</Label>
+                        <RadioGroup value={deactReason} onValueChange={(v) => setDeactReason(v as any)} className="gap-2">
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="resigned" id="r-resigned" />
+                            <Label htmlFor="r-resigned" className="font-normal cursor-pointer">Employee Resigned</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="fired" id="r-fired" />
+                            <Label htmlFor="r-fired" className="font-normal cursor-pointer">Employee Fired</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="other" id="r-other" />
+                            <Label htmlFor="r-other" className="font-normal cursor-pointer">Other</Label>
+                          </div>
+                        </RadioGroup>
+                        {deactReason === 'other' && (
+                          <div className="space-y-1 pt-1">
+                            <Textarea
+                              value={deactCustom}
+                              onChange={(e) => setDeactCustom(e.target.value)}
+                              placeholder="Please specify the reason…"
+                              maxLength={500}
+                              rows={3}
+                              autoFocus
+                            />
+                            <p className="text-[11px] text-muted-foreground">{deactCustom.length}/500</p>
+                          </div>
+                        )}
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeactivateOpen(false)} disabled={deactivating}>Cancel</Button>
+                        <Button
+                          variant="destructive"
+                          onClick={handleDeactivate}
+                          disabled={deactivating || (deactReason === 'other' && !deactCustom.trim())}
+                        >
+                          {deactivating ? 'Deactivating…' : 'Deactivate Account'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
                 {isCeo && (
                   <Dialog
                     open={deleteDialogOpen}
