@@ -122,6 +122,61 @@ const EmployeeProfile = () => {
     }
   };
 
+  const handleDeactivate = async () => {
+    if (!emp?.id) return;
+    if (deactReason === 'other' && !deactCustom.trim()) {
+      toast.error('Please provide a reason.');
+      return;
+    }
+    setDeactivating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('deactivate-employee', {
+        body: {
+          employee_id: emp.id,
+          reason: deactReason,
+          custom_reason: deactReason === 'other' ? deactCustom.trim() : undefined,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Employee deactivated. They can no longer sign in.');
+      setDeactivateOpen(false);
+      setDeactReason('resigned');
+      setDeactCustom('');
+      queryClient.invalidateQueries({ queryKey: ['employee-profile', id] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to deactivate employee');
+    } finally {
+      setDeactivating(false);
+    }
+  };
+
+  const handleReactivate = async () => {
+    if (!emp?.id) return;
+    if (!reactReason.trim()) {
+      toast.error('Please provide a reason for reactivation.');
+      return;
+    }
+    setReactivating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('reactivate-employee', {
+        body: { employee_id: emp.id, reason: reactReason.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Employee reactivated. They can sign in again.');
+      setReactivateOpen(false);
+      setReactReason('');
+      queryClient.invalidateQueries({ queryKey: ['employee-profile', id] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to reactivate employee');
+    } finally {
+      setReactivating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
