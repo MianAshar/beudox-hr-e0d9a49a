@@ -71,6 +71,13 @@ const EmployeeProfile = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deactivateOpen, setDeactivateOpen] = useState(false);
+  const [deactReason, setDeactReason] = useState<'resigned' | 'fired' | 'other'>('resigned');
+  const [deactCustom, setDeactCustom] = useState('');
+  const [deactivating, setDeactivating] = useState(false);
+  const [reactivateOpen, setReactivateOpen] = useState(false);
+  const [reactReason, setReactReason] = useState('');
+  const [reactivating, setReactivating] = useState(false);
   const queryClient = useQueryClient();
   const isCeo = roles.includes('ceo');
 
