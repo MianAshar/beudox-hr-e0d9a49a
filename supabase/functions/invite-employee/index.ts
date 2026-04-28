@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     const html = `
       <div style="font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:#120E36; max-width:520px; margin:0 auto;">
         <h2 style="color:#120E36;">Welcome${full_name ? `, ${full_name}` : ''}!</h2>
-        <p>Your Beudox HR Portal account has been created. Use the credentials below to sign in for the first time.</p>
+        <p>Your Forte HR Portal account has been created. Use the credentials below to sign in for the first time.</p>
         <div style="background:#F6F5FF; border-radius:10px; padding:16px 20px; margin:20px 0;">
           <p style="margin:0 0 8px 0;"><strong>Email:</strong> ${email}</p>
           <p style="margin:0;"><strong>Temporary password:</strong> ${TEMP_PASSWORD}</p>
@@ -122,9 +122,9 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Beudox HR <noreply@beudox.com>',
+          from: 'Forte HR <noreply@beudox.com>',
           to: [email],
-          subject: 'Welcome to Beudox HR Portal — your login details',
+          subject: 'Welcome to Forte HR Portal — your login details',
           html,
         }),
       });
