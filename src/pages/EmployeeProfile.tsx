@@ -12,7 +12,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Pencil, Trash2, Lock, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Lock, AlertTriangle, UserX, UserCheck } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { useState } from 'react';
