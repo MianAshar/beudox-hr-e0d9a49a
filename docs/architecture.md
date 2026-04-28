@@ -1,195 +1,187 @@
 <!--
 generated_by: tessera
-source_sha: 38926575f05423a02dbd6595514277fe24903388
-generated_at: 2026-04-27T23:15:14.902Z
+source_sha: c654fd2968a904bbbba2819fed2fab547b920d59
+generated_at: 2026-04-28T22:13:43.871Z
 action: create
 -->
 
-# Architecture Documentation
+# Architecture Documentation: Beudox HR Portal
 
 ## Application Structure
 
-### Routing Structure
+The Beudox HR Portal is built as a single-page React application with a modular component architecture. The application follows modern React patterns with TypeScript for type safety and Vite for fast development and building.
 
-The application uses React Router for client-side routing. The main routes are organized around feature areas:
+## Routing Structure
 
-- `/` - Dashboard/Home page (`src/pages/Index.tsx`)
-- `/dashboard` - Main dashboard (redirect after login)
-- `/attendance` - Attendance management
-- `/leave` - Leave requests and balances
-- `/payroll` - Payroll processing and history
-- `/employees` - Employee directory and profiles
-- `/evaluations` - Performance reviews
-- `/projects` - Project management
-- `/settings` - Administrative settings
-- `/job-descriptions` - Job description management
+The application uses React Router for client-side routing. Based on the codebase analysis:
 
-### Component Hierarchy
+### Main Routes
+- `/` (Index): Main dashboard/home page (`src/pages/Index.tsx`)
+- `/job-description-detail`: Job description detail view
+- `/job-descriptions`: Job descriptions list
+- Additional routes likely defined in the main App component
 
-#### Layout Components
-- `AppLayout`: Root layout wrapper
-  - `AppSidebar`: Navigation sidebar
-  - `TopBar`: Header with user actions
-  - `UserMenu`: User dropdown menu
-  - `NotificationBell`: Notification indicator
+### Route Organization
+- Page components are located in `src/pages/`
+- Each page serves as a top-level route component
+- Navigation is handled through the AppLayout component
 
-#### Feature Components
+## Core Components
 
-**Attendance**
-- `AttendanceUploadFlow`: Multi-step file upload wizard
-- `AttendanceTab`: Employee attendance history
+### Layout Components
 
-**Leave Management**
-- `ApplyLeaveModal`: Leave request form
-- `LeaveBalancesTab`: Current leave balances
-- `AllRequestsTab`: Approval queue for managers
-- `MyRequestsTab`: Personal leave history
+#### AppLayout (`src/components/layout/AppLayout.tsx`)
+Main application wrapper providing consistent layout structure across all pages.
 
-**Employee Profiles**
-- `AttendanceTab`: Personal attendance records
-- `LeaveTab`: Leave history and balances
-- `PayrollTab`: Salary information
-- `DocumentsTab`: Document management
-- `SalaryHistoryTab`: Salary progression
-- `SalaryReviewTab`: Performance reviews
-- `PendingIncrementCard`: Increment proposals
-- `ProposeIncrementModal`: Increment proposal form
-- `ReviewScheduleSection`: Review scheduling
+#### AppSidebar (`src/components/layout/AppSidebar.tsx`)
+Navigation sidebar containing main menu items and user-specific navigation options.
 
-**Settings**
-- `CompanyTab`: Company information
-- `DepartmentsTab`: Department management
-- `RolesTab`: Role configuration
-- `LeaveTypesTab`: Leave policy setup
-- `AttendanceTab`: Attendance rules
-- `EvaluationParametersTab`: Review criteria
-- `ExpenseCategoriesTab`: Expense tracking
-- `ProjectCategoriesTab`: Project classification
-- `LoginLogsTab`: Security audit logs
-- `DangerZoneTab`: Critical operations
+#### TopBar (`src/components/layout/TopBar.tsx`)
+Top navigation bar with user menu, notifications, and global actions.
 
-#### UI Components
+#### NotificationBell (`src/components/layout/NotificationBell.tsx`)
+Notification dropdown and management component.
 
-The application uses a comprehensive UI component library with consistent patterns:
+#### UserMenu (`src/components/layout/UserMenu.tsx`)
+User profile dropdown with account settings and logout functionality.
 
-**Form Components**
-- `Button`: Action buttons with variants
-- `Input`: Text input fields
-- `Select`: Dropdown selections
-- `Textarea`: Multi-line text input
-- `Checkbox`: Boolean selections
-- `RadioGroup`: Single selections
-- `Switch`: Toggle switches
+### Feature Components
 
-**Layout Components**
-- `Card`: Content containers
-- `Dialog`: Modal dialogs
-- `Sheet`: Slide-out panels
-- `Tabs`: Tabbed interfaces
-- `Accordion`: Collapsible sections
-- `Table`: Data tables with sorting
+#### Employee Profile System
+A comprehensive tab-based system for managing employee information:
 
-**Feedback Components**
-- `Alert`: Status messages
-- `Toast`: Temporary notifications
-- `Badge`: Status indicators
-- `Progress`: Loading indicators
-- `Skeleton`: Loading placeholders
+- **AttendanceTab**: Employee attendance history and records
+- **DocumentsTab**: Document management and storage
+- **LeaveTab**: Leave history and balance tracking
+- **PayrollTab**: Payroll information and history
+- **PendingIncrementCard**: Salary increment proposals
+- **ProposeIncrementModal**: Modal for proposing salary changes
+- **ReviewScheduleSection**: Salary review scheduling
+- **SalaryHistoryTab**: Historical salary information
+- **SalaryReviewTab**: Salary review management
 
-**Navigation Components**
-- `Breadcrumb`: Navigation hierarchy
-- `Pagination`: Data pagination
-- `Command`: Search interfaces
+#### Attendance Management
+- **AttendanceUploadFlow**: Complex multi-step process for uploading and parsing attendance files from biometric systems
 
-## Data Flow
+#### Leave Management
+- **AllRequestsTab**: View all leave requests (admin/HR view)
+- **ApplyLeaveModal**: Modal for submitting leave applications
+- **LeaveBalancesTab**: Personal leave balance tracking
+- **MyRequestsTab**: Personal leave request history
+
+#### Payroll System
+- **PayrollSummary**: Payroll data overview and summaries
+
+#### Project Management
+- **ManageTeamModal**: Team assignment and management
+- **ProjectActivityLog**: Activity tracking and logging
+- **ProjectTasksSection**: Task management within projects
+
+#### Finance & HR
+- **FinanceSummary**: Financial data overview
+- **RichTextEditor**: Policy document creation and editing
+
+#### Settings & Administration
+Comprehensive settings panels for system configuration:
+- **AttendanceTab**: Attendance system settings
+- **CompanyTab**: Company information management
+- **DangerZoneTab**: Critical system operations
+- **DepartmentsTab**: Department management
+- **EvaluationParametersTab**: Performance evaluation settings
+- **ExpenseCategoriesTab**: Expense categorization
+- **LeaveTypesTab**: Leave type configuration
+- **LoginLogsTab**: User login tracking
+- **ProjectCategoriesTab**: Project categorization
+- **RolesTab**: User role management
+
+### UI Components
+
+The application uses a complete shadcn/ui component library with custom extensions:
+
+#### Base UI Components
+- Form controls: Button, Input, Select, Textarea, Checkbox, Radio Group
+- Layout: Card, Dialog, Sheet, Tabs, Accordion
+- Data display: Table, Badge, Avatar, Progress
+- Navigation: Breadcrumb, Pagination, Navigation Menu
+- Feedback: Alert, Toast, Skeleton, Spinner
+- Advanced: Calendar, Chart, Carousel, Command (searchable command palette)
+
+#### Custom Components
+- **BeudoxLogo**: Multi-variant logo component with default and sidebar variants
+- **NavLink**: Enhanced React Router NavLink with active state styling
+- **SearchableEmployeeSelect**: Advanced employee selection with search and filtering
+- **MandatoryPasswordChange**: Secure password reset modal with validation
+
+## Data Flow Architecture
+
+### State Management
+- **Local State**: React hooks (useState, useReducer) for component-level state
+- **Context**: React Context for shared state (authentication, user preferences)
+- **Server State**: Direct Supabase integration for persistent data
 
 ### Authentication Flow
-1. User authentication via Supabase Auth
-2. Mandatory password change for new users (`MandatoryPasswordChange`)
-3. User profile and permissions loaded
-4. Application routes and UI components rendered based on roles
+- Supabase Auth integration
+- Custom authentication hooks (`useAuth`)
+- Mandatory password change for new users
+- Role-based access control
 
-### CRUD Operations
-1. Components use Supabase client for direct database access
-2. Optimistic updates for better UX
-3. Error handling with user feedback
-4. Real-time subscriptions for live data
-
-### File Processing
-1. File upload (Excel/CSV) via `AttendanceUploadFlow`
-2. Client-side conversion to CSV using SheetJS
-3. Server-side AI parsing via Supabase Edge Function
-4. Data validation and preview
-5. Batch database operations
-
-## State Management
-
-### Local Component State
-- Form inputs and validation
-- UI interaction states (open/closed modals, active tabs)
-- Loading and error states
-
-### Global Application State
-- User authentication and profile (via `useAuth` hook)
-- Theme and branding settings
-- Notification preferences
-
-### Server State
-- Database records via Supabase
+### Data Fetching
+- Direct Supabase client queries
 - Real-time subscriptions for live updates
-- Cached data for performance
+- Edge functions for complex business logic
+- Optimistic updates for better UX
+
+## Business Logic Modules
+
+### Utility Libraries (`src/lib/`)
+- **attendance-format.ts**: Time formatting and display utilities
+- **client-activity.ts**: Activity logging and categorization
+- **format-date.ts**: Date formatting functions
+- **format-role.ts**: Role display formatting
+- **leave-utils.ts**: Leave balance calculations
+- **login-tracking.ts**: User login monitoring
+- **notifications.ts**: Notification system utilities
+- **review-alerts.ts**: Salary review notifications
+- **review-schedule.ts**: Review scheduling logic
+- **role-access.ts**: Permission and access control
+- **utils.ts**: General utility functions (class name merging)
+
+### Custom Hooks (`src/hooks/`)
+- **useAuth.ts**: Authentication state management
+- **useSort.ts**: Table sorting functionality
+- **useToast.ts**: Toast notification system
+
+## Configuration and Build
+
+### Build Configuration
+- **Vite**: Fast development server and optimized production builds
+- **TypeScript**: Strict type checking and compilation
+- **Tailwind CSS**: Utility-first CSS framework
+- **PostCSS**: CSS processing and optimization
+
+### Testing Configuration
+- **Vitest**: Fast unit testing framework
+- **Playwright**: End-to-end testing for critical user flows
+
+### Environment Configuration
+- Supabase project settings
+- API keys and service URLs
+- Build-time environment variables
+
+## Performance Considerations
+
+- **Component Optimization**: React.memo for expensive re-renders
+- **Bundle Splitting**: Code splitting for route-based loading
+- **Image Optimization**: Proper asset handling and optimization
+- **Database Queries**: Efficient Supabase queries with proper indexing
+- **Real-time Updates**: Selective subscriptions to prevent unnecessary re-renders
 
 ## Security Architecture
 
-### Authentication
-- Supabase Auth for user management
-- JWT tokens for API access
-- Session management with automatic refresh
+- **Authentication**: Supabase Auth with JWT tokens
+- **Authorization**: Role-based access control system
+- **Data Validation**: TypeScript types and runtime validation
+- **Secure Communications**: HTTPS-only with Supabase
+- **Password Policies**: Mandatory strong passwords with validation
 
-### Authorization
-- Role-based access control (`canAccess`, `hasRole` functions)
-- Database row-level security policies
-- UI-level permission checks
-
-### Data Protection
-- Encrypted data transmission (HTTPS)
-- Secure file upload handling
-- Audit logging for sensitive operations
-
-## Performance Optimizations
-
-### Build Optimizations
-- Vite for fast development and optimized production builds
-- Code splitting by routes
-- Tree shaking for unused code removal
-
-### Runtime Optimizations
-- Lazy loading for heavy components
-- Virtual scrolling for large lists
-- Image optimization and lazy loading
-- Caching strategies for API calls
-
-### Database Optimizations
-- Indexed queries for fast data retrieval
-- Efficient batch operations for bulk imports
-- Real-time subscriptions for targeted updates
-
-## Development Architecture
-
-### Build Pipeline
-- TypeScript compilation with strict type checking
-- ESLint for code quality
-- Tailwind CSS processing
-- Asset optimization and bundling
-
-### Testing Strategy
-- Unit tests with Vitest
-- Component testing for UI logic
-- E2E testing with Playwright
-- API testing for Edge Functions
-
-### Deployment Architecture
-- Static site generation for frontend
-- CDN distribution for assets
-- Server-side functions for dynamic operations
-- Database migrations for schema updates
+This architecture provides a scalable, maintainable foundation for a comprehensive HR management system with modern React patterns and robust business logic implementation.

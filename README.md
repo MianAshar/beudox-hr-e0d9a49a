@@ -1,145 +1,136 @@
 <!--
 generated_by: tessera
-source_sha: 05edf419b373dcd66367c68c70f2f45ed63615f7
-generated_at: 2026-04-28T22:00:13.131Z
+source_sha: c654fd2968a904bbbba2819fed2fab547b920d59
+generated_at: 2026-04-28T22:13:43.871Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built with React, TypeScript, and Supabase. This frontend application provides a modern, intuitive interface for managing employee data, attendance, leave requests, payroll, evaluations, and more.
+A comprehensive Human Resources Management System built as a modern React frontend application. This portal enables HR teams and employees to manage attendance, payroll, leave requests, employee profiles, and various HR operations through an intuitive web interface.
 
 ## Features
 
-- **Employee Management**: Profile management, salary reviews, and increment proposals
-- **Attendance Tracking**: Upload and manage attendance records with AI-powered parsing
-- **Leave Management**: Apply for leave, track balances, and manage requests
-- **Payroll Processing**: Generate payroll summaries and handle overtime calculations
-- **Performance Evaluations**: Timeline-based evaluation tracking and scheduling
-- **Finance Management**: Expense categories and financial summaries
-- **HR Policies**: Rich text editor for policy management
-- **Settings**: Company configuration, departments, roles, and system settings
-- **Notifications**: Customizable notification preferences
-- **Project Management**: Team management and activity logging
+- **Employee Management**: Comprehensive employee profiles with attendance, documents, leave, payroll, and salary history
+- **Attendance Tracking**: Upload and manage attendance records from biometric systems with AI-powered parsing
+- **Payroll Processing**: Generate and manage payroll summaries and salary reviews
+- **Leave Management**: Apply for leave, track balances, and manage leave requests
+- **Project Management**: Manage teams, track project activities, and assign tasks
+- **HR Policies**: Rich text editor for creating and managing company policies
+- **Finance Overview**: Summary of financial data and expense categories
+- **Settings Management**: Configure company settings, departments, roles, and evaluation parameters
+- **Notification System**: Customizable notification preferences
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **UI Library**: shadcn/ui components
-- **Styling**: Tailwind CSS
-- **Backend**: Supabase (PostgreSQL database, Authentication, Edge Functions)
+- **Styling**: Tailwind CSS with shadcn/ui components
 - **Routing**: React Router
+- **Backend Integration**: Supabase (PostgreSQL database, authentication, edge functions)
 - **State Management**: React hooks and context
-- **Testing**: Vitest and Playwright
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
+- **Deployment**: Configured for modern web deployment
 
-## Prerequisites
+## Getting Started
+
+### Prerequisites
 
 - Node.js 18+
 - npm or bun package manager
 - Supabase account and project
 
-## Setup Instructions
+### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd beudox-hr
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+   cd beudox-hr-e0d9a49a
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. **Environment Configuration**
+3. Set up environment variables:
    
-   Copy the `.env` file and update the Supabase credentials:
-   ```bash
-   cp .env .env.local
+   Copy `.env` and update the Supabase configuration:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_project_id
    ```
-   
-   Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
 
-4. **Database Setup**
-   
-   The application uses Supabase migrations. Ensure your Supabase project has the required tables and functions set up. The migrations are located in the `supabase/migrations/` directory.
-
-5. **Development Server**
+4. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
-   
-   The application will be available at `http://localhost:5173`
 
-## Available Scripts
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run unit tests with Vitest
-- `npm run test:e2e` - Run end-to-end tests with Playwright
-- `npm run lint` - Run ESLint
+### Build for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory.
+
+### Testing
+
+Run unit tests:
+```bash
+npm run test
+```
+
+Run E2E tests:
+```bash
+npm run test:e2e
+```
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── ui/             # shadcn/ui base components
 │   ├── attendance/     # Attendance-related components
 │   ├── employee-profile/ # Employee profile tabs
-│   ├── leave/          # Leave management components
+│   ├── finance/        # Financial components
+│   ├── hr-policies/    # Policy management
+│   ├── layout/         # App layout components
+│   ├── leave/          # Leave management
 │   ├── payroll/        # Payroll components
-│   ├── evaluations/    # Evaluation components
-│   ├── finance/        # Finance components
-│   ├── hr-policies/    # HR policy components
-│   ├── projects/       # Project management components
-│   ├── profile/        # Profile settings
-│   └── settings/       # System settings components
+│   ├── profile/        # User profile
+│   ├── projects/       # Project management
+│   └── settings/       # Settings panels
 ├── pages/              # Page components
 ├── lib/                # Utility functions and configurations
 ├── hooks/              # Custom React hooks
-├── integrations/       # External service integrations (Supabase)
+├── integrations/       # External service integrations
 └── test/               # Test files
 ```
 
 ## Key Components
 
 - **AppLayout**: Main application layout with sidebar navigation
-- **AttendanceUploadFlow**: Complex component for uploading and parsing attendance Excel files
-- **MandatoryPasswordChange**: Modal for initial password setup
-- **SearchableEmployeeSelect**: Reusable employee selection component
-- **BeudoxLogo**: Logo component with variant support
-
-## Authentication
-
-The application uses Supabase Authentication. New users are required to change their temporary password on first login through the `MandatoryPasswordChange` component.
-
-## Deployment
-
-Build the application for production:
-```bash
-npm run build
-```
-
-The built files will be in the `dist/` directory, ready for deployment to any static hosting service.
+- **AttendanceUploadFlow**: Complex flow for uploading and parsing attendance files
+- **MandatoryPasswordChange**: Password reset modal for new users
+- **SearchableEmployeeSelect**: Employee selection component with search
+- **BeudoxLogo**: Logo component with multiple variants
 
 ## Contributing
 
 1. Follow the existing code style and component patterns
 2. Write tests for new features
 3. Update documentation as needed
-4. Use TypeScript strictly
+4. Ensure TypeScript types are properly defined
 
 ## License
 
-This project is proprietary software for Beudox HR systems.
+This project is proprietary software for Beudox HR solutions.
