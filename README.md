@@ -1,25 +1,24 @@
 <!--
 generated_by: tessera
-source_sha: c654fd2968a904bbbba2819fed2fab547b920d59
-generated_at: 2026-04-28T22:13:43.871Z
+source_sha: 62881d9cc8787b8872224454873d20f09c2c5334
+generated_at: 2026-04-28T22:24:56.171Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built as a modern React frontend application. This portal enables HR teams and employees to manage attendance, payroll, leave requests, employee profiles, and various HR operations through an intuitive web interface.
+A comprehensive Human Resources Management System built as a modern React frontend application. This portal provides employee self-service features including attendance tracking, leave management, payroll viewing, performance evaluations, and more.
 
 ## Features
 
-- **Employee Management**: Comprehensive employee profiles with attendance, documents, leave, payroll, and salary history
-- **Attendance Tracking**: Upload and manage attendance records from biometric systems with AI-powered parsing
-- **Payroll Processing**: Generate and manage payroll summaries and salary reviews
-- **Leave Management**: Apply for leave, track balances, and manage leave requests
-- **Project Management**: Manage teams, track project activities, and assign tasks
-- **HR Policies**: Rich text editor for creating and managing company policies
-- **Finance Overview**: Summary of financial data and expense categories
-- **Settings Management**: Configure company settings, departments, roles, and evaluation parameters
-- **Notification System**: Customizable notification preferences
+- **Employee Dashboard**: Centralized access to personal HR information
+- **Attendance Management**: Upload and view attendance records with AI-powered parsing
+- **Leave Management**: Apply for leave, track balances, and manage requests
+- **Payroll Access**: View salary history, increments, and payroll summaries
+- **Performance Reviews**: Schedule and track employee evaluations
+- **Document Management**: Store and access employee documents
+- **Project Management**: Manage team assignments and project activities
+- **Settings Administration**: Company-wide configuration for HR policies, departments, roles, etc.
 
 ## Technology Stack
 
@@ -27,12 +26,14 @@ A comprehensive Human Resources Management System built as a modern React fronte
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with shadcn/ui components
 - **Routing**: React Router
-- **Backend Integration**: Supabase (PostgreSQL database, authentication, edge functions)
-- **State Management**: React hooks and context
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
-- **Deployment**: Configured for modern web deployment
+- **Backend**: Supabase (PostgreSQL database + Edge Functions)
+- **State Management**: React hooks with Supabase client
+- **UI Components**: Radix UI primitives via shadcn/ui
+- **Icons**: Lucide React
+- **Forms**: React Hook Form (implied from component usage)
+- **Notifications**: Sonner for toast notifications
 
-## Getting Started
+## Setup Instructions
 
 ### Prerequisites
 
@@ -55,13 +56,13 @@ A comprehensive Human Resources Management System built as a modern React fronte
    bun install
    ```
 
-3. Set up environment variables:
+3. Configure environment variables:
    
-   Copy `.env` and update the Supabase configuration:
+   Copy `.env` and update the Supabase credentials:
    ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PROJECT_ID="your-project-id"
+   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
+   VITE_SUPABASE_URL="https://your-project.supabase.co"
    ```
 
 4. Start the development server:
@@ -71,7 +72,15 @@ A comprehensive Human Resources Management System built as a modern React fronte
    bun run dev
    ```
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
+5. Open [http://localhost:5173](http://localhost:5173) in your browser
+
+### Database Setup
+
+The application uses Supabase for data storage. Database migrations are included in the `supabase/migrations/` directory. To set up the database:
+
+1. Install Supabase CLI
+2. Link your project: `supabase link --project-ref your-project-id`
+3. Run migrations: `supabase db push`
 
 ### Build for Production
 
@@ -79,19 +88,7 @@ A comprehensive Human Resources Management System built as a modern React fronte
 npm run build
 ```
 
-The built files will be in the `dist` directory.
-
-### Testing
-
-Run unit tests:
-```bash
-npm run test
-```
-
-Run E2E tests:
-```bash
-npm run test:e2e
-```
+The built files will be in the `dist/` directory.
 
 ## Project Structure
 
@@ -99,38 +96,54 @@ npm run test:e2e
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui base components
-│   ├── attendance/     # Attendance-related components
-│   ├── employee-profile/ # Employee profile tabs
-│   ├── finance/        # Financial components
-│   ├── hr-policies/    # Policy management
 │   ├── layout/         # App layout components
+│   ├── employee-profile/  # Employee-specific features
+│   ├── attendance/     # Attendance management
 │   ├── leave/          # Leave management
 │   ├── payroll/        # Payroll components
-│   ├── profile/        # User profile
+│   ├── evaluations/    # Performance reviews
+│   ├── finance/        # Financial summaries
+│   ├── hr-policies/    # Policy management
 │   ├── projects/       # Project management
-│   └── settings/       # Settings panels
-├── pages/              # Page components
+│   └── settings/       # Admin settings
+├── pages/              # Route components
 ├── lib/                # Utility functions and configurations
 ├── hooks/              # Custom React hooks
-├── integrations/       # External service integrations
-└── test/               # Test files
+└── integrations/       # External service integrations
+supabase/
+├── functions/          # Edge Functions for server-side logic
+└── migrations/         # Database schema migrations
 ```
 
 ## Key Components
 
 - **AppLayout**: Main application layout with sidebar navigation
-- **AttendanceUploadFlow**: Complex flow for uploading and parsing attendance files
-- **MandatoryPasswordChange**: Password reset modal for new users
-- **SearchableEmployeeSelect**: Employee selection component with search
-- **BeudoxLogo**: Logo component with multiple variants
+- **MandatoryPasswordChange**: Forces password reset on first login
+- **AttendanceUploadFlow**: Handles Excel file uploads with AI parsing
+- **SearchableEmployeeSelect**: Employee selection dropdown with search
+- **BeudoxLogo**: Application logo component with variants
+
+## Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests
+- `npm run lint` - Run ESLint
+
+### Code Quality
+
+The project uses ESLint for code linting and follows TypeScript strict mode. UI components follow the shadcn/ui design system for consistency.
 
 ## Contributing
 
 1. Follow the existing code style and component patterns
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure TypeScript types are properly defined
+2. Use TypeScript for all new code
+3. Test components thoroughly
+4. Update documentation as needed
 
 ## License
 
-This project is proprietary software for Beudox HR solutions.
+This project is proprietary software for Beudox HR systems.

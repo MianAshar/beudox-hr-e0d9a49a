@@ -1,124 +1,160 @@
 <!--
 generated_by: tessera
-source_sha: c654fd2968a904bbbba2819fed2fab547b920d59
-generated_at: 2026-04-28T22:13:43.871Z
+source_sha: 62881d9cc8787b8872224454873d20f09c2c5334
+generated_at: 2026-04-28T22:24:56.171Z
 action: create
 -->
 
-# Beudox HR Portal - Technical Context for AI Assistants
+# Beudox HR Portal - Technical Context
 
 ## Architecture Overview
 
-This is a modern React frontend application built with TypeScript, using Vite as the build tool. It follows a component-based architecture with clear separation of concerns:
+This is a modern React-based frontend application for HR management, built with TypeScript and Vite. The application follows a component-based architecture with feature-based organization.
+
+### Core Architecture Decisions
 
 - **Frontend Framework**: React 18 with functional components and hooks
-- **Type Safety**: Full TypeScript implementation
-- **Styling**: Tailwind CSS with shadcn/ui design system
+- **Type Safety**: Full TypeScript implementation with strict mode
+- **Build System**: Vite for fast development and optimized production builds
+- **Styling**: Tailwind CSS with design tokens and shadcn/ui component library
 - **Routing**: React Router for client-side navigation
-- **Backend**: Supabase for database, authentication, and serverless functions
-- **State Management**: React context and hooks (no external state library)
+- **State Management**: React hooks with Supabase real-time subscriptions
+- **Backend Integration**: Supabase client for database operations and Edge Functions
+- **UI Components**: Radix UI primitives via shadcn/ui for accessibility
 
-## Key Architectural Patterns
+### Key Design Patterns
 
-### Component Organization
-- **UI Components** (`src/components/ui/`): Reusable base components from shadcn/ui
-- **Feature Components**: Organized by domain (attendance, employee-profile, payroll, etc.)
-- **Layout Components**: AppLayout, TopBar, Sidebar for consistent navigation
-- **Page Components**: Top-level route components in `src/pages/`
-
-### Data Flow
-- Direct Supabase client integration using `@supabase/supabase-js`
-- Real-time subscriptions for live data updates
-- Edge functions for complex business logic (attendance parsing, payroll generation)
-- Authentication handled via Supabase Auth with custom user management
-
-### Business Logic
-- **Attendance Management**: AI-powered parsing of Excel files, automatic calculation of working hours, overtime, and late status
-- **Employee Lifecycle**: Onboarding with mandatory password changes, profile management, salary reviews
-- **Leave System**: Balance tracking, request workflows, approval processes
-- **Payroll Processing**: Automated payroll generation with overtime calculations
-- **Project Management**: Team assignments, activity logging, task tracking
+- **Component Composition**: Higher-order components and compound component patterns
+- **Custom Hooks**: Business logic abstracted into reusable hooks
+- **Utility Functions**: Pure functions for data transformations and calculations
+- **Feature-Based Organization**: Components grouped by business domain
+- **Shared UI Library**: Common components in `src/components/ui/`
 
 ## Key Files and Their Purposes
 
-### Core Application Files
-- `src/main.tsx`: Application entry point, renders the root App component
-- `src/App.tsx`: Main app component with routing setup
-- `src/pages/Index.tsx`: Home/dashboard page
+### Application Entrypoints
+- `src/main.tsx`: Application bootstrap, renders root App component
+- `src/App.tsx`: Main application component with routing setup
+- `src/pages/Index.tsx`: Landing/dashboard page component
 
-### Authentication & User Management
-- `src/hooks/useAuth.ts`: Authentication context and user state management
-- `src/components/MandatoryPasswordChange.tsx`: Password reset flow for new users
-
-### Layout & Navigation
-- `src/components/layout/AppLayout.tsx`: Main layout wrapper
-- `src/components/layout/AppSidebar.tsx`: Navigation sidebar
+### Core Components
+- `src/components/layout/AppLayout.tsx`: Main layout with sidebar and top navigation
+- `src/components/layout/AppSidebar.tsx`: Sidebar navigation component
 - `src/components/layout/TopBar.tsx`: Top navigation bar
-- `src/components/NavLink.tsx`: Enhanced NavLink with active state styling
+- `src/components/MandatoryPasswordChange.tsx`: Password reset modal for new users
+- `src/components/BeudoxLogo.tsx`: Logo component with variant support
 
-### Employee Management
-- `src/components/employee-profile/`: Tab-based profile views (Attendance, Documents, Leave, Payroll, Salary)
-- `src/components/SearchableEmployeeSelect.tsx`: Employee selection with search functionality
-
-### Attendance System
+### Feature Components
 - `src/components/attendance/AttendanceUploadFlow.tsx`: Complex upload flow with AI parsing
-- `src/lib/attendance-format.ts`: Time formatting utilities
+- `src/components/employee-profile/AttendanceTab.tsx`: Employee attendance view
+- `src/components/employee-profile/LeaveTab.tsx`: Leave management interface
+- `src/components/employee-profile/PayrollTab.tsx`: Payroll information display
+- `src/components/leave/ApplyLeaveModal.tsx`: Leave application form
+- `src/components/settings/CompanyTab.tsx`: Company settings management
 
-### UI Component Library
-- `src/components/ui/`: Complete shadcn/ui component library
-- Custom components like `BeudoxLogo.tsx` for branding
+### Utilities and Libraries
+- `src/lib/utils.ts`: Common utility functions (cn for className merging)
+- `src/lib/attendance-format.ts`: Attendance data formatting functions
+- `src/lib/leave-utils.ts`: Leave balance and calculation utilities
+- `src/lib/role-access.ts`: Role-based access control functions
+- `src/lib/notifications.ts`: Notification sending utilities
+- `src/hooks/useAuth.ts`: Authentication state management
+- `src/hooks/useSort.ts`: Table sorting hook
 
-### Utility Libraries
-- `src/lib/utils.ts`: Common utility functions (cn for class merging)
-- `src/lib/role-access.ts`: Permission and role management
-- `src/lib/notifications.ts`: Notification system utilities
-- `src/lib/leave-utils.ts`: Leave balance calculations
-- `src/lib/review-schedule.ts`: Salary review scheduling logic
+### Configuration Files
+- `vite.config.ts`: Vite build configuration
+- `tailwind.config.ts`: Tailwind CSS customization
+- `tsconfig.json`: TypeScript compiler options
+- `supabase/config.toml`: Supabase project configuration
 
-### Integrations
-- `src/integrations/supabase/`: Supabase client setup and type definitions
-- Supabase edge functions for server-side processing
+## Database Schema and Relationships
 
-## Database Schema Insights
+The application uses Supabase PostgreSQL with the following key entities:
 
-Based on the code analysis, the system manages:
+- **employees**: Core employee data with auth integration
+- **attendance_records**: Time tracking data with check-in/out times
+- **leave_requests**: Leave applications and approvals
+- **payroll_records**: Salary and payment information
+- **evaluations**: Performance review data
+- **projects**: Project management with team assignments
+- **company_settings**: Organization-wide configuration
+- **departments**: Department structure
+- **roles**: User roles and permissions
 
-- **Employees**: Profiles, roles, departments, salary information
-- **Attendance Records**: Daily check-in/out, working hours, overtime
-- **Leave Management**: Leave types, balances, requests, approvals
-- **Payroll**: Salary components, overtime pay, deductions
-- **Projects**: Team assignments, tasks, activity logs
-- **Company Settings**: Policies, holidays, shift configurations
-- **HR Policies**: Document management
-- **Notifications**: Customizable alert system
+### Key Relationships
+- Employees belong to companies and departments
+- Attendance records link to employees with company context
+- Leave requests have approval workflows
+- Payroll records connect to employee salary history
+- Projects have many-to-many relationships with employees
 
-## Configuration and Environment
+## Business Logic and Data Flow
 
-- **Build Config**: `vite.config.ts`, `tsconfig.json`, `tailwind.config.ts`
-- **Environment**: `.env` with Supabase credentials
-- **Testing**: `vitest.config.ts`, `playwright.config.ts`
-- **Linting**: `eslint.config.js`
+### Authentication Flow
+1. User logs in via Supabase Auth
+2. JWT token contains user metadata
+3. Employee record fetched via auth_user_id
+4. Role-based access control applied throughout app
+5. Mandatory password change enforced for temp passwords
 
-## Development Workflow
+### Attendance Upload Process
+1. Excel file uploaded via AttendanceUploadFlow component
+2. File converted to CSV using SheetJS library
+3. AI parsing via Supabase Edge Function (`parse-attendance-ai`)
+4. Records validated against employee codes
+5. Batch import with conflict resolution (insert/update)
+6. Import tracking via attendance_imports table
 
-- **Local Development**: `npm run dev` starts Vite dev server
-- **Building**: `npm run build` creates production bundle
-- **Testing**: Unit tests with Vitest, E2E with Playwright
-- **Code Quality**: ESLint for code linting
+### Leave Management
+1. Employees view balances from leave_balances
+2. Leave applications create leave_requests
+3. Approval workflow with notifications
+4. Balance updates on approval
+5. Working days calculation excludes weekends/holidays
 
-## Key Business Rules
+### Role-Based Access
+- Access control via `canAccess` and `hasRole` functions
+- UI conditionally rendered based on user permissions
+- Admin roles can access settings and all employee data
+- Employee roles limited to self-service features
 
-- **Password Security**: Mandatory password changes for new users with strength validation
-- **Attendance Processing**: Automatic calculation of working hours, late status, overtime
-- **Leave Balances**: Real-time balance tracking with business day calculations
-- **Role-Based Access**: Permission system controlling feature access
-- **Salary Reviews**: Scheduled reviews with increment proposals
+## External Integrations
+
+### Supabase Services
+- **Database**: PostgreSQL with real-time subscriptions
+- **Auth**: User authentication and session management
+- **Storage**: File uploads for documents and logos
+- **Edge Functions**: Server-side processing (AI parsing, PDF generation)
+
+### Third-Party Libraries
+- **SheetJS (xlsx)**: Excel file processing for attendance uploads
+- **date-fns**: Date formatting and manipulation
+- **Lucide React**: Icon library
+- **Sonner**: Toast notifications
+- **Radix UI**: Accessible component primitives
 
 ## Performance Considerations
 
-- **Component Optimization**: React.memo and useMemo for expensive operations
-- **Data Fetching**: Efficient Supabase queries with proper indexing assumed
-- **Bundle Size**: Tree-shaking enabled, component library optimized
+- **Code Splitting**: Vite handles automatic code splitting
+- **Lazy Loading**: Components loaded on demand
+- **Memoization**: React.memo and useMemo for expensive operations
+- **Database Optimization**: Indexed queries with selective field fetching
 - **Real-time Updates**: Supabase subscriptions for live data
 
-This codebase represents a production-ready HR management system with modern React patterns, comprehensive TypeScript typing, and robust business logic implementation.
+## Security Measures
+
+- **Authentication**: Supabase Auth with JWT tokens
+- **Authorization**: Row-level security policies in database
+- **Input Validation**: Client-side validation with server confirmation
+- **File Upload Security**: Type checking and size limits
+- **Password Policies**: Strength requirements and forced resets
+
+## Development Workflow
+
+- **Version Control**: Git with feature branches
+- **Code Quality**: ESLint and TypeScript strict mode
+- **Testing**: Vitest for unit tests
+- **Deployment**: Built for static hosting with Supabase backend
+- **CI/CD**: Automated testing and deployment pipelines
+
+This architecture supports scalable HR operations with self-service capabilities, comprehensive data management, and extensible feature development.
