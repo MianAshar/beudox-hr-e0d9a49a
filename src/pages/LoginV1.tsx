@@ -69,13 +69,10 @@ const LoginV2 = () => {
         return;
       }
 
-      const { data: empData } = await supabase
-        .from('employees')
-        .select('status')
-        .eq('email', email)
-        .maybeSingle();
+      const { data: empStatus } = await supabase
+        .rpc('get_employee_status_by_email', { _email: email });
 
-      if (empData?.status === 'inactive') {
+      if (empStatus === 'inactive') {
         setErrors({ general: 'Your account has been deactivated. Please contact your HR Manager or system administrator.' });
       } else {
         setErrors({ general: 'Invalid email or password' });

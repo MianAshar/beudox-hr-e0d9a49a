@@ -126,10 +126,6 @@ Deno.serve(async (req) => {
           <h2 style="color:#120E36;">Account Deactivated</h2>
           <p>Hi ${emp.full_name},</p>
           <p>Your Forte HR Portal account has been deactivated and you will no longer be able to sign in.</p>
-          <div style="background:#F6F5FF; border-left:3px solid #5B3FF8; border-radius:8px; padding:14px 18px; margin:20px 0;">
-            <p style="margin:0 0 4px 0; color:#9490B4; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Reason</p>
-            <p style="margin:0; font-weight:600;">${reasonLabel}</p>
-          </div>
           <p>If you believe this is a mistake, please contact your HR administrator.</p>
           <p style="color:#9490B4; font-size:12px; margin-top:24px;">— Forte HR</p>
         </div>
