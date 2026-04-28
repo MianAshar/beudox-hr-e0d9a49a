@@ -1,85 +1,100 @@
 <!--
 generated_by: tessera
-source_sha: ee620c4cb89bbae5b73469faa38110b90495fae1
-generated_at: 2026-04-27T23:33:58.166Z
+source_sha: 842e6a7199f663ff50096feaa00b5dbbc25d20a5
+generated_at: 2026-04-28T21:21:42.461Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built with modern web technologies. This application provides a complete suite of HR tools for managing employees, attendance, payroll, leave, evaluations, and more.
+A comprehensive Human Resources Management System built with modern web technologies. This application provides a complete suite of HR tools for managing employees, attendance, leave, payroll, evaluations, and more.
 
 ## Features
 
-- **Employee Management**: Complete employee profiles with personal details, roles, departments, and organizational structure
-- **Attendance Tracking**: Automated attendance import from Excel files with AI-powered parsing, time tracking, and overtime calculations
-- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.)
-- **Payroll Processing**: Generate payslips, manage salaries, allowances, and deductions
-- **Performance Evaluations**: Regular and daily evaluations with customizable parameters
-- **Project Management**: Track projects, assign team members, and monitor progress
-- **Finance Management**: Invoice generation, client management, and financial reporting
-- **HR Policies**: Create and manage company policies with rich text editing
-- **Job Descriptions**: Maintain detailed job descriptions and requirements
-- **Loan Management**: Track employee loans and repayments
-- **Settings & Configuration**: Company settings, departments, roles, leave types, and more
+### Core HR Functionality
+- **Employee Management**: Complete employee profiles with personal details, job information, and organizational structure
+- **Attendance Tracking**: Automated attendance import from biometric devices (ZKTeco), manual entry, and comprehensive reporting
+- **Leave Management**: Request, approve, and track various types of leave with balance calculations
+- **Payroll Processing**: Automated payroll generation with overtime calculations and salary history
+- **Performance Reviews**: Employee evaluations with customizable parameters and review schedules
+- **Finance Management**: Expense tracking and financial summaries
+
+### Administrative Tools
+- **Company Settings**: Configure departments, roles, leave types, expense categories, and company policies
+- **User Management**: Role-based access control with granular permissions
+- **Notifications**: Automated alerts for reviews, leave requests, and important HR events
+- **Audit Logs**: Comprehensive login tracking and activity monitoring
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Routing**: React Router DOM
-- **State Management**: React Query (TanStack Query) for server state
+- **Styling**: Tailwind CSS with shadcn/ui component library
+- **Routing**: React Router
+- **Backend**: Supabase (PostgreSQL database + Edge Functions)
 - **Authentication**: Supabase Auth
-- **Database**: Supabase (PostgreSQL)
-- **UI Components**: Radix UI primitives with shadcn/ui
-- **Forms**: React Hook Form with Zod validation
-- **Charts**: Recharts
-- **Rich Text Editor**: Tiptap
-- **Testing**: Vitest with React Testing Library
-- **E2E Testing**: Playwright
+- **State Management**: React hooks and context
+- **Testing**: Vitest
+- **Deployment**: Lovable platform
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
-- npm or bun
+- npm or bun package manager
+- Supabase account and project
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. Set up environment variables:
+3. **Environment Setup**
    
-   Copy `.env` and update the values:
+   Copy the `.env` file and update the Supabase configuration:
    ```bash
    cp .env .env.local
    ```
    
-   The required environment variables are:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase public key
+   Update the following variables in `.env.local`:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
+   ```
 
-4. Start the development server:
+4. **Database Setup**
+   
+   The application uses Supabase migrations. If setting up a new project:
+   ```bash
+   # Install Supabase CLI
+   npm install -g supabase
+   
+   # Link to your project
+   supabase link --project-ref your_project_ref
+   
+   # Apply migrations
+   supabase db push
+   ```
+
+5. **Development Server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
-
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
+   
+   The application will be available at `http://localhost:5173`
 
 ### Build for Production
 
@@ -87,18 +102,7 @@ A comprehensive Human Resources Management System built with modern web technolo
 npm run build
 ```
 
-### Run Tests
-
-```bash
-npm run test
-```
-
-### Run E2E Tests
-
-```bash
-npx playwright install
-npx playwright test
-```
+The built files will be in the `dist/` directory.
 
 ## Project Structure
 
@@ -106,52 +110,47 @@ npx playwright test
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
-│   ├── employee-profile/  # Employee profile specific components
-│   ├── attendance/     # Attendance related components
+│   ├── layout/         # App layout components
+│   ├── attendance/     # Attendance-related components
+│   ├── employee-profile/ # Employee profile tabs
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── settings/       # Settings components
 │   └── ...
-├── pages/              # Page components (routes)
-├── hooks/              # Custom React hooks
+├── pages/              # Page components
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
-└── types/              # TypeScript type definitions
+├── hooks/              # Custom React hooks
+├── integrations/       # External service integrations
+└── main.tsx           # Application entry point
+
+supabase/
+├── migrations/         # Database schema migrations
+└── functions/          # Edge functions
 ```
 
 ## Key Components
 
-- **AppLayout**: Main application layout with sidebar navigation
-- **AttendanceUploadFlow**: Complex component for importing attendance data from Excel files
-- **MandatoryPasswordChange**: Modal for forcing password changes on first login
-- **SearchableEmployeeSelect**: Reusable component for selecting employees with search
-- **BeudoxLogo**: Logo component with variant support
+### Authentication Flow
+- **MandatoryPasswordChange**: Forces password reset for temporary accounts
+- **Role-based Access**: Different permissions for HR, Managers, and Employees
 
-## Authentication & Authorization
+### Attendance Management
+- **AttendanceUploadFlow**: AI-powered Excel file parsing for bulk attendance import
+- **Biometric Integration**: Supports ZKTeco device exports
+- **Overtime Calculation**: Automatic regular and holiday overtime computation
 
-The application uses Supabase for authentication and implements role-based access control. Users must change their temporary password on first login. Access to different sections is controlled based on user roles.
-
-## Database Schema
-
-The application uses Supabase with PostgreSQL. Key tables include:
-- `employees` - Employee information
-- `attendance_records` - Attendance data
-- `leave_requests` - Leave management
-- `payroll_records` - Payroll data
-- `evaluations` - Performance evaluations
-- `projects` - Project management
-- `invoices` - Financial invoices
-- `company_settings` - Company configuration
+### Employee Experience
+- **Dashboard**: Personalized dashboard with relevant information
+- **Self-service**: Employees can manage their own leave, view payroll, etc.
+- **Notifications**: Real-time notifications for important events
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests
-5. Submit a pull request
+1. Follow the existing code style and TypeScript conventions
+2. Use the provided UI components from shadcn/ui
+3. Ensure proper error handling and loading states
+4. Test components with Vitest
+5. Follow the established folder structure
 
 ## License
 
-This project is private and proprietary.
+This project is proprietary software for Beudox HR solutions.
