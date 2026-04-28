@@ -434,20 +434,29 @@ const EmployeeForm = () => {
                 employee_id: employeeId,
               },
             });
-          if (inviteErr || (inviteData && inviteData.error)) {
-            console.error('Invite error:', inviteErr || inviteData?.error);
+          const providerError =
+            inviteErr?.message || (inviteData && (inviteData as any).error);
+          const emailSent = !!(inviteData && (inviteData as any).email_sent);
+          if (providerError || !emailSent) {
+            console.error('Invite error:', providerError || 'email not sent');
             toast.warning(
-              'Employee saved but welcome email could not be sent. Please contact support.'
+              providerError
+                ? `Employee saved, but the welcome email failed: ${providerError}`
+                : 'Employee saved but the welcome email could not be sent.',
+              { duration: 10000 }
             );
           } else {
             toast.success(
               `Employee added. A welcome email with login details has been sent to ${form.email}.`
             );
           }
-        } catch (inviteCatch) {
+        } catch (inviteCatch: any) {
           console.error('Invite invoke failed:', inviteCatch);
           toast.warning(
-            'Employee saved but welcome email could not be sent. Please contact support.'
+            `Employee saved but welcome email could not be sent: ${
+              inviteCatch?.message || 'unknown error'
+            }`,
+            { duration: 10000 }
           );
         }
         navigate('/employees');
