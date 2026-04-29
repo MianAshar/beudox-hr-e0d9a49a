@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -58,6 +59,8 @@ const AttendanceTab = () => {
     ot_divisor: 26,
     working_days: [1, 2, 3, 4, 5] as number[],
     timezone: 'Asia/Karachi',
+    lunch_break_hours: 1,
+    enable_ot_adjustment: true,
   });
   const [saving, setSaving] = useState(false);
 
@@ -70,6 +73,8 @@ const AttendanceTab = () => {
         ot_divisor: settings.ot_divisor ?? 26,
         working_days: settings.working_days || [1, 2, 3, 4, 5],
         timezone: settings.timezone || 'Asia/Karachi',
+        lunch_break_hours: (settings as any).lunch_break_hours ?? 1,
+        enable_ot_adjustment: (settings as any).enable_ot_adjustment ?? true,
       });
     }
   }, [settings]);
@@ -95,6 +100,8 @@ const AttendanceTab = () => {
         ot_divisor: form.ot_divisor,
         working_days: form.working_days,
         timezone: form.timezone,
+        lunch_break_hours: form.lunch_break_hours,
+        enable_ot_adjustment: form.enable_ot_adjustment,
       };
 
       if (settings) {
