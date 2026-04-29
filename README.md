@@ -1,34 +1,34 @@
 <!--
 generated_by: tessera
-source_sha: b0085d77cef341f15dbaf18765c135e796bef7aa
-generated_at: 2026-04-29T22:48:35.306Z
+source_sha: a3b53f4ff60380120caff324d8091f3e845272bd
+generated_at: 2026-04-29T22:59:58.863Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources management web application built for modern businesses. This frontend application provides a complete HR portal for managing employees, attendance, payroll, leave requests, evaluations, and more.
+A comprehensive Human Resources management system built as a modern React application. This portal enables companies to manage employee data, attendance, leave requests, payroll, evaluations, and more through an intuitive web interface.
 
 ## Features
 
-- **Employee Management**: Complete employee profiles with personal information, documents, salary history, and performance reviews
-- **Attendance Tracking**: Automated attendance import from biometric devices, manual entry, and comprehensive reporting
-- **Leave Management**: Request, approve, and track leave balances across multiple leave types
-- **Payroll Processing**: Automated payroll generation with overtime calculations and salary reviews
-- **Performance Reviews**: Scheduled evaluations with customizable parameters and review cycles
-- **Finance & Expenses**: Expense tracking and financial summaries
-- **Settings Management**: Company-wide settings for attendance rules, departments, roles, and policies
-- **Notifications**: Automated alerts for reviews, approvals, and important HR events
+- **Employee Management**: Comprehensive employee profiles with attendance, leave, payroll, and salary history
+- **Attendance Tracking**: Upload and parse attendance files from biometric systems (ZKTeco-style), with AI-powered data normalization
+- **Leave Management**: Apply for leave, track balances, and manage requests
+- **Payroll Processing**: Generate payroll summaries and manage salary reviews
+- **Performance Evaluations**: Schedule and track employee evaluations
+- **Project Management**: Manage teams and track project activities
+- **Company Settings**: Configure departments, roles, leave types, expense categories, and more
+- **Notifications**: Automated alerts for reviews, leave approvals, and other HR events
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui component library
-- **Backend**: Supabase (PostgreSQL database + Auth + Edge Functions)
+- **Styling**: Tailwind CSS with shadcn/ui components
 - **Routing**: React Router
-- **State Management**: React hooks with Supabase real-time subscriptions
-- **UI Components**: shadcn/ui (Radix UI primitives)
+- **Backend**: Supabase (PostgreSQL database + Edge Functions)
+- **Authentication**: Supabase Auth
+- **State Management**: React hooks and context
 - **Icons**: Lucide React
 - **Date Handling**: date-fns
 - **Testing**: Vitest + Playwright
@@ -38,15 +38,15 @@ A comprehensive Human Resources management web application built for modern busi
 ### Prerequisites
 
 - Node.js 18+
-- npm or bun package manager
+- npm or bun
 - Supabase account and project
 
 ### Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
-   cd beudox-hr-e0d9a49a
+   git clone <repository-url>
+   cd beudox-hr
    ```
 
 2. Install dependencies:
@@ -58,14 +58,14 @@ A comprehensive Human Resources management web application built for modern busi
 
 3. Copy environment variables:
    ```bash
-   cp .env .env.local
+   cp .env.example .env
    ```
 
-4. Update `.env.local` with your Supabase credentials:
+4. Update `.env` with your Supabase credentials:
    ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_URL=your-supabase-url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
+   VITE_SUPABASE_PROJECT_ID=your-project-id
    ```
 
 5. Start the development server:
@@ -75,15 +75,28 @@ A comprehensive Human Resources management web application built for modern busi
    bun run dev
    ```
 
-The application will be available at `http://localhost:5173`.
+6. Open [http://localhost:5173](http://localhost:5173) in your browser
 
-### Build for Production
+### Database Setup
+
+The application uses Supabase for backend services. Database migrations are located in the `supabase/migrations/` directory. To set up the database:
+
+1. Install Supabase CLI
+2. Link your project: `supabase link --project-ref your-project-ref`
+3. Run migrations: `supabase db push`
+
+### Building for Production
 
 ```bash
 npm run build
 ```
 
-The built files will be in the `dist` directory.
+The built files will be in the `dist/` directory.
+
+### Testing
+
+- Unit tests: `npm run test`
+- E2E tests: `npm run test:e2e`
 
 ## Project Structure
 
@@ -93,44 +106,32 @@ src/
 │   ├── ui/             # shadcn/ui base components
 │   ├── attendance/     # Attendance-related components
 │   ├── employee-profile/ # Employee profile sections
-│   ├── layout/         # App layout and navigation
+│   ├── leave/          # Leave management components
+│   ├── payroll/        # Payroll components
+│   ├── settings/       # Admin settings components
 │   └── ...
-├── pages/              # Route components
+├── pages/              # Page components
 ├── lib/                # Utility functions and configurations
 ├── hooks/              # Custom React hooks
-└── integrations/       # External service integrations
+├── integrations/       # External service integrations
+└── types/              # TypeScript type definitions
 ```
 
 ## Key Components
 
 - **AppLayout**: Main application layout with sidebar navigation
-- **AttendanceUploadFlow**: Complex attendance file upload and processing
+- **AttendanceUploadFlow**: Complex flow for uploading and parsing attendance data
 - **MandatoryPasswordChange**: Password reset modal for new users
-- **SearchableEmployeeSelect**: Employee selection with search functionality
-- **BeudoxLogo**: Brand logo component with variant support
-
-## Authentication
-
-The application uses Supabase Auth for user authentication. New users are required to change their temporary password on first login.
-
-## Database Schema
-
-The application uses a PostgreSQL database with the following main entities:
-- Companies
-- Employees
-- Attendance Records
-- Leave Requests
-- Payroll Records
-- Performance Reviews
-- Settings and Configurations
+- **SearchableEmployeeSelect**: Employee selection dropdown with search
+- **BeudoxLogo**: Logo component with multiple variants
 
 ## Contributing
 
 1. Follow the existing code style and TypeScript conventions
-2. Use the provided UI components from shadcn/ui
-3. Ensure proper error handling and loading states
-4. Test components with Vitest and e2e tests with Playwright
+2. Write tests for new features
+3. Update documentation as needed
+4. Use conventional commits for commit messages
 
 ## License
 
-This project is proprietary software for Beudox HR solutions.
+This project is proprietary software owned by Beudox.
