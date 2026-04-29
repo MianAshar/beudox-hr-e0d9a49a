@@ -69,7 +69,37 @@ const Payroll = () => {
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
   const [markingPaid, setMarkingPaid] = useState(false);
 
+  // TODO: Remove before production
+  const [clearStep, setClearStep] = useState<0 | 1 | 2>(0);
+  const [clearConfirmText, setClearConfirmText] = useState('');
+  const [clearing, setClearing] = useState(false);
+
   const monthYear = `${selectedYear}-${selectedMonth}`;
+  const monthLabelFull = `${MONTHS.find(m => m.value === selectedMonth)?.label} ${selectedYear}`;
+
+  // TODO: Remove before production
+  const handleClearPayroll = async () => {
+    if (!companyId) return;
+    setClearing(true);
+    try {
+      const { error } = await supabase
+        .from('payroll_records')
+        .delete()
+        .eq('company_id', companyId)
+        .eq('month_year', monthYear);
+      if (error) throw error;
+      toast.success(`Payroll data cleared for ${monthLabelFull}`);
+      setClearStep(0);
+      setClearConfirmText('');
+      setRecords([]);
+      setGenerated(false);
+      fetchExisting();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to clear payroll');
+    } finally {
+      setClearing(false);
+    }
+  };
 
   const fetchExisting = useCallback(async () => {
     if (!companyId) return;
@@ -461,6 +491,17 @@ const Payroll = () => {
           {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <DollarSign className="h-4 w-4 mr-2" />}
           Generate Payroll
         </Button>
+        {/* TODO: Remove before production */}
+        {isCeoViewer && (
+          <Button
+            type="button"
+            onClick={() => { setClearStep(1); setClearConfirmText(''); }}
+            className="bg-white hover:bg-red-50 text-[#991B1B] hover:text-[#991B1B] rounded-[10px] h-10 px-4"
+            style={{ border: '1px solid rgba(232, 69, 69, 0.3)' }}
+          >
+            Clear Payroll Data
+          </Button>
+        )}
       </div>
 
       {loading && (
@@ -611,6 +652,49 @@ const Payroll = () => {
               {markingPaid && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm Payment
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* TODO: Remove before production — Clear Payroll Data confirmation */}
+      <Dialog open={clearStep > 0} onOpenChange={open => { if (!open) { setClearStep(0); setClearConfirmText(''); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Clear Payroll Data?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete ALL payroll records for {monthLabelFull}. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {clearStep === 2 && (
+            <div className="py-2">
+              <label className="text-sm font-medium">Type DELETE to confirm</label>
+              <Input
+                autoFocus
+                value={clearConfirmText}
+                onChange={e => setClearConfirmText(e.target.value)}
+                placeholder="DELETE"
+                className="mt-1"
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setClearStep(0); setClearConfirmText(''); }}>
+              Cancel
+            </Button>
+            {clearStep === 1 ? (
+              <Button variant="destructive" onClick={() => setClearStep(2)}>
+                Yes, Delete
+              </Button>
+            ) : (
+              <Button
+                variant="destructive"
+                onClick={handleClearPayroll}
+                disabled={clearConfirmText !== 'DELETE' || clearing}
+              >
+                {clearing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Clear Payroll
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
