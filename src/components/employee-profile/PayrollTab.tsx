@@ -151,11 +151,11 @@ const PayrollTab = ({ employeeId }: { employeeId: string }) => {
     queryFn: async () => {
       const { data } = await supabase
         .from('loans')
-        .select('monthly_deduction, remaining_amount, status')
+        .select('monthly_deduction, remaining_balance, status')
         .eq('employee_id', employeeId)
         .eq('status', 'active');
       const total = (data ?? []).reduce(
-        (s: number, l: any) => s + Math.min(Number(l.monthly_deduction || 0), Number(l.remaining_amount || 0)),
+        (s: number, l: any) => s + Math.min(Number(l.monthly_deduction || 0), Number(l.remaining_balance || 0)),
         0
       );
       return total;
