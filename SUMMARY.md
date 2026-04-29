@@ -1,7 +1,7 @@
 <!--
 generated_by: tessera
-source_sha: 62881d9cc8787b8872224454873d20f09c2c5334
-generated_at: 2026-04-28T22:24:56.171Z
+source_sha: 1b74217db34b59fbc80f9bd1c1f0ed89be51b4a5
+generated_at: 2026-04-29T22:27:03.116Z
 action: create
 -->
 
@@ -9,101 +9,164 @@ action: create
 
 ## Repository Overview
 
-This is a baseline analysis of the Beudox HR frontend application, a comprehensive React-based HR management system. The codebase consists of 227 files totaling 2.1MB, primarily TypeScript (168 files) with supporting SQL migrations and configuration files.
+This is a comprehensive Human Resources Management System implemented as a modern React TypeScript application. The codebase consists of 228 files (2094KB) with primary focus on frontend development, though it includes Supabase backend configurations and database migrations.
 
-## Key Discoveries
+## Key Architectural Insights
 
-### Application Purpose
-The application serves as a complete HR portal for employee self-service and administrative management. It provides features for attendance tracking, leave management, payroll access, performance evaluations, document storage, and project management.
+### Technology Stack & Architecture
+- **Frontend**: React 18 + TypeScript + Vite for fast development
+- **Styling**: Tailwind CSS with shadcn/ui component library
+- **State Management**: TanStack Query for server state, React Context for auth
+- **Backend**: Supabase (PostgreSQL + Auth + Edge Functions)
+- **Routing**: React Router with protected routes and role-based access
+- **Forms**: React Hook Form with Zod validation
 
-### Technology Stack
-- **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS + shadcn/ui components
-- **Backend**: Supabase (PostgreSQL + Edge Functions)
-- **Routing**: React Router
-- **State**: React hooks with Supabase client
+### Application Structure
+- **Component-Based**: Well-organized component hierarchy with feature folders
+- **Route-Based Pages**: Clear separation between routing and presentation
+- **Utility-First**: Extensive use of custom hooks and utility functions
+- **Type-Safe**: Full TypeScript coverage with generated database types
 
-### Architecture Insights
+## Major Features Discovered
 
-#### Component Organization
-The codebase follows a feature-based component structure:
-- Core UI components in `src/components/ui/` (shadcn/ui library)
-- Feature-specific components in domain folders (attendance/, employee-profile/, etc.)
-- Layout components for navigation and structure
-- Utility components like BeudoxLogo and SearchableEmployeeSelect
+### 1. Employee Management
+- Complete employee lifecycle management
+- Profile management with tabs (attendance, leave, payroll, etc.)
+- Role-based permissions and access control
 
-#### Key Features Identified
-1. **Authentication & Onboarding**: Mandatory password change for new users
-2. **Attendance Management**: Excel upload with AI parsing via Supabase functions
-3. **Employee Self-Service**: Profile management, leave requests, payroll viewing
-4. **Administrative Functions**: Company settings, user management, role configuration
-5. **Project Management**: Team assignments and activity tracking
+### 2. Attendance System
+- **AI-Powered Parsing**: Excel file upload with GPT-based data extraction
+- **Automated Calculations**: Working hours, overtime, late arrivals
+- **Batch Import**: Conflict resolution and error handling
+- **Real-time Tracking**: Live attendance monitoring
 
-#### Data Flow Patterns
-- Supabase client handles all database operations
-- Edge Functions process complex operations (AI parsing, PDF generation)
-- Real-time subscriptions for live updates
-- Role-based access control throughout the application
+### 3. Leave Management
+- Multiple leave types with balance tracking
+- Approval workflows and notifications
+- Calendar integration
 
-### Notable Implementation Details
+### 4. Payroll Processing
+- Automated payslip generation
+- Salary calculations based on attendance
+- PDF export functionality
 
-#### Attendance Upload Flow
-The `AttendanceUploadFlow` component implements a sophisticated upload process:
-- Excel file parsing using SheetJS library
-- AI-powered data normalization via Supabase Edge Function
-- Employee code validation and unmatched record handling
-- Batch import with conflict resolution
-- Progress tracking and error handling
+### 5. Performance Evaluations
+- Regular performance reviews
+- Daily evaluation system
+- Customizable evaluation parameters
 
-#### UI/UX Patterns
-- Consistent design system using shadcn/ui components
-- Modal-based interactions for complex operations
-- Searchable dropdowns for employee selection
-- Toast notifications for user feedback
-- Responsive layout with sidebar navigation
+### 6. Project & Client Management
+- Project tracking with team assignments
+- Client relationship management
+- Invoice generation and management
 
-#### Security Considerations
-- JWT-based authentication via Supabase
-- Role-based UI rendering
-- Input validation and sanitization
-- Secure file upload handling
+### 7. Administrative Features
+- Company settings configuration
+- HR policy management with rich text editor
+- Job description templates
+- Finance overview and expense tracking
 
-## Code Quality Assessment
+## Important Files & Their Roles
 
-### Strengths
-- Full TypeScript implementation with strict mode
-- Consistent component patterns and naming conventions
-- Comprehensive error handling and user feedback
-- Modular architecture with clear separation of concerns
-- Extensive use of modern React patterns (hooks, functional components)
+### Core Application Files
+- `src/App.tsx`: Main application with routing and authentication logic
+- `src/main.tsx`: Application entry point
+- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and header
 
-### Areas for Improvement
-- Some components are quite large (AttendanceUploadFlow.tsx is complex)
-- Could benefit from more custom hooks for business logic extraction
-- Test coverage appears minimal (only basic test setup)
+### Key Components
+- `src/components/MandatoryPasswordChange.tsx`: First-login password enforcement
+- `src/components/attendance/AttendanceUploadFlow.tsx`: Complex Excel upload with AI parsing
+- `src/components/SearchableEmployeeSelect.tsx`: Reusable employee selection component
+- `src/components/NavLink.tsx`: Navigation link wrapper
+- `src/components/BeudoxLogo.tsx`: Logo component with variants
 
-## Integration Points
+### Business Logic Files
+- `src/lib/role-access.ts`: Permission checking and access control
+- `src/lib/attendance-format.ts`: Time formatting utilities
+- `src/lib/leave-utils.ts`: Leave balance calculations
+- `src/lib/client-activity.ts`: Activity logging and categorization
+- `src/hooks/useAuth.ts`: Authentication state management
 
-### Supabase Dependencies
-- Authentication and user management
-- Database operations across 34 migration files
-- Edge Functions for server-side processing
-- Real-time subscriptions for live updates
-- File storage for documents and assets
+### Configuration Files
+- `package.json`: Dependencies and scripts
+- `vite.config.ts`: Build configuration
+- `tailwind.config.ts`: Styling configuration
+- `tsconfig.json`: TypeScript configuration
+- `.env`: Environment variables for Supabase
 
-### External Libraries
-- SheetJS for Excel processing
-- date-fns for date manipulation
-- Lucide React for icons
-- Radix UI for accessible components
+## Database & Backend Integration
 
-## Documentation Gaps Addressed
+### Supabase Integration
+- Authentication with email/password
+- Real-time database subscriptions
+- Edge functions for AI processing and PDF generation
+- Row-level security policies
 
-This analysis provides:
-- Comprehensive README with setup instructions and feature overview
-- Technical context (llms.txt) for AI assistants and developers
-- Clear architecture documentation and key file explanations
-- Business logic flow descriptions
-- Integration and security notes
+### Database Schema (from migrations)
+- Multi-tenant architecture with companies
+- Comprehensive HR entities (employees, attendance, payroll, etc.)
+- Audit logging and activity tracking
+- File storage for documents and images
 
-The documentation is based entirely on code analysis, ensuring accuracy and relevance to the actual implementation.
+## Notable Implementation Details
+
+### AI Integration
+- Uses GPT for parsing unstructured Excel attendance data
+- Automatic data normalization and validation
+- Error handling for malformed input files
+
+### Security Features
+- Mandatory password changes on first login
+- Role-based route protection
+- Secure file upload validation
+- Audit trails for sensitive operations
+
+### User Experience
+- Progressive loading states
+- Optimistic updates for better responsiveness
+- Comprehensive error handling with user-friendly messages
+- Responsive design for mobile and desktop
+
+### Performance Considerations
+- Code splitting by routes
+- Lazy loading of components
+- Efficient data fetching with caching
+- Virtual scrolling for large datasets (potential future enhancement)
+
+## Development Workflow
+
+### Build & Development
+- Vite for fast hot reloading
+- TypeScript for type safety
+- ESLint for code quality
+- Vitest for unit testing
+- Playwright for E2E testing
+
+### Deployment Ready
+- Production builds optimized for performance
+- Environment configuration for different stages
+- Static asset handling
+
+## Potential Areas for Enhancement
+
+### Code Quality
+- Some components could benefit from further decomposition
+- Test coverage could be expanded
+- Error boundaries for better error handling
+
+### Features
+- Mobile responsiveness could be improved
+- Advanced reporting and analytics
+- Integration with external HR systems
+- Multi-language support
+
+### Performance
+- Implement service worker for offline capability
+- Add more aggressive caching strategies
+- Consider GraphQL for more efficient data fetching
+
+## Conclusion
+
+This is a well-architected, feature-rich HR management system that demonstrates modern React development practices. The codebase shows careful attention to user experience, security, and maintainability. The AI-powered attendance parsing and comprehensive feature set make it a robust solution for small to medium-sized businesses managing their HR operations.
+
+The analysis reveals a mature application with solid foundations that could scale well with additional features and users.
