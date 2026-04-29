@@ -351,7 +351,7 @@ const AttendanceUploadFlow = ({
         const isLate = inMin != null && inMin > lateCutoff;
 
         const regularOt = !weekend && !holiday && wh != null
-          ? Math.max(0, Math.round((wh - shiftHrs) * 100) / 100) : 0;
+          ? Math.round((wh - shiftHrs) * 100) / 100 : 0;
         const holidayOt = (weekend || holiday) && wh != null ? wh : 0;
 
         const basePayload: any = {
