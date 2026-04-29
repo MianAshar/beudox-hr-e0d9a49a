@@ -126,8 +126,8 @@ function workingHours(checkIn: string | null, checkOut: string | null): number |
 }
 
 function isWeekend(dateStr: string): boolean {
-  const d = new Date(`${dateStr}T00:00:00${KARACHI_OFFSET}`);
-  const day = d.getUTCDay();
+  const d = new Date(`${dateStr}T00:00:00`);
+  const day = d.getDay(); // 0=Sunday, 6=Saturday
   return day === 0 || day === 6;
 }
 
