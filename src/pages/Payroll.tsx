@@ -491,6 +491,17 @@ const Payroll = () => {
           {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <DollarSign className="h-4 w-4 mr-2" />}
           Generate Payroll
         </Button>
+        {/* TODO: Remove before production */}
+        {isCeoViewer && (
+          <Button
+            type="button"
+            onClick={() => { setClearStep(1); setClearConfirmText(''); }}
+            className="bg-white hover:bg-red-50 text-[#991B1B] hover:text-[#991B1B] rounded-[10px] h-10 px-4"
+            style={{ border: '1px solid rgba(232, 69, 69, 0.3)' }}
+          >
+            Clear Payroll Data
+          </Button>
+        )}
       </div>
 
       {loading && (
