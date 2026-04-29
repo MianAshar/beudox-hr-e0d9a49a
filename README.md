@@ -1,114 +1,110 @@
 <!--
 generated_by: tessera
-source_sha: 80d9cee29c9c592df7b6e322ed905397603616d6
-generated_at: 2026-04-29T23:06:14.453Z
+source_sha: 7fe05c9655c0eed167a47ea11644c29b5fb2eb7d
+generated_at: 2026-04-29T23:29:13.746Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive HR management portal built for modern companies to streamline employee lifecycle management, attendance tracking, payroll processing, and organizational workflows.
+A comprehensive Human Resources management system built as a modern web application for managing employee data, attendance, leave requests, payroll, and organizational settings.
 
 ## Features
 
-### Employee Management
-- **Employee Profiles**: Comprehensive employee information including personal details, job history, salary information, and document storage
-- **Onboarding**: New employee setup with mandatory password changes and role assignments
-- **Directory**: Searchable employee directory with avatars and designations
-
-### Attendance & Time Tracking
-- **Attendance Upload**: AI-powered parsing of Excel attendance files from biometric systems (ZKTeco-compatible)
-- **Time Calculations**: Automatic calculation of working hours, overtime, late arrivals, and shift compliance
-- **Import Management**: Batch import with conflict resolution and unmatched employee handling
-
-### Leave Management
-- **Leave Requests**: Employee self-service for applying leave with balance tracking
-- **Approval Workflows**: Manager approval process for leave requests
-- **Leave Balances**: Real-time tracking of various leave types (vacation, sick, etc.)
-
-### Payroll & Compensation
-- **Payroll Processing**: Automated payroll calculations with overtime and deductions
-- **Salary Reviews**: Performance-based salary increment proposals and approvals
-- **Payroll History**: Complete salary history and increment tracking
-
-### Performance & Evaluations
-- **Evaluation System**: Structured performance reviews with customizable parameters
-- **Review Scheduling**: Automated review cycle management with alerts
-- **Timeline Tracking**: Historical evaluation records and progress tracking
-
-### Administrative Tools
-- **Company Settings**: Configurable company policies, departments, roles, and expense categories
-- **User Management**: Role-based access control with granular permissions
-- **Audit Logs**: Login tracking and activity monitoring
+- **Employee Management**: Complete employee profiles with personal information, documents, and organizational details
+- **Attendance Tracking**: Automated attendance upload with AI-powered parsing, time tracking, overtime calculations, and reporting
+- **Leave Management**: Leave request system with balances, approvals, and policy enforcement
+- **Payroll Processing**: Salary calculations, increment proposals, payroll summaries, and financial reporting
+- **Performance Reviews**: Employee evaluation timelines, salary reviews, and performance tracking
+- **Organizational Settings**: Company configuration, departments, roles, expense categories, and HR policies
+- **Notifications**: Real-time notifications for important HR events and approvals
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui component library
-- **Backend**: Supabase (PostgreSQL database + Auth + Edge Functions)
-- **State Management**: React hooks with Supabase real-time subscriptions
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
-- **Deployment**: Modern web standards, deployable to any static hosting
+- **UI Framework**: shadcn/ui with Tailwind CSS
+- **Routing**: React Router
+- **Backend**: Supabase (PostgreSQL database, authentication, edge functions)
+- **State Management**: React hooks and context
+- **Styling**: Tailwind CSS with custom design system
+- **Testing**: Vitest for unit testing
+- **Deployment**: Modern web standards
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or bun package manager
 - Supabase account and project
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
    # or
    bun install
    ```
 
-3. **Environment Setup**
+3. Set up environment variables:
    
-   Copy the `.env` file and update the Supabase credentials:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables in `.env.local`:
+   Copy `.env` and update the Supabase configuration:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
+   VITE_SUPABASE_PROJECT_ID="your-project-id"
+   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
+   VITE_SUPABASE_URL="https://your-project.supabase.co"
    ```
 
-4. **Database Setup**
-   
-   The application uses Supabase migrations. Run them in your Supabase project:
-   ```bash
-   supabase db reset
-   ```
-   
-   Or apply migrations manually through the Supabase dashboard.
-
-5. **Development Server**
+4. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
 
-6. **Build for Production**
-   ```bash
-   npm run build
-   # or
-   bun run build
-   ```
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+### Database Setup
+
+The application uses Supabase as its backend. The database schema is managed through SQL migrations located in the `supabase/migrations/` directory. These migrations set up tables for:
+
+- Employees and user authentication
+- Attendance records and imports
+- Leave requests and balances
+- Payroll data and salary history
+- Company settings and organizational structure
+- Notifications and audit logs
+
+To set up the database:
+
+1. Create a new Supabase project
+2. Run the migrations in order (they are timestamped)
+3. Configure authentication providers as needed
+4. Set up edge functions for AI-powered features (like attendance parsing)
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist/` directory, ready for deployment to any static hosting service.
+
+### Testing
+
+Run the test suite:
+
+```bash
+npm run test
+```
 
 ## Project Structure
 
@@ -116,50 +112,36 @@ A comprehensive HR management portal built for modern companies to streamline em
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui base components
-│   ├── layout/         # App layout components (sidebar, header, etc.)
-│   ├── employee-profile/  # Employee detail components
-│   ├── attendance/     # Attendance management components
-│   ├── payroll/        # Payroll-related components
+│   ├── attendance/     # Attendance-related components
+│   ├── employee-profile/ # Employee profile tabs
 │   ├── leave/          # Leave management components
-│   └── ...
-├── pages/              # Route components
-├── lib/                # Utility functions and configurations
+│   ├── layout/         # App layout and navigation
+│   └── settings/       # Admin settings components
+├── pages/              # Page components
 ├── hooks/              # Custom React hooks
-└── integrations/       # External service integrations
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations
+└── test/               # Test files
+supabase/
+├── migrations/         # Database schema migrations
+├── functions/          # Edge functions
+└── config.toml         # Supabase configuration
 ```
 
 ## Key Components
 
 - **AppLayout**: Main application layout with sidebar navigation
-- **AttendanceUploadFlow**: Complex attendance import workflow with AI parsing
-- **MandatoryPasswordChange**: Secure password reset component
-- **SearchableEmployeeSelect**: Employee selection with search and filtering
-- **BeudoxLogo**: Brand logo component with multiple variants
-
-## API Integration
-
-The application integrates with Supabase for:
-- **Authentication**: User login/logout with role-based access
-- **Database**: PostgreSQL queries for all HR data
-- **Real-time**: Live updates for notifications and status changes
-- **Edge Functions**: Server-side processing for attendance parsing and payroll calculations
-
-## Testing
-
-```bash
-# Unit tests
-npm run test
-
-# E2E tests
-npm run test:e2e
-```
+- **AttendanceUploadFlow**: Complex component for uploading and parsing attendance data
+- **EmployeeProfile**: Multi-tab interface for employee information
+- **MandatoryPasswordChange**: Security component for password management
+- **SearchableEmployeeSelect**: Reusable employee selection component
 
 ## Contributing
 
-1. Follow the existing code style and component patterns
-2. Add tests for new features
-3. Update documentation for API changes
-4. Use TypeScript strictly with proper type definitions
+1. Follow the existing code style and TypeScript conventions
+2. Write tests for new features
+3. Update documentation as needed
+4. Ensure all components are properly typed
 
 ## License
 
