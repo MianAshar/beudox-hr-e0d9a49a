@@ -655,6 +655,49 @@ const Payroll = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* TODO: Remove before production — Clear Payroll Data confirmation */}
+      <Dialog open={clearStep > 0} onOpenChange={open => { if (!open) { setClearStep(0); setClearConfirmText(''); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Clear Payroll Data?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete ALL payroll records for {monthLabelFull}. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {clearStep === 2 && (
+            <div className="py-2">
+              <label className="text-sm font-medium">Type DELETE to confirm</label>
+              <Input
+                autoFocus
+                value={clearConfirmText}
+                onChange={e => setClearConfirmText(e.target.value)}
+                placeholder="DELETE"
+                className="mt-1"
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setClearStep(0); setClearConfirmText(''); }}>
+              Cancel
+            </Button>
+            {clearStep === 1 ? (
+              <Button variant="destructive" onClick={() => setClearStep(2)}>
+                Yes, Delete
+              </Button>
+            ) : (
+              <Button
+                variant="destructive"
+                onClick={handleClearPayroll}
+                disabled={clearConfirmText !== 'DELETE' || clearing}
+              >
+                {clearing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Clear Payroll
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
