@@ -69,7 +69,37 @@ const Payroll = () => {
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
   const [markingPaid, setMarkingPaid] = useState(false);
 
+  // TODO: Remove before production
+  const [clearStep, setClearStep] = useState<0 | 1 | 2>(0);
+  const [clearConfirmText, setClearConfirmText] = useState('');
+  const [clearing, setClearing] = useState(false);
+
   const monthYear = `${selectedYear}-${selectedMonth}`;
+  const monthLabelFull = `${MONTHS.find(m => m.value === selectedMonth)?.label} ${selectedYear}`;
+
+  // TODO: Remove before production
+  const handleClearPayroll = async () => {
+    if (!companyId) return;
+    setClearing(true);
+    try {
+      const { error } = await supabase
+        .from('payroll_records')
+        .delete()
+        .eq('company_id', companyId)
+        .eq('month_year', monthYear);
+      if (error) throw error;
+      toast.success(`Payroll data cleared for ${monthLabelFull}`);
+      setClearStep(0);
+      setClearConfirmText('');
+      setRecords([]);
+      setGenerated(false);
+      fetchExisting();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to clear payroll');
+    } finally {
+      setClearing(false);
+    }
+  };
 
   const fetchExisting = useCallback(async () => {
     if (!companyId) return;
