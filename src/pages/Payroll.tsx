@@ -82,18 +82,23 @@ const Payroll = () => {
     if (!companyId) return;
     setClearing(true);
     try {
+      // Delete ALL payroll records for this company + month, regardless of status
       const { error } = await supabase
         .from('payroll_records')
         .delete()
         .eq('company_id', companyId)
         .eq('month_year', monthYear);
       if (error) throw error;
-      toast.success(`Payroll data cleared for ${monthLabelFull}`);
-      setClearStep(0);
-      setClearConfirmText('');
+
+      // Reset UI to empty/initial state for the selected month
       setRecords([]);
       setGenerated(false);
-      fetchExisting();
+      setClearStep(0);
+      setClearConfirmText('');
+      toast.success(`Payroll data cleared for ${monthLabelFull}`);
+
+      // Refetch to confirm empty state from server
+      await fetchExisting();
     } catch (err: any) {
       toast.error(err.message || 'Failed to clear payroll');
     } finally {
