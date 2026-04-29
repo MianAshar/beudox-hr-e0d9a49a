@@ -31,7 +31,7 @@ const Settings = () => {
     ...(isCeo
       ? [
           { value: 'company', label: 'Company' },
-          { value: 'attendance', label: 'Attendance' },
+          { value: 'attendance', label: 'Attendance & Payroll' },
           { value: 'departments', label: 'Departments' },
           { value: 'eval-params', label: 'Evaluation Parameters' },
           { value: 'roles', label: 'Roles' },

@@ -32,26 +32,24 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceKey);
 
     // 1. Fetch company_settings
-    const { data: settings, error: settingsErr } = await supabase
+    const { data: settings } = await supabase
       .from('company_settings')
-      .select('ot_divisor, shift_start_time, shift_end_time')
+      .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, enable_ot_adjustment')
       .eq('company_id', company_id)
-      .single();
+      .maybeSingle();
 
-    if (settingsErr || !settings) {
-      return new Response(JSON.stringify({ error: 'Company settings not found' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Calculate shift hours
+    // Calculate shift hours with fallback defaults
     const parseTime = (t: string) => {
       const [h, m] = t.split(':').map(Number);
       return h + m / 60;
     };
-    const shiftHours = parseTime(settings.shift_end_time) - parseTime(settings.shift_start_time);
-    const otDivisor = settings.ot_divisor || 26;
+    const shiftStart = settings?.shift_start_time ?? '09:00:00';
+    const shiftEnd = settings?.shift_end_time ?? '18:00:00';
+    const shiftHours = parseTime(shiftEnd) - parseTime(shiftStart);
+    const lunchBreakHours = Number((settings as any)?.lunch_break_hours ?? 1);
+    const otDivisor = settings?.ot_divisor || 30;
+    const enableOtAdjustment = (settings as any)?.enable_ot_adjustment ?? true;
+    const workingHoursPerDay = Math.max(0.0001, shiftHours - lunchBreakHours);
 
     // 2. Fetch active employees (full_time + director)
     const { data: employees, error: empErr } = await supabase
@@ -89,13 +87,15 @@ Deno.serve(async (req) => {
       .gte('date', startDate)
       .lte('date', endDate);
 
-    // Group attendance by employee
-    const attendanceMap: Record<string, { regularOt: number; holidayOt: number }> = {};
+    // Group attendance by employee — split positive (overtime) from negative (short time)
+    const attendanceMap: Record<string, { shortTime: number; overtime: number; holidayOt: number }> = {};
     for (const rec of attendance || []) {
       if (!attendanceMap[rec.employee_id]) {
-        attendanceMap[rec.employee_id] = { regularOt: 0, holidayOt: 0 };
+        attendanceMap[rec.employee_id] = { shortTime: 0, overtime: 0, holidayOt: 0 };
       }
-      attendanceMap[rec.employee_id].regularOt += Number(rec.regular_ot_hours || 0);
+      const reg = Number(rec.regular_ot_hours || 0);
+      if (reg < 0) attendanceMap[rec.employee_id].shortTime += reg;
+      else if (reg > 0) attendanceMap[rec.employee_id].overtime += reg;
       attendanceMap[rec.employee_id].holidayOt += Number(rec.holiday_ot_hours || 0);
     }
 
@@ -165,14 +165,17 @@ Deno.serve(async (req) => {
       let regularOtAmount = 0;
       let holidayOtAmount = 0;
 
-      if (!isDirector) {
+      if (!isDirector && enableOtAdjustment) {
         const att = attendanceMap[emp.id];
-        regularOtHours = att?.regularOt || 0;
+        const shortTime = att?.shortTime || 0; // negative
+        const overtime = att?.overtime || 0;   // positive
+        regularOtHours = Math.round((shortTime + overtime) * 100) / 100; // net, can be negative
         holidayOtHours = att?.holidayOt || 0;
 
-        const hourlyRate = shiftHours > 0 ? basicSalary / otDivisor / shiftHours : 0;
-        regularOtAmount = regularOtHours * hourlyRate * 1.0;
-        holidayOtAmount = holidayOtHours * hourlyRate * 1.5;
+        const perDaySalary = basicSalary / otDivisor;
+        const perHourSalary = perDaySalary / workingHoursPerDay;
+        regularOtAmount = regularOtHours * perHourSalary * 1.0;
+        holidayOtAmount = holidayOtHours * perHourSalary * 1.5;
       }
 
       const loanDeduction = loanMap[emp.id] || 0;

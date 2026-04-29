@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -58,6 +59,8 @@ const AttendanceTab = () => {
     ot_divisor: 26,
     working_days: [1, 2, 3, 4, 5] as number[],
     timezone: 'Asia/Karachi',
+    lunch_break_hours: 1,
+    enable_ot_adjustment: true,
   });
   const [saving, setSaving] = useState(false);
 
@@ -70,6 +73,8 @@ const AttendanceTab = () => {
         ot_divisor: settings.ot_divisor ?? 26,
         working_days: settings.working_days || [1, 2, 3, 4, 5],
         timezone: settings.timezone || 'Asia/Karachi',
+        lunch_break_hours: (settings as any).lunch_break_hours ?? 1,
+        enable_ot_adjustment: (settings as any).enable_ot_adjustment ?? true,
       });
     }
   }, [settings]);
@@ -95,6 +100,8 @@ const AttendanceTab = () => {
         ot_divisor: form.ot_divisor,
         working_days: form.working_days,
         timezone: form.timezone,
+        lunch_break_hours: form.lunch_break_hours,
+        enable_ot_adjustment: form.enable_ot_adjustment,
       };
 
       if (settings) {
@@ -210,6 +217,53 @@ const AttendanceTab = () => {
               </SelectContent>
             </Select>
           </div>
+        </div>
+      </div>
+
+      {/* Payroll Settings */}
+      <div className="rounded-[14px] border p-6" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))' }}>
+        <h3 className="text-[16px] font-semibold text-foreground mb-1" style={{ fontFamily: 'var(--ff-display)' }}>
+          Payroll Settings
+        </h3>
+        <p className="text-[13px] text-muted-foreground mb-5" style={{ fontFamily: 'var(--ff-body)' }}>
+          Control how attendance affects monthly payroll calculations.
+        </p>
+
+        <div className="space-y-5">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex-1">
+              <Label className="text-[13px] font-medium">Overtime & Short Time Adjustment</Label>
+              <p className="text-[12px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+                When enabled, payroll includes overtime additions and short time deductions based on attendance. When disabled, employees always receive their full basic salary.
+              </p>
+            </div>
+            <Switch
+              checked={form.enable_ot_adjustment}
+              onCheckedChange={v => setForm(prev => ({ ...prev, enable_ot_adjustment: v }))}
+            />
+          </div>
+
+          {form.enable_ot_adjustment && (
+            <div className="max-w-xs">
+              <Label>Lunch Break Duration</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.25"
+                  value={form.lunch_break_hours}
+                  onChange={e => setForm(prev => ({ ...prev, lunch_break_hours: parseFloat(e.target.value) || 0 }))}
+                  className="pr-16"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+                  hours
+                </span>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+                Subtracted from shift duration to compute working hours per day for OT rate calculation.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
