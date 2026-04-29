@@ -220,6 +220,53 @@ const AttendanceTab = () => {
         </div>
       </div>
 
+      {/* Payroll Settings */}
+      <div className="rounded-[14px] border p-6" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))' }}>
+        <h3 className="text-[16px] font-semibold text-foreground mb-1" style={{ fontFamily: 'var(--ff-display)' }}>
+          Payroll Settings
+        </h3>
+        <p className="text-[13px] text-muted-foreground mb-5" style={{ fontFamily: 'var(--ff-body)' }}>
+          Control how attendance affects monthly payroll calculations.
+        </p>
+
+        <div className="space-y-5">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex-1">
+              <Label className="text-[13px] font-medium">Overtime & Short Time Adjustment</Label>
+              <p className="text-[12px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+                When enabled, payroll includes overtime additions and short time deductions based on attendance. When disabled, employees always receive their full basic salary.
+              </p>
+            </div>
+            <Switch
+              checked={form.enable_ot_adjustment}
+              onCheckedChange={v => setForm(prev => ({ ...prev, enable_ot_adjustment: v }))}
+            />
+          </div>
+
+          {form.enable_ot_adjustment && (
+            <div className="max-w-xs">
+              <Label>Lunch Break Duration</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.25"
+                  value={form.lunch_break_hours}
+                  onChange={e => setForm(prev => ({ ...prev, lunch_break_hours: parseFloat(e.target.value) || 0 }))}
+                  className="pr-16"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+                  hours
+                </span>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+                Subtracted from shift duration to compute working hours per day for OT rate calculation.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
           {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
