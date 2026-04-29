@@ -409,9 +409,11 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string | null
+          enable_ot_adjustment: boolean
           expense_approval_required: boolean
           id: string
           late_threshold: number
+          lunch_break_hours: number
           ot_divisor: number
           shift_end_time: string
           shift_start_time: string
@@ -422,9 +424,11 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string | null
+          enable_ot_adjustment?: boolean
           expense_approval_required?: boolean
           id?: string
           late_threshold?: number
+          lunch_break_hours?: number
           ot_divisor?: number
           shift_end_time?: string
           shift_start_time?: string
@@ -435,9 +439,11 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string | null
+          enable_ot_adjustment?: boolean
           expense_approval_required?: boolean
           id?: string
           late_threshold?: number
+          lunch_break_hours?: number
           ot_divisor?: number
           shift_end_time?: string
           shift_start_time?: string
