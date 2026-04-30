@@ -4,9 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import {
+  Tabs, TabsList, TabsTrigger, TabsContent,
+} from '@/components/ui/tabs';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -14,11 +18,12 @@ import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { CalendarCheck, Plus, Loader2, Trash2 } from 'lucide-react';
+import { CalendarCheck, Plus, Loader2, Trash2, Pencil, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 import AttendanceUploadFlow from '@/components/attendance/AttendanceUploadFlow';
+import MissingEntryModal, { MissingEntryTarget } from '@/components/attendance/MissingEntryModal';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -40,6 +45,13 @@ interface AttendanceRow {
   employee_name?: string | null;
 }
 
+interface CompanySettings {
+  shift_start_time: string;
+  shift_end_time: string;
+  late_threshold: number;
+  lunch_break_hours: number;
+}
+
 function parseHHmm(s: string | null | undefined): number | null {
   if (!s) return null;
   const m = String(s).match(/^(\d{1,2}):(\d{2})/);
@@ -54,99 +66,26 @@ function formatDeviation(deviation: number): string {
   return `${h}h ${mins}m`;
 }
 
-const Attendance = () => {
-  const { employee } = useAuth();
-  const now = new Date();
-  const [month, setMonth] = useState<string>(MONTHS[now.getMonth()]);
-  const [year, setYear] = useState<string>(String(now.getFullYear()));
-  const [records, setRecords] = useState<AttendanceRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [uploadOpen, setUploadOpen] = useState(false);
-  // TODO: Remove before production
-  const [clearOpen, setClearOpen] = useState(false);
-  const [clearing, setClearing] = useState(false);
-  const [shiftDuration, setShiftDuration] = useState<number>(9.0);
+function formatGroupDate(dateStr: string) {
+  const d = new Date(`${dateStr}T00:00:00${KARACHI_OFFSET}`);
+  return format(d, 'EEEE, dd MMM yyyy');
+}
 
-  useEffect(() => {
-    if (!employee?.company_id) return;
-    (async () => {
-      const { data } = await supabase
-        .from('company_settings')
-        .select('shift_start_time, shift_end_time')
-        .eq('company_id', employee.company_id)
-        .maybeSingle();
-      const start = parseHHmm(data?.shift_start_time);
-      const end = parseHHmm(data?.shift_end_time);
-      if (start != null && end != null && end > start) {
-        setShiftDuration(end - start);
-      }
-    })();
-  }, [employee?.company_id]);
+interface RecordsTableProps {
+  records: AttendanceRow[];
+  loading: boolean;
+  shiftDuration: number;
+  monthYearLabel: string;
+  emptyHint?: string;
+  showCodeAndName?: boolean;
+  canEdit: (row: AttendanceRow) => boolean;
+  onRequestEdit: (row: AttendanceRow, field: 'check_in' | 'check_out') => void;
+}
 
-  const isAuthorised = useMemo(() => {
-    const roles = employee?.roles ?? [];
-    return roles.includes('hr_manager') || roles.includes('ceo');
-  }, [employee]);
-
-  // TODO: Remove before production
-  const isCeo = useMemo(() => (employee?.roles ?? []).includes('ceo'), [employee]);
-
-  const yearOptions = useMemo(() => {
-    const y = now.getFullYear();
-    return [String(y), String(y - 1), String(y - 2)];
-  }, [now]);
-
-  const monthYearLabel = `${month} ${year}`;
-
-  const fetchRecords = async () => {
-    if (!employee?.company_id) return;
-    setLoading(true);
-    try {
-      const monthIndex = MONTHS.indexOf(month);
-      const startDate = `${year}-${String(monthIndex + 1).padStart(2, '0')}-01`;
-      const endDateObj = new Date(parseInt(year, 10), monthIndex + 1, 0);
-      const endDate = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(endDateObj.getDate()).padStart(2, '0')}`;
-
-      const { data, error } = await supabase
-        .from('attendance_records')
-        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late')
-        .eq('company_id', employee.company_id)
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .order('date', { ascending: true })
-        .limit(5000);
-      if (error) throw error;
-
-      const rows = (data ?? []) as AttendanceRow[];
-
-      // Resolve employee names for matched rows
-      const empIds = Array.from(new Set(rows.map(r => r.employee_id).filter(Boolean))) as string[];
-      const idToName = new Map<string, string>();
-      if (empIds.length > 0) {
-        const { data: emps } = await supabase
-          .from('employees')
-          .select('id, full_name')
-          .in('id', empIds);
-        (emps ?? []).forEach(e => idToName.set(e.id, e.full_name));
-      }
-
-      setRecords(rows.map(r => ({
-        ...r,
-        employee_name: r.employee_id ? idToName.get(r.employee_id) ?? null : null,
-      })));
-    } catch (err) {
-      console.error(err);
-      setRecords([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRecords();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [month, year, employee?.company_id]);
-
+function RecordsTable({
+  records, loading, shiftDuration, monthYearLabel, emptyHint,
+  showCodeAndName = true, canEdit, onRequestEdit,
+}: RecordsTableProps) {
   const groupedRecords = useMemo(() => {
     const map = new Map<string, AttendanceRow[]>();
     for (const r of records) {
@@ -164,41 +103,343 @@ const Attendance = () => {
     });
   }, [records]);
 
-  const formatGroupDate = (dateStr: string) => {
-    const d = new Date(`${dateStr}T00:00:00${KARACHI_OFFSET}`);
-    return format(d, 'EEEE, dd MMM yyyy');
+  const colSpan = showCodeAndName ? 7 : 5;
+
+  if (loading) {
+    return (
+      <div className="p-12 flex flex-col items-center justify-center text-center">
+        <Loader2 className="h-6 w-6 text-primary animate-spin mb-3" />
+        <p className="text-sm text-muted-foreground">Loading attendance records…</p>
+      </div>
+    );
+  }
+
+  if (records.length === 0) {
+    return (
+      <div className="p-12 flex flex-col items-center justify-center text-center">
+        <CalendarCheck className="mb-3" style={{ width: 48, height: 48, color: '#9490B4' }} />
+        <p className="text-sm font-medium text-foreground">
+          No attendance records for {monthYearLabel}
+        </p>
+        {emptyHint && <p className="text-xs text-muted-foreground mt-1">{emptyHint}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader className="bg-secondary">
+          <TableRow>
+            {showCodeAndName && <TableHead>Code</TableHead>}
+            {showCodeAndName && <TableHead>Name</TableHead>}
+            <TableHead>Check-in</TableHead>
+            <TableHead>Check-out</TableHead>
+            <TableHead className="text-right">Working Hrs</TableHead>
+            <TableHead>Notes</TableHead>
+            <TableHead className="text-right">Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {groupedRecords.map(group => (
+            <Fragment key={group.date}>
+              <TableRow className="border-b-0 hover:bg-transparent">
+                <TableCell colSpan={colSpan} className="p-0 border-b-0">
+                  <div className="flex items-center gap-2 h-9 pl-4 pr-4"
+                    style={{ backgroundColor: 'rgba(91, 63, 248, 0.08)', borderLeft: '3px solid #5B3FF8' }}>
+                    <span style={{ fontFamily: 'Syne, sans-serif', fontSize: '13px', fontWeight: 600, color: '#5B3FF8' }}>
+                      {formatGroupDate(group.date)}
+                    </span>
+                    <span style={{
+                      backgroundColor: 'rgba(91, 63, 248, 0.12)', color: '#5B3FF8',
+                      fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                    }}>
+                      {group.rows.length} record{group.rows.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                </TableCell>
+              </TableRow>
+              {group.rows.map(r => {
+                const isUnmatched = !r.employee_id;
+                const missingField: 'check_in' | 'check_out' | null =
+                  !r.check_in ? 'check_in' : !r.check_out ? 'check_out' : null;
+                const editable = missingField && canEdit(r);
+                return (
+                  <TableRow key={r.id}>
+                    {showCodeAndName && (
+                      <TableCell className="font-mono text-xs">{r.employee_code ?? '—'}</TableCell>
+                    )}
+                    {showCodeAndName && (
+                      <TableCell className="text-sm">
+                        {r.employee_name ?? (isUnmatched ? <span className="text-muted-foreground italic">unmatched</span> : '—')}
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      {r.check_in ? (
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
+                          {formatTime12h(r.check_in)}
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {r.check_out ? (
+                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
+                          {formatTime12h(r.check_out)}
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
+                      <div className="flex flex-col items-end leading-tight">
+                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
+                          {formatWorkingHours(r.working_hours)}
+                        </span>
+                        {r.working_hours != null && (() => {
+                          const dev = r.working_hours - shiftDuration;
+                          if (Math.abs(dev) < 1 / 120) return null;
+                          if (dev > 0) {
+                            return (
+                              <span style={{ fontSize: '11px', color: '#1DC97A' }}>
+                                +{formatDeviation(dev)} OT
+                              </span>
+                            );
+                          }
+                          return (
+                            <span style={{ fontSize: '11px', color: '#E84545' }}>
+                              -{formatDeviation(dev)} Short
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {r.is_late && (
+                          <span style={{
+                            backgroundColor: '#FEF3C7', color: '#92400E',
+                            fontSize: '11px', fontWeight: 500,
+                            padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                          }}>
+                            Late
+                          </span>
+                        )}
+                        {r.notes && <span>{r.notes}</span>}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {editable && missingField && (
+                        <button
+                          type="button"
+                          onClick={() => onRequestEdit(r, missingField)}
+                          className="inline-flex items-center gap-1 px-2.5 h-7 text-[11px] font-medium rounded-md border transition-colors hover:bg-muted"
+                          style={{ borderColor: 'rgba(91, 63, 248, 0.3)', color: '#5B3FF8' }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                          {showCodeAndName ? 'Edit' : 'Add Missing Entry'}
+                        </button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </Fragment>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+const Attendance = () => {
+  const { employee } = useAuth();
+  const now = new Date();
+  const [month, setMonth] = useState<string>(MONTHS[now.getMonth()]);
+  const [year, setYear] = useState<string>(String(now.getFullYear()));
+
+  const [myRecords, setMyRecords] = useState<AttendanceRow[]>([]);
+  const [companyRecords, setCompanyRecords] = useState<AttendanceRow[]>([]);
+  const [loadingMy, setLoadingMy] = useState(false);
+  const [loadingCompany, setLoadingCompany] = useState(false);
+
+  const [uploadOpen, setUploadOpen] = useState(false);
+  // TODO: Remove before production
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  const [settings, setSettings] = useState<CompanySettings | null>(null);
+
+  const [missingTarget, setMissingTarget] = useState<MissingEntryTarget | null>(null);
+  const [companySearch, setCompanySearch] = useState('');
+
+  const roles = employee?.roles ?? [];
+  const isCeo = roles.includes('ceo');
+  const isHr = roles.includes('hr_manager');
+  const isFinance = roles.includes('finance_manager');
+  const isTeamLead = roles.includes('team_lead');
+  const isManager = isCeo || isHr;
+  const canSeeCompanyTab = isCeo || isHr || isFinance || isTeamLead;
+
+  const tabs = useMemo(() => {
+    const list: Array<{ value: string; label: string }> = [];
+    if (isManager) list.push({ value: 'summary', label: 'Summary' });
+    list.push({ value: 'my', label: 'My Attendance' });
+    if (canSeeCompanyTab) list.push({ value: 'company', label: 'Company Attendance' });
+    return list;
+  }, [isManager, canSeeCompanyTab]);
+
+  const [activeTab, setActiveTab] = useState<string>('my');
+  useEffect(() => {
+    if (tabs.length > 0 && !tabs.some(t => t.value === activeTab)) {
+      setActiveTab(tabs[0].value);
+    }
+  }, [tabs, activeTab]);
+
+  const yearOptions = useMemo(() => {
+    const y = now.getFullYear();
+    return [String(y), String(y - 1), String(y - 2)];
+  }, [now]);
+
+  const monthYearLabel = `${month} ${year}`;
+
+  const shiftDuration = useMemo(() => {
+    const start = parseHHmm(settings?.shift_start_time);
+    const end = parseHHmm(settings?.shift_end_time);
+    if (start != null && end != null && end > start) return end - start;
+    return 9.0;
+  }, [settings]);
+
+  // Load company settings once per company
+  useEffect(() => {
+    if (!employee?.company_id) return;
+    (async () => {
+      const { data } = await supabase
+        .from('company_settings')
+        .select('shift_start_time, shift_end_time, late_threshold, lunch_break_hours')
+        .eq('company_id', employee.company_id)
+        .maybeSingle();
+      if (data) {
+        setSettings({
+          shift_start_time: data.shift_start_time,
+          shift_end_time: data.shift_end_time,
+          late_threshold: data.late_threshold ?? 0,
+          lunch_break_hours: Number(data.lunch_break_hours ?? 1),
+        });
+      }
+    })();
+  }, [employee?.company_id]);
+
+  const dateRange = useMemo(() => {
+    const monthIndex = MONTHS.indexOf(month);
+    const mm = String(monthIndex + 1).padStart(2, '0');
+    const startDate = `${year}-${mm}-01`;
+    const endDateObj = new Date(parseInt(year, 10), monthIndex + 1, 0);
+    const endDate = `${year}-${mm}-${String(endDateObj.getDate()).padStart(2, '0')}`;
+    return { startDate, endDate, monthYear: `${year}-${mm}` };
+  }, [month, year]);
+
+  const fetchMy = async () => {
+    if (!employee?.company_id || !employee?.employee_id) return;
+    setLoadingMy(true);
+    try {
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late')
+        .eq('company_id', employee.company_id)
+        .eq('employee_id', employee.employee_id)
+        .gte('date', dateRange.startDate)
+        .lte('date', dateRange.endDate)
+        .order('date', { ascending: true })
+        .limit(2000);
+      if (error) throw error;
+      setMyRecords(((data ?? []) as AttendanceRow[]).map(r => ({
+        ...r,
+        employee_name: employee.full_name,
+      })));
+    } catch (err) {
+      console.error(err);
+      setMyRecords([]);
+    } finally {
+      setLoadingMy(false);
+    }
   };
+
+  const fetchCompany = async () => {
+    if (!employee?.company_id) return;
+    setLoadingCompany(true);
+    try {
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late')
+        .eq('company_id', employee.company_id)
+        .gte('date', dateRange.startDate)
+        .lte('date', dateRange.endDate)
+        .order('date', { ascending: true })
+        .limit(5000);
+      if (error) throw error;
+
+      const rows = (data ?? []) as AttendanceRow[];
+      const empIds = Array.from(new Set(rows.map(r => r.employee_id).filter(Boolean))) as string[];
+      const idToName = new Map<string, string>();
+      if (empIds.length > 0) {
+        const { data: emps } = await supabase
+          .from('employees')
+          .select('id, full_name')
+          .in('id', empIds);
+        (emps ?? []).forEach(e => idToName.set(e.id, e.full_name));
+      }
+      setCompanyRecords(rows.map(r => ({
+        ...r,
+        employee_name: r.employee_id ? idToName.get(r.employee_id) ?? null : null,
+      })));
+    } catch (err) {
+      console.error(err);
+      setCompanyRecords([]);
+    } finally {
+      setLoadingCompany(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'my') fetchMy();
+    if (activeTab === 'company') fetchCompany();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, month, year, employee?.company_id, employee?.employee_id]);
+
+  const filteredCompanyRecords = useMemo(() => {
+    const q = companySearch.trim().toLowerCase();
+    if (!q) return companyRecords;
+    return companyRecords.filter(r =>
+      (r.employee_name ?? '').toLowerCase().includes(q)
+      || (r.employee_code ?? '').toLowerCase().includes(q)
+    );
+  }, [companyRecords, companySearch]);
 
   // TODO: Remove before production
   const handleClearMonth = async () => {
     if (!employee?.company_id) return;
     setClearing(true);
     try {
-      const monthIndex = MONTHS.indexOf(month);
-      const mm = String(monthIndex + 1).padStart(2, '0');
-      const startDate = `${year}-${mm}-01`;
-      const endDateObj = new Date(parseInt(year, 10), monthIndex + 1, 0);
-      const endDate = `${year}-${mm}-${String(endDateObj.getDate()).padStart(2, '0')}`;
-      const monthYear = `${year}-${mm}`;
-
       const { error: recErr } = await supabase
         .from('attendance_records')
         .delete()
         .eq('company_id', employee.company_id)
-        .gte('date', startDate)
-        .lte('date', endDate);
+        .gte('date', dateRange.startDate)
+        .lte('date', dateRange.endDate);
       if (recErr) throw recErr;
 
       const { error: impErr } = await supabase
         .from('attendance_imports')
         .delete()
         .eq('company_id', employee.company_id)
-        .eq('month_year', monthYear);
+        .eq('month_year', dateRange.monthYear);
       if (impErr) throw impErr;
 
       toast.success(`Attendance data cleared for ${month} ${year}`);
       setClearOpen(false);
-      await fetchRecords();
+      await Promise.all([fetchMy(), fetchCompany()]);
     } catch (err: any) {
       console.error(err);
       toast.error(err?.message ?? 'Failed to clear attendance data');
@@ -206,6 +447,21 @@ const Attendance = () => {
       setClearing(false);
     }
   };
+
+  const handleRequestEdit = (row: AttendanceRow, field: 'check_in' | 'check_out') => {
+    setMissingTarget({
+      recordId: row.id,
+      employeeId: row.employee_id,
+      employeeName: row.employee_name ?? null,
+      date: row.date,
+      field,
+      existingCheckIn: row.check_in,
+      existingCheckOut: row.check_out,
+    });
+  };
+
+  const canEditMy = (row: AttendanceRow) => row.employee_id === employee?.employee_id;
+  const canEditCompany = () => isManager;
 
   return (
     <div className="max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
@@ -247,7 +503,7 @@ const Attendance = () => {
               <Trash2 className="h-4 w-4" /> Clear Month Data
             </button>
           )}
-          {isAuthorised && (
+          {isManager && (
             <Button onClick={() => setUploadOpen(true)}>
               <Plus className="h-4 w-4 mr-2" /> Add Attendance
             </Button>
@@ -255,135 +511,67 @@ const Attendance = () => {
         </div>
       </div>
 
-      <Card className="overflow-hidden">
-        {loading ? (
-          <div className="p-12 flex flex-col items-center justify-center text-center">
-            <Loader2 className="h-6 w-6 text-primary animate-spin mb-3" />
-            <p className="text-sm text-muted-foreground">Loading attendance records…</p>
-          </div>
-        ) : records.length === 0 ? (
-          <div className="p-12 flex flex-col items-center justify-center text-center">
-            <CalendarCheck className="mb-3" style={{ width: 48, height: 48, color: '#9490B4' }} />
-            <p className="text-sm font-medium text-foreground">
-              No attendance records for {monthYearLabel}
-            </p>
-            {isAuthorised && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Click 'Add Attendance' to import an attendance file
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-secondary">
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Check-in</TableHead>
-                  <TableHead>Check-out</TableHead>
-                  <TableHead className="text-right">Working Hrs</TableHead>
-                  <TableHead>Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groupedRecords.map(group => (
-                  <Fragment key={group.date}>
-                    <TableRow className="border-b-0 hover:bg-transparent">
-                      <TableCell colSpan={6} className="p-0 border-b-0">
-                        <div className="flex items-center gap-2 h-9 pl-4 pr-4"
-                          style={{ backgroundColor: 'rgba(91, 63, 248, 0.08)', borderLeft: '3px solid #5B3FF8' }}>
-                          <span style={{ fontFamily: 'Syne, sans-serif', fontSize: '13px', fontWeight: 600, color: '#5B3FF8' }}>
-                            {formatGroupDate(group.date)}
-                          </span>
-                          <span style={{
-                            backgroundColor: 'rgba(91, 63, 248, 0.12)', color: '#5B3FF8',
-                            fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
-                          }}>
-                            {group.rows.length} record{group.rows.length === 1 ? '' : 's'}
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    {group.rows.map(r => {
-                      const isUnmatched = !r.employee_id;
-                      return (
-                        <TableRow key={r.id}>
-                          <TableCell className="font-mono text-xs">{r.employee_code ?? '—'}</TableCell>
-                          <TableCell className="text-sm">
-                            {r.employee_name ?? (isUnmatched ? <span className="text-muted-foreground italic">unmatched</span> : '—')}
-                          </TableCell>
-                          <TableCell>
-                            {r.check_in ? (
-                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
-                                {formatTime12h(r.check_in)}
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {r.check_out ? (
-                              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
-                                {formatTime12h(r.check_out)}
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">missing</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
-                            <div className="flex flex-col items-end leading-tight">
-                              <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
-                                {formatWorkingHours(r.working_hours)}
-                              </span>
-                              {r.working_hours != null && (() => {
-                                const dev = r.working_hours - shiftDuration;
-                                if (Math.abs(dev) < 1 / 120) return null; // ~0
-                                if (dev > 0) {
-                                  return (
-                                    <span style={{ fontSize: '11px', color: '#1DC97A' }}>
-                                      +{formatDeviation(dev)} OT
-                                    </span>
-                                  );
-                                }
-                                return (
-                                  <span style={{ fontSize: '11px', color: '#E84545' }}>
-                                    -{formatDeviation(dev)} Short
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {r.is_late && (
-                                <span
-                                  style={{
-                                    backgroundColor: '#FEF3C7',
-                                    color: '#92400E',
-                                    fontSize: '11px',
-                                    fontWeight: 500,
-                                    padding: '2px 8px',
-                                    borderRadius: '9999px',
-                                    lineHeight: 1.4,
-                                  }}
-                                >
-                                  Late
-                                </span>
-                              )}
-                              {r.notes && <span>{r.notes}</span>}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          {tabs.map(t => (
+            <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
+          ))}
+        </TabsList>
+
+        {isManager && (
+          <TabsContent value="summary" className="mt-4">
+            <Card className="overflow-hidden">
+              <div className="p-12 flex flex-col items-center justify-center text-center">
+                <CalendarCheck className="mb-3" style={{ width: 48, height: 48, color: '#9490B4' }} />
+                <p className="text-sm font-medium text-foreground">Coming soon</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Monthly attendance summary will appear here.
+                </p>
+              </div>
+            </Card>
+          </TabsContent>
         )}
-      </Card>
+
+        <TabsContent value="my" className="mt-4">
+          <Card className="overflow-hidden">
+            <RecordsTable
+              records={myRecords}
+              loading={loadingMy}
+              shiftDuration={shiftDuration}
+              monthYearLabel={monthYearLabel}
+              showCodeAndName={false}
+              canEdit={canEditMy}
+              onRequestEdit={handleRequestEdit}
+            />
+          </Card>
+        </TabsContent>
+
+        {canSeeCompanyTab && (
+          <TabsContent value="company" className="mt-4 space-y-3">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or employee code..."
+                value={companySearch}
+                onChange={(e) => setCompanySearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Card className="overflow-hidden">
+              <RecordsTable
+                records={filteredCompanyRecords}
+                loading={loadingCompany}
+                shiftDuration={shiftDuration}
+                monthYearLabel={monthYearLabel}
+                emptyHint={isManager ? "Click 'Add Attendance' to import an attendance file" : undefined}
+                showCodeAndName
+                canEdit={canEditCompany}
+                onRequestEdit={handleRequestEdit}
+              />
+            </Card>
+          </TabsContent>
+        )}
+      </Tabs>
 
       <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
         <DialogContent className="max-w-[1100px] w-[95vw] max-h-[95vh] overflow-y-auto p-6">
@@ -396,11 +584,27 @@ const Attendance = () => {
             onCancel={() => setUploadOpen(false)}
             onSuccess={() => {
               setUploadOpen(false);
-              fetchRecords();
+              fetchMy();
+              fetchCompany();
             }}
           />
         </DialogContent>
       </Dialog>
+
+      <MissingEntryModal
+        open={!!missingTarget}
+        target={missingTarget}
+        shiftStart={settings?.shift_start_time ?? '09:00:00'}
+        shiftEnd={settings?.shift_end_time ?? '18:00:00'}
+        shiftDuration={shiftDuration}
+        lateThresholdMin={settings?.late_threshold ?? 0}
+        lunchBreakHours={settings?.lunch_break_hours ?? 1}
+        onClose={() => setMissingTarget(null)}
+        onSaved={() => {
+          if (activeTab === 'my') fetchMy();
+          if (activeTab === 'company') fetchCompany();
+        }}
+      />
 
       {/* TODO: Remove before production */}
       <Dialog open={clearOpen} onOpenChange={(v) => !clearing && setClearOpen(v)}>
