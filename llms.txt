@@ -1,136 +1,120 @@
 <!--
 generated_by: tessera
-source_sha: 99bde0343136c5555684a3394152a0ef99c680ed
-generated_at: 2026-04-30T11:02:43.238Z
+source_sha: 9c111b985ea060cf573e05d196278bcc245cedcc
+generated_at: 2026-04-30T11:06:58.788Z
 action: create
 -->
 
-# Beudox HR Portal - Technical Context for AI Assistants
+# Beudox HR Portal - Technical Context
 
 ## Architecture Overview
 
-This is a modern React-based HR management system built with TypeScript and Vite, using Supabase as the backend-as-a-service platform. The application follows a component-based architecture with clear separation of concerns.
+This is a modern React-based HR Management System built with TypeScript, featuring a component-driven architecture with clear separation of concerns. The application follows a client-server model where the frontend handles all user interactions and the backend (Supabase) manages data persistence and business logic.
 
 ### Key Architectural Decisions
 
-- **Frontend Framework**: React 18 with TypeScript for type safety and better developer experience
-- **Build Tool**: Vite for fast development and optimized production builds
-- **Styling**: Tailwind CSS with shadcn/ui component library for consistent, accessible UI
-- **Routing**: React Router for client-side navigation
-- **State Management**: React hooks and context for local state, Supabase real-time subscriptions for server state
-- **Backend**: Supabase provides PostgreSQL database, authentication, file storage, and serverless functions
-- **Authentication**: Supabase Auth with role-based access control
+1. **Component Organization**: Components are organized by feature/domain (attendance, leave, payroll) rather than by type, promoting better maintainability and feature isolation.
 
-## Core Components and Features
+2. **State Management**: 
+   - React Query for server state (API data, caching, synchronization)
+   - React Context for global app state (auth, theme)
+   - Local component state for UI interactions
 
-### Authentication & Authorization
-- Mandatory password change flow for new users with temporary passwords
-- Role-based access control with permissions for different HR functions
-- Session management with automatic refresh
+3. **Routing & Navigation**: React Router with protected routes and role-based access control. Route protection happens at the component level with redirects.
 
-### Employee Management
-- Comprehensive employee profiles with personal and professional information
-- Avatar support with fallback to initials
-- Status tracking (active/inactive)
-- Company-specific employee data
+4. **Form Handling**: React Hook Form with Zod schemas for validation, providing type-safe form management and excellent developer experience.
 
-### Attendance System
-- Daily check-in/check-out tracking
-- Overtime calculation (regular and holiday)
-- Late arrival detection
-- Absence tracking with implicit absences for missing records
-- Analytics dashboard with metrics like attendance rate, late arrivals, and anomalies
-- Holiday and weekend work tracking
+5. **UI Framework**: Radix UI primitives with Tailwind CSS for consistent, accessible, and customizable components.
 
-### Leave Management
-- Leave request workflow with approval process
-- Balance tracking across different leave types
-- Working days calculation excluding weekends and holidays
+6. **Real-time Features**: Supabase real-time subscriptions for live updates on attendance, notifications, and collaborative features.
 
-### Payroll Processing
-- Salary structure with basic pay, allowances, and deductions
-- Overtime pay calculations
-- Payslip generation (via Supabase Edge Functions)
-- Invoice PDF generation
+## Core Application Flow
 
-### Settings & Configuration
-- Company information management
-- Department and role configuration
-- Leave types and policies
-- Expense categories
-- Evaluation parameters
-- Login logs and security monitoring
+1. **Authentication**: Users log in via Supabase Auth. New users are forced to change their temporary password.
+2. **Authorization**: Each route checks user roles against a permission matrix defined in `src/lib/role-access.ts`.
+3. **Data Fetching**: React Query manages all API calls with automatic caching, background refetching, and optimistic updates.
+4. **Business Logic**: Complex calculations (payroll, attendance metrics) are handled both client-side for UI and server-side via Supabase functions.
 
 ## Key Files and Their Purposes
 
-### Core Application Files
-- `src/main.tsx`: Application entry point, renders the root component
-- `src/App.tsx`: Main application component with routing setup
-- `src/pages/Index.tsx`: Root page component
+### Entry Points
+- `src/main.tsx`: Application bootstrap with React 18's createRoot
+- `src/App.tsx`: Main app component with routing configuration and providers
 
-### Component Categories
-- **UI Components** (`src/components/ui/`): Reusable design system components (buttons, forms, dialogs, etc.)
-- **Feature Components**: Domain-specific components organized by feature (attendance, leave, payroll, etc.)
-- **Layout Components**: App layout, sidebar, navigation, user menu
+### Authentication & Authorization
+- `src/hooks/useAuth.ts`: Custom hook managing auth state, user data, and session handling
+- `src/lib/role-access.ts`: Functions for checking user permissions against routes
+- `src/components/MandatoryPasswordChange.tsx`: Modal for forcing password updates on first login
 
-### Utility Libraries
-- `src/lib/utils.ts`: Common utility functions (cn for className merging)
-- `src/lib/format-date.ts`: Date formatting utilities
-- `src/lib/attendance-format.ts`: Attendance-specific formatting
-- `src/lib/role-access.ts`: Permission and role checking functions
-- `src/lib/notifications.ts`: Notification sending logic
+### Core Components
+- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar navigation
+- `src/components/layout/AppSidebar.tsx`: Navigation sidebar with role-based menu items
+- `src/components/attendance/AttendanceSummary.tsx`: Complex component calculating and displaying attendance metrics
 
-### Integrations
-- `src/integrations/supabase/`: Supabase client configuration and type definitions
+### Business Logic Libraries
+- `src/lib/attendance-format.ts`: Utilities for formatting time and attendance data
+- `src/lib/leave-utils.ts`: Functions for leave balance calculations and validations
+- `src/lib/review-schedule.ts`: Logic for employee performance review cycles
+- `src/lib/notifications.ts`: Notification sending and employee targeting logic
 
-## Data Flow and Business Logic
+### Data Layer
+- `src/integrations/supabase/client.ts`: Supabase client configuration
+- `src/integrations/supabase/types.ts`: Auto-generated TypeScript types from database schema
+- `supabase/migrations/`: Database schema definitions and migrations
+- `supabase/functions/`: Serverless functions for complex operations (payroll generation, PDF creation)
 
-### Attendance Processing
-1. Raw attendance data is imported/uploaded
-2. AI parsing (via Supabase Edge Function) extracts check-in/out times
-3. Records are validated and stored with calculated metrics (working hours, overtime, late flags)
-4. Analytics are computed on-demand for dashboards
-
-### Payroll Calculation
-1. Employee salary data and attendance records are combined
-2. Overtime hours are calculated from attendance data
-3. Allowances and deductions are applied
-4. Payslips are generated as PDFs via Edge Functions
-
-### Notification System
-- Automated alerts for review deadlines, leave approvals, etc.
-- Role-based recipient selection
-- Integration with Supabase's notification system
+### UI Components
+- `src/components/ui/`: Shadcn/ui components built on Radix UI
+- `src/components/SearchableEmployeeSelect.tsx`: Reusable employee selection component with search
+- `src/components/NavLink.tsx`: Wrapper around React Router NavLink for consistent styling
 
 ## Database Schema Highlights
 
-The application uses a PostgreSQL database with the following key entities:
-- `employees`: Core employee data with auth integration
-- `attendance_records`: Daily attendance entries
-- `leave_requests`: Leave applications and approvals
-- `payroll_records`: Salary and payment data
-- `departments`, `roles`: Organizational structure
-- `public_holidays`: Company holiday calendar
-- `company_settings`: Configurable company data
+The application uses PostgreSQL via Supabase with the following key entities:
 
-## Development Workflow
+- **employees**: Core employee data with auth integration
+- **attendance_records**: Time tracking with check-in/out and overtime calculations
+- **leave_requests**: Leave management with approval workflows
+- **payroll_records**: Salary calculations and payment history
+- **projects**: Project management with team assignments
+- **evaluations**: Performance reviews and daily feedback
+- **companies**: Multi-tenant support for different organizations
 
-- **Code Quality**: ESLint for linting, TypeScript for type checking
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
-- **Build Process**: Vite handles bundling, optimization, and deployment
-- **Version Control**: Git with automated documentation updates via Tessera
+## Data Flow Patterns
+
+1. **CRUD Operations**: Standard create/read/update/delete using React Query mutations and queries
+2. **Real-time Updates**: Supabase subscriptions for live data (notifications, attendance changes)
+3. **File Uploads**: Direct to Supabase Storage for avatars, documents, etc.
+4. **Complex Calculations**: Server-side functions for payroll generation, PDF creation, and AI-powered features
+5. **Bulk Operations**: Excel import/export for attendance data and employee management
 
 ## Security Considerations
 
-- All data access is authenticated and authorized
-- Sensitive operations require specific roles
-- Password policies enforced during account setup
-- Login tracking for security monitoring
-- Environment variables for configuration secrets
+- **Authentication**: Supabase Auth with email/password and session management
+- **Authorization**: Row-level security (RLS) policies in database
+- **Input Validation**: Zod schemas for all user inputs
+- **API Security**: Supabase handles API key management and request authentication
+- **Data Privacy**: Company-scoped data isolation for multi-tenant architecture
 
 ## Performance Optimizations
 
-- Lazy loading of components and routes
-- Efficient data fetching with Supabase's real-time capabilities
-- Memoized calculations for analytics
-- Optimized bundle size with Vite's tree shaking
+- **Code Splitting**: Vite handles automatic code splitting by routes
+- **Caching**: React Query caches API responses with intelligent invalidation
+- **Lazy Loading**: Components and routes loaded on demand
+- **Database Indexing**: Optimized queries with proper indexing in migrations
+- **Image Optimization**: Responsive images with Supabase Storage transformations
+
+## Development Workflow
+
+- **Local Development**: Vite dev server with hot module replacement
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
+- **Linting**: ESLint with React-specific rules
+- **Type Checking**: TypeScript with strict mode
+- **Build Process**: Vite optimized build with tree shaking and minification
+
+## Deployment Considerations
+
+- **Static Hosting**: Built as a SPA deployable to any static host (Vercel, Netlify, etc.)
+- **Environment Variables**: Supabase configuration via environment variables
+- **Database Migrations**: Automated migration application on deployment
+- **CDN**: Static assets served via CDN for global performance
