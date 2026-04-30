@@ -919,6 +919,25 @@ const AttendanceUploadFlow = ({
             </div>
           )}
 
+          {summary.overwrittenLeaves.length > 0 && (
+            <div className="rounded-md border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">
+              <div className="flex items-center gap-2 font-medium mb-1">
+                <AlertTriangle className="h-4 w-4" />
+                {summary.overwrittenLeaves.length} leave day{summary.overwrittenLeaves.length === 1 ? '' : 's'} overwritten by machine records
+              </div>
+              <ul className="mt-2 space-y-1 text-xs">
+                {summary.overwrittenLeaves.map((o, i) => (
+                  <li key={i} className="flex flex-col">
+                    <span>
+                      <strong>{o.employee_name}</strong> · {format(new Date(o.date + 'T00:00:00'), 'EEE, dd MMM yyyy')} · {o.leave_type_name}
+                    </span>
+                    <span className="text-orange-800/80">Leave quota restored for this day</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="flex justify-end">
             <Button onClick={onSuccess}>
               <RotateCw className="h-4 w-4 mr-2" /> Done
