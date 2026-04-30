@@ -8,6 +8,7 @@ import MyRequestsTab from '@/components/leave/MyRequestsTab';
 import AllRequestsTab from '@/components/leave/AllRequestsTab';
 import LeaveBalancesTab from '@/components/leave/LeaveBalancesTab';
 import ApplyLeaveModal from '@/components/leave/ApplyLeaveModal';
+import MyLeaveBalances from '@/components/leave/MyLeaveBalances';
 
 const defaultLeaveTypes = [
   { name: 'Annual Leave', annual_entitlement: 15, is_paid: true, allow_carry_over: true, max_carry_over: 5, apply_proration: false },
@@ -63,6 +64,8 @@ const LeaveManagement = () => {
 
   return (
     <div className="space-y-6">
+      <MyLeaveBalances />
+
       <div className="flex items-center justify-between">
         <div />
         <Button onClick={() => setApplyModalOpen(true)} size="sm">
