@@ -9,6 +9,8 @@ import AllRequestsTab from '@/components/leave/AllRequestsTab';
 import LeaveBalancesTab from '@/components/leave/LeaveBalancesTab';
 import ApplyLeaveModal from '@/components/leave/ApplyLeaveModal';
 import MyLeaveBalances from '@/components/leave/MyLeaveBalances';
+// TODO: Remove before production
+import ClearLeaveDataButton from '@/components/leave/ClearLeaveDataButton';
 
 const defaultLeaveTypes = [
   { name: 'Annual Leave', annual_entitlement: 15, is_paid: true, allow_carry_over: true, max_carry_over: 5, apply_proration: false },
