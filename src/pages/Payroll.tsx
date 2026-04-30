@@ -708,6 +708,20 @@ const Payroll = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PayrollDetailSheet
+        record={detailRecord}
+        open={!!detailRecord}
+        onClose={() => setDetailRecord(null)}
+        monthLabel={monthLabelFull}
+        hideSalary={(() => {
+          if (!detailRecord) return false;
+          const emp = (detailRecord.employees as any);
+          const isCeoEmp = (emp?.employee_roles ?? []).some((er: any) => er?.roles?.name === 'ceo');
+          const isDir = emp?.employment_type === 'director';
+          return isHrViewer && (isCeoEmp || isDir);
+        })()}
+      />
     </div>
   );
 };
