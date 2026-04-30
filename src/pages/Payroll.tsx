@@ -18,6 +18,9 @@ import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { PayrollSummary } from '@/components/payroll/PayrollSummary';
+import PayrollDetailSheet from '@/components/payroll/PayrollDetailSheet';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Fragment } from 'react';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   draft: { bg: '#FEF3C7', text: '#92400E' },
@@ -69,6 +72,8 @@ const Payroll = () => {
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
   const [markingPaid, setMarkingPaid] = useState(false);
 
+  const [detailRecord, setDetailRecord] = useState<PayrollRecord | null>(null);
+
   // TODO: Remove before production
   const [clearStep, setClearStep] = useState<0 | 1 | 2>(0);
   const [clearConfirmText, setClearConfirmText] = useState('');
@@ -110,7 +115,7 @@ const Payroll = () => {
     if (!companyId) return;
     const { data } = await supabase
       .from('payroll_records')
-      .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type, employee_roles(roles(name)))')
+      .select('*, employees!payroll_records_employee_id_fkey(id, full_name, designation, avatar_url, department, employment_type, employee_roles(roles(name)))')
       .eq('company_id', companyId)
       .eq('month_year', monthYear)
       .eq('superseded', false)
@@ -138,7 +143,7 @@ const Payroll = () => {
       if (!companyId) return;
       const { data } = await supabase
         .from('payroll_records')
-        .select('*, employees!payroll_records_employee_id_fkey(id, full_name, department, employment_type, employee_roles(roles(name)))')
+        .select('*, employees!payroll_records_employee_id_fkey(id, full_name, designation, avatar_url, department, employment_type, employee_roles(roles(name)))')
         .eq('company_id', companyId)
         .eq('month_year', my)
         .eq('superseded', false)
@@ -344,129 +349,129 @@ const Payroll = () => {
   const hasDrafts = records.some(r => r.status === 'draft');
   const allApprovedOrPaid = records.length > 0 && records.every(r => r.status === 'approved' || r.status === 'paid');
 
-  const renderDeptTable = (recs: PayrollRecord[]) => (
-    <div className="overflow-x-auto rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Employee</TableHead>
-            <TableHead className="text-right">Basic</TableHead>
-            <TableHead className="text-right">Allowance</TableHead>
-            <TableHead className="text-right">Reg OT hrs</TableHead>
-            <TableHead className="text-right">Hol OT hrs</TableHead>
-            <TableHead className="text-right">OT Amount</TableHead>
-            <TableHead className="text-right">Bonus</TableHead>
-            <TableHead className="text-right">Dinner Exp</TableHead>
-            <TableHead className="text-right">Loan Ded.</TableHead>
-            <TableHead className="text-right">Total Salary</TableHead>
-            <TableHead className="text-right">Final Pmt</TableHead>
-            <TableHead>Status</TableHead>
-            {allApprovedOrPaid && <TableHead>Action</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {recs.map(rec => {
-            const emp = rec.employees as any;
-            const isDirector = emp?.employment_type === 'director';
-            const isCeoEmp = (emp?.employee_roles ?? []).some((er: any) => er?.roles?.name === 'ceo');
-            // HR Manager cannot see compensation of CEO or Director employees
-            const hideSalary = isHrViewer && (isCeoEmp || isDirector);
-            const isDraft = rec.status === 'draft';
-            const isApproved = rec.status === 'approved';
-            const style = statusStyles[rec.status] || statusStyles.draft;
-            const masked = <span className="text-muted-foreground">—</span>;
+  const initials = (name: string) =>
+    (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const fmtPKR = (n: number) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-            return (
-              <TableRow key={rec.id}>
-                <TableCell className="font-medium text-sm">{emp?.full_name || '—'}</TableCell>
-                <TableCell className="text-right font-mono text-sm">
-                  {hideSalary ? masked : Number(rec.basic_salary).toLocaleString()}
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm">
-                  {hideSalary ? masked : Number(rec.allowance).toLocaleString()}
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm">
-                  {isDirector ? '—' : Number(rec.regular_ot_hours).toFixed(1)}
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm">
-                  {isDirector ? '—' : Number(rec.holiday_ot_hours).toFixed(1)}
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm">
-                  {isDirector ? '—' : (Number(rec.regular_ot_amount) + Number(rec.holiday_ot_amount)).toLocaleString()}
-                </TableCell>
-                <TableCell className="text-right">
-                  {hideSalary ? masked : isDraft ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      className="w-20 text-right font-mono text-sm h-8"
-                      defaultValue={Number(rec.bonus)}
-                      onBlur={e => handleFieldBlur(rec, 'bonus', e.target.value)}
-                    />
-                  ) : (
-                    <span className="font-mono text-sm">{Number(rec.bonus).toLocaleString()}</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  {hideSalary ? masked : isDraft && !isDirector ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      className="w-20 text-right font-mono text-sm h-8"
-                      defaultValue={Number(rec.dinner_expense)}
-                      onBlur={e => handleFieldBlur(rec, 'dinner_expense', e.target.value)}
-                    />
-                  ) : (
-                    <span className="font-mono text-sm">{isDirector ? '—' : Number(rec.dinner_expense).toLocaleString()}</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm">
-                  {isDirector ? '—' : Number(rec.loan_deduction).toLocaleString()}
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm font-semibold">
-                  {hideSalary ? masked : Number(rec.total_salary).toLocaleString()}
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm font-semibold">
-                  {hideSalary ? masked : Number(rec.final_payment).toLocaleString()}
-                </TableCell>
-                <TableCell>
-                  <span
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    style={{ backgroundColor: style.bg, color: style.text }}
-                  >
-                    {rec.status.charAt(0).toUpperCase() + rec.status.slice(1)}
-                  </span>
-                </TableCell>
-                {allApprovedOrPaid && (
-                  <TableCell>
-                    {isApproved && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setPaidModal(rec);
-                          setPaymentDate(new Date());
-                          setPaymentMethod('bank_transfer');
-                        }}
+  const groupForTable = (recs: PayrollRecord[]) => {
+    const map = new Map<string, PayrollRecord[]>();
+    for (const r of recs) {
+      const dept = ((r.employees as any)?.department || 'Uncategorized') as string;
+      if (!map.has(dept)) map.set(dept, []);
+      map.get(dept)!.push(r);
+    }
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  };
+
+  const renderDeptTable = (recs: PayrollRecord[]) => {
+    const groups = groupForTable(recs);
+    return (
+      <div className="overflow-x-auto rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Employee</TableHead>
+              <TableHead className="text-right">Basic Salary</TableHead>
+              <TableHead className="text-right">Allowance</TableHead>
+              <TableHead className="text-right">OT Amount</TableHead>
+              <TableHead className="text-right">Loan Deduction</TableHead>
+              <TableHead className="text-right">Final Payment</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {groups.map(([dept, rows]) => {
+              const subtotal = rows.reduce((s, r) => {
+                const emp = r.employees as any;
+                const isCeoEmp = (emp?.employee_roles ?? []).some((er: any) => er?.roles?.name === 'ceo');
+                const isDir = emp?.employment_type === 'director';
+                const hide = isHrViewer && (isCeoEmp || isDir);
+                return s + (hide ? 0 : Number(r.final_payment || 0));
+              }, 0);
+              return (
+                <Fragment key={dept}>
+                  <TableRow className="hover:bg-transparent border-b-0">
+                    <TableCell colSpan={6} className="p-0 border-b-0">
+                      <div
+                        className="flex items-center gap-2 h-9 pl-4 pr-4"
+                        style={{ backgroundColor: 'rgba(91, 63, 248, 0.08)', borderLeft: '3px solid #5B3FF8' }}
                       >
-                        Mark Paid
-                      </Button>
-                    )}
-                    {rec.status === 'paid' && (
-                      <span className="text-xs text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 inline mr-1" />
-                        Paid
-                      </span>
-                    )}
-                  </TableCell>
-                )}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
-  );
+                        <span style={{ fontFamily: 'Syne, sans-serif', fontSize: '13px', fontWeight: 600, color: '#5B3FF8' }}>
+                          {dept}
+                        </span>
+                        <span style={{
+                          backgroundColor: 'rgba(91, 63, 248, 0.12)', color: '#5B3FF8',
+                          fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                        }}>
+                          {rows.length} {rows.length === 1 ? 'employee' : 'employees'}
+                        </span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  {rows.map(rec => {
+                    const emp = rec.employees as any;
+                    const isDirector = emp?.employment_type === 'director';
+                    const isCeoEmp = (emp?.employee_roles ?? []).some((er: any) => er?.roles?.name === 'ceo');
+                    const hideSalary = isHrViewer && (isCeoEmp || isDirector);
+                    const masked = <span className="text-muted-foreground">—</span>;
+                    const otAmount = Number(rec.regular_ot_amount || 0) + Number(rec.holiday_ot_amount || 0);
+                    const loan = Number(rec.loan_deduction || 0);
+                    return (
+                      <TableRow
+                        key={rec.id}
+                        className="cursor-pointer hover:bg-muted/40 transition-colors"
+                        onClick={() => setDetailRecord(rec)}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={emp?.avatar_url || ''} />
+                              <AvatarFallback className="text-[10px] bg-secondary">
+                                {initials(emp?.full_name || '—')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{emp?.full_name || '—'}</p>
+                              {emp?.designation && (
+                                <p className="text-xs text-muted-foreground truncate">{emp.designation}</p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {hideSalary ? masked : fmtPKR(Number(rec.basic_salary))}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {hideSalary ? masked : fmtPKR(Number(rec.allowance))}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {hideSalary ? masked : isDirector ? '—' : fmtPKR(otAmount)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {hideSalary ? masked : loan > 0 ? fmtPKR(loan) : <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: hideSalary ? undefined : '#5B3FF8' }}>
+                          {hideSalary ? masked : fmtPKR(Number(rec.final_payment))}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell colSpan={5} className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {dept} Subtotal
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: '#5B3FF8' }}>
+                      {fmtPKR(subtotal)}
+                    </TableCell>
+                  </TableRow>
+                </Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  };
+
 
   return (
     <div className="p-6 space-y-6">
@@ -703,6 +708,20 @@ const Payroll = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PayrollDetailSheet
+        record={detailRecord}
+        open={!!detailRecord}
+        onClose={() => setDetailRecord(null)}
+        monthLabel={monthLabelFull}
+        hideSalary={(() => {
+          if (!detailRecord) return false;
+          const emp = (detailRecord.employees as any);
+          const isCeoEmp = (emp?.employee_roles ?? []).some((er: any) => er?.roles?.name === 'ceo');
+          const isDir = emp?.employment_type === 'director';
+          return isHrViewer && (isCeoEmp || isDir);
+        })()}
+      />
     </div>
   );
 };
