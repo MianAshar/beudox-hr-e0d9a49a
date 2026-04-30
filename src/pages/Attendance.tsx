@@ -593,7 +593,7 @@ const Attendance = () => {
     if (activeTab === 'my') fetchMy();
     if (activeTab === 'company') fetchCompany();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, month, year, employee?.company_id, employee?.employee_id]);
+  }, [activeTab, month, year, employee?.company_id, employee?.employee_id, settings]);
 
   const filteredCompanyRecords = useMemo(() => {
     const q = companySearch.trim().toLowerCase();
