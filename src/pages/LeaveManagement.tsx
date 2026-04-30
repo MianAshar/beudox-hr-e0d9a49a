@@ -9,6 +9,8 @@ import AllRequestsTab from '@/components/leave/AllRequestsTab';
 import LeaveBalancesTab from '@/components/leave/LeaveBalancesTab';
 import ApplyLeaveModal from '@/components/leave/ApplyLeaveModal';
 import MyLeaveBalances from '@/components/leave/MyLeaveBalances';
+// TODO: Remove before production
+import ClearLeaveDataButton from '@/components/leave/ClearLeaveDataButton';
 
 const defaultLeaveTypes = [
   { name: 'Annual Leave', annual_entitlement: 15, is_paid: true, allow_carry_over: true, max_carry_over: 5, apply_proration: false },
@@ -68,10 +70,14 @@ const LeaveManagement = () => {
 
       <div className="flex items-center justify-between">
         <div />
-        <Button onClick={() => setApplyModalOpen(true)} size="sm">
-          <Plus className="h-4 w-4 mr-1.5" />
-          Apply for Leave
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* TODO: Remove before production */}
+          <ClearLeaveDataButton onCleared={() => window.location.reload()} />
+          <Button onClick={() => setApplyModalOpen(true)} size="sm">
+            <Plus className="h-4 w-4 mr-1.5" />
+            Apply for Leave
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
