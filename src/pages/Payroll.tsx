@@ -72,6 +72,8 @@ const Payroll = () => {
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
   const [markingPaid, setMarkingPaid] = useState(false);
 
+  const [detailRecord, setDetailRecord] = useState<PayrollRecord | null>(null);
+
   // TODO: Remove before production
   const [clearStep, setClearStep] = useState<0 | 1 | 2>(0);
   const [clearConfirmText, setClearConfirmText] = useState('');
