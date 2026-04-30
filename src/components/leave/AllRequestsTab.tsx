@@ -206,7 +206,25 @@ const AllRequestsTab = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={async () => {
+              const t = toast.loading('Syncing leave attendance records...');
+              try {
+                const res = await syncAllApprovedLeaves(companyId!);
+                toast.success(`Leave attendance records synced successfully (${res.inserted} added, ${res.updated} updated)`, { id: t });
+              } catch (e) {
+                console.error(e);
+                toast.error('Failed to sync leave records', { id: t });
+              }
+            }}
+          >
+            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+            Sync Leave Records
+          </Button>
           <Button variant={view === 'list' ? 'default' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => setView('list')}>
             <List className="h-4 w-4" />
           </Button>
