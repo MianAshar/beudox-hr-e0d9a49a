@@ -1,52 +1,61 @@
 <!--
 generated_by: tessera
-source_sha: a50ae020b8bc1529b9111500b3ab3af31bb1236c
-generated_at: 2026-04-30T11:21:53.959Z
+source_sha: b171fa629096f96f6d3b5bfe71f324dc5fa3d8d8
+generated_at: 2026-04-30T11:22:04.680Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built with modern web technologies. This application provides organizations with tools to manage employee attendance, leave requests, payroll processing, performance evaluations, and organizational settings.
+A comprehensive Human Resources Management System built with modern web technologies. This application provides a complete suite of HR tools for managing employees, attendance, payroll, leave, projects, and more.
 
 ## Features
 
-### Core HR Modules
-- **Employee Management**: Profile management, onboarding, and organizational structure
-- **Attendance Tracking**: Daily attendance records, overtime calculation, and analytics
-- **Leave Management**: Leave requests, balances, and approval workflows
-- **Payroll Processing**: Salary calculations, overtime pay, and payroll generation
-- **Performance Evaluations**: Employee reviews, salary reviews, and evaluation timelines
-- **Project Management**: Team assignments, project tracking, and activity logs
-- **Finance & Expenses**: Expense tracking and financial summaries
-- **HR Policies**: Document management and policy administration
+### Core HR Management
+- **Employee Management**: Complete employee profiles, onboarding, and lifecycle management
+- **Attendance Tracking**: Automated attendance recording with analytics and reporting
+- **Leave Management**: Request, approval, and tracking of various leave types
+- **Payroll Processing**: Automated payroll calculations and payslip generation
+- **Performance Evaluations**: Regular and daily performance reviews
 
-### Administrative Features
-- **Settings Management**: Company configuration, departments, roles, and permissions
-- **User Authentication**: Secure login with mandatory password changes
-- **Notification System**: Automated alerts and notifications
-- **Audit Logs**: Login tracking and system activity monitoring
+### Project & Finance
+- **Project Management**: Project tracking, team assignments, and activity logs
+- **Client Management**: Client profiles and relationship management
+- **Invoice Management**: Invoice creation, tracking, and PDF generation
+- **Finance Dashboard**: Financial summaries and reporting
+
+### Administrative Tools
+- **HR Policies**: Rich text policy documents with version control
+- **Job Descriptions**: Structured job posting and description management
+- **Public Holidays**: Holiday calendar management
+- **Settings**: Comprehensive system configuration (departments, roles, expense categories, etc.)
+
+### User Experience
+- **Role-Based Access Control**: Granular permissions system
+- **Responsive Design**: Mobile-friendly interface
+- **Real-time Notifications**: Toast notifications and alerts
+- **Dark/Light Theme**: Theme switching support
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with custom design system
-- **UI Components**: shadcn/ui component library
-- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **Routing**: React Router
-- **State Management**: React hooks and context
-- **Testing**: Vitest for unit testing
-- **Code Quality**: ESLint configuration
+- **Frontend**: React 18, TypeScript, Vite
+- **Routing**: React Router DOM
+- **UI Components**: Shadcn/ui (Radix UI primitives), Tailwind CSS
+- **State Management**: TanStack Query (React Query)
+- **Forms**: React Hook Form with Zod validation
+- **Rich Text**: TipTap editor
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **Charts**: Recharts
+- **Testing**: Vitest, Playwright (E2E)
+- **Build Tools**: Vite, ESLint, TypeScript
 
-## Getting Started
+## Prerequisites
 
-### Prerequisites
 - Node.js 18+
 - npm or bun package manager
 - Supabase account and project
 
-### Installation
+## Installation
 
 1. **Clone the repository**
    ```bash
@@ -61,25 +70,26 @@ A comprehensive Human Resources Management System built with modern web technolo
    bun install
    ```
 
-3. **Environment Configuration**
+3. **Environment Setup**
    
-   Copy the `.env` file and update the Supabase credentials:
+   Copy the `.env` file and configure your Supabase credentials:
    ```bash
    cp .env .env.local
    ```
    
    Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   ```
 
 4. **Database Setup**
    
-   The application uses Supabase migrations for database schema. The migrations are located in the `supabase/migrations/` directory and will be applied automatically when you run the Supabase CLI commands.
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
    
-   If you're setting up locally:
+   If using Supabase CLI:
    ```bash
-   npx supabase start
+   supabase db reset
    ```
 
 5. **Start Development Server**
@@ -88,75 +98,67 @@ A comprehensive Human Resources Management System built with modern web technolo
    # or
    bun run dev
    ```
-   
+
    The application will be available at `http://localhost:5173`
 
-### Build for Production
+## Available Scripts
 
-```bash
-npm run build
-```
-
-The built files will be in the `dist/` directory.
-
-### Testing
-
-Run the test suite:
-```bash
-npm run test
-```
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run test` - Run unit tests
+- `npm run test:watch` - Run tests in watch mode
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
+│   ├── ui/             # Shadcn/ui components
 │   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
 │   ├── attendance/     # Attendance-related components
+│   ├── employee-profile/ # Employee profile tabs
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── employee-profile/ # Employee profile tabs
-│   ├── settings/       # Admin settings components
 │   └── ...
-├── pages/              # Page components (Next.js-style routing)
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations (Supabase)
-└── main.tsx            # Application entry point
-
-supabase/
-├── migrations/         # Database schema migrations
-└── config.toml         # Supabase configuration
+└── types/              # TypeScript type definitions
 ```
 
-## Key Components
+## Authentication & Authorization
 
-### Layout System
-- `AppLayout`: Main application layout with sidebar navigation
-- `AppSidebar`: Navigation sidebar with role-based menu items
-- `TopBar`: Top navigation bar with user menu and notifications
+The application uses Supabase Auth for authentication with role-based access control:
 
-### Core Features
-- `AttendanceSummary`: Comprehensive attendance analytics and reporting
-- `MandatoryPasswordChange`: Secure password update flow for new users
-- `SearchableEmployeeSelect`: Employee selection component with search
-- `BeudoxLogo`: Brand logo component with variant support
+- **Authentication Flow**: Login → Mandatory password change (first login) → Dashboard
+- **Role-Based Access**: Different user roles have access to different features
+- **Protected Routes**: All business routes are protected and require authentication
 
-## Authentication & Security
+## Database Schema
 
-The application uses Supabase Authentication with the following security measures:
-- JWT-based authentication
-- Mandatory password changes for temporary accounts
-- Role-based access control (RBAC)
-- Login tracking and audit logs
+The application uses PostgreSQL via Supabase with the following main entities:
+
+- **employees**: User profiles and employment data
+- **attendance_records**: Daily attendance entries
+- **leave_requests**: Leave applications and approvals
+- **payroll_records**: Salary and payroll data
+- **projects**: Project management
+- **evaluations**: Performance reviews
+- **hr_policies**: Policy documents
+- **invoices**: Billing and invoicing
 
 ## Contributing
 
-1. Follow the existing code style and TypeScript conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Use conventional commit messages
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `npm run test`
+5. Run linting: `npm run lint`
+6. Submit a pull request
 
 ## License
 
