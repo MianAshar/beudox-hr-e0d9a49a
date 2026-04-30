@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 import AttendanceUploadFlow from '@/components/attendance/AttendanceUploadFlow';
 import MissingEntryModal, { MissingEntryTarget } from '@/components/attendance/MissingEntryModal';
+import AttendanceSummary from '@/components/attendance/AttendanceSummary';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -310,7 +311,7 @@ const Attendance = () => {
     return list;
   }, [isManager, canSeeCompanyTab]);
 
-  const [activeTab, setActiveTab] = useState<string>('my');
+  const [activeTab, setActiveTab] = useState<string>(isManager ? 'summary' : 'my');
   useEffect(() => {
     if (tabs.length > 0 && !tabs.some(t => t.value === activeTab)) {
       setActiveTab(tabs[0].value);
@@ -547,15 +548,16 @@ const Attendance = () => {
 
         {isManager && (
           <TabsContent value="summary" className="mt-4">
-            <Card className="overflow-hidden">
-              <div className="p-12 flex flex-col items-center justify-center text-center">
-                <CalendarCheck className="mb-3" style={{ width: 48, height: 48, color: '#9490B4' }} />
-                <p className="text-sm font-medium text-foreground">Coming soon</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Monthly attendance summary will appear here.
-                </p>
-              </div>
-            </Card>
+            {employee?.company_id ? (
+              <AttendanceSummary
+                companyId={employee.company_id}
+                startDate={dateRange.startDate}
+                endDate={dateRange.endDate}
+                monthYearLabel={monthYearLabel}
+                year={parseInt(year, 10)}
+                monthIndex={MONTHS.indexOf(month)}
+              />
+            ) : null}
           </TabsContent>
         )}
 
