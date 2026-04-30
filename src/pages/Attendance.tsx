@@ -531,10 +531,17 @@ const Attendance = () => {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
           {tabs.map(t => (
-            <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
+            <TabsTrigger
+              key={t.value}
+              value={t.value}
+              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+              style={{ fontFamily: 'var(--ff-body)' }}
+            >
+              {t.label}
+            </TabsTrigger>
           ))}
         </TabsList>
 
