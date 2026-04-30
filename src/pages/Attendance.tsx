@@ -402,6 +402,10 @@ const Attendance = () => {
       .select('date, end_date')
       .eq('company_id', employee.company_id)
       .lte('date', endDate);
+    // Local YYYY-MM-DD formatter to avoid UTC drift from toISOString().
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
     const holidaySet = new Set<string>();
     (holidays || []).forEach((h: any) => {
       const hStart = h.date as string;
@@ -410,7 +414,7 @@ const Attendance = () => {
       const cur = new Date(hStart + 'T00:00:00');
       const end = new Date(hEnd + 'T00:00:00');
       while (cur <= end) {
-        const ds = cur.toISOString().split('T')[0];
+        const ds = fmt(cur);
         if (ds >= startDate && ds <= endDate) holidaySet.add(ds);
         cur.setDate(cur.getDate() + 1);
       }
@@ -428,22 +432,23 @@ const Attendance = () => {
     const { data: leaves } = await q;
 
     const map = new Map<string, Map<string, string>>();
-    const winStart = new Date(startDate + 'T00:00:00');
-    const winEnd = new Date(endDate + 'T00:00:00');
     (leaves || []).forEach((lr: any) => {
       const empId = lr.employee_id as string;
       const ltName = lr.leave_types?.name || 'Leave';
-      const s = new Date((lr.start_date as string) + 'T00:00:00');
-      const e = new Date((lr.end_date as string) + 'T00:00:00');
-      const cur = new Date(Math.max(s.getTime(), winStart.getTime()));
-      const stop = new Date(Math.min(e.getTime(), winEnd.getTime()));
+      // Iterate every day from start_date to end_date inclusive (local time).
+      const cur = new Date((lr.start_date as string) + 'T00:00:00');
+      const stop = new Date((lr.end_date as string) + 'T00:00:00');
       let inner = map.get(empId);
       if (!inner) { inner = new Map(); map.set(empId, inner); }
       while (cur <= stop) {
-        const ds = cur.toISOString().split('T')[0];
-        const dow = cur.getDay();
-        if (workingDays.includes(dow) && !holidaySet.has(ds)) {
-          if (!inner.has(ds)) inner.set(ds, ltName);
+        const ds = fmt(cur);
+        // Only include working days within the visible month window.
+        if (ds >= startDate && ds <= endDate) {
+          const dow = cur.getDay(); // 0 = Sun, 6 = Sat
+          const isWeekend = !workingDays.includes(dow);
+          if (!isWeekend && !holidaySet.has(ds)) {
+            if (!inner.has(ds)) inner.set(ds, ltName);
+          }
         }
         cur.setDate(cur.getDate() + 1);
       }
