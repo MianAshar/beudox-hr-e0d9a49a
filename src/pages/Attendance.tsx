@@ -109,7 +109,7 @@ const Attendance = () => {
 
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late')
         .eq('company_id', employee.company_id)
         .gte('date', startDate)
         .lte('date', endDate)
