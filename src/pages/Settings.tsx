@@ -42,6 +42,7 @@ const Settings = () => {
     ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
     ...(isCeo || isHr ? [{ value: 'project-categories', label: 'Project Categories' }] : []),
     ...(isCeo || isHr ? [{ value: 'login-logs', label: 'Login Logs' }] : []),
+    ...(isCeo || isHr ? [{ value: 'leave-overwrites', label: 'Leave Overwrite Log' }] : []),
     ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
