@@ -82,23 +82,53 @@ Deno.serve(async (req) => {
     // Fetch all attendance records for this month + company
     const { data: attendance } = await supabase
       .from('attendance_records')
-      .select('employee_id, regular_ot_hours, holiday_ot_hours, status')
+      .select('employee_id, date, regular_ot_hours, holiday_ot_hours')
       .eq('company_id', company_id)
       .gte('date', startDate)
       .lte('date', endDate);
 
-    // Group attendance by employee — split positive (overtime) from negative (short time)
-    // Skip on_leave records — leave days are neutral and don't affect OT/short time.
+    // Fetch approved leave requests overlapping the month, then expand into a
+    // per-employee set of leave dates (weekends/holidays kept inside the set are
+    // harmless because attendance won't have OT entries for those days anyway).
+    const { data: approvedLeaves } = await supabase
+      .from('leave_requests')
+      .select('employee_id, start_date, end_date')
+      .eq('company_id', company_id)
+      .eq('status', 'approved')
+      .lte('start_date', endDate)
+      .gte('end_date', startDate);
+
+    const leaveDatesByEmp: Record<string, Set<string>> = {};
+    for (const lr of approvedLeaves || []) {
+      const empId = (lr as any).employee_id as string;
+      if (!leaveDatesByEmp[empId]) leaveDatesByEmp[empId] = new Set<string>();
+      const set = leaveDatesByEmp[empId];
+      const s = new Date(((lr as any).start_date as string) + 'T00:00:00');
+      const e = new Date(((lr as any).end_date as string) + 'T00:00:00');
+      const winStart = new Date(startDate + 'T00:00:00');
+      const winEnd = new Date(endDate + 'T00:00:00');
+      const cur = new Date(Math.max(s.getTime(), winStart.getTime()));
+      const stop = new Date(Math.min(e.getTime(), winEnd.getTime()));
+      while (cur <= stop) {
+        set.add(cur.toISOString().split('T')[0]);
+        cur.setDate(cur.getDate() + 1);
+      }
+    }
+
+    // Group attendance by employee — split positive (overtime) from negative (short time).
+    // Skip dates that fall on an approved leave day — leave is neutral for payroll.
     const attendanceMap: Record<string, { shortTime: number; overtime: number; holidayOt: number }> = {};
     for (const rec of attendance || []) {
-      if ((rec as any).status === 'on_leave') continue;
-      if (!attendanceMap[rec.employee_id]) {
-        attendanceMap[rec.employee_id] = { shortTime: 0, overtime: 0, holidayOt: 0 };
+      const empId = (rec as any).employee_id as string;
+      const recDate = (rec as any).date as string;
+      if (leaveDatesByEmp[empId]?.has(recDate)) continue;
+      if (!attendanceMap[empId]) {
+        attendanceMap[empId] = { shortTime: 0, overtime: 0, holidayOt: 0 };
       }
       const reg = Number(rec.regular_ot_hours || 0);
-      if (reg < 0) attendanceMap[rec.employee_id].shortTime += reg;
-      else if (reg > 0) attendanceMap[rec.employee_id].overtime += reg;
-      attendanceMap[rec.employee_id].holidayOt += Number(rec.holiday_ot_hours || 0);
+      if (reg < 0) attendanceMap[empId].shortTime += reg;
+      else if (reg > 0) attendanceMap[empId].overtime += reg;
+      attendanceMap[empId].holidayOt += Number(rec.holiday_ot_hours || 0);
     }
 
     // 4. Fetch active loans
