@@ -1,51 +1,45 @@
 <!--
 generated_by: tessera
-source_sha: 6a87e37253401fc78156c356eff42199bb63082e
-generated_at: 2026-04-30T00:21:33.820Z
+source_sha: 1d5e0dfda21b7bc05d820d1da31b13fc4b2ba0bf
+generated_at: 2026-04-30T00:29:39.200Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built as a modern React frontend application. This portal provides employees and HR administrators with tools to manage attendance, leave requests, payroll, evaluations, and more.
+A comprehensive Human Resources Management System built as a modern React application. This portal provides a complete suite of HR tools for managing employees, attendance, payroll, leave, evaluations, projects, and more.
 
 ## Features
 
-### Employee Dashboard
-- **Attendance Tracking**: Upload and manage attendance records with AI-powered parsing
-- **Leave Management**: Apply for leave, track balances, and manage requests
-- **Payroll Overview**: View salary history, pending increments, and payroll summaries
-- **Evaluations**: Participate in performance reviews and track evaluation timelines
-- **Profile Management**: Update personal information and notification preferences
-
-### HR Administration
-- **Employee Management**: Search and manage employee records
-- **Attendance Upload**: Bulk import attendance data from Excel files
-- **Leave Types & Policies**: Configure leave categories and approval workflows
-- **Payroll Processing**: Generate and manage payroll data
-- **Company Settings**: Configure departments, roles, expense categories, and evaluation parameters
-
-### System Features
-- **Role-based Access Control**: Different permissions for employees, managers, and admins
-- **Real-time Notifications**: Automated alerts for leave approvals, reviews, etc.
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Secure Authentication**: Supabase-powered auth with mandatory password changes
+- **Employee Management**: Complete employee profiles, onboarding, and lifecycle management
+- **Attendance Tracking**: Automated attendance import from biometric systems with AI parsing
+- **Payroll Processing**: Automated payroll generation with overtime calculations
+- **Leave Management**: Comprehensive leave request and approval system
+- **Performance Evaluations**: Structured evaluation processes and review cycles
+- **Project Management**: Project tracking, task assignment, and resource allocation
+- **Finance & Invoicing**: Invoice generation, expense tracking, and financial reporting
+- **HR Policies**: Digital policy management and compliance tracking
+- **Role-Based Access Control**: Granular permissions and security
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Backend**: Supabase (PostgreSQL database + Edge Functions)
-- **State Management**: React hooks and context
-- **Routing**: React Router
-- **Icons**: Lucide React
-- **Date Handling**: date-fns
-- **Forms**: React Hook Form (implied by form components)
+- **Styling**: Tailwind CSS with shadcn/ui component library
+- **State Management**: TanStack Query for server state
+- **Routing**: React Router DOM
+- **Backend**: Supabase (PostgreSQL + Auth + Edge Functions)
+- **UI Components**: Radix UI primitives with custom styling
+- **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts for data visualization
+- **Rich Text**: Tiptap for policy editing
+- **Testing**: Vitest + React Testing Library
+- **E2E Testing**: Playwright
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or bun package manager
 
@@ -53,8 +47,8 @@ A comprehensive Human Resources Management System built as a modern React fronte
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd beudox-hr
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+   cd beudox-hr-e0d9a49a
    ```
 
 2. Install dependencies:
@@ -64,16 +58,12 @@ A comprehensive Human Resources Management System built as a modern React fronte
    bun install
    ```
 
-3. Create environment file:
-   ```bash
-   cp .env.example .env
-   ```
-
-   Configure your Supabase credentials in `.env`:
+3. Set up environment variables:
+   
+   Copy `.env` and configure your Supabase credentials:
    ```env
-   VITE_SUPABASE_URL=your-supabase-url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
-   VITE_SUPABASE_PROJECT_ID=your-project-id
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
    ```
 
 4. Start the development server:
@@ -85,67 +75,67 @@ A comprehensive Human Resources Management System built as a modern React fronte
 
 5. Open [http://localhost:5173](http://localhost:5173) in your browser
 
-### Build for Production
+### Available Scripts
 
-```bash
-npm run build
-```
-
-The built files will be in the `dist` directory.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests once
+- `npm run test:watch` - Run tests in watch mode
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
-│   ├── layout/         # App layout components
-│   ├── attendance/     # Attendance-related components
-│   ├── leave/          # Leave management components
-│   ├── payroll/        # Payroll components
-│   ├── evaluations/    # Evaluation components
+│   ├── ui/             # shadcn/ui components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── attendance/     # Attendance-specific components
+│   ├── employee-profile/ # Employee profile tabs
 │   └── ...
-├── pages/              # Page components
-├── lib/                # Utility functions and configurations
+├── pages/              # Route components
 ├── hooks/              # Custom React hooks
+├── lib/                # Utility functions and configurations
 ├── integrations/       # External service integrations
-└── main.tsx           # Application entry point
+└── types/              # TypeScript type definitions
 ```
 
 ## Key Components
 
 - **AppLayout**: Main application layout with sidebar navigation
-- **AttendanceUploadFlow**: Complex flow for uploading and parsing attendance Excel files
-- **MandatoryPasswordChange**: Modal for first-time password setup
-- **SearchableEmployeeSelect**: Employee selection dropdown with search
-- **BeudoxLogo**: Logo component with different variants
+- **AttendanceUploadFlow**: Complex attendance import workflow with AI parsing
+- **MandatoryPasswordChange**: Secure password reset modal
+- **SearchableEmployeeSelect**: Employee selection component with search
+- **RichTextEditor**: WYSIWYG editor for HR policies
 
-## Development
+## Authentication & Security
 
-### Available Scripts
+The application uses Supabase Auth for authentication with:
+- Email/password login
+- Role-based access control
+- Mandatory password changes for new users
+- Session management and route protection
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
+## Database Schema
 
-### Testing
-
-```bash
-npm run test
-```
-
-### Code Quality
-
-The project uses ESLint for code linting and follows TypeScript strict mode for type safety.
+The application relies on a PostgreSQL database managed through Supabase with tables for:
+- Employees and user management
+- Attendance records
+- Payroll data
+- Leave requests
+- Projects and tasks
+- Evaluations and reviews
+- Company settings and policies
 
 ## Contributing
 
-1. Follow the existing code style and TypeScript conventions
-2. Use shadcn/ui components for consistent UI
-3. Test your changes thoroughly
-4. Update documentation as needed
+1. Follow the existing code style and conventions
+2. Write tests for new features
+3. Update documentation as needed
+4. Ensure all linting passes
 
 ## License
 
-This project is proprietary software. All rights reserved.
+This project is proprietary software for Beudox HR systems.
