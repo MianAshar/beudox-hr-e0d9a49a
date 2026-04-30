@@ -72,7 +72,6 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
   });
 
   if (!record) return null;
-  const emp = record.employees as any;
   const isDirector = emp?.employment_type === 'director';
   const status: string = record.status || 'draft';
   const statusStyle = statusStyles[status] || statusStyles.draft;
@@ -90,26 +89,6 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
 
   const regOtHours = Number(record.regular_ot_hours || 0);
   const holOtHours = Number(record.holiday_ot_hours || 0);
-
-  // Reconstruct short time and overtime from attendance records (payroll stores only net)
-  const monthYear: string | undefined = record.month_year;
-  const employeeId: string | undefined = record.employee_id;
-  const { data: attendance } = useQuery({
-    queryKey: ['payroll-detail-attendance', employeeId, monthYear],
-    queryFn: async () => {
-      if (!employeeId || !monthYear) return [];
-      const [y, m] = monthYear.split('-').map(Number);
-      const last = new Date(y, m, 0).getDate();
-      const { data } = await supabase
-        .from('attendance_records')
-        .select('regular_ot_hours')
-        .eq('employee_id', employeeId)
-        .gte('date', `${monthYear}-01`)
-        .lte('date', `${monthYear}-${String(last).padStart(2, '0')}`);
-      return data ?? [];
-    },
-    enabled: !!employeeId && !!monthYear && open,
-  });
 
   let shortHours = 0;
   let overtimeHours = 0;
