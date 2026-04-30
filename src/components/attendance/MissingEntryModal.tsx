@@ -104,14 +104,14 @@ export default function MissingEntryModal({
         status = 'present';
       }
 
-      const updatePayload: Record<string, any> = {
+      const updatePayload = {
         [target.field]: newIso,
-        working_hours: workingHours,
+        working_hours: workingHours ?? 0,
         regular_ot_hours: regularOt,
         is_late: isLate,
         status,
-        notes: null,
-      };
+        notes: null as string | null,
+      } as never;
 
       const { error: updErr } = await supabase
         .from('attendance_records')
