@@ -228,6 +228,24 @@ function RecordsTable({
                             Late
                           </span>
                         )}
+                        {(r.regular_ot_hours ?? 0) > 0 && (
+                          <span style={{
+                            backgroundColor: 'rgba(29, 201, 122, 0.12)', color: '#0F8C52',
+                            fontSize: '11px', fontWeight: 500,
+                            padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                          }}>
+                            OT +{formatDeviation(r.regular_ot_hours!)}
+                          </span>
+                        )}
+                        {(r.holiday_ot_hours ?? 0) > 0 && (
+                          <span style={{
+                            backgroundColor: 'rgba(91, 63, 248, 0.12)', color: '#5B3FF8',
+                            fontSize: '11px', fontWeight: 500,
+                            padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                          }}>
+                            Holiday OT +{formatDeviation(r.holiday_ot_hours!)}
+                          </span>
+                        )}
                         {r.notes && <span>{r.notes}</span>}
                       </div>
                     </TableCell>
