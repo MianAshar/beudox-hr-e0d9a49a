@@ -514,10 +514,80 @@ const AttendanceUploadFlow = ({
         status: 'completed', records_imported: imported + updated, records_skipped: skipped,
       }).eq('id', importRow.id);
 
+      // ---- Process pending leave overwrites ----
+      // For each: insert log first; only if log succeeds, decrement used_days
+      // and adjust the leave_request (cancel if last day, otherwise decrement).
+      const leaveRequestRemaining = new Map<string, number>(); // id -> remaining days_requested
+      for (const ov of pendingOverwrites) {
+        leaveRequestRemaining.set(
+          ov.leave.id,
+          leaveRequestRemaining.get(ov.leave.id) ?? ov.leave.days_requested,
+        );
+      }
+
+      for (const ov of pendingOverwrites) {
+        const { error: logErr } = await supabase
+          .from('leave_overwrite_logs' as any)
+          .insert({
+            company_id: companyId,
+            employee_id: ov.empId,
+            leave_request_id: ov.leave.id,
+            leave_type_name: ov.leave.leave_type_name,
+            date: ov.date,
+            check_in: ov.check_in,
+            check_out: ov.check_out,
+            working_hours: ov.working_hours,
+            reason: 'machine_record_found',
+          });
+        if (logErr) {
+          console.error('Leave overwrite log insert failed; skipping balance update', logErr);
+          continue;
+        }
+
+        // Decrement used_days for that year/employee/leave_type
+        const yr = parseInt(ov.date.slice(0, 4), 10);
+        const { data: balRow } = await supabase
+          .from('leave_balances')
+          .select('id, used_days')
+          .eq('company_id', companyId)
+          .eq('employee_id', ov.empId)
+          .eq('leave_type_id', ov.leave.leave_type_id)
+          .eq('year', yr)
+          .maybeSingle();
+        if (balRow) {
+          await supabase
+            .from('leave_balances')
+            .update({ used_days: Math.max(0, Number(balRow.used_days ?? 0) - 1) })
+            .eq('id', balRow.id);
+        }
+
+        // Adjust leave request
+        const remaining = leaveRequestRemaining.get(ov.leave.id) ?? 1;
+        const newRemaining = remaining - 1;
+        leaveRequestRemaining.set(ov.leave.id, newRemaining);
+        if (newRemaining <= 0) {
+          await supabase
+            .from('leave_requests')
+            .update({ status: 'cancelled', days_requested: 0 })
+            .eq('id', ov.leave.id);
+        } else {
+          await supabase
+            .from('leave_requests')
+            .update({ days_requested: newRemaining })
+            .eq('id', ov.leave.id);
+        }
+
+        overwrittenLeaves.push({
+          employee_name: empNameById.get(ov.empId) ?? ov.empId,
+          date: ov.date,
+          leave_type_name: ov.leave.leave_type_name,
+        });
+      }
+
       const skippedUnmatched = decision === 'skip'
         ? unmatchedEntries.map(u => u.employee_code) : [];
 
-      setSummary({ imported, updated, skipped, unmatched: skippedUnmatched });
+      setSummary({ imported, updated, skipped, unmatched: skippedUnmatched, overwrittenLeaves });
       setStep('done');
       toast({ title: 'Import complete', description: `${imported} imported, ${updated} updated, ${skipped} skipped.` });
     } catch (err) {
