@@ -1,195 +1,115 @@
 <!--
 generated_by: tessera
 source_sha: 84730b592bff08963ab922338ed5d22181c3cf2b
-generated_at: 2026-04-30T20:25:09.615Z
+generated_at: 2026-04-30T20:26:08.593Z
 action: create
 -->
 
-# Beudox HR Portal - Technical Context
+# Beudox HR - Technical Context for AI Assistants
 
 ## Architecture Overview
 
-Beudox HR is a modern React-based Single Page Application (SPA) built with TypeScript, designed for comprehensive human resources management. The application follows a client-server architecture with Supabase as the backend-as-a-service platform.
+Beudox HR is a single-page application (SPA) built with React and TypeScript, using Vite as the build tool. The application follows a component-based architecture with feature-organized directory structure. It integrates directly with Supabase for data persistence, authentication, and real-time features.
 
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript for type safety
-- **Build System**: Vite for fast development and optimized production builds
-- **Routing**: React Router DOM with protected routes and role-based access control
-- **State Management**: 
-  - TanStack Query (React Query) for server state management and caching
-  - Custom hooks for authentication and business logic
-- **UI Framework**: shadcn/ui built on Radix UI primitives, providing accessible, customizable components
-- **Styling**: Tailwind CSS with a custom design system and CSS variables
-- **Forms**: React Hook Form with Zod schema validation
-- **Data Visualization**: Recharts for charts and analytics
-- **Rich Text Editing**: Tiptap editor for HR policies and documents
+### Key Architectural Decisions
 
-### Backend Architecture
-- **Platform**: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
-- **Database**: PostgreSQL with Row Level Security (RLS) policies
-- **Authentication**: Supabase Auth with email/password and social providers
-- **Storage**: Supabase Storage for file uploads (avatars, documents)
-- **Serverless Functions**: Supabase Edge Functions for complex business logic (payroll generation, PDF creation, AI processing)
-
-### Data Flow
-1. User authentication via Supabase Auth
-2. Frontend queries/mutations directly to Supabase database using the JavaScript client
-3. Real-time subscriptions for live updates where needed
-4. Complex computations (payroll, attendance processing) handled by Edge Functions
-5. File uploads managed through Supabase Storage
-
-## Key Architectural Decisions
-
-### Authentication & Security
-- Supabase handles authentication with JWT tokens
-- Mandatory password change on first login for security
-- Role-based access control with granular permissions
-- Row Level Security policies in database for data isolation
-- API keys stored as environment variables
-
-### State Management
-- TanStack Query for server state to reduce unnecessary API calls
-- Optimistic updates for better UX
-- Background refetching for data freshness
-- Error handling with user-friendly messages
-
-### Component Architecture
-- Atomic design principles with reusable UI components
-- Feature-based organization of components
-- Custom hooks for shared logic
-- TypeScript interfaces for prop validation
-
-### Performance Optimizations
-- Code splitting with Vite
-- Lazy loading of routes
-- Image optimization and responsive loading
-- Efficient re-renders with React.memo and useMemo
+- **Component Organization**: Components are organized by feature (attendance, leave, payroll) rather than by type, promoting feature encapsulation and easier maintenance.
+- **UI Library**: Uses shadcn/ui built on Radix UI primitives, providing accessible, customizable components with Tailwind CSS styling.
+- **State Management**: Relies on React's built-in state management with custom hooks, supplemented by Supabase's real-time subscriptions for live data updates.
+- **Authentication**: Handled entirely by Supabase Auth, with role-based access control implemented in the frontend.
+- **Data Layer**: Direct Supabase client usage throughout the application, with TypeScript-generated types for type safety.
 
 ## Key Files and Their Purposes
 
-### Entry Points
-- `src/main.tsx`: Application bootstrap, renders root component
-- `src/App.tsx`: Main routing configuration and global providers
-
-### Authentication
-- `src/hooks/useAuth.tsx`: Authentication state management
-- `src/lib/role-access.ts`: Permission checking logic
-- `src/components/MandatoryPasswordChange.tsx`: Password change modal
+### Application Entrypoints
+- `src/main.tsx`: Application bootstrap, renders the root App component
+- `src/pages/Index.tsx`: Main application page, likely contains routing logic
 
 ### Core Components
-- `src/components/layout/AppLayout.tsx`: Main application layout with sidebar
-- `src/components/layout/AppSidebar.tsx`: Navigation sidebar
-- `src/components/ui/`: Reusable UI component library (60+ components)
+- `src/components/layout/AppLayout.tsx`: Main application layout with sidebar and topbar
+- `src/components/layout/AppSidebar.tsx`: Navigation sidebar with menu items
+- `src/components/layout/TopBar.tsx`: Top navigation bar with user menu and notifications
+- `src/components/MandatoryPasswordChange.tsx`: Modal for new users to set permanent passwords
+- `src/components/BeudoxLogo.tsx`: Logo component with different variants
 
-### Business Logic
-- `src/lib/attendance-format.ts`: Attendance data formatting utilities
-- `src/lib/leave-utils.ts`: Leave balance calculations
-- `src/lib/review-schedule.ts`: Performance review scheduling
-- `src/lib/notifications.ts`: In-app notification system
+### Feature Components
+- `src/components/attendance/AttendanceSummary.tsx`: Complex analytics dashboard for attendance data
+- `src/components/employee-profile/`: Suite of components for employee profile management
+- `src/components/leave/`: Components for leave request and management
+- `src/components/payroll/`: Payroll calculation and display components
+- `src/components/settings/`: Administrative configuration components
 
-### Pages/Routes
-- `src/pages/Dashboard.tsx`: Main dashboard with overview widgets
-- `src/pages/Employees.tsx`: Employee listing and management
-- `src/pages/Attendance.tsx`: Attendance tracking and analytics
-- `src/pages/Payroll.tsx`: Payroll processing interface
-- `src/pages/Settings.tsx`: System configuration
-
-### Integrations
+### Utility and Configuration
+- `src/lib/utils.ts`: Common utility functions, including the `cn` function for class merging
+- `src/lib/role-access.ts`: Role-based access control functions
 - `src/integrations/supabase/client.ts`: Supabase client configuration
-- `src/integrations/supabase/types.ts`: Database type definitions
+- `src/integrations/supabase/types.ts`: Auto-generated TypeScript types from database schema
 
-## Database Schema Overview
+## Database Schema and Relationships
 
-The application manages multiple entities with complex relationships:
+The application uses PostgreSQL via Supabase with the following core entities:
 
-### Core Entities
-- **employees**: User profiles with roles, departments, salary info
-- **attendance_records**: Daily attendance data with check-in/out times
+- **employees**: User profiles with company association, roles, and status
+- **attendance_records**: Time tracking entries with check-in/out times
 - **leave_requests**: Leave applications with approval workflow
-- **payroll_records**: Generated payroll data with components
-- **projects**: Project management with team assignments
-- **evaluations**: Performance reviews and ratings
-- **invoices**: Client invoicing system
-- **hr_policies**: Company policies and documents
+- **payroll_records**: Salary and overtime calculations
+- **companies**: Multi-tenant company configurations
+- **departments**: Organizational structure
+- **public_holidays**: Company-specific holiday calendars
 
-### Relationships
-- Employees belong to companies and departments
-- Attendance records link to employees with date-based tracking
-- Leave requests have approval chains
-- Payroll is generated monthly for active employees
-- Projects have many-to-many relationships with employees
-- Evaluations are scheduled and tracked over time
+Relationships are established through foreign keys, with company_id for multi-tenancy.
 
-## Business Logic Patterns
+## Business Logic and Data Flow
 
-### Attendance Processing
-- Automatic calculation of working hours from check-in/out
-- Overtime detection (regular and holiday)
-- Late arrival flagging
-- Absence tracking with implicit absences for missing records
+### Authentication Flow
+1. Users authenticate via Supabase Auth
+2. New users with temporary passwords are prompted to change via MandatoryPasswordChange modal
+3. JWT tokens are refreshed automatically
+4. Role-based permissions control feature access
+
+### Attendance Tracking
+1. Records are imported or entered manually
+2. Calculations determine working hours, overtime, and lateness
+3. Analytics aggregate data for dashboards and reports
+4. Anomalies (missing punches, frequent absences) are highlighted
 
 ### Leave Management
-- Balance tracking across multiple leave types
-- Accrual calculations
-- Approval workflows
-- Calendar integration for holiday awareness
+1. Employees submit leave requests
+2. Balance calculations account for leave types and accrual
+3. Approval workflow routes to managers
+4. Balances are updated upon approval
 
-### Payroll Generation
-- Complex calculations in Supabase Edge Functions
-- Multiple allowance and deduction types
-- Tax calculations
-- Payslip PDF generation
+### Payroll Processing
+1. Base salaries combined with overtime calculations
+2. Deductions and allowances applied
+3. Payslips generated with detailed breakdowns
+4. Historical records maintained
 
-### Role-Based Access
-- Hierarchical permission system
-- Route-level protection
-- UI element conditional rendering
-- Data filtering based on user roles
+## Data Flow Patterns
 
-## Development Workflow
+- **Read Operations**: Direct Supabase queries with RLS policies
+- **Write Operations**: Supabase mutations with optimistic updates
+- **Real-time Updates**: Supabase subscriptions for live dashboards
+- **File Handling**: Supabase Storage for avatars and documents
+- **Notifications**: Custom notification system with email/SMS integration
 
-### Local Development
-- Hot reload with Vite
-- TypeScript checking
-- ESLint for code quality
-- Vitest for unit testing
-- Playwright for E2E testing
+## Development Patterns
 
-### Deployment
-- Built with Vite for optimized bundles
-- Static hosting compatible
-- Environment-based configuration
-- Database migrations managed through Supabase
+- **Component Props**: Extensive use of TypeScript interfaces for prop validation
+- **Custom Hooks**: Reusable logic extracted into custom hooks (useAuth, useSort)
+- **Error Handling**: Toast notifications for user feedback
+- **Responsive Design**: Mobile-first approach with Tailwind breakpoints
+- **Accessibility**: Radix UI primitives ensure WCAG compliance
 
-### Testing Strategy
-- Unit tests for utilities and hooks
-- Integration tests for components
-- E2E tests for critical user flows
-- Manual testing for complex features
+## Testing Strategy
+
+- Unit tests in `src/test/` using Vitest
+- Component testing focuses on logic and interactions
+- E2E testing configured with Playwright
 
 ## Performance Considerations
 
-- Lazy loading of routes to reduce initial bundle size
-- Image optimization with responsive loading
+- Lazy loading of heavy components
+- Optimized re-renders with React.memo where appropriate
 - Efficient database queries with proper indexing
-- Caching strategies with TanStack Query
-- Minimal re-renders through React optimization techniques
-
-## Security Measures
-
-- Environment variable management for secrets
-- Supabase RLS policies for data access control
-- Input validation with Zod schemas
-- XSS protection through React's built-in sanitization
-- CSRF protection via Supabase's security features
-- Secure file upload handling
-
-## Scalability Considerations
-
-- Serverless backend allows horizontal scaling
-- Database design supports multi-tenancy
-- Component architecture enables feature modularity
-- Caching layers reduce database load
-- Edge Functions handle compute-intensive tasks
-
-This architecture provides a robust, scalable foundation for HR management while maintaining developer productivity and user experience.
+- Image optimization for avatars and logos
