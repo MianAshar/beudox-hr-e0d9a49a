@@ -65,6 +65,23 @@ const Attendance = () => {
   // TODO: Remove before production
   const [clearOpen, setClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [shiftDuration, setShiftDuration] = useState<number>(9.0);
+
+  useEffect(() => {
+    if (!employee?.company_id) return;
+    (async () => {
+      const { data } = await supabase
+        .from('company_settings')
+        .select('shift_start_time, shift_end_time')
+        .eq('company_id', employee.company_id)
+        .maybeSingle();
+      const start = parseHHmm(data?.shift_start_time);
+      const end = parseHHmm(data?.shift_end_time);
+      if (start != null && end != null && end > start) {
+        setShiftDuration(end - start);
+      }
+    })();
+  }, [employee?.company_id]);
 
   const isAuthorised = useMemo(() => {
     const roles = employee?.roles ?? [];
