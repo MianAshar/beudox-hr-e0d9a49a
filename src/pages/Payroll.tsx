@@ -18,6 +18,9 @@ import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { PayrollSummary } from '@/components/payroll/PayrollSummary';
+import PayrollDetailSheet from '@/components/payroll/PayrollDetailSheet';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Fragment } from 'react';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   draft: { bg: '#FEF3C7', text: '#92400E' },
