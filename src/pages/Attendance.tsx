@@ -45,6 +45,7 @@ interface AttendanceRow {
   is_late: boolean | null;
   regular_ot_hours: number | null;
   holiday_ot_hours: number | null;
+  status: string | null;
   employee_name?: string | null;
 }
 
@@ -164,9 +165,10 @@ function RecordsTable({
               </TableRow>
               {group.rows.map(r => {
                 const isUnmatched = !r.employee_id;
+                const isOnLeave = r.status === 'on_leave';
                 const missingField: 'check_in' | 'check_out' | null =
                   !r.check_in ? 'check_in' : !r.check_out ? 'check_out' : null;
-                const editable = missingField && canEdit(r);
+                const editable = !isOnLeave && missingField && canEdit(r);
                 return (
                   <TableRow key={r.id}>
                     {showCodeAndName && (
@@ -178,7 +180,9 @@ function RecordsTable({
                       </TableCell>
                     )}
                     <TableCell>
-                      {r.check_in ? (
+                      {isOnLeave ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : r.check_in ? (
                         <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
                           {formatTime12h(r.check_in)}
                         </Badge>
@@ -187,7 +191,9 @@ function RecordsTable({
                       )}
                     </TableCell>
                     <TableCell>
-                      {r.check_out ? (
+                      {isOnLeave ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : r.check_out ? (
                         <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
                           {formatTime12h(r.check_out)}
                         </Badge>
@@ -196,58 +202,74 @@ function RecordsTable({
                       )}
                     </TableCell>
                     <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
-                      <div className="flex flex-col items-end leading-tight">
-                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
-                          {formatWorkingHours(r.working_hours)}
-                        </span>
-                        {r.working_hours != null && (() => {
-                          const dev = r.working_hours - shiftDuration;
-                          if (Math.abs(dev) < 1 / 120) return null;
-                          if (dev > 0) {
+                      {isOnLeave ? (
+                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#60A5FA' }}>On Leave</span>
+                      ) : (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
+                            {formatWorkingHours(r.working_hours)}
+                          </span>
+                          {r.working_hours != null && (() => {
+                            const dev = r.working_hours - shiftDuration;
+                            if (Math.abs(dev) < 1 / 120) return null;
+                            if (dev > 0) {
+                              return (
+                                <span style={{ fontSize: '11px', color: '#1DC97A' }}>
+                                  +{formatDeviation(dev)} OT
+                                </span>
+                              );
+                            }
                             return (
-                              <span style={{ fontSize: '11px', color: '#1DC97A' }}>
-                                +{formatDeviation(dev)} OT
+                              <span style={{ fontSize: '11px', color: '#E84545' }}>
+                                -{formatDeviation(dev)} Short
                               </span>
                             );
-                          }
-                          return (
-                            <span style={{ fontSize: '11px', color: '#E84545' }}>
-                              -{formatDeviation(dev)} Short
-                            </span>
-                          );
-                        })()}
-                      </div>
+                          })()}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        {r.is_late && (
+                        {isOnLeave ? (
                           <span style={{
-                            backgroundColor: '#FEF3C7', color: '#92400E',
+                            backgroundColor: '#DBEAFE', color: '#1E40AF',
                             fontSize: '11px', fontWeight: 500,
                             padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
                           }}>
-                            Late
+                            {r.notes || 'On Leave'}
                           </span>
+                        ) : (
+                          <>
+                            {r.is_late && (
+                              <span style={{
+                                backgroundColor: '#FEF3C7', color: '#92400E',
+                                fontSize: '11px', fontWeight: 500,
+                                padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                              }}>
+                                Late
+                              </span>
+                            )}
+                            {(r.regular_ot_hours ?? 0) > 0 && (
+                              <span style={{
+                                backgroundColor: 'rgba(29, 201, 122, 0.12)', color: '#0F8C52',
+                                fontSize: '11px', fontWeight: 500,
+                                padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                              }}>
+                                OT +{formatDeviation(r.regular_ot_hours!)}
+                              </span>
+                            )}
+                            {(r.holiday_ot_hours ?? 0) > 0 && (
+                              <span style={{
+                                backgroundColor: 'rgba(91, 63, 248, 0.12)', color: '#5B3FF8',
+                                fontSize: '11px', fontWeight: 500,
+                                padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                              }}>
+                                Holiday OT +{formatDeviation(r.holiday_ot_hours!)}
+                              </span>
+                            )}
+                            {r.notes && <span>{r.notes}</span>}
+                          </>
                         )}
-                        {(r.regular_ot_hours ?? 0) > 0 && (
-                          <span style={{
-                            backgroundColor: 'rgba(29, 201, 122, 0.12)', color: '#0F8C52',
-                            fontSize: '11px', fontWeight: 500,
-                            padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
-                          }}>
-                            OT +{formatDeviation(r.regular_ot_hours!)}
-                          </span>
-                        )}
-                        {(r.holiday_ot_hours ?? 0) > 0 && (
-                          <span style={{
-                            backgroundColor: 'rgba(91, 63, 248, 0.12)', color: '#5B3FF8',
-                            fontSize: '11px', fontWeight: 500,
-                            padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
-                          }}>
-                            Holiday OT +{formatDeviation(r.holiday_ot_hours!)}
-                          </span>
-                        )}
-                        {r.notes && <span>{r.notes}</span>}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">

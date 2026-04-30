@@ -82,17 +82,24 @@ Deno.serve(async (req) => {
     // Fetch all attendance records for this month + company
     const { data: attendance } = await supabase
       .from('attendance_records')
-      .select('employee_id, regular_ot_hours, holiday_ot_hours')
+      .select('employee_id, regular_ot_hours, holiday_ot_hours, status')
       .eq('company_id', company_id)
       .gte('date', startDate)
       .lte('date', endDate);
 
     // Group attendance by employee — split positive (overtime) from negative (short time)
+    // Skip on_leave records — leave days are neutral and don't affect OT/short time.
     const attendanceMap: Record<string, { shortTime: number; overtime: number; holidayOt: number }> = {};
     for (const rec of attendance || []) {
+      if ((rec as any).status === 'on_leave') continue;
       if (!attendanceMap[rec.employee_id]) {
         attendanceMap[rec.employee_id] = { shortTime: 0, overtime: 0, holidayOt: 0 };
       }
+      const reg = Number(rec.regular_ot_hours || 0);
+      if (reg < 0) attendanceMap[rec.employee_id].shortTime += reg;
+      else if (reg > 0) attendanceMap[rec.employee_id].overtime += reg;
+      attendanceMap[rec.employee_id].holidayOt += Number(rec.holiday_ot_hours || 0);
+    }
       const reg = Number(rec.regular_ot_hours || 0);
       if (reg < 0) attendanceMap[rec.employee_id].shortTime += reg;
       else if (reg > 0) attendanceMap[rec.employee_id].overtime += reg;
