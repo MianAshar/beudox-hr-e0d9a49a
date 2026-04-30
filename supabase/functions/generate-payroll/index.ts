@@ -100,11 +100,6 @@ Deno.serve(async (req) => {
       else if (reg > 0) attendanceMap[rec.employee_id].overtime += reg;
       attendanceMap[rec.employee_id].holidayOt += Number(rec.holiday_ot_hours || 0);
     }
-      const reg = Number(rec.regular_ot_hours || 0);
-      if (reg < 0) attendanceMap[rec.employee_id].shortTime += reg;
-      else if (reg > 0) attendanceMap[rec.employee_id].overtime += reg;
-      attendanceMap[rec.employee_id].holidayOt += Number(rec.holiday_ot_hours || 0);
-    }
 
     // 4. Fetch active loans
     const { data: loans } = await supabase
