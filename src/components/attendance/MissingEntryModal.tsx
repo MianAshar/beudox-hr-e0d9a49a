@@ -66,7 +66,7 @@ export default function MissingEntryModal({
   };
 
   const handleSubmit = async () => {
-    if (!target || !employee?.company_id || !employee?.id) return;
+    if (!target || !employee?.company_id || !employee?.employee_id) return;
     if (!time) {
       toast.error('Please select a time');
       return;
