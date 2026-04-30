@@ -17,6 +17,8 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { sendNotification } from '@/lib/notifications';
+import { syncLeaveToAttendance, syncAllApprovedLeaves } from '@/lib/leave-attendance';
+import { RefreshCw } from 'lucide-react';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   pending: { bg: '#FEF3C7', text: '#92400E' },
@@ -98,7 +100,19 @@ const AllRequestsTab = () => {
         .eq('id', request.id);
       if (error) throw error;
 
-      // TODO: Attendance integration — wire to attendance_records in Sprint A3
+      // Create on_leave attendance records for working days in the leave range
+      try {
+        await syncLeaveToAttendance({
+          companyId: companyId!,
+          employeeId: request.employee_id,
+          startDate: request.start_date,
+          endDate: request.end_date,
+          leaveTypeName: request.leave_types?.name || 'Leave',
+        });
+      } catch (e) {
+        console.error('Failed to sync attendance for approved leave', e);
+      }
+
       const year = new Date(request.start_date).getFullYear();
       const { data: balance } = await supabase.from('leave_balances').select('id, used_days')
         .eq('company_id', companyId!).eq('employee_id', request.employee_id)
