@@ -50,11 +50,18 @@ interface CompanySettings {
   late_threshold: number;
 }
 
+interface OverwrittenLeaveItem {
+  employee_name: string;
+  date: string;
+  leave_type_name: string;
+}
+
 interface ImportSummary {
   imported: number;
   updated: number;
   skipped: number;
   unmatched: string[];
+  overwrittenLeaves: OverwrittenLeaveItem[];
 }
 
 type UnmatchedDecision = 'import' | 'skip';
