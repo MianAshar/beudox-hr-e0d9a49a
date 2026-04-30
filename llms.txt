@@ -1,202 +1,178 @@
 <!--
 generated_by: tessera
-source_sha: 001061ada578b3f6e982469cb94d4dfa0ee8e474
-generated_at: 2026-04-30T11:48:34.279Z
+source_sha: efbbd50b6d210611a4b2ee1cb2e74d971c2debbf
+generated_at: 2026-04-30T11:49:18.736Z
 action: create
 -->
 
-# Beudox HR Portal - Technical Context for AI Assistants
+# Beudox HR Portal - Technical Context
 
 ## Architecture Overview
 
-Beudox HR is a modern React-based HR management system built with TypeScript, using Supabase as the backend. The application follows a component-driven architecture with clear separation of concerns.
+Beudox HR is a modern React-based frontend application built with TypeScript, designed as a comprehensive Human Resources Management System. The application follows a component-driven architecture with clear separation of concerns.
 
-### Frontend Architecture
-- **Framework**: React 18 with functional components and hooks
-- **Language**: TypeScript for type safety
+### Technology Stack
+- **Frontend Framework**: React 18 with TypeScript for type safety
 - **Build System**: Vite for fast development and optimized production builds
-- **Routing**: Custom routing system (pages in src/pages/)
-- **Styling**: Tailwind CSS with custom design tokens and CSS variables
-- **State Management**: React context and hooks (no external state library)
-- **UI Library**: Custom component system built on Radix UI primitives
+- **Styling**: Tailwind CSS with shadcn/ui component library for consistent design
+- **Routing**: React Router for client-side navigation
+- **Backend Integration**: Supabase (PostgreSQL + Auth + Edge Functions)
+- **State Management**: React hooks with Supabase real-time subscriptions
+- **Testing**: Vitest framework with minimal current test coverage
 
-### Backend Architecture
-- **Database**: PostgreSQL via Supabase
-- **Authentication**: Supabase Auth with custom user management
-- **API**: Supabase client for database operations and real-time subscriptions
-- **Edge Functions**: Supabase Edge Functions for server-side logic (payroll generation, notifications, etc.)
-- **File Storage**: Supabase Storage for documents and avatars
-
-## Key Design Patterns
+## Key Architectural Patterns
 
 ### Component Organization
-- **Atomic Design**: UI components organized by complexity (atoms, molecules, organisms)
-- **Feature-based Structure**: Components grouped by business domain (attendance/, payroll/, etc.)
-- **Composition over Inheritance**: Heavy use of component composition and render props
-- **Custom Hooks**: Business logic extracted into reusable hooks
+- **Atomic Design**: UI components range from basic atoms (buttons, inputs) to complex organisms (forms, tables)
+- **Feature-based Structure**: Components grouped by domain (attendance/, employee-profile/, leave/, etc.)
+- **Shared UI Library**: Common components in `src/components/ui/` following shadcn/ui patterns
 
 ### Data Flow
-- **Supabase Client**: Direct database queries from components
-- **Real-time Updates**: Supabase subscriptions for live data
-- **Optimistic Updates**: UI updates before server confirmation
-- **Error Boundaries**: Graceful error handling at component level
+- **Supabase Integration**: Direct database queries using Supabase client
+- **Real-time Updates**: Live data synchronization for collaborative features
+- **Optimistic Updates**: Immediate UI feedback with server reconciliation
+- **Error Handling**: Comprehensive error boundaries and user feedback
 
-### Authentication & Security
-- **Mandatory Password Changes**: New users forced to change temporary passwords
+### Authentication & Authorization
+- **JWT-based Auth**: Supabase handles authentication tokens
 - **Role-based Access**: Permission checks throughout the application
-- **Session Management**: Automatic token refresh and session handling
-
-## Core Business Logic
-
-### Attendance Management
-- **Time Tracking**: Check-in/check-out with automatic overtime calculation
-- **Holiday Handling**: Public holiday integration with recurring rules
-- **Analytics**: Comprehensive attendance metrics and anomaly detection
-- **Data Sources**: Multiple attendance import formats supported
-
-### Payroll Processing
-- **Automated Calculation**: Salary computation with allowances and deductions
-- **Overtime Rules**: Regular and holiday overtime rate calculations
-- **PDF Generation**: Automated payslip generation via Edge Functions
-- **Multi-currency Support**: Configurable currency handling
-
-### Leave Management
-- **Balance Tracking**: Automatic leave balance calculations
-- **Approval Workflows**: Multi-level approval processes
-- **Calendar Integration**: Leave calendar with conflict detection
-- **Policy Enforcement**: Configurable leave policies per employee type
-
-### Employee Lifecycle
-- **Onboarding**: Automated employee setup with temporary credentials
-- **Profile Management**: Comprehensive employee data management
-- **Performance Reviews**: Scheduled evaluation system
-- **Offboarding**: Secure employee deactivation and data archiving
+- **Secure Routes**: Protected routes with authentication guards
+- **Password Management**: Secure password reset and strength validation
 
 ## Key Files and Their Purposes
 
 ### Entry Points
-- `src/main.tsx`: Application bootstrap and React root rendering
-- `src/pages/Index.tsx`: Main dashboard/home page
-- `src/App.tsx`: Main application component with routing
+- `src/main.tsx`: Application bootstrap, router setup, and root rendering
+- `src/pages/Index.tsx`: Main dashboard/home page component
+- `src/App.tsx`: Core application component with routing logic
 
 ### Core Components
-- `src/components/layout/AppLayout.tsx`: Main layout with sidebar and navigation
+- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and header
 - `src/components/layout/AppSidebar.tsx`: Navigation sidebar with role-based menu
-- `src/components/attendance/AttendanceSummary.tsx`: Attendance analytics dashboard
+- `src/components/BeudoxLogo.tsx`: Brand logo with variant support (default/sidebar)
 - `src/components/MandatoryPasswordChange.tsx`: Password reset modal for new users
+- `src/components/SearchableEmployeeSelect.tsx`: Employee selection dropdown with search
+- `src/components/NavLink.tsx`: Enhanced navigation link component
 
-### Utilities and Hooks
+### Complex Business Logic
+- `src/components/attendance/AttendanceSummary.tsx`: Comprehensive attendance analytics
+  - Calculates attendance rates, overtime, punctuality metrics
+  - Identifies anomalies (absences, incomplete records, weekend work)
+  - Aggregates data across employees and time periods
+
+### Utility Libraries
 - `src/lib/utils.ts`: Common utility functions (cn for class merging)
-- `src/lib/role-access.ts`: Permission checking functions
-- `src/lib/notifications.ts`: Notification sending logic
-- `src/hooks/useAuth.ts`: Authentication state management
-- `src/hooks/useSort.ts`: Table sorting functionality
+- `src/lib/role-access.ts`: Permission and role checking functions
+- `src/lib/notifications.ts`: Notification sending and recipient logic
+- `src/lib/attendance-format.ts`: Time and attendance data formatting
+- `src/lib/leave-utils.ts`: Leave balance and calculation utilities
+- `src/lib/review-schedule.ts`: Performance review scheduling logic
 
 ### Integrations
 - `src/integrations/supabase/client.ts`: Supabase client configuration
-- `src/integrations/supabase/types.ts`: Database type definitions
+- `src/integrations/supabase/types.ts`: TypeScript types for database schema
 
-### Configuration
-- `vite.config.ts`: Build configuration
-- `tailwind.config.ts`: Styling configuration
-- `tsconfig.json`: TypeScript configuration
+### Hooks
+- `src/hooks/useAuth.ts`: Authentication state management
+- `src/hooks/use-toast.ts`: Toast notification system
+- `src/hooks/useSort.ts`: Table sorting functionality
 
-## Database Schema Highlights
+## Database Schema Insights
 
-### Core Tables
-- **employees**: Employee master data with auth integration
-- **attendance_records**: Time tracking data with calculated fields
-- **leave_requests**: Leave management with approval workflows
-- **payroll_records**: Salary and payment history
-- **projects**: Project management with team assignments
-- **evaluations**: Performance review data
+Based on the application code, the system manages:
+
+### Core Entities
+- **Employees**: User profiles with roles, departments, contact info
+- **Attendance Records**: Check-in/out times, working hours, overtime
+- **Leave Requests**: Leave balances, approvals, types
+- **Payroll**: Salary calculations, allowances, deductions
+- **Evaluations**: Performance reviews and salary adjustments
+- **Projects**: Team assignments and activity tracking
+- **Settings**: Company configuration (departments, roles, policies)
 
 ### Key Relationships
-- Employees belong to companies with role-based access
-- Attendance records link to employees with company scoping
-- Leave requests have approval chains and balance tracking
-- Payroll calculations include overtime and allowances
+- Employees belong to companies with role-based permissions
+- Attendance linked to employees with company-scoped holidays
+- Leave balances maintained per employee per leave type
+- Payroll generated monthly with complex calculations
+- Projects have team members with activity logs
+
+## Business Logic Patterns
+
+### Attendance Processing
+- Automatic calculation of working hours from check-in/out times
+- Overtime detection (regular vs holiday/weekend)
+- Late arrival identification based on company policies
+- Absence tracking (explicit marks + implicit from missing records)
+
+### Leave Management
+- Balance tracking with automatic adjustments
+- Approval workflows with notifications
+- Working day calculations excluding weekends/holidays
+
+### Payroll Generation
+- Complex calculations involving base salary, allowances, overtime
+- Tax deductions and final payout computations
+- PDF generation for payslips and invoices
+
+### Notification System
+- Automated alerts for HR events (approvals, reviews, etc.)
+- Role-based recipient targeting
+- Email and in-app notification delivery
+
+## Configuration and Environment
+
+### Build Configuration
+- `vite.config.ts`: Vite build settings with React plugin
+- `tsconfig.json`: TypeScript configuration for the application
+- `tailwind.config.ts`: Tailwind CSS customization
+- `eslint.config.js`: Code linting rules
+
+### Environment Variables
+- Supabase project credentials (URL, keys, project ID)
+- Configured for different environments (development/production)
 
 ## Development Workflow
 
 ### Component Development
-1. Create component in appropriate feature directory
-2. Define TypeScript interfaces for props
-3. Implement with hooks for state and effects
-4. Add error handling and loading states
-5. Style with Tailwind classes
-6. Add unit tests if complex logic
-
-### Data Operations
-1. Use Supabase client for queries
-2. Implement optimistic updates for better UX
-3. Handle errors with user-friendly messages
-4. Use real-time subscriptions for live updates
-5. Implement proper loading states
-
-### Feature Implementation
-1. Plan component hierarchy and data flow
-2. Implement backend logic in Edge Functions if needed
-3. Create database migrations for schema changes
-4. Update UI components with proper error handling
-5. Add role-based access controls
-6. Test across different user roles
-
-## Common Patterns
-
-### Form Handling
-- Controlled components with validation
-- Real-time validation feedback
-- Submission with loading states
-- Error display with specific messages
+- TypeScript-first approach with strict type checking
+- shadcn/ui components for consistent design
+- Custom hooks for shared logic
+- Error boundaries for robust error handling
 
 ### Data Fetching
-- useEffect for initial loads
-- Error boundaries for graceful failures
-- Loading skeletons for better UX
-- Optimistic updates for immediate feedback
+- Supabase client for direct database operations
+- Real-time subscriptions for live updates
+- Optimistic updates for better UX
+- Comprehensive error handling with user feedback
 
-### Navigation
-- React Router with protected routes
-- Role-based route access
-- Breadcrumb navigation
-- Consistent navigation patterns
+### Testing Strategy
+- Unit tests for utility functions
+- Component testing with React Testing Library
+- E2E testing with Playwright (configured but minimal)
 
-### Styling
-- Tailwind utility classes
-- CSS custom properties for theming
-- Consistent spacing and typography
-- Responsive design patterns
+## Security Considerations
 
-## Performance Considerations
+- JWT token management with automatic refresh
+- Role-based permissions throughout the UI
+- Secure password policies with strength validation
+- Input sanitization and validation
+- Audit logging for sensitive operations
+- Secure API communication via Supabase
 
-- **Code Splitting**: Route-based code splitting
-- **Image Optimization**: Lazy loading and proper sizing
-- **Database Queries**: Efficient queries with proper indexing
-- **Real-time Updates**: Selective subscriptions to reduce overhead
-- **Caching**: Browser caching for static assets
+## Performance Optimizations
 
-## Security Measures
+- Component lazy loading where appropriate
+- Efficient data fetching with proper indexing assumptions
+- Real-time subscriptions for collaborative features
+- Optimized re-renders with React.memo and useMemo
+- Bundle splitting with Vite
 
-- **Authentication**: Supabase Auth with secure token handling
-- **Authorization**: Row-level security policies in database
-- **Input Validation**: Client and server-side validation
-- **CSRF Protection**: Built into Supabase Auth
-- **Data Encryption**: Automatic encryption for sensitive data
+## Future Considerations
 
-## Testing Strategy
-
-- **Unit Tests**: Component logic and utility functions
-- **Integration Tests**: API interactions and workflows
-- **E2E Tests**: Critical user journeys with Playwright
-- **Visual Testing**: Component appearance consistency
-
-## Deployment
-
-- **Build Process**: Vite production build with asset optimization
-- **Hosting**: Modern web hosting with CDN
-- **Environment Management**: Separate environments for dev/staging/prod
-- **Monitoring**: Error tracking and performance monitoring
-- **Backup**: Automated database backups
-
-This technical context provides the foundation for understanding the codebase architecture, patterns, and implementation details for effective development and maintenance.
+- Expand test coverage for critical business logic
+- Implement more advanced caching strategies
+- Add offline support for critical features
+- Enhance accessibility compliance
+- Implement advanced analytics and reporting
+- Add multi-tenant architecture support

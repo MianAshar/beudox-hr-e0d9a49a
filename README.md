@@ -1,44 +1,40 @@
 <!--
 generated_by: tessera
-source_sha: 001061ada578b3f6e982469cb94d4dfa0ee8e474
-generated_at: 2026-04-30T11:48:34.279Z
+source_sha: efbbd50b6d210611a4b2ee1cb2e74d971c2debbf
+generated_at: 2026-04-30T11:49:18.735Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built as a modern web application for managing employee data, attendance, leave, payroll, and organizational workflows.
+A comprehensive Human Resources Management System built as a modern React-based web application. Beudox HR streamlines employee management, attendance tracking, leave requests, payroll processing, and organizational workflows for businesses.
 
 ## Features
 
-### Core HR Modules
-- **Employee Profiles**: Complete employee information management including personal details, job history, and organizational structure
-- **Attendance Management**: Automated attendance tracking with check-in/out, overtime calculation, and analytics
-- **Leave Management**: Comprehensive leave request and approval system with balance tracking
-- **Payroll Processing**: Automated payroll generation with salary calculations and overtime handling
-- **Performance Evaluations**: Employee evaluation system with scheduled reviews and feedback
-- **Project Management**: Team assignment and project tracking capabilities
-- **Finance & Expenses**: Expense tracking and financial reporting
-- **HR Policies**: Rich text policy documentation and management
+### Core HR Functionality
+- **Employee Profiles**: Complete employee information management with roles, departments, and organizational hierarchy
+- **Attendance Management**: Automated attendance tracking with check-in/out, overtime calculation, and anomaly detection
+- **Leave Management**: Comprehensive leave request system with balances, approvals, and policy enforcement
+- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and deductions
+- **Performance Evaluations**: Structured evaluation timelines and salary review processes
+- **Project Management**: Team assignment, activity logging, and project tracking
 
 ### Administrative Features
-- **User Authentication**: Secure login with mandatory password changes for new users
-- **Role-Based Access Control**: Granular permissions system for different user roles
-- **Company Settings**: Configurable company information, departments, roles, and policies
-- **Audit Logs**: Login tracking and activity monitoring
+- **Company Settings**: Configurable departments, roles, leave types, expense categories, and evaluation parameters
+- **User Management**: Role-based access control with granular permissions
 - **Notification System**: Automated notifications for HR events and approvals
+- **Audit Logs**: Comprehensive login tracking and activity monitoring
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with custom design system
+- **Styling**: Tailwind CSS with shadcn/ui component library
 - **Routing**: React Router
 - **Backend**: Supabase (PostgreSQL database + Auth + Edge Functions)
-- **UI Components**: Custom component library with Radix UI primitives
-- **State Management**: React hooks and context
+- **State Management**: React hooks with Supabase real-time subscriptions
 - **Testing**: Vitest for unit testing
-- **Deployment**: Modern web standards
+- **Deployment**: Configured for modern web hosting platforms
 
 ## Getting Started
 
@@ -51,8 +47,8 @@ A comprehensive Human Resources Management System built as a modern web applicat
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd beudox-hr
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
+   cd beudox-hr-e0d9a49a
    ```
 
 2. **Install dependencies**
@@ -62,94 +58,103 @@ A comprehensive Human Resources Management System built as a modern web applicat
    bun install
    ```
 
-3. **Environment Setup**
+3. **Environment Configuration**
    
-   Copy the `.env` file and configure your Supabase credentials:
-   ```env
-   VITE_SUPABASE_PROJECT_ID=your_project_id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=your_supabase_url
+   Copy the `.env` file and update the Supabase credentials:
+   ```bash
+   cp .env .env.local
    ```
+   
+   Update the following variables in `.env.local`:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
+   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
 
 4. **Database Setup**
    
-   The application uses Supabase for data storage. Run the SQL migrations in the `supabase/migrations/` directory to set up the database schema.
+   The application uses Supabase migrations for database schema. The migrations are located in `supabase/migrations/` and will be applied automatically when you run the Supabase CLI commands.
+   
+   If you're setting up locally:
+   ```bash
+   npx supabase start
+   ```
 
-5. **Start Development Server**
+5. **Development Server**
    ```bash
    npm run dev
    # or
    bun run dev
    ```
+   
+   The application will be available at `http://localhost:5173`
 
-6. **Build for Production**
-   ```bash
-   npm run build
-   ```
+### Build for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist/` directory.
 
 ## Project Structure
 
 ```
 src/
-├── components/          # Reusable UI components
-│   ├── ui/             # Base UI primitives (buttons, forms, etc.)
-│   ├── layout/         # Layout components (sidebar, header, etc.)
-│   ├── attendance/     # Attendance-related components
+├── components/           # Reusable UI components
+│   ├── ui/              # shadcn/ui base components
+│   ├── attendance/      # Attendance-related components
 │   ├── employee-profile/ # Employee profile sections
-│   ├── leave/          # Leave management components
-│   ├── payroll/        # Payroll components
-│   ├── projects/       # Project management components
-│   ├── settings/       # Admin settings components
+│   ├── leave/           # Leave management components
+│   ├── payroll/         # Payroll components
+│   ├── settings/        # Admin settings components
 │   └── ...
-├── pages/              # Page components (Next.js-style routing)
-├── lib/                # Utility functions and configurations
-├── hooks/              # Custom React hooks
-├── integrations/       # External service integrations
-└── main.tsx           # Application entry point
+├── pages/               # Page components (routes)
+├── lib/                 # Utility functions and configurations
+├── hooks/               # Custom React hooks
+├── integrations/        # External service integrations
+└── main.tsx            # Application entry point
 
 supabase/
-├── migrations/         # Database schema migrations
-└── functions/          # Edge functions for backend logic
+├── migrations/          # Database schema migrations
+├── functions/           # Edge functions for server-side logic
+└── config.toml         # Supabase project configuration
 ```
 
 ## Key Components
 
-### Core UI Components
-- **BeudoxLogo**: Brand logo component with multiple variants
+### Layout & Navigation
 - **AppLayout**: Main application layout with sidebar navigation
-- **SearchableEmployeeSelect**: Employee selection dropdown with search
-- **MandatoryPasswordChange**: Password reset modal for new users
+- **AppSidebar**: Responsive sidebar with role-based menu items
+- **TopBar**: Header with user menu and notifications
+- **BeudoxLogo**: Brand logo component with variant support
 
-### Feature Components
-- **AttendanceSummary**: Comprehensive attendance analytics dashboard
-- **LeaveBalancesTab**: Employee leave balance management
-- **PayrollDetailSheet**: Detailed payroll information display
-- **EvaluationTimeline**: Performance review timeline visualization
+### Core Features
+- **AttendanceSummary**: Comprehensive attendance analytics and reporting
+- **MandatoryPasswordChange**: Secure password reset flow for new users
+- **SearchableEmployeeSelect**: Employee selection component with search
+- **NavLink**: Enhanced navigation link with active state styling
 
-## Development
+## Authentication & Security
 
-### Available Scripts
+The application uses Supabase Auth for user authentication with the following security features:
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run test suite
-- `npm run lint` - Run ESLint
-
-### Code Quality
-- TypeScript for type safety
-- ESLint for code linting
-- Prettier for code formatting
-- Comprehensive test coverage
+- JWT-based authentication
+- Role-based access control (RBAC)
+- Secure password policies
+- Login attempt monitoring
+- Session management
 
 ## Contributing
 
-1. Follow the existing code style and patterns
+1. Follow the existing code style and TypeScript conventions
 2. Write tests for new features
-3. Update documentation as needed
-4. Ensure TypeScript types are properly defined
-5. Test across different screen sizes
+3. Update documentation for API changes
+4. Use conventional commit messages
 
 ## License
 
 This project is proprietary software. All rights reserved.
+
+## Support
+
+For support and questions, please contact the development team or refer to the internal documentation.
