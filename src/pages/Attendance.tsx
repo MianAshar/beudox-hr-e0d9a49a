@@ -36,7 +36,22 @@ interface AttendanceRow {
   check_out: string | null;
   working_hours: number | null;
   notes: string | null;
+  is_late: boolean | null;
   employee_name?: string | null;
+}
+
+function parseHHmm(s: string | null | undefined): number | null {
+  if (!s) return null;
+  const m = String(s).match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return parseInt(m[1], 10) + parseInt(m[2], 10) / 60;
+}
+
+function formatDeviation(deviation: number): string {
+  const abs = Math.abs(deviation);
+  const h = Math.floor(abs);
+  const mins = Math.round((abs - h) * 60);
+  return `${h}h ${mins}m`;
 }
 
 const Attendance = () => {
