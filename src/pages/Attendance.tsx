@@ -54,6 +54,7 @@ interface CompanySettings {
   shift_end_time: string;
   late_threshold: number;
   lunch_break_hours: number;
+  working_days: number[];
 }
 
 function parseHHmm(s: string | null | undefined): number | null {
@@ -360,7 +361,7 @@ const Attendance = () => {
     (async () => {
       const { data } = await supabase
         .from('company_settings')
-        .select('shift_start_time, shift_end_time, late_threshold, lunch_break_hours')
+        .select('shift_start_time, shift_end_time, late_threshold, lunch_break_hours, working_days')
         .eq('company_id', employee.company_id)
         .maybeSingle();
       if (data) {
@@ -369,6 +370,7 @@ const Attendance = () => {
           shift_end_time: data.shift_end_time,
           late_threshold: data.late_threshold ?? 0,
           lunch_break_hours: Number(data.lunch_break_hours ?? 1),
+          working_days: (data as any).working_days ?? [1, 2, 3, 4, 5],
         });
       }
     })();
