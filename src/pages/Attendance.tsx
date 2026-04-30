@@ -45,6 +45,7 @@ interface AttendanceRow {
   is_late: boolean | null;
   regular_ot_hours: number | null;
   holiday_ot_hours: number | null;
+  status: string | null;
   employee_name?: string | null;
 }
 
