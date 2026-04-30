@@ -332,11 +332,48 @@ const Attendance = () => {
                             )}
                           </TableCell>
                           <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
-                            <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
-                              {formatWorkingHours(r.working_hours)}
-                            </span>
+                            <div className="flex flex-col items-end leading-tight">
+                              <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
+                                {formatWorkingHours(r.working_hours)}
+                              </span>
+                              {r.working_hours != null && (() => {
+                                const dev = r.working_hours - shiftDuration;
+                                if (Math.abs(dev) < 1 / 120) return null; // ~0
+                                if (dev > 0) {
+                                  return (
+                                    <span style={{ fontSize: '11px', color: '#1DC97A' }}>
+                                      +{formatDeviation(dev)} OT
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <span style={{ fontSize: '11px', color: '#E84545' }}>
+                                    -{formatDeviation(dev)} Short
+                                  </span>
+                                );
+                              })()}
+                            </div>
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {r.is_late && (
+                                <span
+                                  style={{
+                                    backgroundColor: '#FEF3C7',
+                                    color: '#92400E',
+                                    fontSize: '11px',
+                                    fontWeight: 500,
+                                    padding: '2px 8px',
+                                    borderRadius: '9999px',
+                                    lineHeight: 1.4,
+                                  }}
+                                >
+                                  Late
+                                </span>
+                              )}
+                              {r.notes && <span>{r.notes}</span>}
+                            </div>
+                          </TableCell>
                         </TableRow>
                       );
                     })}
