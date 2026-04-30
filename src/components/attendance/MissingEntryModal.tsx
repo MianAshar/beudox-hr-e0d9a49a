@@ -130,7 +130,7 @@ export default function MissingEntryModal({
           field_updated: target.field,
           old_value: oldVal,
           new_value: newIso,
-          updated_by: employee.id,
+          updated_by: employee.employee_id,
           reason: reason.trim(),
         });
       if (logErr) throw logErr;
