@@ -298,7 +298,7 @@ const AttendanceUploadFlow = ({
       const shiftHrs = Math.max(0, (endMin - startMin) / 60);
 
       const { data: empRows, error: empErr } = await supabase
-        .from('employees').select('id, employee_code').eq('company_id', companyId);
+        .from('employees').select('id, employee_code, full_name').eq('company_id', companyId);
       if (empErr) throw empErr;
       const codeToId = new Map<string, string>();
       (empRows ?? []).forEach(e => { if (e.employee_code) codeToId.set(e.employee_code.trim(), e.id); });
