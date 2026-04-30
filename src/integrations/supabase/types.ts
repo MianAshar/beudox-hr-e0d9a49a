@@ -145,6 +145,77 @@ export type Database = {
           },
         ]
       }
+      attendance_manual_logs: {
+        Row: {
+          attendance_record_id: string | null
+          company_id: string
+          created_at: string
+          date: string
+          employee_id: string | null
+          field_updated: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          reason: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          attendance_record_id?: string | null
+          company_id: string
+          created_at?: string
+          date: string
+          employee_id?: string | null
+          field_updated: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          attendance_record_id?: string | null
+          company_id?: string
+          created_at?: string
+          date?: string
+          employee_id?: string | null
+          field_updated?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_manual_logs_attendance_record_id_fkey"
+            columns: ["attendance_record_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_manual_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_manual_logs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_manual_logs_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_records: {
         Row: {
           check_in: string | null
