@@ -42,6 +42,8 @@ interface AttendanceRow {
   working_hours: number | null;
   notes: string | null;
   is_late: boolean | null;
+  regular_ot_hours: number | null;
+  holiday_ot_hours: number | null;
   employee_name?: string | null;
 }
 
@@ -226,6 +228,24 @@ function RecordsTable({
                             Late
                           </span>
                         )}
+                        {(r.regular_ot_hours ?? 0) > 0 && (
+                          <span style={{
+                            backgroundColor: 'rgba(29, 201, 122, 0.12)', color: '#0F8C52',
+                            fontSize: '11px', fontWeight: 500,
+                            padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                          }}>
+                            OT +{formatDeviation(r.regular_ot_hours!)}
+                          </span>
+                        )}
+                        {(r.holiday_ot_hours ?? 0) > 0 && (
+                          <span style={{
+                            backgroundColor: 'rgba(91, 63, 248, 0.12)', color: '#5B3FF8',
+                            fontSize: '11px', fontWeight: 500,
+                            padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                          }}>
+                            Holiday OT +{formatDeviation(r.holiday_ot_hours!)}
+                          </span>
+                        )}
                         {r.notes && <span>{r.notes}</span>}
                       </div>
                     </TableCell>
@@ -346,7 +366,7 @@ const Attendance = () => {
     try {
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late, regular_ot_hours, holiday_ot_hours')
         .eq('company_id', employee.company_id)
         .eq('employee_id', employee.employee_id)
         .gte('date', dateRange.startDate)
@@ -372,7 +392,7 @@ const Attendance = () => {
     try {
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late, regular_ot_hours, holiday_ot_hours')
         .eq('company_id', employee.company_id)
         .gte('date', dateRange.startDate)
         .lte('date', dateRange.endDate)
@@ -511,10 +531,17 @@ const Attendance = () => {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
           {tabs.map(t => (
-            <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
+            <TabsTrigger
+              key={t.value}
+              value={t.value}
+              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+              style={{ fontFamily: 'var(--ff-body)' }}
+            >
+              {t.label}
+            </TabsTrigger>
           ))}
         </TabsList>
 
