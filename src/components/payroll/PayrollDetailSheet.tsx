@@ -69,9 +69,40 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
 
   const regOtHours = Number(record.regular_ot_hours || 0);
   const holOtHours = Number(record.holiday_ot_hours || 0);
-  // Derive short/overtime from net regular OT sign (payroll stores net only)
-  const shortHours = regOtHours < 0 ? Math.abs(regOtHours) : 0;
-  const overtimeHours = regOtHours > 0 ? regOtHours : 0;
+
+  // Reconstruct short time and overtime from attendance records (payroll stores only net)
+  const monthYear: string | undefined = record.month_year;
+  const employeeId: string | undefined = record.employee_id;
+  const { data: attendance } = useQuery({
+    queryKey: ['payroll-detail-attendance', employeeId, monthYear],
+    queryFn: async () => {
+      if (!employeeId || !monthYear) return [];
+      const [y, m] = monthYear.split('-').map(Number);
+      const last = new Date(y, m, 0).getDate();
+      const { data } = await supabase
+        .from('attendance_records')
+        .select('regular_ot_hours')
+        .eq('employee_id', employeeId)
+        .gte('date', `${monthYear}-01`)
+        .lte('date', `${monthYear}-${String(last).padStart(2, '0')}`);
+      return data ?? [];
+    },
+    enabled: !!employeeId && !!monthYear && open,
+  });
+
+  let shortHours = 0;
+  let overtimeHours = 0;
+  if (attendance && attendance.length > 0) {
+    for (const r of attendance) {
+      const v = Number(r.regular_ot_hours || 0);
+      if (v < 0) shortHours += Math.abs(v);
+      else if (v > 0) overtimeHours += v;
+    }
+  } else {
+    // Fallback: derive from net sign only
+    shortHours = regOtHours < 0 ? Math.abs(regOtHours) : 0;
+    overtimeHours = regOtHours > 0 ? regOtHours : 0;
+  }
 
   return (
     <Sheet open={open} onOpenChange={v => { if (!v) onClose(); }}>
