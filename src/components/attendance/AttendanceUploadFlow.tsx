@@ -50,11 +50,18 @@ interface CompanySettings {
   late_threshold: number;
 }
 
+interface OverwrittenLeaveItem {
+  employee_name: string;
+  date: string;
+  leave_type_name: string;
+}
+
 interface ImportSummary {
   imported: number;
   updated: number;
   skipped: number;
   unmatched: string[];
+  overwrittenLeaves: OverwrittenLeaveItem[];
 }
 
 type UnmatchedDecision = 'import' | 'skip';
@@ -291,7 +298,7 @@ const AttendanceUploadFlow = ({
       const shiftHrs = Math.max(0, (endMin - startMin) / 60);
 
       const { data: empRows, error: empErr } = await supabase
-        .from('employees').select('id, employee_code').eq('company_id', companyId);
+        .from('employees').select('id, employee_code, full_name').eq('company_id', companyId);
       if (empErr) throw empErr;
       const codeToId = new Map<string, string>();
       (empRows ?? []).forEach(e => { if (e.employee_code) codeToId.set(e.employee_code.trim(), e.id); });
@@ -314,6 +321,69 @@ const AttendanceUploadFlow = ({
         .eq('company_id', companyId).gte('date', minDate).lte('date', maxDate);
       const holidaySet = new Set((holidays ?? []).map(h => h.date));
 
+      // ---- Leave overwrite detection ----
+      // Fetch approved leave requests for matched employees that overlap the
+      // import window. We will overwrite per-day when a real worked record
+      // exists (both check_in and check_out present).
+      const matchedEmpIds = Array.from(new Set(
+        source.records
+          .map(r => codeToId.get(r.employee_code.trim()))
+          .filter((v): v is string => !!v),
+      ));
+
+      type LeaveReq = {
+        id: string; employee_id: string; leave_type_id: string;
+        start_date: string; end_date: string; days_requested: number;
+        leave_type_name: string;
+      };
+      const leaveByEmpDate = new Map<string, LeaveReq>(); // key: empId|date
+      const empNameById = new Map<string, string>();
+      (empRows ?? []).forEach((e: any) => {
+        if (e.id && e.full_name) empNameById.set(e.id, e.full_name);
+      });
+
+      if (matchedEmpIds.length > 0) {
+        const { data: leaveRows } = await supabase
+          .from('leave_requests')
+          .select('id, employee_id, leave_type_id, start_date, end_date, days_requested, leave_types!leave_requests_leave_type_id_fkey(name)')
+          .eq('company_id', companyId)
+          .eq('status', 'approved')
+          .in('employee_id', matchedEmpIds)
+          .lte('start_date', maxDate)
+          .gte('end_date', minDate);
+
+        for (const lr of (leaveRows as any[]) ?? []) {
+          const ltName = lr.leave_types?.name ?? 'Leave';
+          const cur = new Date(lr.start_date + 'T00:00:00');
+          const stop = new Date(lr.end_date + 'T00:00:00');
+          while (cur <= stop) {
+            const ds = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+            if (ds >= minDate && ds <= maxDate) {
+              leaveByEmpDate.set(`${lr.employee_id}|${ds}`, {
+                id: lr.id,
+                employee_id: lr.employee_id,
+                leave_type_id: lr.leave_type_id,
+                start_date: lr.start_date,
+                end_date: lr.end_date,
+                days_requested: lr.days_requested,
+                leave_type_name: ltName,
+              });
+            }
+            cur.setDate(cur.getDate() + 1);
+          }
+        }
+      }
+
+      // Re-fetch employee names if missing (only matched ids)
+      if (matchedEmpIds.length > 0 && empNameById.size === 0) {
+        const { data: nameRows } = await supabase
+          .from('employees').select('id, full_name').in('id', matchedEmpIds);
+        (nameRows ?? []).forEach((e: any) => empNameById.set(e.id, e.full_name));
+      }
+
+      const overwrittenLeaves: OverwrittenLeaveItem[] = [];
+      const processedLeaveKeys = new Set<string>(); // dedupe by empId|date
+
       const monthYearFinal = `${year}-${String(MONTHS.indexOf(month) + 1).padStart(2, '0')}`;
 
       const uploaderEmployeeId = (await supabase
@@ -334,6 +404,18 @@ const AttendanceUploadFlow = ({
       const seenInsertKeys = new Set<string>();
       const toInsert: any[] = [];
       const toUpdate: { id: string; payload: any }[] = [];
+
+      // Per-record: collect leave overwrites that need to fire (only if both
+      // check_in AND check_out exist for a day with an approved leave).
+      type PendingOverwrite = {
+        leave: LeaveReq;
+        empId: string;
+        date: string;
+        check_in: string | null;
+        check_out: string | null;
+        working_hours: number | null;
+      };
+      const pendingOverwrites: PendingOverwrite[] = [];
 
       for (const r of source.records) {
         const code = r.employee_code.trim();
@@ -368,6 +450,23 @@ const AttendanceUploadFlow = ({
           source: 'machine_import', import_batch_id: importRow.id,
           notes: r.notes ?? null,
         };
+
+        // Detect leave overwrite: matched employee + has both punches + has approved leave on that date
+        if (empId && r.check_in && r.check_out) {
+          const leaveKey = `${empId}|${r.date}`;
+          const lr = leaveByEmpDate.get(leaveKey);
+          if (lr && !processedLeaveKeys.has(leaveKey)) {
+            processedLeaveKeys.add(leaveKey);
+            pendingOverwrites.push({
+              leave: lr,
+              empId,
+              date: r.date,
+              check_in: r.check_in,
+              check_out: r.check_out,
+              working_hours: wh,
+            });
+          }
+        }
 
         const existingId = empId
           ? existingByEmpDate.get(`${empId}|${r.date}`)
@@ -415,10 +514,80 @@ const AttendanceUploadFlow = ({
         status: 'completed', records_imported: imported + updated, records_skipped: skipped,
       }).eq('id', importRow.id);
 
+      // ---- Process pending leave overwrites ----
+      // For each: insert log first; only if log succeeds, decrement used_days
+      // and adjust the leave_request (cancel if last day, otherwise decrement).
+      const leaveRequestRemaining = new Map<string, number>(); // id -> remaining days_requested
+      for (const ov of pendingOverwrites) {
+        leaveRequestRemaining.set(
+          ov.leave.id,
+          leaveRequestRemaining.get(ov.leave.id) ?? ov.leave.days_requested,
+        );
+      }
+
+      for (const ov of pendingOverwrites) {
+        const { error: logErr } = await supabase
+          .from('leave_overwrite_logs' as any)
+          .insert({
+            company_id: companyId,
+            employee_id: ov.empId,
+            leave_request_id: ov.leave.id,
+            leave_type_name: ov.leave.leave_type_name,
+            date: ov.date,
+            check_in: ov.check_in,
+            check_out: ov.check_out,
+            working_hours: ov.working_hours,
+            reason: 'machine_record_found',
+          });
+        if (logErr) {
+          console.error('Leave overwrite log insert failed; skipping balance update', logErr);
+          continue;
+        }
+
+        // Decrement used_days for that year/employee/leave_type
+        const yr = parseInt(ov.date.slice(0, 4), 10);
+        const { data: balRow } = await supabase
+          .from('leave_balances')
+          .select('id, used_days')
+          .eq('company_id', companyId)
+          .eq('employee_id', ov.empId)
+          .eq('leave_type_id', ov.leave.leave_type_id)
+          .eq('year', yr)
+          .maybeSingle();
+        if (balRow) {
+          await supabase
+            .from('leave_balances')
+            .update({ used_days: Math.max(0, Number(balRow.used_days ?? 0) - 1) })
+            .eq('id', balRow.id);
+        }
+
+        // Adjust leave request
+        const remaining = leaveRequestRemaining.get(ov.leave.id) ?? 1;
+        const newRemaining = remaining - 1;
+        leaveRequestRemaining.set(ov.leave.id, newRemaining);
+        if (newRemaining <= 0) {
+          await supabase
+            .from('leave_requests')
+            .update({ status: 'cancelled', days_requested: 0 })
+            .eq('id', ov.leave.id);
+        } else {
+          await supabase
+            .from('leave_requests')
+            .update({ days_requested: newRemaining })
+            .eq('id', ov.leave.id);
+        }
+
+        overwrittenLeaves.push({
+          employee_name: empNameById.get(ov.empId) ?? ov.empId,
+          date: ov.date,
+          leave_type_name: ov.leave.leave_type_name,
+        });
+      }
+
       const skippedUnmatched = decision === 'skip'
         ? unmatchedEntries.map(u => u.employee_code) : [];
 
-      setSummary({ imported, updated, skipped, unmatched: skippedUnmatched });
+      setSummary({ imported, updated, skipped, unmatched: skippedUnmatched, overwrittenLeaves });
       setStep('done');
       toast({ title: 'Import complete', description: `${imported} imported, ${updated} updated, ${skipped} skipped.` });
     } catch (err) {
@@ -747,6 +916,25 @@ const AttendanceUploadFlow = ({
                   <Badge key={code} variant="outline" className="font-mono text-xs">{code}</Badge>
                 ))}
               </div>
+            </div>
+          )}
+
+          {summary.overwrittenLeaves.length > 0 && (
+            <div className="rounded-md border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">
+              <div className="flex items-center gap-2 font-medium mb-1">
+                <AlertTriangle className="h-4 w-4" />
+                {summary.overwrittenLeaves.length} leave day{summary.overwrittenLeaves.length === 1 ? '' : 's'} overwritten by machine records
+              </div>
+              <ul className="mt-2 space-y-1 text-xs">
+                {summary.overwrittenLeaves.map((o, i) => (
+                  <li key={i} className="flex flex-col">
+                    <span>
+                      <strong>{o.employee_name}</strong> · {format(new Date(o.date + 'T00:00:00'), 'EEE, dd MMM yyyy')} · {o.leave_type_name}
+                    </span>
+                    <span className="text-orange-800/80">Leave quota restored for this day</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

@@ -1446,6 +1446,70 @@ export type Database = {
           },
         ]
       }
+      leave_overwrite_logs: {
+        Row: {
+          check_in: string | null
+          check_out: string | null
+          company_id: string
+          created_at: string
+          date: string
+          employee_id: string | null
+          id: string
+          leave_request_id: string | null
+          leave_type_name: string | null
+          reason: string | null
+          working_hours: number | null
+        }
+        Insert: {
+          check_in?: string | null
+          check_out?: string | null
+          company_id: string
+          created_at?: string
+          date: string
+          employee_id?: string | null
+          id?: string
+          leave_request_id?: string | null
+          leave_type_name?: string | null
+          reason?: string | null
+          working_hours?: number | null
+        }
+        Update: {
+          check_in?: string | null
+          check_out?: string | null
+          company_id?: string
+          created_at?: string
+          date?: string
+          employee_id?: string | null
+          id?: string
+          leave_request_id?: string | null
+          leave_type_name?: string | null
+          reason?: string | null
+          working_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_overwrite_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_overwrite_logs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_overwrite_logs_leave_request_id_fkey"
+            columns: ["leave_request_id"]
+            isOneToOne: false
+            referencedRelation: "leave_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_requests: {
         Row: {
           actioned_at: string | null
