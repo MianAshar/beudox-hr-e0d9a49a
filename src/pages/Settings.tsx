@@ -88,6 +88,9 @@ const Settings = () => {
         {(isCeo || isHr) && (
           <TabsContent value="login-logs" className="mt-6"><LoginLogsTab /></TabsContent>
         )}
+        {(isCeo || isHr) && (
+          <TabsContent value="leave-overwrites" className="mt-6"><LeaveOverwriteLogTab /></TabsContent>
+        )}
         {isCeo && (
           <TabsContent value="danger" className="mt-6"><DangerZoneTab /></TabsContent>
         )}
