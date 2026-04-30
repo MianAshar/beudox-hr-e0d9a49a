@@ -1,5 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   draft: { bg: '#FEF3C7', text: '#92400E' },
