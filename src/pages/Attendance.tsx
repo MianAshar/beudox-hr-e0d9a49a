@@ -366,7 +366,7 @@ const Attendance = () => {
     try {
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late, regular_ot_hours, holiday_ot_hours')
         .eq('company_id', employee.company_id)
         .eq('employee_id', employee.employee_id)
         .gte('date', dateRange.startDate)
@@ -392,7 +392,7 @@ const Attendance = () => {
     try {
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late, regular_ot_hours, holiday_ot_hours')
         .eq('company_id', employee.company_id)
         .gte('date', dateRange.startDate)
         .lte('date', dateRange.endDate)
