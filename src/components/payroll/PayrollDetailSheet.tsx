@@ -50,6 +50,27 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 );
 
 const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: Props) => {
+  const emp = record?.employees as any;
+  const monthYear: string | undefined = record?.month_year;
+  const employeeId: string | undefined = record?.employee_id;
+
+  const { data: attendance } = useQuery({
+    queryKey: ['payroll-detail-attendance', employeeId, monthYear],
+    queryFn: async () => {
+      if (!employeeId || !monthYear) return [];
+      const [y, m] = monthYear.split('-').map(Number);
+      const last = new Date(y, m, 0).getDate();
+      const { data } = await supabase
+        .from('attendance_records')
+        .select('regular_ot_hours')
+        .eq('employee_id', employeeId)
+        .gte('date', `${monthYear}-01`)
+        .lte('date', `${monthYear}-${String(last).padStart(2, '0')}`);
+      return data ?? [];
+    },
+    enabled: !!employeeId && !!monthYear && open,
+  });
+
   if (!record) return null;
   const emp = record.employees as any;
   const isDirector = emp?.employment_type === 'director';
