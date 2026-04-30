@@ -311,7 +311,7 @@ const Attendance = () => {
     return list;
   }, [isManager, canSeeCompanyTab]);
 
-  const [activeTab, setActiveTab] = useState<string>('my');
+  const [activeTab, setActiveTab] = useState<string>(isManager ? 'summary' : 'my');
   useEffect(() => {
     if (tabs.length > 0 && !tabs.some(t => t.value === activeTab)) {
       setActiveTab(tabs[0].value);
