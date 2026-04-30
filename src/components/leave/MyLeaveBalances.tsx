@@ -63,7 +63,7 @@ const MyLeaveBalances = () => {
     },
   });
 
-  const rows: BalanceRow[] = (leaveTypes as any[]).map((lt) => {
+  const rows: BalanceRow[] = (leaveTypes as any[]).filter((lt) => !!lt.is_paid).map((lt) => {
     const b: any = (balances as any[]).find((x) => x.leave_type_id === lt.id);
     return {
       leave_type_id: lt.id,
