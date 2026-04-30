@@ -70,10 +70,14 @@ const LeaveManagement = () => {
 
       <div className="flex items-center justify-between">
         <div />
-        <Button onClick={() => setApplyModalOpen(true)} size="sm">
-          <Plus className="h-4 w-4 mr-1.5" />
-          Apply for Leave
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* TODO: Remove before production */}
+          <ClearLeaveDataButton onCleared={() => window.location.reload()} />
+          <Button onClick={() => setApplyModalOpen(true)} size="sm">
+            <Plus className="h-4 w-4 mr-1.5" />
+            Apply for Leave
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
