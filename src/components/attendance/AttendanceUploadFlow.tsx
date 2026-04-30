@@ -515,31 +515,10 @@ const AttendanceUploadFlow = ({
       }).eq('id', importRow.id);
 
       // ---- Process pending leave overwrites ----
-      // STRICT per-day semantics: each entry in pendingOverwrites represents
-      // ONE specific date that has BOTH check_in AND check_out in the file
-      // AND falls within an approved leave range. Only those specific dates
-      // get quota reverted + a log entry. Days within the leave range that
-      // have NO machine record are NOT touched here — their quota stays
-      // consumed and they will render as "On Leave" via the merge logic in
-      // the Attendance view.
-      //
-      // Track worked-day count per leave request so we can decrement
-      // days_requested accordingly (and only cancel the request if EVERY
-      // working day in its range was actually worked).
-      const workedDaysPerLeave = new Map<string, number>();
-      for (const ov of pendingOverwrites) {
-        workedDaysPerLeave.set(
-          ov.leave.id,
-          (workedDaysPerLeave.get(ov.leave.id) ?? 0) + 1,
-        );
-      }
-      const leaveRequestRemaining = new Map<string, number>();
-      for (const ov of pendingOverwrites) {
-        if (!leaveRequestRemaining.has(ov.leave.id)) {
-          leaveRequestRemaining.set(ov.leave.id, ov.leave.days_requested);
-        }
-      }
-
+      // Each pending overwrite is exactly one imported machine record date
+      // with BOTH check_in and check_out. Process one date at a time; never
+      // cancel a whole leave range because other dates in that range may have
+      // no machine record and must remain approved leave days.
       for (const ov of pendingOverwrites) {
         const { error: logErr } = await supabase
           .from('leave_overwrite_logs' as any)
@@ -573,22 +552,30 @@ const AttendanceUploadFlow = ({
           await supabase
             .from('leave_balances')
             .update({ used_days: Math.max(0, Number(balRow.used_days ?? 0) - 1) })
+            .eq('company_id', companyId)
             .eq('id', balRow.id);
         }
 
-        // Adjust leave request
-        const remaining = leaveRequestRemaining.get(ov.leave.id) ?? 1;
-        const newRemaining = remaining - 1;
-        leaveRequestRemaining.set(ov.leave.id, newRemaining);
-        if (newRemaining <= 0) {
+        // Adjust only this one overwritten day. Keep the request approved
+        // while days_requested remains above 1.
+        const { data: currentLeave } = await supabase
+          .from('leave_requests')
+          .select('days_requested')
+          .eq('company_id', companyId)
+          .eq('id', ov.leave.id)
+          .maybeSingle();
+        const currentDays = Number(currentLeave?.days_requested ?? ov.leave.days_requested ?? 1);
+        if (currentDays <= 1) {
           await supabase
             .from('leave_requests')
             .update({ status: 'cancelled', days_requested: 0 })
+            .eq('company_id', companyId)
             .eq('id', ov.leave.id);
         } else {
           await supabase
             .from('leave_requests')
-            .update({ days_requested: newRemaining })
+            .update({ days_requested: currentDays - 1 })
+            .eq('company_id', companyId)
             .eq('id', ov.leave.id);
         }
 
