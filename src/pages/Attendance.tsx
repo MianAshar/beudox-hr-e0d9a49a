@@ -36,7 +36,22 @@ interface AttendanceRow {
   check_out: string | null;
   working_hours: number | null;
   notes: string | null;
+  is_late: boolean | null;
   employee_name?: string | null;
+}
+
+function parseHHmm(s: string | null | undefined): number | null {
+  if (!s) return null;
+  const m = String(s).match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return parseInt(m[1], 10) + parseInt(m[2], 10) / 60;
+}
+
+function formatDeviation(deviation: number): string {
+  const abs = Math.abs(deviation);
+  const h = Math.floor(abs);
+  const mins = Math.round((abs - h) * 60);
+  return `${h}h ${mins}m`;
 }
 
 const Attendance = () => {
@@ -50,6 +65,23 @@ const Attendance = () => {
   // TODO: Remove before production
   const [clearOpen, setClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [shiftDuration, setShiftDuration] = useState<number>(9.0);
+
+  useEffect(() => {
+    if (!employee?.company_id) return;
+    (async () => {
+      const { data } = await supabase
+        .from('company_settings')
+        .select('shift_start_time, shift_end_time')
+        .eq('company_id', employee.company_id)
+        .maybeSingle();
+      const start = parseHHmm(data?.shift_start_time);
+      const end = parseHHmm(data?.shift_end_time);
+      if (start != null && end != null && end > start) {
+        setShiftDuration(end - start);
+      }
+    })();
+  }, [employee?.company_id]);
 
   const isAuthorised = useMemo(() => {
     const roles = employee?.roles ?? [];
@@ -77,7 +109,7 @@ const Attendance = () => {
 
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late')
         .eq('company_id', employee.company_id)
         .gte('date', startDate)
         .lte('date', endDate)
@@ -300,11 +332,48 @@ const Attendance = () => {
                             )}
                           </TableCell>
                           <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
-                            <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
-                              {formatWorkingHours(r.working_hours)}
-                            </span>
+                            <div className="flex flex-col items-end leading-tight">
+                              <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
+                                {formatWorkingHours(r.working_hours)}
+                              </span>
+                              {r.working_hours != null && (() => {
+                                const dev = r.working_hours - shiftDuration;
+                                if (Math.abs(dev) < 1 / 120) return null; // ~0
+                                if (dev > 0) {
+                                  return (
+                                    <span style={{ fontSize: '11px', color: '#1DC97A' }}>
+                                      +{formatDeviation(dev)} OT
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <span style={{ fontSize: '11px', color: '#E84545' }}>
+                                    -{formatDeviation(dev)} Short
+                                  </span>
+                                );
+                              })()}
+                            </div>
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{r.notes ?? ''}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {r.is_late && (
+                                <span
+                                  style={{
+                                    backgroundColor: '#FEF3C7',
+                                    color: '#92400E',
+                                    fontSize: '11px',
+                                    fontWeight: 500,
+                                    padding: '2px 8px',
+                                    borderRadius: '9999px',
+                                    lineHeight: 1.4,
+                                  }}
+                                >
+                                  Late
+                                </span>
+                              )}
+                              {r.notes && <span>{r.notes}</span>}
+                            </div>
+                          </TableCell>
                         </TableRow>
                       );
                     })}
