@@ -115,8 +115,8 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                   <div className="divide-y" style={{ borderColor: 'hsl(var(--border))' }}>
                     <Row
                       label="Short Time"
-                      value={fmtHrs(Math.abs(shortHours))}
-                      valueColor={shortHours < 0 || shortHours > 0 ? '#E84545' : undefined}
+                      value={fmtHrs(shortHours)}
+                      valueColor={shortHours > 0 ? '#E84545' : undefined}
                     />
                     <Row
                       label="Overtime"
