@@ -145,9 +145,6 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
     const s = format(startDate, 'yyyy-MM-dd');
     const e = format(effectiveEnd, 'yyyy-MM-dd');
 
-    if (new Date(s) < new Date(new Date().toISOString().split('T')[0])) {
-      toast.error('Start date cannot be in the past'); return;
-    }
     if (e < s) { toast.error('End date cannot be before start date'); return; }
 
     if (lt.annual_entitlement > 0) {
