@@ -321,6 +321,69 @@ const AttendanceUploadFlow = ({
         .eq('company_id', companyId).gte('date', minDate).lte('date', maxDate);
       const holidaySet = new Set((holidays ?? []).map(h => h.date));
 
+      // ---- Leave overwrite detection ----
+      // Fetch approved leave requests for matched employees that overlap the
+      // import window. We will overwrite per-day when a real worked record
+      // exists (both check_in and check_out present).
+      const matchedEmpIds = Array.from(new Set(
+        source.records
+          .map(r => codeToId.get(r.employee_code.trim()))
+          .filter((v): v is string => !!v),
+      ));
+
+      type LeaveReq = {
+        id: string; employee_id: string; leave_type_id: string;
+        start_date: string; end_date: string; days_requested: number;
+        leave_type_name: string;
+      };
+      const leaveByEmpDate = new Map<string, LeaveReq>(); // key: empId|date
+      const empNameById = new Map<string, string>();
+      (empRows ?? []).forEach((e: any) => {
+        if (e.id && e.full_name) empNameById.set(e.id, e.full_name);
+      });
+
+      if (matchedEmpIds.length > 0) {
+        const { data: leaveRows } = await supabase
+          .from('leave_requests')
+          .select('id, employee_id, leave_type_id, start_date, end_date, days_requested, leave_types!leave_requests_leave_type_id_fkey(name)')
+          .eq('company_id', companyId)
+          .eq('status', 'approved')
+          .in('employee_id', matchedEmpIds)
+          .lte('start_date', maxDate)
+          .gte('end_date', minDate);
+
+        for (const lr of (leaveRows as any[]) ?? []) {
+          const ltName = lr.leave_types?.name ?? 'Leave';
+          const cur = new Date(lr.start_date + 'T00:00:00');
+          const stop = new Date(lr.end_date + 'T00:00:00');
+          while (cur <= stop) {
+            const ds = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+            if (ds >= minDate && ds <= maxDate) {
+              leaveByEmpDate.set(`${lr.employee_id}|${ds}`, {
+                id: lr.id,
+                employee_id: lr.employee_id,
+                leave_type_id: lr.leave_type_id,
+                start_date: lr.start_date,
+                end_date: lr.end_date,
+                days_requested: lr.days_requested,
+                leave_type_name: ltName,
+              });
+            }
+            cur.setDate(cur.getDate() + 1);
+          }
+        }
+      }
+
+      // Re-fetch employee names if missing (only matched ids)
+      if (matchedEmpIds.length > 0 && empNameById.size === 0) {
+        const { data: nameRows } = await supabase
+          .from('employees').select('id, full_name').in('id', matchedEmpIds);
+        (nameRows ?? []).forEach((e: any) => empNameById.set(e.id, e.full_name));
+      }
+
+      const overwrittenLeaves: OverwrittenLeaveItem[] = [];
+      const processedLeaveKeys = new Set<string>(); // dedupe by empId|date
+
       const monthYearFinal = `${year}-${String(MONTHS.indexOf(month) + 1).padStart(2, '0')}`;
 
       const uploaderEmployeeId = (await supabase
