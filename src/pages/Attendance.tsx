@@ -54,6 +54,7 @@ interface CompanySettings {
   shift_end_time: string;
   late_threshold: number;
   lunch_break_hours: number;
+  working_days: number[];
 }
 
 function parseHHmm(s: string | null | undefined): number | null {
@@ -360,7 +361,7 @@ const Attendance = () => {
     (async () => {
       const { data } = await supabase
         .from('company_settings')
-        .select('shift_start_time, shift_end_time, late_threshold, lunch_break_hours')
+        .select('shift_start_time, shift_end_time, late_threshold, lunch_break_hours, working_days')
         .eq('company_id', employee.company_id)
         .maybeSingle();
       if (data) {
@@ -369,6 +370,7 @@ const Attendance = () => {
           shift_end_time: data.shift_end_time,
           late_threshold: data.late_threshold ?? 0,
           lunch_break_hours: Number(data.lunch_break_hours ?? 1),
+          working_days: (data as any).working_days ?? [1, 2, 3, 4, 5],
         });
       }
     })();
@@ -383,13 +385,111 @@ const Attendance = () => {
     return { startDate, endDate, monthYear: `${year}-${mm}` };
   }, [month, year]);
 
+  // Fetch approved leaves overlapping the visible month and company holidays/working_days.
+  // Returns a map: employeeId -> { dateStr -> leaveTypeName } for working days only.
+  const fetchLeaveDayMap = async (employeeIds: string[] | null) => {
+    if (!employee?.company_id) return new Map<string, Map<string, string>>();
+    const { startDate, endDate } = dateRange;
+
+    // Working days config
+    const workingDays: number[] = (settings as any) && Array.isArray((settings as any).working_days)
+      ? (settings as any).working_days
+      : [1, 2, 3, 4, 5];
+
+    // Public holidays overlapping window
+    const { data: holidays } = await supabase
+      .from('public_holidays' as any)
+      .select('date, end_date')
+      .eq('company_id', employee.company_id)
+      .lte('date', endDate);
+    const holidaySet = new Set<string>();
+    (holidays || []).forEach((h: any) => {
+      const hStart = h.date as string;
+      const hEnd = (h.end_date as string | null) ?? hStart;
+      if (hEnd < startDate) return;
+      const cur = new Date(hStart + 'T00:00:00');
+      const end = new Date(hEnd + 'T00:00:00');
+      while (cur <= end) {
+        const ds = cur.toISOString().split('T')[0];
+        if (ds >= startDate && ds <= endDate) holidaySet.add(ds);
+        cur.setDate(cur.getDate() + 1);
+      }
+    });
+
+    // Approved leave requests overlapping window
+    let q = supabase
+      .from('leave_requests')
+      .select('employee_id, start_date, end_date, leave_types!leave_requests_leave_type_id_fkey(name)')
+      .eq('company_id', employee.company_id)
+      .eq('status', 'approved')
+      .lte('start_date', endDate)
+      .gte('end_date', startDate);
+    if (employeeIds && employeeIds.length > 0) q = q.in('employee_id', employeeIds);
+    const { data: leaves } = await q;
+
+    const map = new Map<string, Map<string, string>>();
+    const winStart = new Date(startDate + 'T00:00:00');
+    const winEnd = new Date(endDate + 'T00:00:00');
+    (leaves || []).forEach((lr: any) => {
+      const empId = lr.employee_id as string;
+      const ltName = lr.leave_types?.name || 'Leave';
+      const s = new Date((lr.start_date as string) + 'T00:00:00');
+      const e = new Date((lr.end_date as string) + 'T00:00:00');
+      const cur = new Date(Math.max(s.getTime(), winStart.getTime()));
+      const stop = new Date(Math.min(e.getTime(), winEnd.getTime()));
+      let inner = map.get(empId);
+      if (!inner) { inner = new Map(); map.set(empId, inner); }
+      while (cur <= stop) {
+        const ds = cur.toISOString().split('T')[0];
+        const dow = cur.getDay();
+        if (workingDays.includes(dow) && !holidaySet.has(ds)) {
+          if (!inner.has(ds)) inner.set(ds, ltName);
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+    });
+    return map;
+  };
+
+  // Build synthetic on_leave rows for an employee where no attendance record
+  // already exists for that date.
+  const buildLeaveRows = (
+    employeeId: string,
+    employeeCode: string | null,
+    employeeName: string | null,
+    leaveDates: Map<string, string> | undefined,
+    existingDates: Set<string>,
+  ): AttendanceRow[] => {
+    if (!leaveDates) return [];
+    const rows: AttendanceRow[] = [];
+    leaveDates.forEach((leaveTypeName, ds) => {
+      if (existingDates.has(ds)) return;
+      rows.push({
+        id: `leave-${employeeId}-${ds}`,
+        employee_code: employeeCode,
+        employee_id: employeeId,
+        date: ds,
+        check_in: null,
+        check_out: null,
+        working_hours: null,
+        notes: leaveTypeName,
+        is_late: false,
+        regular_ot_hours: 0,
+        holiday_ot_hours: 0,
+        status: 'on_leave',
+        employee_name: employeeName,
+      });
+    });
+    return rows;
+  };
+
   const fetchMy = async () => {
     if (!employee?.company_id || !employee?.employee_id) return;
     setLoadingMy(true);
     try {
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late, regular_ot_hours, holiday_ot_hours')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late, regular_ot_hours, holiday_ot_hours, status')
         .eq('company_id', employee.company_id)
         .eq('employee_id', employee.employee_id)
         .gte('date', dateRange.startDate)
@@ -397,10 +497,21 @@ const Attendance = () => {
         .order('date', { ascending: true })
         .limit(2000);
       if (error) throw error;
-      setMyRecords(((data ?? []) as AttendanceRow[]).map(r => ({
+      const baseRows = ((data ?? []) as AttendanceRow[]).map(r => ({
         ...r,
         employee_name: employee.full_name,
-      })));
+      }));
+
+      const leaveMap = await fetchLeaveDayMap([employee.employee_id]);
+      const existingDates = new Set(baseRows.map(r => r.date));
+      const leaveRows = buildLeaveRows(
+        employee.employee_id,
+        null,
+        employee.full_name ?? null,
+        leaveMap.get(employee.employee_id),
+        existingDates,
+      );
+      setMyRecords([...baseRows, ...leaveRows]);
     } catch (err) {
       console.error(err);
       setMyRecords([]);
@@ -415,7 +526,7 @@ const Attendance = () => {
     try {
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late, regular_ot_hours, holiday_ot_hours')
+        .select('id, employee_code, employee_id, date, check_in, check_out, working_hours, notes, is_late, regular_ot_hours, holiday_ot_hours, status')
         .eq('company_id', employee.company_id)
         .gte('date', dateRange.startDate)
         .lte('date', dateRange.endDate)
@@ -424,19 +535,52 @@ const Attendance = () => {
       if (error) throw error;
 
       const rows = (data ?? []) as AttendanceRow[];
-      const empIds = Array.from(new Set(rows.map(r => r.employee_id).filter(Boolean))) as string[];
+
+      // Fetch all active employees so we can include leave-only rows for people
+      // who have no attendance records yet this month.
+      const { data: allEmps } = await supabase
+        .from('employees')
+        .select('id, full_name, employee_code')
+        .eq('company_id', employee.company_id)
+        .eq('status', 'active');
       const idToName = new Map<string, string>();
-      if (empIds.length > 0) {
-        const { data: emps } = await supabase
-          .from('employees')
-          .select('id, full_name')
-          .in('id', empIds);
-        (emps ?? []).forEach(e => idToName.set(e.id, e.full_name));
-      }
-      setCompanyRecords(rows.map(r => ({
+      const idToCode = new Map<string, string | null>();
+      (allEmps ?? []).forEach(e => {
+        idToName.set(e.id, e.full_name);
+        idToCode.set(e.id, (e as any).employee_code ?? null);
+      });
+
+      const baseRows: AttendanceRow[] = rows.map(r => ({
         ...r,
         employee_name: r.employee_id ? idToName.get(r.employee_id) ?? null : null,
-      })));
+      }));
+
+      const leaveMap = await fetchLeaveDayMap(Array.from(idToName.keys()));
+
+      // existing (employee_id, date) pairs
+      const existingPairs = new Set<string>();
+      baseRows.forEach(r => {
+        if (r.employee_id) existingPairs.add(`${r.employee_id}|${r.date}`);
+      });
+
+      const extraLeaveRows: AttendanceRow[] = [];
+      leaveMap.forEach((dates, empId) => {
+        const empExisting = new Set<string>();
+        dates.forEach((_, ds) => {
+          if (existingPairs.has(`${empId}|${ds}`)) empExisting.add(ds);
+        });
+        extraLeaveRows.push(
+          ...buildLeaveRows(
+            empId,
+            idToCode.get(empId) ?? null,
+            idToName.get(empId) ?? null,
+            dates,
+            empExisting,
+          ),
+        );
+      });
+
+      setCompanyRecords([...baseRows, ...extraLeaveRows]);
     } catch (err) {
       console.error(err);
       setCompanyRecords([]);
@@ -449,7 +593,7 @@ const Attendance = () => {
     if (activeTab === 'my') fetchMy();
     if (activeTab === 'company') fetchCompany();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, month, year, employee?.company_id, employee?.employee_id]);
+  }, [activeTab, month, year, employee?.company_id, employee?.employee_id, settings]);
 
   const filteredCompanyRecords = useMemo(() => {
     const q = companySearch.trim().toLowerCase();
