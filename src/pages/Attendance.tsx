@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 import AttendanceUploadFlow from '@/components/attendance/AttendanceUploadFlow';
 import MissingEntryModal, { MissingEntryTarget } from '@/components/attendance/MissingEntryModal';
+import AttendanceSummary from '@/components/attendance/AttendanceSummary';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
