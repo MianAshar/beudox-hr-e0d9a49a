@@ -17,8 +17,6 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { sendNotification } from '@/lib/notifications';
-import { syncLeaveToAttendance, syncAllApprovedLeaves } from '@/lib/leave-attendance';
-import { RefreshCw } from 'lucide-react';
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   pending: { bg: '#FEF3C7', text: '#92400E' },
@@ -99,19 +97,6 @@ const AllRequestsTab = () => {
         .update({ status: 'approved', actioned_by: employee!.employee_id, actioned_at: new Date().toISOString() } as any)
         .eq('id', request.id);
       if (error) throw error;
-
-      // Create on_leave attendance records for working days in the leave range
-      try {
-        await syncLeaveToAttendance({
-          companyId: companyId!,
-          employeeId: request.employee_id,
-          startDate: request.start_date,
-          endDate: request.end_date,
-          leaveTypeName: request.leave_types?.name || 'Leave',
-        });
-      } catch (e) {
-        console.error('Failed to sync attendance for approved leave', e);
-      }
 
       const year = new Date(request.start_date).getFullYear();
       const { data: balance } = await supabase.from('leave_balances').select('id, used_days')
@@ -207,24 +192,6 @@ const AllRequestsTab = () => {
           </Select>
         </div>
         <div className="flex gap-1 items-center">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs"
-            onClick={async () => {
-              const t = toast.loading('Syncing leave attendance records...');
-              try {
-                const res = await syncAllApprovedLeaves(companyId!);
-                toast.success(`Leave attendance records synced successfully (${res.inserted} added, ${res.updated} updated)`, { id: t });
-              } catch (e) {
-                console.error(e);
-                toast.error('Failed to sync leave records', { id: t });
-              }
-            }}
-          >
-            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-            Sync Leave Records
-          </Button>
           <Button variant={view === 'list' ? 'default' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => setView('list')}>
             <List className="h-4 w-4" />
           </Button>

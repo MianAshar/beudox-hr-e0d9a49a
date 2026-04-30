@@ -1,0 +1,1 @@
+DELETE FROM public.attendance_records WHERE source = 'leave_approval';
