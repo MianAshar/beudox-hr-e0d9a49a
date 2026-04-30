@@ -67,8 +67,9 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
 
   const regOtHours = Number(record.regular_ot_hours || 0);
   const holOtHours = Number(record.holiday_ot_hours || 0);
-  const shortHours = Number(record.short_time_hours || 0);
-  const overtimeHours = Number(record.overtime_hours || 0);
+  // Derive short/overtime from net regular OT sign (payroll stores net only)
+  const shortHours = regOtHours < 0 ? Math.abs(regOtHours) : 0;
+  const overtimeHours = regOtHours > 0 ? regOtHours : 0;
 
   return (
     <Sheet open={open} onOpenChange={v => { if (!v) onClose(); }}>
