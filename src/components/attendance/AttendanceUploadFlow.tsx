@@ -515,14 +515,29 @@ const AttendanceUploadFlow = ({
       }).eq('id', importRow.id);
 
       // ---- Process pending leave overwrites ----
-      // For each: insert log first; only if log succeeds, decrement used_days
-      // and adjust the leave_request (cancel if last day, otherwise decrement).
-      const leaveRequestRemaining = new Map<string, number>(); // id -> remaining days_requested
+      // STRICT per-day semantics: each entry in pendingOverwrites represents
+      // ONE specific date that has BOTH check_in AND check_out in the file
+      // AND falls within an approved leave range. Only those specific dates
+      // get quota reverted + a log entry. Days within the leave range that
+      // have NO machine record are NOT touched here — their quota stays
+      // consumed and they will render as "On Leave" via the merge logic in
+      // the Attendance view.
+      //
+      // Track worked-day count per leave request so we can decrement
+      // days_requested accordingly (and only cancel the request if EVERY
+      // working day in its range was actually worked).
+      const workedDaysPerLeave = new Map<string, number>();
       for (const ov of pendingOverwrites) {
-        leaveRequestRemaining.set(
+        workedDaysPerLeave.set(
           ov.leave.id,
-          leaveRequestRemaining.get(ov.leave.id) ?? ov.leave.days_requested,
+          (workedDaysPerLeave.get(ov.leave.id) ?? 0) + 1,
         );
+      }
+      const leaveRequestRemaining = new Map<string, number>();
+      for (const ov of pendingOverwrites) {
+        if (!leaveRequestRemaining.has(ov.leave.id)) {
+          leaveRequestRemaining.set(ov.leave.id, ov.leave.days_requested);
+        }
       }
 
       for (const ov of pendingOverwrites) {
