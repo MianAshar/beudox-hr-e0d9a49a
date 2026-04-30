@@ -405,6 +405,18 @@ const AttendanceUploadFlow = ({
       const toInsert: any[] = [];
       const toUpdate: { id: string; payload: any }[] = [];
 
+      // Per-record: collect leave overwrites that need to fire (only if both
+      // check_in AND check_out exist for a day with an approved leave).
+      type PendingOverwrite = {
+        leave: LeaveReq;
+        empId: string;
+        date: string;
+        check_in: string | null;
+        check_out: string | null;
+        working_hours: number | null;
+      };
+      const pendingOverwrites: PendingOverwrite[] = [];
+
       for (const r of source.records) {
         const code = r.employee_code.trim();
         const empId = codeToId.get(code);
@@ -438,6 +450,23 @@ const AttendanceUploadFlow = ({
           source: 'machine_import', import_batch_id: importRow.id,
           notes: r.notes ?? null,
         };
+
+        // Detect leave overwrite: matched employee + has both punches + has approved leave on that date
+        if (empId && r.check_in && r.check_out) {
+          const leaveKey = `${empId}|${r.date}`;
+          const lr = leaveByEmpDate.get(leaveKey);
+          if (lr && !processedLeaveKeys.has(leaveKey)) {
+            processedLeaveKeys.add(leaveKey);
+            pendingOverwrites.push({
+              leave: lr,
+              empId,
+              date: r.date,
+              check_in: r.check_in,
+              check_out: r.check_out,
+              working_hours: wh,
+            });
+          }
+        }
 
         const existingId = empId
           ? existingByEmpDate.get(`${empId}|${r.date}`)
