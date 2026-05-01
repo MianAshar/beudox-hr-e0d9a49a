@@ -1,6 +1,8 @@
 import { useLocation } from 'react-router-dom';
+import { Menu } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import UserMenu from './UserMenu';
+import { useMobileSidebar } from './MobileSidebarContext';
 
 const getPageTitle = (pathname: string): string => {
   if (pathname === '/employees/new') return 'Add Employee';
@@ -38,21 +40,30 @@ const pageTitles: Record<string, string> = {
 const TopBar = () => {
   const location = useLocation();
   const title = getPageTitle(location.pathname);
+  const { setOpen } = useMobileSidebar();
 
   return (
     <header
-      className="h-16 bg-card border-b flex items-center px-6"
+      className="h-14 lg:h-16 bg-card border-b flex items-center px-4 lg:px-6 gap-2"
       style={{ borderColor: '#D5D2EB' }}
     >
-      <div className="flex-1">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="lg:hidden inline-flex items-center justify-center h-11 w-11 -ml-2 rounded-md text-foreground hover:bg-muted transition-colors"
+        aria-label="Open menu"
+      >
+        <Menu className="h-6 w-6" strokeWidth={1.75} />
+      </button>
+      <div className="flex-1 min-w-0">
         <h1
-          className="text-[26px] font-bold text-foreground leading-tight"
+          className="text-[20px] lg:text-[26px] font-bold text-foreground leading-tight truncate"
           style={{ fontFamily: 'var(--ff-display)' }}
         >
           {title}
         </h1>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 lg:gap-3 shrink-0">
         <NotificationBell />
         <UserMenu />
       </div>
