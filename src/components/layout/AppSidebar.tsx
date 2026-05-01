@@ -5,6 +5,9 @@ import { canAccess } from '@/lib/role-access';
 import { formatRole } from '@/lib/format-role';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import BeudoxLogo from '@/components/BeudoxLogo';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { useIsBelowLg } from '@/hooks/use-breakpoint';
+import { useMobileSidebar } from './MobileSidebarContext';
 
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
@@ -63,27 +66,28 @@ const navSections = [
   },
 ];
 
-const AppSidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarBodyProps {
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  onNavigate?: () => void;
+  showCollapseToggle: boolean;
+}
+
+const SidebarBody = ({ collapsed, onToggleCollapse, onNavigate, showCollapseToggle }: SidebarBodyProps) => {
   const location = useLocation();
   const { employee } = useAuth();
 
   const isActive = (path: string) => {
-    // Exact match for paths that have sub-paths sharing prefixes
     if (path === '/evaluations') return location.pathname === '/evaluations' || (location.pathname.startsWith('/evaluations/') && !location.pathname.startsWith('/evaluations/daily'));
     if (path === '/evaluations/daily') return location.pathname.startsWith('/evaluations/daily');
     if (path === '/projects') return location.pathname === '/projects' || (location.pathname.startsWith('/projects/') && !location.pathname.startsWith('/projects-v2'));
     if (path === '/projects-v2') return location.pathname === '/projects-v2';
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
-  const width = collapsed ? 64 : 240;
   const companyLogo = employee?.company_logo_url || null;
 
   return (
-    <aside
-      className="fixed left-0 top-0 h-screen flex flex-col z-40 transition-all duration-[250ms] ease-in-out"
-      style={{ width, backgroundColor: '#1A1240' }}
-    >
+    <div className="h-full flex flex-col" style={{ backgroundColor: '#1A1240' }}>
       {/* Logo + collapse toggle */}
       <div
         className={`flex items-center border-b ${collapsed ? 'justify-center px-0' : 'justify-between'}`}
@@ -128,17 +132,19 @@ const AppSidebar = () => {
             )}
           </div>
         )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-white/40 hover:text-white/70 transition-colors shrink-0"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-5 w-5" style={{ strokeWidth: 1.5 }} />
-          ) : (
-            <ChevronLeft className="h-5 w-5" style={{ strokeWidth: 1.5 }} />
-          )}
-        </button>
+        {showCollapseToggle && (
+          <button
+            onClick={onToggleCollapse}
+            className="text-white/40 hover:text-white/70 transition-colors shrink-0"
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-5 w-5" style={{ strokeWidth: 1.5 }} />
+            ) : (
+              <ChevronLeft className="h-5 w-5" style={{ strokeWidth: 1.5 }} />
+            )}
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -163,7 +169,8 @@ const AppSidebar = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`group flex items-center h-10 transition-all duration-[var(--transition-fast)] ${
+                      onClick={onNavigate}
+                      className={`group flex items-center h-11 transition-all duration-[var(--transition-fast)] ${
                         collapsed ? 'justify-center px-0' : 'px-5'
                       } ${
                         active
@@ -231,6 +238,44 @@ const AppSidebar = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const AppSidebar = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const isMobile = useIsBelowLg();
+  const { open, setOpen } = useMobileSidebar();
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          side="left"
+          className="p-0 w-[280px] sm:max-w-[280px] border-0"
+          style={{ backgroundColor: '#1A1240' }}
+        >
+          <SidebarBody
+            collapsed={false}
+            onToggleCollapse={() => {}}
+            onNavigate={() => setOpen(false)}
+            showCollapseToggle={false}
+          />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <aside
+      className="fixed left-0 top-0 h-screen flex flex-col z-40 transition-all duration-[250ms] ease-in-out"
+      style={{ width: collapsed ? 64 : 240 }}
+    >
+      <SidebarBody
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed(!collapsed)}
+        showCollapseToggle
+      />
     </aside>
   );
 };
