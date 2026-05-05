@@ -322,27 +322,27 @@ const InvoiceDetail = () => {
   return (
     <div className="p-6 max-w-5xl space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
         <div className="flex items-start gap-4 min-w-0">
           <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" onClick={() => navigate('/invoices')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold text-foreground whitespace-nowrap" style={{ fontFamily: 'var(--ff-display)' }}>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
                 {invoice.invoice_number}
               </h1>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 ${statusStyles[invoice.status] || ''}`}>
                 {statusLabel[invoice.status] || invoice.status}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5 truncate" style={{ fontFamily: 'var(--ff-body)' }}>
+            <p className="text-sm text-muted-foreground mt-0.5 break-words" style={{ fontFamily: 'var(--ff-body)' }}>
               {client?.name} · {invoice.title}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap">
           {invoice.status === 'draft' && (
             <Button variant="outline" size="sm" onClick={() => navigate(`/invoices/${id}/edit`)}>
               <Pencil className="h-4 w-4 mr-1.5" /> Edit
@@ -381,7 +381,7 @@ const InvoiceDetail = () => {
       </div>
 
       {/* Company + Client info */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="rounded-[14px] border p-5 bg-card" style={{ borderColor: 'hsl(var(--border))' }}>
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">From</h3>
           {company?.logo_url && (
@@ -403,7 +403,7 @@ const InvoiceDetail = () => {
       </div>
 
       {/* Invoice details row */}
-      <div className="grid grid-cols-4 gap-4 text-sm">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
         <div>
           <span className="text-muted-foreground text-xs uppercase tracking-wider">Invoice Date</span>
           <p className="font-medium mt-1">{formatDate(invoice.created_at!)}</p>
@@ -425,8 +425,8 @@ const InvoiceDetail = () => {
       </div>
 
       {/* Line items */}
-      <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-        <table className="w-full text-sm">
+      <div className="rounded-[14px] border bg-card overflow-x-auto" style={{ borderColor: 'hsl(var(--border))' }}>
+        <table className="w-full text-sm min-w-[600px]">
           <thead>
             <tr className="bg-muted/30 border-b" style={{ borderColor: 'hsl(var(--border))' }}>
               <th className="text-left p-4 font-medium text-muted-foreground">Description</th>

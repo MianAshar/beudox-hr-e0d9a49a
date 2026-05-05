@@ -173,21 +173,21 @@ const ProjectDetail = () => {
   return (
     <div className="p-6 space-y-6 max-w-4xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/projects')}>
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate('/projects')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold text-foreground">{project.project_name}</h1>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
               <Badge className={statusColors[project.status] || ''}>{fmt(project.status)}</Badge>
               {project.priority && <Badge className={priorityColors[project.priority] || ''}>{fmt(project.priority)}</Badge>}
             </div>
             <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {project.status === 'pending' && canStartProject && (
             <Button onClick={() => setStartOpen(true)}>
               <Play className="h-4 w-4 mr-2" /> Start Project
