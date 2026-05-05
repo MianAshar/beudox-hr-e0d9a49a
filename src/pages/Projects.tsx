@@ -510,8 +510,8 @@ const Projects = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {/* Sticky column headers — mirrors Payroll table header styling */}
-          <div className="sticky top-0 z-10 flex h-10 items-center gap-3 border-b bg-secondary px-4">
+          {/* Sticky column headers — hidden on mobile, shown on lg+ */}
+          <div className="hidden lg:flex sticky top-0 z-10 h-10 items-center gap-3 border-b bg-secondary px-4">
             <div className="w-8 shrink-0" />
             <span className="w-20 shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Code</span>
             <span className="flex-1 min-w-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Project Name</span>
