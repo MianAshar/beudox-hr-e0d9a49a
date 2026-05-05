@@ -221,10 +221,10 @@ const Employees = () => {
             <TableHeader>
               <TableRow>
                 <SortableHeader column="name" sort={sort} onSort={toggleSort}>Employee</SortableHeader>
-                <SortableHeader column="code" sort={sort} onSort={toggleSort}>Employee Code</SortableHeader>
-                <SortableHeader column="department" sort={sort} onSort={toggleSort}>Department</SortableHeader>
-                <SortableHeader column="joining_date" sort={sort} onSort={toggleSort}>Joining Date</SortableHeader>
-                <SortableHeader column="role" sort={sort} onSort={toggleSort}>Role</SortableHeader>
+                <SortableHeader column="code" sort={sort} onSort={toggleSort} className="hidden md:table-cell">Employee Code</SortableHeader>
+                <SortableHeader column="department" sort={sort} onSort={toggleSort} className="hidden md:table-cell">Department</SortableHeader>
+                <SortableHeader column="joining_date" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Joining Date</SortableHeader>
+                <SortableHeader column="role" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Role</SortableHeader>
                 <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
               </TableRow>
             </TableHeader>
@@ -267,7 +267,7 @@ const Employees = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {emp.employee_code ? (
                         <span
                           className="font-mono-bx text-xs px-2 py-0.5 rounded-full"
@@ -282,17 +282,17 @@ const Employees = () => {
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <span className="text-[13px]">{emp.department || '—'}</span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <span className="text-[13px]">
                         {emp.joining_date
                           ? formatDate(emp.joining_date)
                           : '—'}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <span className="text-[13px]">
                         {formatRole(roleName)}
                       </span>

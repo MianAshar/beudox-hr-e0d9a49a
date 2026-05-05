@@ -136,13 +136,13 @@ function RecordsTable({
       <Table>
         <TableHeader className="bg-secondary">
           <TableRow>
-            {showCodeAndName && <TableHead>Code</TableHead>}
+            {showCodeAndName && <TableHead className="hidden md:table-cell">Code</TableHead>}
             {showCodeAndName && <TableHead>Name</TableHead>}
             <TableHead>Check-in</TableHead>
             <TableHead>Check-out</TableHead>
             <TableHead className="text-right">Working Hrs</TableHead>
-            <TableHead>Notes</TableHead>
-            <TableHead className="text-right">Action</TableHead>
+            <TableHead className="hidden lg:table-cell">Notes</TableHead>
+            <TableHead className="text-right hidden md:table-cell">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -173,7 +173,7 @@ function RecordsTable({
                 return (
                   <TableRow key={r.id}>
                     {showCodeAndName && (
-                      <TableCell className="font-mono text-xs">{r.employee_code ?? '—'}</TableCell>
+                      <TableCell className="font-mono text-xs hidden md:table-cell">{r.employee_code ?? '—'}</TableCell>
                     )}
                     {showCodeAndName && (
                       <TableCell className="text-sm">
@@ -229,7 +229,7 @@ function RecordsTable({
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {isOnLeave ? (
                           <span style={{
@@ -273,7 +273,7 @@ function RecordsTable({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right hidden md:table-cell">
                       {editable && missingField && (
                         <button
                           type="button"

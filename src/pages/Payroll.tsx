@@ -371,10 +371,10 @@ const Payroll = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Employee</TableHead>
-              <TableHead className="text-right">Basic Salary</TableHead>
-              <TableHead className="text-right">Allowance</TableHead>
-              <TableHead className="text-right">OT Amount</TableHead>
-              <TableHead className="text-right">Loan Deduction</TableHead>
+              <TableHead className="text-right hidden md:table-cell">Basic Salary</TableHead>
+              <TableHead className="text-right hidden md:table-cell">Allowance</TableHead>
+              <TableHead className="text-right hidden lg:table-cell">OT Amount</TableHead>
+              <TableHead className="text-right hidden lg:table-cell">Loan Deduction</TableHead>
               <TableHead className="text-right">Final Payment</TableHead>
             </TableRow>
           </TableHeader>
@@ -437,16 +437,16 @@ const Payroll = () => {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
+                        <TableCell className="text-right font-mono text-sm hidden md:table-cell">
                           {hideSalary ? masked : fmtPKR(Number(rec.basic_salary))}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
+                        <TableCell className="text-right font-mono text-sm hidden md:table-cell">
                           {hideSalary ? masked : fmtPKR(Number(rec.allowance))}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
+                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
                           {hideSalary ? masked : isDirector ? '—' : fmtPKR(otAmount)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
+                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
                           {hideSalary ? masked : loan > 0 ? fmtPKR(loan) : <span className="text-muted-foreground">—</span>}
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: hideSalary ? undefined : '#5B3FF8' }}>
