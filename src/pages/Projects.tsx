@@ -451,7 +451,7 @@ const Projects = () => {
                 </SelectContent>
               </Select>
             )}
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
               <Switch id="show-inactive-projects" checked={showInactive} onCheckedChange={setShowInactive} />
               <Label htmlFor="show-inactive-projects" className="text-sm text-muted-foreground cursor-pointer">Show inactive</Label>
             </div>
