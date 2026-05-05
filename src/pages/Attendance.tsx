@@ -657,21 +657,21 @@ const Attendance = () => {
 
   return (
     <div className="max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:flex-wrap">
         <div className="flex items-end gap-3">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 sm:flex-initial">
             <Label className="text-xs">Month</Label>
             <Select value={month} onValueChange={setMonth}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 sm:flex-initial">
             <Label className="text-xs">Year</Label>
             <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="w-[110px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[110px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {yearOptions.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
               </SelectContent>
@@ -679,13 +679,13 @@ const Attendance = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           {/* TODO: Remove before production */}
           {isCeo && (
             <button
               type="button"
               onClick={() => setClearOpen(true)}
-              className="inline-flex items-center gap-2 px-3 h-9 text-sm font-medium bg-white hover:bg-red-50 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-3 h-10 sm:h-9 text-sm font-medium bg-white hover:bg-red-50 transition-colors w-full sm:w-auto"
               style={{
                 color: '#991B1B',
                 border: '1px solid rgba(232, 69, 69, 0.3)',
@@ -696,7 +696,7 @@ const Attendance = () => {
             </button>
           )}
           {isManager && (
-            <Button onClick={() => setUploadOpen(true)}>
+            <Button onClick={() => setUploadOpen(true)} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" /> Add Attendance
             </Button>
           )}
