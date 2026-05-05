@@ -52,13 +52,13 @@ const LeaveTab = ({ employeeId }: { employeeId: string }) => {
           Leave Balances · {year}
         </h3>
         {balLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
           </div>
         ) : (balances || []).length === 0 ? (
           <p className="text-[13px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>No leave balances on record.</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {balances!.map((b: any) => {
               const total = Number(b.system_days || 0) + Number(b.adjustment_days || 0) + Number(b.carried_over_days || 0);
               const used = Number(b.used_days || 0);

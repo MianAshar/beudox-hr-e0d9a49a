@@ -52,7 +52,7 @@ const Settings = () => {
     <div className="space-y-6">
 
       <Tabs defaultValue={defaultTab} className="w-full">
-        <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
+        <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap" style={{ borderColor: 'hsl(var(--border))' }}>
           {tabs.map(tab => (
             <TabsTrigger
               key={tab.value}
