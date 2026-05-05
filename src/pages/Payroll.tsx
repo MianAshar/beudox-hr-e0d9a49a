@@ -371,10 +371,10 @@ const Payroll = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Employee</TableHead>
-              <TableHead className="text-right">Basic Salary</TableHead>
-              <TableHead className="text-right">Allowance</TableHead>
-              <TableHead className="text-right">OT Amount</TableHead>
-              <TableHead className="text-right">Loan Deduction</TableHead>
+              <TableHead className="text-right hidden md:table-cell">Basic Salary</TableHead>
+              <TableHead className="text-right hidden md:table-cell">Allowance</TableHead>
+              <TableHead className="text-right hidden lg:table-cell">OT Amount</TableHead>
+              <TableHead className="text-right hidden lg:table-cell">Loan Deduction</TableHead>
               <TableHead className="text-right">Final Payment</TableHead>
             </TableRow>
           </TableHeader>
