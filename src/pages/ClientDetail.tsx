@@ -113,18 +113,18 @@ const ClientDetail = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Back + Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/clients')}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate('/clients')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground">{client.name}</h1>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold text-foreground break-words">{client.name}</h1>
             <p className="text-sm text-muted-foreground">Client Details</p>
           </div>
         </div>
         {isCeo && (
-          <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+          <Button variant="destructive" onClick={() => setDeleteOpen(true)} className="w-full sm:w-auto">
             <Trash2 className="h-4 w-4 mr-2" /> Delete Client
           </Button>
         )}
