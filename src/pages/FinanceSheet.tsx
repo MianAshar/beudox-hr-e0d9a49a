@@ -574,26 +574,26 @@ const FinanceSheet = () => {
 
       <div className="space-y-6">
         {/* Controls */}
-        <div className="flex items-center justify-between flex-wrap gap-4 no-print">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:flex-wrap no-print">
+          <div className="flex gap-3">
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="flex-1 sm:w-[160px] sm:flex-initial"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="flex-1 sm:w-[120px] sm:flex-initial"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()}>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="w-full sm:w-auto">
               <Printer className="h-4 w-4 mr-2" /> Export as PDF
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportExcel}>
+            <Button variant="outline" size="sm" onClick={handleExportExcel} className="w-full sm:w-auto">
               <FileSpreadsheet className="h-4 w-4 mr-2" /> Export as Excel
             </Button>
           </div>
@@ -601,7 +601,7 @@ const FinanceSheet = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start no-print" style={{ borderColor: 'hsl(var(--border))' }}>
+          <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap no-print" style={{ borderColor: 'hsl(var(--border))' }}>
             {[
               { value: 'summary', label: 'Summary' },
               { value: 'payroll', label: 'Payroll' },
@@ -610,7 +610,7 @@ const FinanceSheet = () => {
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+                className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                 style={{ fontFamily: 'var(--ff-body)' }}
               >
                 {tab.label}

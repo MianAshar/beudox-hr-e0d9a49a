@@ -171,11 +171,11 @@ const DailyEvaluations = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">Two-way evaluations between Team Leads and Employees</p>
         </div>
-        <Button onClick={() => navigate('/evaluations/daily/new')}>
+        <Button onClick={() => navigate('/evaluations/daily/new')} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" /> Submit Evaluation
         </Button>
       </div>
@@ -213,15 +213,15 @@ const DailyEvaluations = () => {
         </div>
       ) : (
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
-            <TabsTrigger value="submitted" className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors">
+          <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap" style={{ borderColor: 'hsl(var(--border))' }}>
+            <TabsTrigger value="submitted" className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0">
               Submitted by Me
             </TabsTrigger>
-            <TabsTrigger value="about" className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors">
+            <TabsTrigger value="about" className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0">
               About Me
             </TabsTrigger>
             {isManager && (
-              <TabsTrigger value="all" className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors">
+              <TabsTrigger value="all" className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0">
                 All Evaluations
               </TabsTrigger>
             )}

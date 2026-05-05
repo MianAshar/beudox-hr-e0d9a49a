@@ -55,7 +55,7 @@ const SectionCard = ({ title, children }: { title: string; children: React.React
     <h3 className="font-display font-semibold text-[15px] text-foreground mb-4" style={{ fontFamily: 'var(--ff-display)' }}>
       {title}
     </h3>
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">{children}</div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">{children}</div>
   </div>
 );
 
@@ -226,10 +226,10 @@ const EmployeeProfile = () => {
       </Button>
 
       {/* Profile header */}
-      <div className="bg-card rounded-[14px] border p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-5">
-            <Avatar className="h-20 w-20">
+      <div className="bg-card rounded-[14px] border p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex items-center gap-4 sm:gap-5">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
               {emp.avatar_url ? <AvatarImage src={emp.avatar_url} alt={emp.full_name} /> : null}
               <AvatarFallback
                 className="text-xl font-semibold"
@@ -239,8 +239,8 @@ const EmployeeProfile = () => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <div className="flex items-center gap-3">
-                <h2 className="font-display font-bold text-[22px] text-foreground">{emp.full_name}</h2>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="font-display font-bold text-[18px] sm:text-[22px] text-foreground">{emp.full_name}</h2>
                 <Badge variant="outline" className={`text-[11px] font-medium capitalize border-0 ${statusVariant(emp.status)}`}>
                   {emp.status || 'active'}
                 </Badge>
@@ -270,12 +270,12 @@ const EmployeeProfile = () => {
 
       {/* Tabbed content */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
+        <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap" style={{ borderColor: 'hsl(var(--border))' }}>
           {tabs.map(tab => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
               style={{ fontFamily: 'var(--ff-body)' }}
             >
               {tab.label}

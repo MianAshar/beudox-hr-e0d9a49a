@@ -147,25 +147,25 @@ const MyPayslip = () => {
         }
       `}</style>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 lg:p-6 space-y-6">
         {/* Month selector + download button */}
-        <div className="flex items-center justify-between flex-wrap gap-4 no-print">
-          <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:flex-wrap no-print">
+          <div className="flex gap-3 flex-wrap">
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="flex-1 sm:w-[160px] sm:flex-initial"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="flex-1 sm:w-[120px] sm:flex-initial"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           {record && (
-            <Button onClick={handleDownload} variant="outline" size="sm">
+            <Button onClick={handleDownload} variant="outline" size="sm" className="w-full sm:w-auto">
               <Download className="h-4 w-4 mr-2" /> Download Payslip
             </Button>
           )}
