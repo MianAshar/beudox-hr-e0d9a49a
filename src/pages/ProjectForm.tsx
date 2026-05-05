@@ -248,7 +248,7 @@ const ProjectForm = () => {
 
       <div className="rounded-lg border bg-card p-6 space-y-5">
         {/* Row 1 */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label>Project Code *</Label>
             <Input value={form.project_code} onChange={e => setForm({ ...form, project_code: e.target.value })} placeholder="e.g. 915NY" />
@@ -262,7 +262,7 @@ const ProjectForm = () => {
         </div>
 
         {/* Row 2: Client combobox + Category */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label>Client *</Label>
             <Popover open={clientOpen} onOpenChange={setClientOpen}>
@@ -315,7 +315,7 @@ const ProjectForm = () => {
         </div>
 
         {/* Fee + Deadlines */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <Label>Fee {selectedClient ? `(${selectedClient.billing_currency})` : ''}</Label>
             <Input type="number" value={form.fee} onChange={e => setForm({ ...form, fee: e.target.value })} />
@@ -351,7 +351,7 @@ const ProjectForm = () => {
         </div>
 
         {/* Lead combobox + Priority + Status */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <Label>Project Lead</Label>
             <Popover open={leadOpen} onOpenChange={setLeadOpen}>
