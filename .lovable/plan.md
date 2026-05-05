@@ -1,32 +1,36 @@
-## Fix 1 — Remove reason from deactivation/reactivation emails
+# Mobile Responsive Fixes — Final Pass
 
-**`supabase/functions/deactivate-employee/index.ts`**
-- Remove the "Reason" block (the `<p>Reason</p>` label and `${reasonLabel}` value, lines ~129–132) from the HTML email body.
-- Keep storing `deactivation_reason` / `deactivation_notes` in the DB — only the email content changes.
+Address the 6 issues found during the QA sweep in a single coordinated pass.
 
-**`supabase/functions/reactivate-employee/index.ts`**
-- Remove the "Reason for reactivation" block (lines ~115–118) from the HTML email body.
-- Reactivation reason continues to be required by the API and recorded server-side; it just isn't shown to the employee.
+## Files to edit
 
-Redeploy both edge functions.
+1. **`src/pages/Clients.tsx`** — Convert table to responsive card/stacked rows on mobile (mirror Projects pattern: `flex flex-wrap lg:flex-nowrap`, full-width name on mobile, secondary fields wrap below). Hide sticky table header below `lg`.
 
-## Fix 2 — Show "account deactivated" instead of "invalid email or password"
+2. **`src/pages/Invoices.tsx`** — Same treatment as Clients: stacked rows on mobile with invoice number + client name full-width, status/amount/date wrapping below. Hide `lg`-only header row on mobile.
 
-The login page already has a fallback that queries `employees.status` when Supabase doesn't return a `user_banned` code. The query fails silently because an unauthenticated client cannot read the `employees` table under RLS, so `empData` comes back null and the user sees the generic "Invalid email or password" message.
+3. **`src/pages/ClientDetail.tsx`**
+   - Header: change action bar to `flex-col sm:flex-row` with wrapping; allow title to wrap (`break-words`).
+   - Inner Projects table: wrap in `overflow-x-auto` with `min-w-[640px]` so columns stay legible while horizontally scrollable; add a subtle scroll hint on mobile.
 
-**`src/pages/LoginV1.tsx`** (around lines 72–82)
-- Replace the direct `from('employees').select('status')` call with the existing security-definer RPC `get_employee_status_by_email(_email)`, which already returns the status of the most recently relevant employee record by email and is safe to call anonymously.
-- If the RPC returns `'inactive'`, show "Your account has been deactivated…"; otherwise show "Invalid email or password".
+4. **`src/pages/InvoiceDetail.tsx`**
+   - Header action bar: stack Edit/Delete/PDF/Send buttons on mobile (`flex-wrap gap-2`), ensure title doesn't get clipped.
+   - Line items table: same `overflow-x-auto` + `min-w-[600px]` treatment.
 
-This handles two cases that currently fall through:
-1. The Supabase Auth user was banned but the SDK didn't surface `user_banned` (e.g. older session error shape).
-2. An employee record exists with `status='inactive'` but no auth user is linked yet.
+5. **`src/pages/ProjectDetail.tsx`** — Header action bar: allow buttons to wrap (`flex-wrap`), title `min-w-0 break-words`. No table changes needed.
 
-No DB migration needed — `get_employee_status_by_email` already exists and is `SECURITY DEFINER`.
+6. **`src/pages/ProjectForm.tsx`** — Select triggers truncating ("Selec…"): give selects `w-full` on mobile and remove fixed narrow widths so the trigger expands; ensure the form grid collapses to single column below `sm`.
 
-## Files changed
-- `supabase/functions/deactivate-employee/index.ts`
-- `supabase/functions/reactivate-employee/index.ts`
-- `src/pages/LoginV1.tsx`
+## Approach
 
-Then redeploy `deactivate-employee` and `reactivate-employee`.
+- Reuse the exact pattern already shipped in `src/pages/Projects.tsx` (flex-wrap rows, `basis-full lg:basis-auto`, hidden header row below `lg`) for both list pages — keeps visual consistency.
+- For detail-page inner tables where a card layout would lose meaning (line items, project rows), keep the table but make it horizontally scrollable inside a bordered container with `min-w-[Xpx]` so columns stay readable.
+- Header action bars: standardize on `flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3` with `flex-wrap` on the actions cluster.
+
+## QA after fixes
+
+Live browser sweep at 390x844 of: `/clients`, `/clients/:id`, `/invoices`, `/invoices/:id`, `/projects/:id`, `/projects/new`. Screenshot each and confirm no overflow, no clipped buttons, no truncated select labels. Fix any regressions before reporting back.
+
+## Out of scope
+
+- No data/logic changes.
+- No desktop layout changes — all changes gated behind `lg:`/`sm:` breakpoints.
