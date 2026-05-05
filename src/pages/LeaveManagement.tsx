@@ -68,12 +68,12 @@ const LeaveManagement = () => {
     <div className="space-y-6">
       <MyLeaveBalances />
 
-      <div className="flex items-center justify-between">
-        <div />
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="hidden sm:block" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
           {/* TODO: Remove before production */}
           <ClearLeaveDataButton onCleared={() => window.location.reload()} />
-          <Button onClick={() => setApplyModalOpen(true)} size="sm">
+          <Button onClick={() => setApplyModalOpen(true)} size="sm" className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-1.5" />
             Apply for Leave
           </Button>
@@ -81,12 +81,12 @@ const LeaveManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
+        <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap" style={{ borderColor: 'hsl(var(--border))' }}>
           {tabs.map(tab => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
               style={{ fontFamily: 'var(--ff-body)' }}
             >
               {tab.label}
