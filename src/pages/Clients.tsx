@@ -303,8 +303,8 @@ const Clients = () => {
       )}
 
       {/* Search + Filters */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="relative max-w-sm flex-1 min-w-[200px]">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full sm:max-w-sm sm:flex-1 sm:min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search clients…"
@@ -315,7 +315,7 @@ const Clients = () => {
         </div>
         {showActivity && (
           <Select value={activityFilter} onValueChange={v => setActivityFilter(v as 'all' | ActivityCategory)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filter by activity" />
             </SelectTrigger>
             <SelectContent>
@@ -347,8 +347,8 @@ const Clients = () => {
           <p className="text-sm mt-1">{search || activityFilter !== 'all' ? 'Try a different search or filter' : 'Add your first client to get started'}</p>
         </div>
       ) : (
-        <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-          <Table>
+        <div className="rounded-[14px] border bg-card overflow-x-auto" style={{ borderColor: 'hsl(var(--border))' }}>
+          <Table className="min-w-[860px]">
             <TableHeader>
               <TableRow>
                 <SortableHeader column="name" sort={sort} onSort={toggleSort}>Client Name</SortableHeader>

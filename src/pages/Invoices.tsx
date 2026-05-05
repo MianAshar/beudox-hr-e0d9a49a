@@ -226,8 +226,8 @@ const Invoices = () => {
         </Button>
       </div>
 
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="relative max-w-sm flex-1 min-w-[200px]">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative w-full sm:max-w-sm sm:flex-1 sm:min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by invoice # or client…"
@@ -237,7 +237,7 @@ const Invoices = () => {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -247,7 +247,7 @@ const Invoices = () => {
           </SelectContent>
         </Select>
         <Select value={clientFilter} onValueChange={setClientFilter}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="All Clients" />
           </SelectTrigger>
           <SelectContent>
@@ -277,8 +277,8 @@ const Invoices = () => {
         </div>
       ) : (
         <TooltipProvider delayDuration={300}>
-          <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-            <Table>
+          <div className="rounded-[14px] border bg-card overflow-x-auto" style={{ borderColor: 'hsl(var(--border))' }}>
+            <Table className="min-w-[1100px]">
               <TableHeader>
                 <TableRow>
                   <SortableHeader column="invoice_number" sort={sort} onSort={toggleSort}>Invoice #</SortableHeader>
