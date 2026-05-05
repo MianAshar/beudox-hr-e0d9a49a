@@ -173,7 +173,7 @@ function RecordsTable({
                 return (
                   <TableRow key={r.id}>
                     {showCodeAndName && (
-                      <TableCell className="font-mono text-xs">{r.employee_code ?? '—'}</TableCell>
+                      <TableCell className="font-mono text-xs hidden md:table-cell">{r.employee_code ?? '—'}</TableCell>
                     )}
                     {showCodeAndName && (
                       <TableCell className="text-sm">
