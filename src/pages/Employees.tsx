@@ -221,10 +221,10 @@ const Employees = () => {
             <TableHeader>
               <TableRow>
                 <SortableHeader column="name" sort={sort} onSort={toggleSort}>Employee</SortableHeader>
-                <th className="hidden md:table-cell"><SortableHeader column="code" sort={sort} onSort={toggleSort}>Employee Code</SortableHeader></th>
-                <th className="hidden md:table-cell"><SortableHeader column="department" sort={sort} onSort={toggleSort}>Department</SortableHeader></th>
-                <th className="hidden lg:table-cell"><SortableHeader column="joining_date" sort={sort} onSort={toggleSort}>Joining Date</SortableHeader></th>
-                <th className="hidden lg:table-cell"><SortableHeader column="role" sort={sort} onSort={toggleSort}>Role</SortableHeader></th>
+                <SortableHeader column="code" sort={sort} onSort={toggleSort} className="hidden md:table-cell">Employee Code</SortableHeader>
+                <SortableHeader column="department" sort={sort} onSort={toggleSort} className="hidden md:table-cell">Department</SortableHeader>
+                <SortableHeader column="joining_date" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Joining Date</SortableHeader>
+                <SortableHeader column="role" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Role</SortableHeader>
                 <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
               </TableRow>
             </TableHeader>
