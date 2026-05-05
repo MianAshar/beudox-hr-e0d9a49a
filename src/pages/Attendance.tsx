@@ -136,13 +136,13 @@ function RecordsTable({
       <Table>
         <TableHeader className="bg-secondary">
           <TableRow>
-            {showCodeAndName && <TableHead>Code</TableHead>}
+            {showCodeAndName && <TableHead className="hidden md:table-cell">Code</TableHead>}
             {showCodeAndName && <TableHead>Name</TableHead>}
             <TableHead>Check-in</TableHead>
             <TableHead>Check-out</TableHead>
             <TableHead className="text-right">Working Hrs</TableHead>
-            <TableHead>Notes</TableHead>
-            <TableHead className="text-right">Action</TableHead>
+            <TableHead className="hidden lg:table-cell">Notes</TableHead>
+            <TableHead className="text-right hidden md:table-cell">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
