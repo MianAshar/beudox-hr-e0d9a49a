@@ -437,16 +437,16 @@ const Payroll = () => {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
+                        <TableCell className="text-right font-mono text-sm hidden md:table-cell">
                           {hideSalary ? masked : fmtPKR(Number(rec.basic_salary))}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
+                        <TableCell className="text-right font-mono text-sm hidden md:table-cell">
                           {hideSalary ? masked : fmtPKR(Number(rec.allowance))}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
+                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
                           {hideSalary ? masked : isDirector ? '—' : fmtPKR(otAmount)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
+                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
                           {hideSalary ? masked : loan > 0 ? fmtPKR(loan) : <span className="text-muted-foreground">—</span>}
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: hideSalary ? undefined : '#5B3FF8' }}>
