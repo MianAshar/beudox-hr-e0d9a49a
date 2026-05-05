@@ -1,117 +1,97 @@
 <!--
 generated_by: tessera
-source_sha: e0496de59cca92e2d12ac55c15b817a035863b66
-generated_at: 2026-05-05T12:42:35.680Z
+source_sha: be6ab27a68b9f587a21c61b36d4381527ac5fdd7
+generated_at: 2026-05-05T15:22:02.913Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built with modern web technologies. This application provides organizations with tools to manage employee data, track attendance, handle leave requests, process payroll, and oversee various HR operations.
+A comprehensive Human Resources Management System built as a modern web application for managing employee data, attendance, leave requests, payroll, evaluations, and organizational settings.
 
 ## Features
 
-### Core HR Functionality
-- **Employee Management**: Complete employee profiles with personal information, job details, and organizational hierarchy
-- **Attendance Tracking**: Automated attendance recording with check-in/check-out, overtime calculation, and analytics
-- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.)
-- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and deductions
-- **Performance Reviews**: Employee evaluation system with scheduled reviews and salary adjustments
-
-### Administrative Tools
-- **Company Settings**: Configure departments, roles, leave types, expense categories, and project categories
-- **User Management**: Role-based access control with customizable permissions
-- **Reporting**: Comprehensive analytics and reporting for HR metrics
-- **Document Management**: Secure storage and management of employee documents
-
-### Additional Features
+- **Employee Management**: Complete employee profiles with personal details, documents, and organizational hierarchy
+- **Attendance Tracking**: Automated attendance recording, summary reports, and anomaly detection
+- **Leave Management**: Request, approve, and track leave balances across multiple leave types
+- **Payroll Processing**: Generate payroll sheets, track salary history, and manage increments
+- **Performance Evaluations**: Schedule and conduct employee evaluations with customizable parameters
 - **Project Management**: Assign employees to projects and track project activities
-- **Expense Tracking**: Manage and approve employee expense claims
-- **Notification System**: Automated notifications for important HR events
-- **Multi-tenant Architecture**: Support for multiple companies/organizations
+- **Finance Overview**: Monitor company financial summaries and expense categories
+- **HR Policies**: Rich text editor for creating and managing company policies
+- **Settings Management**: Configure company details, departments, roles, leave types, and more
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
+- **Routing**: React Router DOM
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with custom design system
 - **UI Components**: shadcn/ui component library
-- **Icons**: Lucide React
-- **Backend**: Supabase (PostgreSQL database + real-time features)
-- **Authentication**: Supabase Auth
+- **Backend**: Supabase (PostgreSQL database + Auth + Edge Functions)
 - **State Management**: React hooks and context
-- **Routing**: React Router
-- **Forms**: React Hook Form with validation
-- **Charts**: Recharts
-- **Testing**: Vitest + Playwright
+- **Testing**: Vitest + Playwright for E2E testing
+- **Code Quality**: ESLint configuration
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn/bun
+- Node.js 18+
+- npm or bun package manager
 - Supabase account and project
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
    git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
-   # or
-   yarn install
    # or
    bun install
    ```
 
-3. **Environment Setup**
-   
-   Copy the `.env` file and update the Supabase configuration:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables in `.env.local`:
+3. Create a `.env` file in the root directory with your Supabase credentials:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
+   VITE_SUPABASE_PROJECT_ID="your-project-id"
+   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
+   VITE_SUPABASE_URL="https://your-project.supabase.co"
    ```
 
-4. **Database Setup**
-   
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
-   
-   If using Supabase CLI:
-   ```bash
-   supabase db reset
-   ```
-
-5. **Start the development server**
+4. Start the development server:
    ```bash
    npm run dev
    # or
-   yarn dev
-   # or
-   bun dev
+   bun run dev
    ```
 
-6. **Open your browser**
-   
-   Navigate to `http://localhost:5173` (default Vite port)
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### First-Time Setup
+### Database Setup
 
-1. Create an admin account through Supabase Auth
-2. Set up your company information in the settings
-3. Configure departments, roles, and leave types
-4. Add employees and assign roles
-5. Import attendance data if available
+The application uses Supabase as its backend. The database schema includes tables for:
+
+- Employees and user authentication
+- Attendance records
+- Leave requests and balances
+- Payroll data
+- Company settings and configurations
+- Projects and evaluations
+
+Database migrations are managed through Supabase and should be applied automatically when setting up the project.
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory, ready for deployment to any static hosting service.
 
 ## Project Structure
 
@@ -119,21 +99,21 @@ A comprehensive Human Resources Management System built with modern web technolo
 src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui base components
-│   ├── layout/         # App layout components
 │   ├── attendance/     # Attendance-related components
+│   ├── employee-profile/ # Employee profile sections
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── employee-profile/ # Employee profile sections
 │   ├── settings/       # Admin settings components
 │   └── ...
-├── pages/              # Page components (routes)
+├── pages/              # Route components
 ├── lib/                # Utility functions and configurations
 ├── hooks/              # Custom React hooks
-├── integrations/       # External service integrations
-└── types/              # TypeScript type definitions
+└── integrations/       # External service integrations
 ```
 
-## Available Scripts
+## Development
+
+### Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
@@ -142,18 +122,18 @@ src/
 - `npm run test:e2e` - Run end-to-end tests
 - `npm run lint` - Run ESLint
 
+### Code Style
+
+The project uses ESLint for code quality. Please ensure all code follows the established patterns and runs without linting errors.
+
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## License
 
 This project is proprietary software. All rights reserved.
-
-## Support
-
-For support and questions, please contact the development team or create an issue in the repository.
