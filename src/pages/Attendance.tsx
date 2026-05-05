@@ -273,7 +273,7 @@ function RecordsTable({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right hidden md:table-cell">
                       {editable && missingField && (
                         <button
                           type="button"
