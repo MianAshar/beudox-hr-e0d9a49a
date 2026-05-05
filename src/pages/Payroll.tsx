@@ -474,44 +474,48 @@ const Payroll = () => {
 
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 lg:p-6 space-y-6">
       {/* Month/Year selector + Generate */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <Select value={selectedMonth} onValueChange={m => handleMonthYearChange(m, selectedYear)}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {MONTHS.map(m => (
-              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={selectedYear} onValueChange={y => handleMonthYearChange(selectedMonth, y)}>
-          <SelectTrigger className="w-[120px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {YEARS.map(y => (
-              <SelectItem key={y} value={y}>{y}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button onClick={handleGenerate} disabled={loading}>
-          {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <DollarSign className="h-4 w-4 mr-2" />}
-          Generate Payroll
-        </Button>
-        {/* TODO: Remove before production */}
-        {isCeoViewer && (
-          <Button
-            type="button"
-            onClick={() => { setClearStep(1); setClearConfirmText(''); }}
-            className="bg-white hover:bg-red-50 text-[#991B1B] hover:text-[#991B1B] rounded-[10px] h-10 px-4"
-            style={{ border: '1px solid rgba(232, 69, 69, 0.3)' }}
-          >
-            Clear Payroll Data
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 sm:flex-wrap">
+        <div className="flex gap-3">
+          <Select value={selectedMonth} onValueChange={m => handleMonthYearChange(m, selectedYear)}>
+            <SelectTrigger className="flex-1 sm:w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MONTHS.map(m => (
+                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedYear} onValueChange={y => handleMonthYearChange(selectedMonth, y)}>
+            <SelectTrigger className="flex-1 sm:w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {YEARS.map(y => (
+                <SelectItem key={y} value={y}>{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button onClick={handleGenerate} disabled={loading} className="w-full sm:w-auto">
+            {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <DollarSign className="h-4 w-4 mr-2" />}
+            Generate Payroll
           </Button>
-        )}
+          {/* TODO: Remove before production */}
+          {isCeoViewer && (
+            <Button
+              type="button"
+              onClick={() => { setClearStep(1); setClearConfirmText(''); }}
+              className="bg-white hover:bg-red-50 text-[#991B1B] hover:text-[#991B1B] rounded-[10px] h-10 px-4 w-full sm:w-auto"
+              style={{ border: '1px solid rgba(232, 69, 69, 0.3)' }}
+            >
+              Clear Payroll Data
+            </Button>
+          )}
+        </div>
       </div>
 
       {loading && (
@@ -533,7 +537,7 @@ const Payroll = () => {
       {!loading && generated && departments.length > 0 && (
         <div className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start" style={{ borderColor: 'hsl(var(--border))' }}>
+            <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap" style={{ borderColor: 'hsl(var(--border))' }}>
               <TabsTrigger
                 value="summary"
                 className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
