@@ -229,7 +229,7 @@ function RecordsTable({
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {isOnLeave ? (
                           <span style={{
