@@ -207,7 +207,7 @@ const PublicHolidays = () => {
             {isLoading ? '...' : `${holidays.length} holiday${holidays.length !== 1 ? 's' : ''} in ${selectedYear}`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Year selector */}
           <div className="flex items-center gap-1 rounded-lg border border-border bg-card px-1">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedYear(y => y - 1)}>
@@ -247,14 +247,14 @@ const PublicHolidays = () => {
 
       {/* Preload banner */}
       {showPreload && (
-        <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-5 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 sm:px-5 py-4">
           <div className="flex items-center gap-3">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <Sparkles className="h-5 w-5 text-primary shrink-0" />
             <p className="text-sm text-foreground">
               No holidays added yet. Would you like to load Pakistan's public holidays for {selectedYear}?
             </p>
           </div>
-          <Button size="sm" onClick={() => preloadMutation.mutate()} disabled={preloadMutation.isPending}>
+          <Button size="sm" onClick={() => preloadMutation.mutate()} disabled={preloadMutation.isPending} className="w-full sm:w-auto">
             {preloadMutation.isPending ? 'Loading…' : 'Load Pakistan Holidays'}
           </Button>
         </div>
