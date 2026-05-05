@@ -267,7 +267,7 @@ const Employees = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {emp.employee_code ? (
                         <span
                           className="font-mono-bx text-xs px-2 py-0.5 rounded-full"
@@ -282,17 +282,17 @@ const Employees = () => {
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <span className="text-[13px]">{emp.department || '—'}</span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <span className="text-[13px]">
                         {emp.joining_date
                           ? formatDate(emp.joining_date)
                           : '—'}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <span className="text-[13px]">
                         {formatRole(roleName)}
                       </span>
