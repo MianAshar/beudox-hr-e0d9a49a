@@ -115,7 +115,7 @@ const Employees = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <p
             className="text-muted-foreground text-[13px]"
@@ -125,7 +125,7 @@ const Employees = () => {
           </p>
         </div>
         {canAdd && (
-          <Button onClick={() => navigate('/employees/new')} className="gap-2">
+          <Button onClick={() => navigate('/employees/new')} className="gap-2 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             Add Employee
           </Button>
@@ -133,8 +133,8 @@ const Employees = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="relative flex-1 sm:max-w-sm">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
             style={{ strokeWidth: 1.5 }}
@@ -146,8 +146,9 @@ const Employees = () => {
             className="pl-9"
           />
         </div>
+        <div className="flex gap-3">
         <Select value={deptFilter} onValueChange={setDeptFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="flex-1 sm:w-[160px]">
             <SelectValue placeholder="Department" />
           </SelectTrigger>
           <SelectContent>
@@ -160,7 +161,7 @@ const Employees = () => {
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="flex-1 sm:w-[140px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -172,6 +173,7 @@ const Employees = () => {
             ))}
           </SelectContent>
         </Select>
+        </div>
       </div>
 
       {/* Table */}
