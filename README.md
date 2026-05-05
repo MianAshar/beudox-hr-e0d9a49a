@@ -1,47 +1,55 @@
 <!--
 generated_by: tessera
-source_sha: d2dd5800dede643bd5c76facc7cd3e7c05224a68
-generated_at: 2026-05-05T12:08:41.061Z
+source_sha: e0496de59cca92e2d12ac55c15b817a035863b66
+generated_at: 2026-05-05T12:42:35.680Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive HR management system built for modern companies to streamline employee management, attendance tracking, leave administration, payroll processing, and performance evaluations.
+A comprehensive Human Resources Management System built with modern web technologies. This application provides organizations with tools to manage employee data, track attendance, handle leave requests, process payroll, and oversee various HR operations.
 
 ## Features
 
-### Core HR Modules
-- **Employee Management**: Complete employee profiles with personal details, roles, and organizational structure
-- **Attendance Tracking**: Automated attendance recording with check-in/out, working hours calculation, overtime tracking, and anomaly detection
-- **Leave Management**: Leave request system with balance tracking, approval workflows, and policy enforcement
-- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, deductions, and PDF invoice generation
-- **Performance Evaluations**: Employee evaluation system with scheduled reviews, parameter-based assessments, and timeline tracking
-- **Finance & Expenses**: Expense tracking and financial summaries for better budget management
+### Core HR Functionality
+- **Employee Management**: Complete employee profiles with personal information, job details, and organizational hierarchy
+- **Attendance Tracking**: Automated attendance recording with check-in/check-out, overtime calculation, and analytics
+- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.)
+- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and deductions
+- **Performance Reviews**: Employee evaluation system with scheduled reviews and salary adjustments
 
 ### Administrative Tools
-- **Settings Management**: Company configuration, departments, roles, leave types, evaluation parameters, and expense categories
-- **User Access Control**: Role-based permissions and authentication with mandatory password changes
-- **Audit & Logging**: Login tracking, activity logs, and system change history
-- **Project Management**: Team assignments, project tracking, and activity logging
+- **Company Settings**: Configure departments, roles, leave types, expense categories, and project categories
+- **User Management**: Role-based access control with customizable permissions
+- **Reporting**: Comprehensive analytics and reporting for HR metrics
+- **Document Management**: Secure storage and management of employee documents
+
+### Additional Features
+- **Project Management**: Assign employees to projects and track project activities
+- **Expense Tracking**: Manage and approve employee expense claims
+- **Notification System**: Automated notifications for important HR events
+- **Multi-tenant Architecture**: Support for multiple companies/organizations
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with custom design system
-- **Routing**: React Router (Pages Router pattern)
+- **UI Components**: shadcn/ui component library
+- **Icons**: Lucide React
 - **Backend**: Supabase (PostgreSQL database + real-time features)
-- **UI Components**: Custom component library with shadcn/ui foundation
+- **Authentication**: Supabase Auth
 - **State Management**: React hooks and context
-- **Testing**: Vitest for unit testing
-- **Deployment**: Configured for modern web hosting
+- **Routing**: React Router
+- **Forms**: React Hook Form with validation
+- **Charts**: Recharts
+- **Testing**: Vitest + Playwright
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- npm or bun package manager
+
+- Node.js 18+ and npm/yarn/bun
 - Supabase account and project
 
 ### Installation
@@ -56,12 +64,14 @@ A comprehensive HR management system built for modern companies to streamline em
    ```bash
    npm install
    # or
+   yarn install
+   # or
    bun install
    ```
 
 3. **Environment Setup**
    
-   Copy the `.env` file and configure your Supabase credentials:
+   Copy the `.env` file and update the Supabase configuration:
    ```bash
    cp .env .env.local
    ```
@@ -75,66 +85,62 @@ A comprehensive HR management system built for modern companies to streamline em
 
 4. **Database Setup**
    
-   The application uses Supabase migrations for database schema. The migrations are located in `supabase/migrations/` and will be applied automatically when you run the Supabase CLI commands.
+   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory in order.
    
-   If you're setting up a new Supabase project:
+   If using Supabase CLI:
    ```bash
-   npx supabase start
-   npx supabase db reset
+   supabase db reset
    ```
 
-5. **Start Development Server**
+5. **Start the development server**
    ```bash
    npm run dev
    # or
-   bun run dev
+   yarn dev
+   # or
+   bun dev
    ```
+
+6. **Open your browser**
    
-   The application will be available at `http://localhost:5173`
+   Navigate to `http://localhost:5173` (default Vite port)
 
-### Build for Production
+### First-Time Setup
 
-```bash
-npm run build
-npm run preview
-```
+1. Create an admin account through Supabase Auth
+2. Set up your company information in the settings
+3. Configure departments, roles, and leave types
+4. Add employees and assign roles
+5. Import attendance data if available
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # Base UI components (buttons, forms, etc.)
-│   ├── layout/         # Layout components (sidebar, header, etc.)
+│   ├── ui/             # shadcn/ui base components
+│   ├── layout/         # App layout components
 │   ├── attendance/     # Attendance-related components
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── employee-profile/ # Employee profile tabs
+│   ├── employee-profile/ # Employee profile sections
+│   ├── settings/       # Admin settings components
 │   └── ...
-├── pages/              # Route components (Next.js Pages Router)
+├── pages/              # Page components (routes)
 ├── lib/                # Utility functions and configurations
 ├── hooks/              # Custom React hooks
 ├── integrations/       # External service integrations
-└── test/               # Test files
-
-supabase/
-├── migrations/         # Database schema migrations
-└── config.toml        # Supabase configuration
+└── types/              # TypeScript type definitions
 ```
 
-## Usage
+## Available Scripts
 
-### First Time Setup
-1. Access the application at the development URL
-2. Create a company account or log in with existing credentials
-3. Configure company settings (departments, roles, leave types, etc.)
-4. Add employees and set up their profiles
-5. Import attendance data or set up automated tracking
-
-### Daily Operations
-- **Employees**: Check attendance, submit leave requests, view payroll
-- **Managers**: Approve requests, manage teams, review performance
-- **HR/Admin**: Configure policies, generate reports, manage payroll
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run unit tests
+- `npm run test:e2e` - Run end-to-end tests
+- `npm run lint` - Run ESLint
 
 ## Contributing
 
@@ -150,4 +156,4 @@ This project is proprietary software. All rights reserved.
 
 ## Support
 
-For support and questions, please contact the development team or refer to the internal documentation.
+For support and questions, please contact the development team or create an issue in the repository.
