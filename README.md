@@ -1,35 +1,33 @@
 <!--
 generated_by: tessera
 source_sha: d05e2703bc4ca812d900c6eabbedaad699b1d5da
-generated_at: 2026-05-06T17:22:08.016Z
+generated_at: 2026-05-06T17:23:53.132Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built as a modern web application for managing employee data, attendance, payroll, leave requests, evaluations, and more.
+A comprehensive Human Resources management system built as a modern web application. Beudox HR provides tools for employee management, attendance tracking, leave administration, payroll processing, and organizational settings.
 
 ## Features
 
-- **Employee Management**: Profile management, onboarding, and organizational structure
-- **Attendance Tracking**: Automated attendance recording, summary reports, and anomaly detection
-- **Leave Management**: Request and approval workflows for various leave types
-- **Payroll Processing**: Salary calculations, overtime tracking, and payslip generation
-- **Performance Evaluations**: Scheduled reviews and feedback systems
-- **Project Management**: Team assignments and activity tracking
-- **HR Policies**: Rich text policy documents and management
-- **Settings & Configuration**: Company settings, departments, roles, and system configuration
+- **Employee Management**: Profile management, role-based access control, and organizational hierarchy
+- **Attendance Tracking**: Automated attendance recording, analytics, and reporting
+- **Leave Management**: Leave request workflows, balance tracking, and approval processes
+- **Payroll Processing**: Automated payroll calculations, payslip generation, and financial reporting
+- **Settings & Configuration**: Company settings, departments, roles, leave types, and expense categories
+- **Notifications**: Automated alerts for reviews, leave approvals, and system events
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
+- **Styling**: Tailwind CSS with shadcn/ui component library
+- **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
 - **Routing**: React Router
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Backend**: Supabase (PostgreSQL database with real-time features)
 - **State Management**: React hooks and context
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
-- **Deployment**: Configured for modern web hosting
+- **Testing**: Vitest for unit tests, Playwright for end-to-end tests
+- **Deployment**: Configured for modern web hosting platforms
 
 ## Getting Started
 
@@ -43,8 +41,8 @@ A comprehensive Human Resources Management System built as a modern web applicat
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
-   cd beudox-hr-e0d9a49a
+   git clone <repository-url>
+   cd beudox-hr
    ```
 
 2. Install dependencies:
@@ -54,13 +52,13 @@ A comprehensive Human Resources Management System built as a modern web applicat
    bun install
    ```
 
-3. Set up environment variables:
+3. Configure environment variables:
    
    Copy `.env` and update the Supabase configuration:
    ```env
-   VITE_SUPABASE_PROJECT_ID="your-project-id"
-   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
-   VITE_SUPABASE_URL="https://your-project.supabase.co"
+   VITE_SUPABASE_PROJECT_ID=your_project_id
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+   VITE_SUPABASE_URL=your_supabase_url
    ```
 
 4. Start the development server:
@@ -70,21 +68,15 @@ A comprehensive Human Resources Management System built as a modern web applicat
    bun run dev
    ```
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
+5. Open [http://localhost:5173](http://localhost:5173) in your browser
 
-### Database Setup
+### Build for Production
 
-The application uses Supabase for data storage. The database schema includes tables for:
+```bash
+npm run build
+```
 
-- Employees and user authentication
-- Attendance records
-- Leave requests and balances
-- Payroll data
-- Company settings and configurations
-- Public holidays
-- Projects and tasks
-
-Database migrations are located in the `supabase/migrations/` directory.
+The built files will be in the `dist` directory.
 
 ### Testing
 
@@ -93,7 +85,7 @@ Run unit tests:
 npm run test
 ```
 
-Run E2E tests:
+Run end-to-end tests:
 ```bash
 npm run test:e2e
 ```
@@ -108,29 +100,30 @@ src/
 │   ├── employee-profile/ # Employee profile sections
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── settings/       # Admin settings components
-│   └── ...
-├── pages/              # Page components
+│   └── settings/       # Admin settings components
+├── pages/              # Page components (routes)
 ├── lib/                # Utility functions and configurations
 ├── hooks/              # Custom React hooks
-├── integrations/       # External service integrations
-└── test/               # Test files
+└── integrations/       # External service integrations
 ```
 
-## Key Components
+## Database Schema
 
-- **AppLayout**: Main application layout with sidebar navigation
-- **AttendanceSummary**: Comprehensive attendance analytics and reporting
-- **MandatoryPasswordChange**: Secure password reset flow for new users
-- **SearchableEmployeeSelect**: Employee selection with search functionality
-- **BeudoxLogo**: Brand logo component with multiple variants
+The application uses Supabase with PostgreSQL. Database migrations are located in `supabase/migrations/` and include tables for:
+
+- Employees and user authentication
+- Attendance records
+- Leave requests and balances
+- Payroll data
+- Company settings and configurations
+- Audit logs and notifications
 
 ## Contributing
 
 1. Follow the existing code style and component patterns
 2. Write tests for new features
 3. Update documentation as needed
-4. Ensure all tests pass before submitting PRs
+4. Ensure TypeScript types are properly defined
 
 ## License
 
