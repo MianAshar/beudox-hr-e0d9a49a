@@ -1,12 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AlertTriangle, Download, DollarSign } from 'lucide-react';
+import { AlertTriangle, Download, DollarSign, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const MONTHS_LBL: Record<string, string> = {
   '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'May', '06': 'Jun',
