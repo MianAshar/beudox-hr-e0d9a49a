@@ -1,49 +1,43 @@
 <!--
 generated_by: tessera
 source_sha: 99a40ba569414f43251b340331e742906aca530b
-generated_at: 2026-05-06T15:45:53.734Z
+generated_at: 2026-05-06T15:49:16.492Z
 action: update
 -->
 
-# Beudox HR
+# Beudox HR Portal
 
-A comprehensive Human Resources Management System built as a modern web application. Beudox HR provides companies with tools to manage employees, track attendance, handle leave requests, process payroll, manage projects, and configure HR policies.
+A comprehensive Human Resources Management System built as a modern web application for managing employee data, attendance, payroll, leave requests, and organizational settings.
 
 ## Features
 
-- **Employee Management**: Profile management, onboarding, and employee directory
-- **Attendance Tracking**: Daily attendance records, overtime calculation, and analytics
-- **Leave Management**: Leave requests, balances, and approval workflows
-- **Payroll Processing**: Salary calculations, payslips, and payroll history
-- **Project Management**: Team assignments, task tracking, and project activity logs
-- **HR Policies**: Rich text policy documents and management
-- **Finance Overview**: Financial summaries and expense tracking
-- **Settings & Configuration**: Company settings, departments, roles, leave types, and more
-- **Notifications**: Automated notifications for HR events
-- **Reporting**: Comprehensive analytics and reporting dashboards
+- **Employee Management**: Profile management, onboarding, and organizational structure
+- **Attendance Tracking**: Automated attendance recording, analytics, and reporting
+- **Payroll Processing**: Salary calculations, payslips, and financial summaries
+- **Leave Management**: Request processing, balance tracking, and approval workflows
+- **Performance Reviews**: Evaluation timelines, salary reviews, and increment proposals
+- **Project Management**: Team assignments, activity logging, and task tracking
+- **HR Policies**: Rich text policy documents and compliance management
+- **Settings & Configuration**: Company settings, departments, roles, and system parameters
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
+- **Routing**: React Router (Pages Router pattern)
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with custom design system
-- **UI Components**: Radix UI primitives with Shadcn/ui
-- **State Management**: TanStack Query for server state, React Context for auth
-- **Forms**: React Hook Form with Zod validation
-- **Backend**: Supabase (PostgreSQL, Authentication, Storage)
-- **Routing**: React Router DOM
-- **Charts**: Recharts
-- **Rich Text**: Tiptap
-- **Testing**: Vitest with React Testing Library
-- **E2E Testing**: Playwright
+- **UI Framework**: shadcn/ui components with Tailwind CSS
+- **Backend**: Supabase (PostgreSQL database with real-time features)
+- **Authentication**: Supabase Auth
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
+- **Deployment**: Configured for modern web hosting
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
-- A Supabase project
+- npm or bun package manager
+- Supabase account and project
 
 ### Installation
 
@@ -56,76 +50,77 @@ A comprehensive Human Resources Management System built as a modern web applicat
 2. Install dependencies:
    ```bash
    npm install
+   # or
+   bun install
    ```
 
 3. Set up environment variables:
-   
-   Copy `.env` and update the Supabase configuration:
-   ```bash
-   cp .env .env.local
-   ```
-   
-   Update the following variables in `.env.local`:
-   - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
-   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+   - Copy `.env` and update with your Supabase credentials
+   - Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-4. Set up Supabase:
-   
-   The application uses Supabase for data storage. You'll need to:
-   - Create a Supabase project
-   - Run the database migrations located in `supabase/migrations/`
-   - Configure authentication and storage as needed
+4. Run database migrations:
+   ```bash
+   # Using Supabase CLI
+   supabase db push
+   ```
 
 5. Start the development server:
    ```bash
    npm run dev
+   # or
+   bun run dev
    ```
 
-6. Open [http://localhost:5173](http://localhost:5173) in your browser.
+6. Open [http://localhost:5173](http://localhost:5173) in your browser
 
-### Available Scripts
+### Build for Production
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run lint` - Run ESLint
-- `npm run preview` - Preview production build
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode
+```bash
+npm run build
+```
+
+The built files will be in the `dist/` directory.
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # Base UI components (shadcn/ui)
+│   ├── ui/             # shadcn/ui base components
 │   ├── attendance/     # Attendance-related components
-│   ├── employee-profile/ # Employee profile components
-│   ├── finance/        # Finance components
-│   ├── hr-policies/    # HR policy components
-│   ├── layout/         # Layout components (sidebar, topbar, etc.)
+│   ├── employee-profile/ # Employee profile sections
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── projects/       # Project management components
-│   ├── settings/       # Settings components
+│   ├── settings/       # Admin settings components
 │   └── ...
-├── pages/              # Page components (routes)
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and configurations
+├── pages/              # Route components (Pages Router)
 ├── integrations/       # External service integrations
+│   └── supabase/       # Supabase client and types
+├── lib/                # Utility functions and business logic
+├── hooks/              # Custom React hooks
 └── test/               # Test files
+
+supabase/
+├── migrations/         # Database schema migrations
+└── config.toml        # Supabase project configuration
 ```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run unit tests
+- `npm run test:e2e` - Run end-to-end tests
+- `npm run lint` - Run ESLint
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `npm run test`
-5. Run linting: `npm run lint`
-6. Submit a pull request
+1. Follow the existing code style and component patterns
+2. Write tests for new features
+3. Update documentation as needed
+4. Ensure all tests pass before submitting PRs
 
 ## License
 
-This project is private and proprietary.
+This project is proprietary software. All rights reserved.
