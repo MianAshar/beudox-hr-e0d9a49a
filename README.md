@@ -1,90 +1,85 @@
 <!--
 generated_by: tessera
-source_sha: 55b76f913056a5a1f57f2afcd0f1dbe37f5b5d46
-generated_at: 2026-05-05T18:12:15.069Z
+source_sha: 3929819abf0e12b9f52e71b3a47fb8eb6bac72e3
+generated_at: 2026-05-06T15:19:33.829Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built for modern businesses. This frontend application provides a complete suite of HR tools including employee management, attendance tracking, leave management, payroll processing, performance evaluations, and administrative settings.
+A comprehensive Human Resources Management System built with modern web technologies. This application provides a complete suite of HR tools for managing employees, attendance, payroll, leave, evaluations, projects, and more.
 
 ## Features
 
-### Core HR Functionality
-- **Employee Profiles**: Comprehensive employee information management with personal details, job history, and documentation
-- **Attendance Management**: Automated attendance tracking with check-in/out, overtime calculation, and analytics dashboard
-- **Leave Management**: Request, approve, and track various types of leave (vacation, sick, etc.) with balance monitoring
-- **Payroll Processing**: Automated payroll generation with salary calculations, allowances, and overtime pay
-- **Performance Reviews**: Employee evaluation system with scheduled reviews and salary increment proposals
-- **Project Management**: Team assignment and project tracking capabilities
-
-### Administrative Tools
-- **Company Settings**: Configure company information, departments, roles, and policies
-- **HR Policies**: Rich text editor for creating and managing company policies
-- **Expense Management**: Track and categorize business expenses
-- **Login Monitoring**: Track employee login activity and device information
-
-### Analytics & Reporting
-- **Attendance Analytics**: Detailed insights into attendance patterns, punctuality, and anomalies
-- **Payroll Reports**: Comprehensive payroll summaries and employee-specific reports
-- **Finance Overview**: Financial summaries and expense tracking
+- **Employee Management**: Complete employee profiles, onboarding, and lifecycle management
+- **Attendance Tracking**: Automated attendance recording with analytics and reporting
+- **Leave Management**: Request, approve, and track various types of leave
+- **Payroll Processing**: Automated payroll calculations and payslip generation
+- **Performance Evaluations**: Regular and daily performance assessments
+- **Project Management**: Project tracking, task management, and team assignments
+- **Finance & Invoicing**: Client management, invoice generation, and financial reporting
+- **HR Policies**: Document management and policy administration
+- **Settings & Configuration**: Company settings, roles, departments, and system configuration
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with custom design system
-- **UI Components**: shadcn/ui component library
-- **Routing**: React Router v6
-- **Backend**: Supabase (PostgreSQL database with real-time capabilities)
-- **State Management**: React hooks and context
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
-- **Deployment**: Configured for modern hosting platforms
+- **UI Framework**: shadcn/ui with Radix UI components
+- **Styling**: Tailwind CSS
+- **State Management**: React Query (TanStack Query)
+- **Routing**: React Router DOM
+- **Backend**: Supabase (PostgreSQL database with real-time features)
+- **Authentication**: Supabase Auth
+- **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts
+- **Rich Text Editor**: Tiptap
+- **Testing**: Vitest with React Testing Library
+- **E2E Testing**: Playwright
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
-- npm or bun package manager
-- Supabase account and project
+- npm or yarn or bun
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    npm install
+   # or
+   yarn install
    # or
    bun install
    ```
 
-3. **Environment Setup**
-   
-   Copy the `.env` file and configure your Supabase credentials:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-   VITE_SUPABASE_PROJECT_ID=your_project_id
+3. Set up environment variables:
+   Copy `.env` and configure your Supabase credentials:
+   ```bash
+   cp .env .env.local
    ```
-
-4. **Database Setup**
    
-   The application uses Supabase migrations. Run the migrations in the `supabase/migrations/` directory to set up the database schema.
+   Update the following variables in `.env.local`:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
 
-5. **Start Development Server**
+4. Run database migrations:
+   The application uses Supabase migrations. Ensure your Supabase project has the migrations applied from the `supabase/migrations/` directory.
+
+5. Start the development server:
    ```bash
    npm run dev
-   # or
-   bun run dev
    ```
 
-   The application will be available at `http://localhost:5173`
+6. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### Build for Production
 
@@ -92,64 +87,61 @@ A comprehensive Human Resources Management System built for modern businesses. T
 npm run build
 ```
 
-The built files will be in the `dist/` directory.
+### Testing
+
+Run unit tests:
+```bash
+npm run test
+```
+
+Run tests in watch mode:
+```bash
+npm run test:watch
+```
+
+Run E2E tests:
+```bash
+npx playwright test
+```
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
+│   ├── ui/             # shadcn/ui components
+│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
 │   ├── attendance/     # Attendance-related components
-│   ├── employee-profile/ # Employee profile sections
+│   ├── employee-profile/ # Employee profile tabs
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── settings/       # Admin settings components
 │   └── ...
-├── pages/              # Route components
-├── lib/                # Utility functions and configurations
+├── pages/              # Page components (routes)
 ├── hooks/              # Custom React hooks
-└── integrations/       # External service integrations
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations (Supabase)
+└── types/              # TypeScript type definitions
+
+supabase/
+├── migrations/         # Database schema migrations
+└── config.toml        # Supabase configuration
 ```
 
-## Key Components
+## Authentication & Authorization
 
-### Authentication Flow
-- **MandatoryPasswordChange**: Forces password reset on first login
-- **Role-based Access**: Different permissions for employees, managers, and admins
-
-### Data Management
-- **Supabase Integration**: Real-time database operations
-- **Type Safety**: Full TypeScript coverage with generated types
-
-### User Experience
-- **Responsive Design**: Mobile-first approach with adaptive layouts
-- **Accessibility**: ARIA labels and keyboard navigation support
-- **Performance**: Optimized with lazy loading and efficient re-renders
-
-## Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run unit tests
-- `npm run test:e2e` - Run end-to-end tests
-- `npm run lint` - Run ESLint
-
-### Code Quality
-
-- **TypeScript**: Strict type checking enabled
-- **ESLint**: Configured for React and TypeScript best practices
-- **Prettier**: Code formatting (via ESLint)
+The application uses role-based access control with the following user roles:
+- Admin: Full system access
+- HR Manager: HR-related functions
+- Manager: Team management
+- Employee: Limited access to personal data
 
 ## Contributing
 
-1. Follow the existing code style and TypeScript conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure responsive design works across devices
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## License
 

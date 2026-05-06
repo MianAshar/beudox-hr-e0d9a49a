@@ -1,101 +1,122 @@
 <!--
 generated_by: tessera
-source_sha: 55b76f913056a5a1f57f2afcd0f1dbe37f5b5d46
-generated_at: 2026-05-05T18:12:15.069Z
+source_sha: 3929819abf0e12b9f52e71b3a47fb8eb6bac72e3
+generated_at: 2026-05-06T15:19:33.829Z
 action: create
 -->
 
-# Repository Analysis Summary: Beudox HR Portal
+# Beudox HR Portal - Analysis Summary
 
-## Overview
+## Repository Overview
 
-This repository contains a comprehensive Human Resources Management System frontend application built with modern React and TypeScript. The application serves as a complete HR portal with employee management, attendance tracking, payroll processing, and administrative tools.
+This is a comprehensive Human Resources Management System built as a modern React TypeScript application. The codebase consists of 242 files (2206KB) with 543 symbols, primarily TypeScript code. It's a frontend application that integrates with Supabase as the backend database and authentication provider.
 
 ## Key Architectural Insights
 
 ### Technology Stack
 - **Frontend Framework**: React 18 with TypeScript for type safety
 - **Build System**: Vite for fast development and optimized production builds
-- **Styling**: Tailwind CSS with custom design tokens and shadcn/ui components
-- **Backend**: Supabase (PostgreSQL with real-time capabilities)
-- **Routing**: React Router v6
-- **Testing**: Vitest for unit tests, Playwright for E2E testing
+- **UI Library**: shadcn/ui components built on Radix UI primitives
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: React Query for server state, Context API for global state
+- **Routing**: React Router DOM with protected routes
+- **Backend**: Supabase (PostgreSQL + Auth + Real-time + Edge Functions)
+- **Forms**: React Hook Form with Zod validation
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
 
 ### Application Structure
-The codebase follows a feature-based organization with clear separation between UI components, business logic, and integrations. The 241 files include extensive component libraries and utility functions.
+The application follows a feature-based organization with clear separation of concerns:
+- **Components**: Organized by feature (attendance, payroll, employee-profile, etc.)
+- **Pages**: Route-based page components
+- **Hooks**: Custom React hooks for business logic
+- **Lib**: Utility functions and business logic
+- **Integrations**: External service configurations
 
-### Core Features Discovered
-1. **Employee Management**: Comprehensive profiles with personal info, job history, and documentation
-2. **Attendance System**: Automated time tracking with analytics and anomaly detection
-3. **Leave Management**: Request/approval workflows with balance tracking
-4. **Payroll Processing**: Automated salary calculations with overtime and allowances
-5. **Performance Reviews**: Evaluation system with scheduled reviews and increments
-6. **Administrative Tools**: Company settings, policies, and user management
+### Authentication & Authorization
+- Role-based access control with multiple user roles (Admin, HR Manager, Manager, Employee)
+- Protected routes with permission checks
+- Mandatory password change for new users
+- Session management with automatic redirects
 
-## Important Files and Roles
+## Important Files and Their Roles
 
-### Entry Points
-- `src/main.tsx`: Application initialization and routing setup
-- `src/pages/Index.tsx`: Main dashboard component
+### Core Application
+- `src/App.tsx`: Main application with routing, providers, and protected route logic
+- `src/main.tsx`: Application entry point
+- `src/components/layout/AppLayout.tsx`: Main layout wrapper with sidebar and navigation
 
-### Key Components
-- `src/components/layout/AppLayout.tsx`: Main application shell
-- `src/components/attendance/AttendanceSummary.tsx`: Complex analytics dashboard
-- `src/components/MandatoryPasswordChange.tsx`: Authentication flow component
-- `src/components/SearchableEmployeeSelect.tsx`: Reusable employee selection UI
+### Authentication
+- `src/hooks/useAuth.tsx`: Authentication context and user state management
+- `src/lib/role-access.ts`: Permission checking utilities
+- `src/components/MandatoryPasswordChange.tsx`: Password reset modal for new users
 
-### Business Logic
-- `src/lib/role-access.ts`: Permission and access control functions
-- `src/lib/attendance-format.ts`: Time formatting utilities
-- `src/lib/notifications.ts`: Notification system logic
-- `src/lib/leave-utils.ts`: Leave balance calculations
+### Business Logic Components
+- `src/components/attendance/AttendanceSummary.tsx`: Complex analytics component calculating attendance rates, overtime, and detecting anomalies
+- `src/components/SearchableEmployeeSelect.tsx`: Reusable employee selection component with search and filtering
+- `src/components/NavLink.tsx`: Enhanced navigation link with active state styling
 
 ### Configuration
+- `package.json`: Project dependencies and scripts
 - `vite.config.ts`: Build configuration
 - `tailwind.config.ts`: Styling configuration
-- `supabase/config.toml`: Database configuration
-- `.env`: Environment variables for Supabase
+- `supabase/config.toml`: Backend configuration
+- `.env`: Environment variables for Supabase connection
 
-## Database Integration
+## Database Schema Insights
 
-The application uses Supabase with 40 migration files indicating a sophisticated database schema including:
-- Employee records with authentication integration
-- Attendance tracking with time calculations
-- Leave management with approval workflows
-- Payroll processing with complex calculations
-- Project and team management
-- Performance evaluation system
+Based on the 40+ migration files, the system manages a comprehensive HR database with:
 
-## Security and Access Control
+- **Employee Lifecycle**: Profiles, onboarding, roles, departments
+- **Time & Attendance**: Daily records, working hours, overtime tracking
+- **Leave Management**: Requests, approvals, balance tracking
+- **Payroll**: Monthly processing, payslips, salary history
+- **Performance**: Evaluations, daily assessments, review cycles
+- **Projects**: Management, task tracking, team assignments
+- **Finance**: Invoicing, client management, expense tracking
+- **Administration**: Policies, job descriptions, system settings
 
-- Role-based permissions (employee, manager, admin)
-- Mandatory password changes on first login
-- Supabase Row Level Security policies
-- Secure authentication flow with session management
+## Key Business Logic Patterns
 
-## UI/UX Approach
+### Attendance Analytics
+The `AttendanceSummary` component demonstrates sophisticated business logic:
+- Calculates attendance rates across working days
+- Tracks overtime (regular and holiday)
+- Identifies punctuality patterns and anomalies
+- Detects frequent absences and incomplete records
+- Provides insights for management decision-making
 
-- Mobile-responsive design with adaptive layouts
-- Consistent design system using shadcn/ui components
-- Accessibility features with ARIA labels
-- Loading states and error handling throughout
-- Searchable interfaces for data selection
+### Access Control
+- Route-level protection with role checking
+- UI component conditional rendering based on permissions
+- Database query filtering by company and user roles
 
-## Development Quality
+### Data Flow
+- React Query manages server state with intelligent caching
+- Optimistic updates for better UX
+- Real-time subscriptions for live updates
+- Form validation with comprehensive error handling
 
-- Strict TypeScript configuration
-- ESLint for code quality
-- Comprehensive testing setup
-- Modular component architecture
-- Clear separation of concerns
+## Development and Deployment
 
-## Business Value
+### Scripts Available
+- `npm run dev`: Development server
+- `npm run build`: Production build
+- `npm run test`: Unit tests
+- `npm run lint`: Code linting
+- `npm run preview`: Preview production build
 
-This application provides enterprise-grade HR management capabilities with:
-- Automated attendance and payroll processing
-- Comprehensive employee lifecycle management
-- Performance tracking and reviews
-- Administrative efficiency tools
-- Real-time data insights and reporting
+### Environment Setup
+- Requires Supabase project configuration
+- Environment variables for API keys
+- Database migrations must be applied
 
-The codebase demonstrates production-ready quality with attention to user experience, performance, and maintainability.
+## Notable Implementation Details
+
+1. **Mobile-First Design**: Responsive components that work across devices
+2. **Accessibility**: Uses Radix UI primitives with proper ARIA attributes
+3. **Performance**: Code splitting, lazy loading, and optimized re-renders
+4. **Type Safety**: Comprehensive TypeScript usage throughout
+5. **Real-time Features**: Live updates via Supabase subscriptions
+6. **Error Boundaries**: Graceful error handling and user feedback
+
+This codebase represents a production-ready HR management system with enterprise-level features, proper architecture, and modern development practices.
