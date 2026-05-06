@@ -613,91 +613,108 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       {breakdown && (
         <div
           id={`payslip-print-${employeeId}`}
-          style={{ fontFamily: "'DM Sans', sans-serif", color: '#120E36', padding: 24 }}
+          style={{ fontFamily: "'DM Sans', sans-serif", color: '#120E36', fontSize: 11 }}
         >
           {/* 1. Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div style={{ width: '30%' }}>
-              {company?.logo_url ? (
-                <img src={company.logo_url} alt="logo" style={{ height: 44, maxWidth: 160, objectFit: 'contain' }} />
-              ) : (
-                <div style={{ fontWeight: 700, fontSize: 16 }}>{company?.name || ''}</div>
-              )}
-            </div>
-            <div style={{ width: '40%', textAlign: 'center', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: 2 }}>
-              SALARY SLIP
-            </div>
-            <div style={{ width: '30%', textAlign: 'right' }}>
-              <span
-                style={{
-                  display: 'inline-block',
-                  background: '#1A1240',
-                  color: '#fff',
-                  padding: '8px 14px',
-                  borderRadius: 6,
-                  fontWeight: 600,
-                  fontSize: 13,
-                }}
-              >
-                {monthLabelShort}
-              </span>
-            </div>
-          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 14 }}>
+            <tbody>
+              <tr>
+                <td style={{ width: '30%', verticalAlign: 'middle' }}>
+                  {company?.logo_url ? (
+                    <img src={company.logo_url} alt="logo" style={{ height: 40, maxWidth: 150, objectFit: 'contain' }} />
+                  ) : (
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>{company?.name || ''}</div>
+                  )}
+                </td>
+                <td style={{ width: '40%', textAlign: 'center', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: 2, verticalAlign: 'middle' }}>
+                  SALARY SLIP
+                </td>
+                <td style={{ width: '30%', textAlign: 'right', verticalAlign: 'middle' }}>
+                  <span style={{ display: 'inline-block', background: '#1A1240', color: '#fff', padding: '6px 12px', borderRadius: 6, fontWeight: 600, fontSize: 12 }}>
+                    {monthLabelShort}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
           {/* 2. Employee info box */}
-          <div style={{ display: 'flex', border: '1px solid #E5E1FA', borderRadius: 8, marginBottom: 16, overflow: 'hidden' }}>
-            <div style={{ width: '50%', padding: 16, display: 'flex', gap: 14 }}>
-              <div>
-                {emp.avatar_url ? (
-                  <img src={emp.avatar_url} alt="" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#5B3FF8', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18 }}>
-                    {initials(emp.full_name)}
-                  </div>
-                )}
-              </div>
-              <div style={{ fontSize: 12, lineHeight: 1.7 }}>
-                <div><span style={{ color: '#9490B4' }}>Employee ID: </span><strong>{emp.employee_code || '—'}</strong></div>
-                <div><span style={{ color: '#9490B4' }}>Employee Name: </span><strong>{emp.full_name}</strong></div>
-                <div><span style={{ color: '#9490B4' }}>Designation: </span><strong>{emp.designation || '—'}</strong></div>
-                <div><span style={{ color: '#9490B4' }}>Department: </span><strong>{emp.department || '—'}</strong></div>
-                <div><span style={{ color: '#9490B4' }}>Joining Date: </span><strong>{emp.joining_date ? formatDate(emp.joining_date) : '—'}</strong></div>
-              </div>
-            </div>
-            <div style={{ width: '50%', padding: 16, borderLeft: '1px solid #E5E1FA', fontSize: 12, lineHeight: 1.7 }}>
-              <div><span style={{ color: '#9490B4' }}>Salary Month: </span><strong>{monthLabelFull}</strong></div>
-              <div><span style={{ color: '#9490B4' }}>Basic Salary: </span><strong>{mask(fmtPKR(breakdown.basic))}</strong></div>
-              <div><span style={{ color: '#9490B4' }}>Allowance: </span><strong>{fmtPKR(breakdown.allowance)}</strong></div>
-              <div><span style={{ color: '#9490B4' }}>Total Salary: </span><strong>{fmtPKR(breakdown.totalSalary)}</strong></div>
-              <div><span style={{ color: '#9490B4' }}>Payment Date: </span><strong>{breakdown.paymentDate ? formatDate(breakdown.paymentDate) : '-'}</strong></div>
-            </div>
-          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #E5E1FA', borderRadius: 8, marginBottom: 14, fontSize: 11 }}>
+            <tbody>
+              <tr>
+                <td style={{ width: '50%', padding: 12, verticalAlign: 'top', lineHeight: 1.7 }}>
+                  <div><span style={{ color: '#9490B4' }}>Employee ID: </span><strong>{emp.employee_code || '—'}</strong></div>
+                  <div><span style={{ color: '#9490B4' }}>Employee Name: </span><strong>{emp.full_name}</strong></div>
+                  <div><span style={{ color: '#9490B4' }}>Designation: </span><strong>{emp.designation || '—'}</strong></div>
+                  <div><span style={{ color: '#9490B4' }}>Department: </span><strong>{emp.department || '—'}</strong></div>
+                  <div><span style={{ color: '#9490B4' }}>Joining Date: </span><strong>{emp.joining_date ? formatJoiningDate(emp.joining_date) : '—'}</strong></div>
+                </td>
+                <td style={{ width: '50%', padding: 12, borderLeft: '1px solid #E5E1FA', verticalAlign: 'top', lineHeight: 1.7 }}>
+                  <div><span style={{ color: '#9490B4' }}>Salary Month: </span><strong>{monthLabelFull}</strong></div>
+                  <div><span style={{ color: '#9490B4' }}>Basic Salary: </span><strong>{mask(fmtPKR(breakdown.basic))}</strong></div>
+                  <div><span style={{ color: '#9490B4' }}>Allowance: </span><strong>{fmtPKR(breakdown.allowance)}</strong></div>
+                  <div><span style={{ color: '#9490B4' }}>Total Salary: </span><strong>{fmtPKR(breakdown.totalSalary)}</strong></div>
+                  <div><span style={{ color: '#9490B4' }}>Payment Date: </span><strong>{breakdown.paymentDate ? formatJoiningDate(breakdown.paymentDate) : '-'}</strong></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-          {/* 3. Three tables */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', border: '1px solid #E5E1FA', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
-            <div><PayslipTable spec={attTable} /></div>
-            <div style={{ borderLeft: '1px solid #E5E1FA', borderRight: '1px solid #E5E1FA' }}><PayslipTable spec={salaryTable} /></div>
-            <div><PayslipTable spec={otTable} /></div>
-          </div>
+          {/* 3. Three tables in a 3-column grid using a table */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #E5E1FA', marginBottom: 14, tableLayout: 'fixed' }}>
+            <tbody>
+              <tr>
+                {[attTable, salaryTable, otTable].map((spec, idx) => (
+                  <td key={idx} style={{ width: '33.33%', verticalAlign: 'top', padding: 0, borderLeft: idx > 0 ? '1px solid #E5E1FA' : 'none' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
+                      <thead>
+                        <tr>
+                          <th colSpan={2} style={{ background: '#1A1240', color: '#fff', fontSize: 10, fontWeight: 600, padding: '8px 10px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {spec.title}
+                          </th>
+                        </tr>
+                        <tr style={{ background: '#F6F5FF', color: '#4B4468' }}>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 500, fontSize: 10 }}>Description</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 500, fontSize: 10 }}>Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {spec.rows.map((r, i) => (
+                          <tr key={i} style={{ background: i % 2 === 1 ? '#F6F5FF' : '#fff', borderBottom: '0.5px solid rgba(91,63,248,0.15)' }}>
+                            <td style={{ padding: '6px 10px', textAlign: 'left', color: '#4B4468', fontWeight: r.bold ? 600 : 400, whiteSpace: 'nowrap', fontSize: 10 }}>{r.label}</td>
+                            <td style={{ padding: '6px 10px', textAlign: 'right', color: r.valueColor || '#120E36', fontWeight: r.bold ? 700 : 500, whiteSpace: 'nowrap', fontSize: 10 }}>{r.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
 
           {/* 4. Footer bar */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#F6F5FF', borderRadius: 8, marginBottom: 14 }}>
-            <div style={{ padding: '14px 18px' }}>
-              <div style={{ fontSize: 11, color: '#9490B4', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Total Salary</div>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#120E36', marginTop: 4 }}>
-                {fmtPKR(breakdown.totalSalary)}
-              </div>
-            </div>
-            <div style={{ padding: '14px 18px', borderLeft: '1px solid #E5E1FA' }}>
-              <div style={{ fontSize: 11, color: '#9490B4', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Total Payment</div>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#1DC97A', marginTop: 4 }}>
-                {fmtPKR(breakdown.finalPayment)}
-              </div>
-            </div>
-          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', background: '#F6F5FF', borderRadius: 8, marginBottom: 12 }}>
+            <tbody>
+              <tr>
+                <td style={{ width: '50%', padding: '12px 16px', verticalAlign: 'top' }}>
+                  <div style={{ fontSize: 10, color: '#9490B4', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Total Salary</div>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 20, color: '#120E36', marginTop: 4 }}>
+                    {fmtPKR(breakdown.totalSalary)}
+                  </div>
+                </td>
+                <td style={{ width: '50%', padding: '12px 16px', borderLeft: '1px solid #E5E1FA', verticalAlign: 'top' }}>
+                  <div style={{ fontSize: 10, color: '#9490B4', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Total Payment</div>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 20, color: '#1DC97A', marginTop: 4 }}>
+                    {fmtPKR(breakdown.finalPayment)}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
           {/* 5. Footer note */}
-          <div style={{ textAlign: 'center', fontStyle: 'italic', fontSize: 11, color: '#9490B4' }}>
+          <div style={{ textAlign: 'center', fontStyle: 'italic', fontSize: 10, color: '#9490B4' }}>
             This is a computer generated slip. No signature required.
           </div>
         </div>
