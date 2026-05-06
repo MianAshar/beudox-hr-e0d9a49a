@@ -652,8 +652,8 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
             <tbody>
               <tr>
                 <td style={{ width: '30%', verticalAlign: 'middle' }}>
-                  {company?.logo_url ? (
-                    <img src={company.logo_url} alt="logo" style={{ height: 40, maxWidth: 150, objectFit: 'contain' }} />
+                  {logoSrc ? (
+                    <img src={logoSrc} crossOrigin="anonymous" alt="logo" style={{ height: 40, maxWidth: 150, objectFit: 'contain' }} />
                   ) : (
                     <div style={{ fontWeight: 700, fontSize: 14 }}>{company?.name || ''}</div>
                   )}
