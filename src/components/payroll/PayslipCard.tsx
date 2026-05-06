@@ -6,23 +6,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertTriangle, Download, DollarSign } from 'lucide-react';
+import { formatDate } from '@/lib/format-date';
 
 const MONTHS_LBL: Record<string, string> = {
   '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'May', '06': 'Jun',
   '07': 'Jul', '08': 'Aug', '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec',
 };
+const MONTHS_FULL: Record<string, string> = {
+  '01': 'January', '02': 'February', '03': 'March', '04': 'April', '05': 'May', '06': 'June',
+  '07': 'July', '08': 'August', '09': 'September', '10': 'October', '11': 'November', '12': 'December',
+};
 
 const fmtPKR = (n: number) =>
   `PKR ${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-
-const fmtHoursPretty = (decimalHours: number) => {
-  const sign = decimalHours < 0 ? '-' : '';
-  const abs = Math.abs(decimalHours);
-  const totalMinutes = Math.round(abs * 60);
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
-  return `${sign}${h}h ${m}m`;
-};
 
 const parseTime = (t: string) => {
   const [h, m] = t.split(':').map(Number);
@@ -43,13 +39,13 @@ const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> 
   paid: { bg: '#D1FAE5', text: '#065F46', label: 'Paid' },
 };
 
-const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <div
-    className="text-[11px] uppercase font-medium mb-2.5"
-    style={{ color: '#9490B4', letterSpacing: '0.1em', fontFamily: 'var(--ff-body)' }}
+const Pill = ({ bg, color, children }: { bg: string; color: string; children: React.ReactNode }) => (
+  <span
+    className="inline-flex items-center text-xs font-medium"
+    style={{ backgroundColor: bg, color, padding: '4px 12px', borderRadius: 9999, fontFamily: 'var(--ff-body)' }}
   >
     {children}
-  </div>
+  </span>
 );
 
 const KeyLabel = ({ children }: { children: React.ReactNode }) => (
@@ -61,89 +57,117 @@ const KeyLabel = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-const Pill = ({
-  bg,
-  color,
-  children,
-}: {
-  bg: string;
-  color: string;
-  children: React.ReactNode;
-}) => (
-  <span
-    className="inline-flex items-center text-xs font-medium"
-    style={{
-      backgroundColor: bg,
-      color,
-      padding: '4px 12px',
-      borderRadius: 9999,
-      fontFamily: 'var(--ff-body)',
-    }}
-  >
-    {children}
-  </span>
-);
+// ─── Three-column table block ─────────────────────────────────────────────
+interface TableSpec {
+  title: string;
+  rows: { label: string; value: React.ReactNode; bold?: boolean; valueColor?: string }[];
+}
 
-const BreakdownRow = ({
-  label,
-  value,
-  valueColor,
-  emphasis = false,
-}: {
-  label: string;
-  value: React.ReactNode;
-  valueColor?: string;
-  emphasis?: boolean;
-}) => (
-  <div
-    className="flex justify-between items-baseline py-2"
-    style={{ borderBottom: '1px dotted rgba(91,63,248,0.15)' }}
-  >
-    <span className="text-sm" style={{ color: '#4B4468', fontFamily: 'var(--ff-body)' }}>
-      {label}
-    </span>
-    <span
-      className={emphasis ? 'text-[15px] font-medium' : 'text-sm font-medium'}
-      style={{ color: valueColor || '#120E36', fontFamily: 'var(--ff-body)' }}
+const PayslipTable = ({ spec }: { spec: TableSpec }) => (
+  <div style={{ width: '100%' }}>
+    <div
+      style={{
+        background: '#1A1240',
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 500,
+        textAlign: 'center',
+        padding: '10px 16px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        fontFamily: 'var(--ff-body)',
+      }}
     >
-      {value}
-    </span>
+      {spec.title}
+    </div>
+    <div
+      style={{
+        background: '#F6F5FF',
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        fontSize: 12,
+        fontWeight: 500,
+        color: '#4B4468',
+        padding: '8px 16px',
+        fontFamily: 'var(--ff-body)',
+      }}
+    >
+      <span>Description</span>
+      <span style={{ textAlign: 'right' }}>Value</span>
+    </div>
+    {spec.rows.map((r, i) => (
+      <div
+        key={i}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          padding: '10px 16px',
+          fontSize: 13,
+          background: i % 2 === 1 ? '#F6F5FF' : '#fff',
+          borderBottom: '0.5px solid rgba(91,63,248,0.15)',
+          fontFamily: 'var(--ff-body)',
+        }}
+      >
+        <span style={{ color: '#4B4468', fontWeight: r.bold ? 600 : 400 }}>{r.label}</span>
+        <span
+          style={{
+            color: r.valueColor || '#120E36',
+            fontWeight: r.bold ? 700 : 500,
+            textAlign: 'right',
+          }}
+        >
+          {r.value}
+        </span>
+      </div>
+    ))}
   </div>
 );
 
 interface PayslipCardProps {
   employeeId: string;
   monthYear: string; // YYYY-MM
-  onDownload?: () => void;
 }
 
-const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) => {
+const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
   const { employee: authEmp } = useAuth();
   const roles = authEmp?.roles ?? [];
   const isCeo = roles.includes('ceo');
   const isFinance = roles.includes('finance_manager');
   const isHR = roles.includes('hr_manager');
   const isSelf = authEmp?.employee_id === employeeId;
-  const canSeeRates = isCeo || isFinance; // HR + employee hide per-day/per-hour & basic for employee
 
-  // Employee can see own basic? Spec: employee NOT see basic. HR sees all except per-day/per-hour.
-  const canSeeBasic = isCeo || isFinance || isHR;
+  // Visibility: own payslip always shows everything. For viewing others, only CEO/Finance/HR can see salary.
+  const canSeeSalary = isSelf || isCeo || isFinance || isHR;
 
   const [year, month] = monthYear.split('-');
-  const monthLabelShort = `${MONTHS_LBL[month]} ${year}`;
+  const monthLabelShort = `${MONTHS_LBL[month]}-${year}`;
+  const monthLabelFull = `${MONTHS_FULL[month]} ${year}`;
 
   const { data: emp, isLoading: empLoading } = useQuery({
     queryKey: ['payslip-emp', employeeId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, full_name, designation, department, employee_code, avatar_url, basic_salary, allowance, company_id')
+        .select('id, full_name, designation, department, employee_code, avatar_url, basic_salary, allowance, company_id, joining_date')
         .eq('id', employeeId)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
     enabled: !!employeeId,
+  });
+
+  const { data: company } = useQuery({
+    queryKey: ['payslip-company', emp?.company_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('companies')
+        .select('name, logo_url')
+        .eq('id', emp!.company_id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!emp?.company_id,
   });
 
   const { data: settings, isLoading: settingsLoading } = useQuery({
@@ -175,7 +199,7 @@ const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) =>
     enabled: !!employeeId,
   });
 
-  const { data: attendance, isLoading: attLoading } = useQuery({
+  const { data: attendance } = useQuery({
     queryKey: ['payslip-attendance', employeeId, monthYear],
     queryFn: async () => {
       const [y, m] = monthYear.split('-').map(Number);
@@ -232,11 +256,8 @@ const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) =>
     const workingPerDay = Math.max(0.0001, shiftDuration - lunch);
     const perDay = Number(emp.basic_salary || 0) / Number(settings.ot_divisor || 26);
     const perHour = perDay / workingPerDay;
-    return { perDay, perHour, workingPerDay, shiftDuration };
+    return { perDay, perHour };
   }, [emp, settings]);
-
-  const enableOt = settings?.enable_ot_adjustment ?? true;
-  const hasAttendance = (attendance?.length ?? 0) > 0;
 
   const attStats = useMemo(() => {
     let present = 0, late = 0, otSum = 0, holOt = 0, shortTime = 0, overtime = 0;
@@ -251,7 +272,6 @@ const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) =>
       holOt += Number(r.holiday_ot_hours || 0);
     }
     const leaveDays = (leaves ?? []).reduce((s: number, l: any) => {
-      // Clip to month
       const [y, m] = monthYear.split('-').map(Number);
       const monthStart = new Date(y, m - 1, 1);
       const monthEnd = new Date(y, m, 0);
@@ -260,7 +280,6 @@ const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) =>
       const start = ls > monthStart ? ls : monthStart;
       const end = le < monthEnd ? le : monthEnd;
       const days = Math.max(0, Math.round((end.getTime() - start.getTime()) / 86400000) + 1);
-      // If full request fits in this month, prefer days_requested when smaller
       const total = Number(l.days_requested || days);
       return s + Math.min(days, total);
     }, 0);
@@ -269,13 +288,7 @@ const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) =>
 
   const breakdown = useMemo(() => {
     if (!emp || !rates) return null;
-
     if (record) {
-      const regularOtHours = Number(record.regular_ot_hours || 0);
-      const holidayOtHours = Number(record.holiday_ot_hours || 0);
-      const regularOtAmount = Number(record.regular_ot_amount || 0);
-      const holidayOtAmount = Number(record.holiday_ot_amount || 0);
-      // Reconstruct short/overtime split if not stored
       let st = 0, ot = 0;
       for (const r of attendance ?? []) {
         const v = Number(r.regular_ot_hours || 0);
@@ -288,22 +301,18 @@ const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) =>
         allowance: Number(record.allowance || 0),
         shortTime: st,
         overtime: ot,
-        regularOtHours,
-        holidayOtHours,
-        regularOtAmount,
-        holidayOtAmount,
-        totalOt: regularOtAmount + holidayOtAmount,
-        bonus: Number((record as any).bonus || 0),
+        regularOtAmount: Number(record.regular_ot_amount || 0),
+        holidayOtAmount: Number(record.holiday_ot_amount || 0),
+        totalOt: Number(record.regular_ot_amount || 0) + Number(record.holiday_ot_amount || 0),
         loan: Number(record.loan_deduction || 0),
         totalSalary: Number(record.total_salary || 0),
         finalPayment: Number(record.final_payment || 0),
         status: String(record.status || 'draft'),
+        paymentDate: (record as any).payment_date || null,
       };
     }
-
-    if (!hasAttendance) return null;
-    const regularOtHours = attStats.otSum;
-    const regularOtAmount = regularOtHours * rates.perHour;
+    if ((attendance?.length ?? 0) === 0) return null;
+    const regularOtAmount = attStats.otSum * rates.perHour;
     const holidayOtAmount = attStats.holOt * rates.perHour * 1.5;
     const totalOt = regularOtAmount + holidayOtAmount;
     const basic = Number(emp.basic_salary || 0);
@@ -315,23 +324,19 @@ const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) =>
       allowance,
       shortTime: attStats.shortTime,
       overtime: attStats.overtime,
-      regularOtHours,
-      holidayOtHours: attStats.holOt,
       regularOtAmount,
       holidayOtAmount,
       totalOt,
-      bonus: 0,
       loan: Number(loanDeduction || 0),
       totalSalary: total,
       finalPayment: total - Number(loanDeduction || 0),
       status: 'draft',
+      paymentDate: null as string | null,
     };
-  }, [emp, rates, record, attendance, hasAttendance, attStats, loanDeduction]);
+  }, [emp, rates, record, attendance, attStats, loanDeduction]);
 
   const loading = empLoading || settingsLoading;
-
-  const maskRate = (v: string) => (canSeeRates ? v : '—');
-  const maskBasic = (v: string) => (canSeeBasic ? v : '—');
+  const mask = (v: string) => (canSeeSalary ? v : '—');
 
   if (loading) {
     return <Skeleton className="w-full h-[520px] rounded-[14px]" />;
@@ -339,8 +344,10 @@ const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) =>
 
   if (!emp) {
     return (
-      <div className="w-full bg-white rounded-[14px] border p-12 text-center text-muted-foreground"
-        style={{ borderColor: 'rgba(91,63,248,0.15)' }}>
+      <div
+        className="w-full bg-white rounded-[14px] border p-12 text-center text-muted-foreground"
+        style={{ borderColor: 'rgba(91,63,248,0.15)' }}
+      >
         Employee not found.
       </div>
     );
@@ -349,265 +356,331 @@ const PayslipCard = ({ employeeId, monthYear, onDownload }: PayslipCardProps) =>
   const noData = !breakdown;
   const statusInfo = breakdown ? STATUS_BADGE[breakdown.status] || STATUS_BADGE.draft : null;
 
+  // Three table specs
+  const attTable: TableSpec = {
+    title: 'Attendance Summary',
+    rows: [
+      { label: 'Present Days', value: attStats.present },
+      { label: 'Leaves Taken', value: attStats.leaveDays },
+      { label: 'Late Arrivals', value: attStats.late },
+      { label: 'Short Time', value: `${Math.abs(attStats.shortTime).toFixed(2)} hrs` },
+      { label: 'Overtime', value: `${attStats.overtime.toFixed(2)} hrs` },
+    ],
+  };
+  const salaryTable: TableSpec = breakdown
+    ? {
+        title: 'Salary Breakdown',
+        rows: [
+          { label: 'Basic Salary', value: mask(fmtPKR(breakdown.basic)) },
+          { label: 'Allowance', value: fmtPKR(breakdown.allowance) },
+          { label: 'Per Day Salary', value: rates ? mask(fmtPKR(rates.perDay)) : '—' },
+          { label: 'Per Hour Salary', value: rates ? mask(fmtPKR(rates.perHour)) : '—' },
+        ],
+      }
+    : { title: 'Salary Breakdown', rows: [] };
+  const otTable: TableSpec = breakdown
+    ? {
+        title: 'Overtime Summary',
+        rows: [
+          { label: 'Regular Overtime', value: fmtPKR(breakdown.regularOtAmount) },
+          { label: 'Holiday Overtime', value: fmtPKR(breakdown.holidayOtAmount) },
+          {
+            label: 'Total Overtime',
+            value: fmtPKR(breakdown.totalOt),
+            bold: true,
+            valueColor: '#1DC97A',
+          },
+        ],
+      }
+    : { title: 'Overtime Summary', rows: [] };
+
+  const handleDownload = () => window.print();
+
   return (
-    <div
-      className="w-full bg-white overflow-hidden"
-      style={{ borderRadius: 14, border: '0.5px solid rgba(91,63,248,0.15)' }}
-    >
-      {/* Section 1 — accent bar */}
-      <div style={{ height: 4, backgroundColor: '#5B3FF8' }} />
+    <>
+      {/* Print styles — show only the print area */}
+      <style>{`
+        @media print {
+          @page { size: A4; margin: 16mm; }
+          body * { visibility: hidden !important; }
+          #payslip-print-${employeeId}, #payslip-print-${employeeId} * { visibility: visible !important; }
+          #payslip-print-${employeeId} {
+            position: fixed !important; left: 0 !important; top: 0 !important;
+            width: 100% !important; padding: 0 !important; background: white !important;
+          }
+          .no-print { display: none !important; }
+        }
+        #payslip-print-${employeeId} { display: none; }
+        @media print { #payslip-print-${employeeId} { display: block !important; } }
+      `}</style>
 
-      {/* Section 2 — Header */}
+      {/* ─── On-screen card ─── */}
       <div
-        className="px-7 py-5"
-        style={{ borderBottom: '0.5px solid rgba(91,63,248,0.15)' }}
+        className="w-full bg-white overflow-hidden no-print"
+        style={{ borderRadius: 14, border: '0.5px solid rgba(91,63,248,0.15)' }}
       >
-        <div className="flex items-start justify-between gap-4">
-          <h2
-            className="text-[18px] font-bold"
-            style={{ color: '#120E36', fontFamily: 'var(--ff-display)' }}
-          >
-            Salary Slip
-          </h2>
-          <div className="flex items-center gap-3">
-            <Pill bg="#F6F5FF" color="#4B4468">{monthLabelShort}</Pill>
-            {onDownload && breakdown && (
-              <Button
-                onClick={onDownload}
-                variant="ghost"
-                size="sm"
-                className="h-8"
-              >
-                <Download className="h-4 w-4 mr-1.5" /> Download PDF
-              </Button>
-            )}
+        <div style={{ height: 4, backgroundColor: '#5B3FF8' }} />
+
+        {/* Header */}
+        <div className="px-7 py-5" style={{ borderBottom: '0.5px solid rgba(91,63,248,0.15)' }}>
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="text-[18px] font-bold" style={{ color: '#120E36', fontFamily: 'var(--ff-display)' }}>
+              Salary Slip
+            </h2>
+            <div className="flex items-center gap-3">
+              <Pill bg="#F6F5FF" color="#4B4468">{monthLabelShort}</Pill>
+              {breakdown && (
+                <Button onClick={handleDownload} variant="ghost" size="sm" className="h-8">
+                  <Download className="h-4 w-4 mr-1.5" /> Download PDF
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-11 w-11">
+                <AvatarImage src={emp.avatar_url || undefined} />
+                <AvatarFallback className="text-sm">{initials(emp.full_name)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="text-[15px] font-medium" style={{ color: '#120E36', fontFamily: 'var(--ff-body)' }}>
+                  {emp.full_name}
+                </div>
+                <div className="text-xs" style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}>
+                  {emp.designation || '—'}
+                  {emp.employee_code ? ` · ${emp.employee_code}` : ''}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-8 text-xs" style={{ fontFamily: 'var(--ff-body)' }}>
+              <div>
+                <div style={{ color: '#9490B4' }}>Employee ID</div>
+                <div style={{ color: '#120E36' }} className="font-medium mt-0.5">{emp.employee_code || '—'}</div>
+              </div>
+              <div>
+                <div style={{ color: '#9490B4' }}>Department</div>
+                <div style={{ color: '#120E36' }} className="font-medium mt-0.5">{emp.department || '—'}</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-11 w-11">
-              <AvatarImage src={emp.avatar_url || undefined} />
-              <AvatarFallback className="text-sm">{initials(emp.full_name)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="text-[15px] font-medium" style={{ color: '#120E36', fontFamily: 'var(--ff-body)' }}>
-                {emp.full_name}
-              </div>
-              <div className="text-xs" style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}>
-                {emp.designation || '—'}{emp.employee_code ? ` · ${emp.employee_code}` : ''}
-              </div>
-            </div>
+        {noData ? (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <DollarSign className="h-10 w-10 mb-3 opacity-40" />
+            <p className="text-base font-medium" style={{ fontFamily: 'var(--ff-display)' }}>
+              No payslip data for {monthLabelFull}
+            </p>
+            <p className="text-sm mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+              Payroll has not been generated and no attendance is available.
+            </p>
           </div>
-          <div className="flex gap-8 text-xs" style={{ fontFamily: 'var(--ff-body)' }}>
-            <div>
-              <div style={{ color: '#9490B4' }}>Employee ID</div>
-              <div style={{ color: '#120E36' }} className="font-medium mt-0.5">{emp.employee_code || '—'}</div>
-            </div>
-            <div>
-              <div style={{ color: '#9490B4' }}>Department</div>
-              <div style={{ color: '#120E36' }} className="font-medium mt-0.5">{emp.department || '—'}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {noData ? (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-          <DollarSign className="h-10 w-10 mb-3 opacity-40" />
-          <p className="text-base font-medium" style={{ fontFamily: 'var(--ff-display)' }}>
-            No payslip data for {monthLabelShort}
-          </p>
-          <p className="text-sm mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
-            Payroll has not been generated and no attendance is available.
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Section 3 — Key figures grid */}
-          <div className="grid grid-cols-3">
-            <div className="px-6 py-4">
-              <KeyLabel>Basic salary</KeyLabel>
-              <div className="text-[15px] font-medium mt-1.5" style={{ color: '#120E36', fontFamily: 'var(--ff-body)' }}>
-                {maskBasic(fmtPKR(breakdown.basic))}
+        ) : (
+          <>
+            {/* Key figures */}
+            <div className="grid grid-cols-3">
+              <div className="px-6 py-4">
+                <KeyLabel>Basic salary</KeyLabel>
+                <div className="text-[15px] font-medium mt-1.5" style={{ color: '#120E36', fontFamily: 'var(--ff-body)' }}>
+                  {mask(fmtPKR(breakdown.basic))}
+                </div>
               </div>
-            </div>
-            <div className="px-6 py-4" style={{ borderLeft: '0.5px solid rgba(91,63,248,0.15)', borderRight: '0.5px solid rgba(91,63,248,0.15)' }}>
-              <KeyLabel>Allowance</KeyLabel>
-              <div className="text-[15px] font-medium mt-1.5" style={{ color: '#120E36', fontFamily: 'var(--ff-body)' }}>
-                {fmtPKR(breakdown.allowance)}
-              </div>
-            </div>
-            <div className="px-6 py-4">
-              <KeyLabel>Overtime</KeyLabel>
               <div
-                className="text-[15px] font-medium mt-1.5"
+                className="px-6 py-4"
                 style={{
-                  color:
-                    breakdown.totalOt > 0 ? '#1DC97A' : breakdown.totalOt < 0 ? '#E84545' : '#9490B4',
-                  fontFamily: 'var(--ff-body)',
+                  borderLeft: '0.5px solid rgba(91,63,248,0.15)',
+                  borderRight: '0.5px solid rgba(91,63,248,0.15)',
                 }}
               >
-                {fmtPKR(breakdown.totalOt)}
+                <KeyLabel>Allowance</KeyLabel>
+                <div className="text-[15px] font-medium mt-1.5" style={{ color: '#120E36', fontFamily: 'var(--ff-body)' }}>
+                  {fmtPKR(breakdown.allowance)}
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Section 4 — Attendance summary */}
-          <div
-            className="px-7 py-4"
-            style={{
-              borderTop: '0.5px solid rgba(91,63,248,0.15)',
-              borderBottom: '0.5px solid rgba(91,63,248,0.15)',
-            }}
-          >
-            <SectionLabel>Attendance</SectionLabel>
-            {attLoading ? (
-              <Skeleton className="h-7 w-72" />
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                <Pill bg="#D1FAE5" color="#065F46">{attStats.present} present</Pill>
-                <Pill bg="#F6F5FF" color="#4B4468">{attStats.leaveDays} leaves</Pill>
-                {attStats.late > 0 && (
-                  <Pill bg="#FEF3C7" color="#92400E">{attStats.late} late</Pill>
-                )}
-                <Pill bg="#F6F5FF" color="#4B4468">{fmtHoursPretty(breakdown.regularOtHours)} OT</Pill>
-                {breakdown.holidayOtHours > 0 && (
-                  <Pill bg="#EBE6FF" color="#2B1899">{fmtHoursPretty(breakdown.holidayOtHours)} Holiday OT</Pill>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Section 5 — Salary breakdown */}
-          <div className={`grid ${enableOt ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            <div className="px-7 py-5">
-              {breakdown.source === 'estimated' && (
+              <div className="px-6 py-4">
+                <KeyLabel>Overtime</KeyLabel>
                 <div
-                  className="flex items-center gap-2 px-3 py-2 mb-3 text-xs"
+                  className="text-[15px] font-medium mt-1.5"
                   style={{
-                    backgroundColor: '#FEF3C7',
-                    color: '#92400E',
-                    borderLeft: '3px solid #F5A623',
-                    borderRadius: 4,
+                    color: breakdown.totalOt > 0 ? '#1DC97A' : breakdown.totalOt < 0 ? '#E84545' : '#9490B4',
+                    fontFamily: 'var(--ff-body)',
                   }}
                 >
-                  <AlertTriangle size={14} />
-                  Estimated — payroll not yet generated for this month
+                  {fmtPKR(breakdown.totalOt)}
                 </div>
-              )}
-              <SectionLabel>Salary breakdown</SectionLabel>
-              <BreakdownRow label="Basic salary" value={maskBasic(fmtPKR(breakdown.basic))} />
-              <BreakdownRow label="Allowance" value={fmtPKR(breakdown.allowance)} />
-              <BreakdownRow label="Per day salary" value={rates ? maskRate(fmtPKR(rates.perDay)) : '—'} />
-              <BreakdownRow label="Per hour salary" value={rates ? maskRate(fmtPKR(rates.perHour)) : '—'} />
-              {breakdown.loan > 0 && (
-                <BreakdownRow
-                  label="Loan deduction"
-                  value={`- ${fmtPKR(breakdown.loan)}`}
-                  valueColor="#E84545"
-                />
-              )}
-              {breakdown.bonus > 0 && (
-                <BreakdownRow
-                  label="Bonus"
-                  value={fmtPKR(breakdown.bonus)}
-                  valueColor="#1DC97A"
-                />
-              )}
+              </div>
             </div>
 
-            {enableOt && (
-              <div className="px-7 py-5" style={{ borderLeft: '0.5px solid rgba(91,63,248,0.15)' }}>
-                <SectionLabel>Overtime summary</SectionLabel>
-                <BreakdownRow
-                  label="Short time"
-                  value={`${Math.abs(breakdown.shortTime).toFixed(2)} hrs`}
-                  valueColor={breakdown.shortTime < 0 ? '#E84545' : undefined}
-                />
-                <BreakdownRow
-                  label="Overtime"
-                  value={`${breakdown.overtime.toFixed(2)} hrs`}
-                  valueColor={breakdown.overtime > 0 ? '#1DC97A' : undefined}
-                />
-                <BreakdownRow
-                  label="Net regular OT"
-                  value={`${breakdown.regularOtHours.toFixed(2)} hrs`}
-                  valueColor={
-                    breakdown.regularOtHours > 0
-                      ? '#1DC97A'
-                      : breakdown.regularOtHours < 0
-                      ? '#E84545'
-                      : undefined
-                  }
-                />
-                <BreakdownRow label="Regular OT amount" value={fmtPKR(breakdown.regularOtAmount)} />
-                <BreakdownRow
-                  label="Holiday OT hours"
-                  value={fmtHoursPretty(breakdown.holidayOtHours)}
-                />
-                <BreakdownRow
-                  label="Holiday OT amount"
-                  value={fmtPKR(breakdown.holidayOtAmount)}
-                  valueColor={breakdown.holidayOtAmount > 0 ? '#1DC97A' : undefined}
-                />
-                <BreakdownRow
-                  label="Total overtime"
-                  value={fmtPKR(breakdown.totalOt)}
-                  emphasis
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Section 6 — Total payment footer */}
-          <div
-            className="grid grid-cols-2"
-            style={{
-              backgroundColor: '#F6F5FF',
-              borderTop: '0.5px solid rgba(91,63,248,0.15)',
-              borderBottomLeftRadius: 14,
-              borderBottomRightRadius: 14,
-            }}
-          >
-            <div className="px-7 py-[18px]">
-              <KeyLabel>Total Salary</KeyLabel>
+            {breakdown.source === 'estimated' && (
               <div
-                className="mt-1"
+                className="mx-7 mt-4 flex items-center gap-2 px-3 py-2 text-xs"
                 style={{
-                  fontFamily: 'var(--ff-display)',
-                  fontWeight: 700,
-                  fontSize: 24,
-                  color: '#120E36',
+                  backgroundColor: '#FEF3C7',
+                  color: '#92400E',
+                  borderLeft: '3px solid #F5A623',
+                  borderRadius: 4,
                 }}
               >
+                <AlertTriangle size={14} />
+                Estimated — payroll not yet generated for this month
+              </div>
+            )}
+
+            {/* Three side-by-side tables */}
+            <div
+              className="grid grid-cols-1 md:grid-cols-3 mt-4"
+              style={{ borderTop: '0.5px solid rgba(91,63,248,0.15)' }}
+            >
+              <div>
+                <PayslipTable spec={attTable} />
+              </div>
+              <div style={{ borderLeft: '0.5px solid rgba(91,63,248,0.15)', borderRight: '0.5px solid rgba(91,63,248,0.15)' }}>
+                <PayslipTable spec={salaryTable} />
+              </div>
+              <div>
+                <PayslipTable spec={otTable} />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div
+              className="grid grid-cols-2"
+              style={{
+                backgroundColor: '#F6F5FF',
+                borderTop: '0.5px solid rgba(91,63,248,0.15)',
+                borderBottomLeftRadius: 14,
+                borderBottomRightRadius: 14,
+              }}
+            >
+              <div className="px-7 py-[18px]">
+                <KeyLabel>Total Salary</KeyLabel>
+                <div
+                  className="mt-1"
+                  style={{ fontFamily: 'var(--ff-display)', fontWeight: 700, fontSize: 24, color: '#120E36' }}
+                >
+                  {fmtPKR(breakdown.totalSalary)}
+                </div>
+              </div>
+              <div className="px-7 py-[18px]" style={{ borderLeft: '0.5px solid rgba(91,63,248,0.15)' }}>
+                <KeyLabel>Final Payment</KeyLabel>
+                <div
+                  className="mt-1"
+                  style={{
+                    fontFamily: 'var(--ff-display)',
+                    fontWeight: 700,
+                    fontSize: 28,
+                    color: '#5B3FF8',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {fmtPKR(breakdown.finalPayment)}
+                </div>
+                {statusInfo && breakdown.source === 'payroll' && (
+                  <div className="mt-2">
+                    <Pill bg={statusInfo.bg} color={statusInfo.text}>{statusInfo.label}</Pill>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ─── Print-only PDF view ─── */}
+      {breakdown && (
+        <div
+          id={`payslip-print-${employeeId}`}
+          style={{ fontFamily: "'DM Sans', sans-serif", color: '#120E36', padding: 24 }}
+        >
+          {/* 1. Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ width: '30%' }}>
+              {company?.logo_url ? (
+                <img src={company.logo_url} alt="logo" style={{ height: 44, maxWidth: 160, objectFit: 'contain' }} />
+              ) : (
+                <div style={{ fontWeight: 700, fontSize: 16 }}>{company?.name || ''}</div>
+              )}
+            </div>
+            <div style={{ width: '40%', textAlign: 'center', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: 2 }}>
+              SALARY SLIP
+            </div>
+            <div style={{ width: '30%', textAlign: 'right' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  background: '#1A1240',
+                  color: '#fff',
+                  padding: '8px 14px',
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  fontSize: 13,
+                }}
+              >
+                {monthLabelShort}
+              </span>
+            </div>
+          </div>
+
+          {/* 2. Employee info box */}
+          <div style={{ display: 'flex', border: '1px solid #E5E1FA', borderRadius: 8, marginBottom: 16, overflow: 'hidden' }}>
+            <div style={{ width: '50%', padding: 16, display: 'flex', gap: 14 }}>
+              <div>
+                {emp.avatar_url ? (
+                  <img src={emp.avatar_url} alt="" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#5B3FF8', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18 }}>
+                    {initials(emp.full_name)}
+                  </div>
+                )}
+              </div>
+              <div style={{ fontSize: 12, lineHeight: 1.7 }}>
+                <div><span style={{ color: '#9490B4' }}>Employee ID: </span><strong>{emp.employee_code || '—'}</strong></div>
+                <div><span style={{ color: '#9490B4' }}>Employee Name: </span><strong>{emp.full_name}</strong></div>
+                <div><span style={{ color: '#9490B4' }}>Designation: </span><strong>{emp.designation || '—'}</strong></div>
+                <div><span style={{ color: '#9490B4' }}>Department: </span><strong>{emp.department || '—'}</strong></div>
+                <div><span style={{ color: '#9490B4' }}>Joining Date: </span><strong>{emp.joining_date ? formatDate(emp.joining_date) : '—'}</strong></div>
+              </div>
+            </div>
+            <div style={{ width: '50%', padding: 16, borderLeft: '1px solid #E5E1FA', fontSize: 12, lineHeight: 1.7 }}>
+              <div><span style={{ color: '#9490B4' }}>Salary Month: </span><strong>{monthLabelFull}</strong></div>
+              <div><span style={{ color: '#9490B4' }}>Basic Salary: </span><strong>{mask(fmtPKR(breakdown.basic))}</strong></div>
+              <div><span style={{ color: '#9490B4' }}>Allowance: </span><strong>{fmtPKR(breakdown.allowance)}</strong></div>
+              <div><span style={{ color: '#9490B4' }}>Total Salary: </span><strong>{fmtPKR(breakdown.totalSalary)}</strong></div>
+              <div><span style={{ color: '#9490B4' }}>Payment Date: </span><strong>{breakdown.paymentDate ? formatDate(breakdown.paymentDate) : '-'}</strong></div>
+            </div>
+          </div>
+
+          {/* 3. Three tables */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', border: '1px solid #E5E1FA', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
+            <div><PayslipTable spec={attTable} /></div>
+            <div style={{ borderLeft: '1px solid #E5E1FA', borderRight: '1px solid #E5E1FA' }}><PayslipTable spec={salaryTable} /></div>
+            <div><PayslipTable spec={otTable} /></div>
+          </div>
+
+          {/* 4. Footer bar */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#F6F5FF', borderRadius: 8, marginBottom: 14 }}>
+            <div style={{ padding: '14px 18px' }}>
+              <div style={{ fontSize: 11, color: '#9490B4', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Total Salary</div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#120E36', marginTop: 4 }}>
                 {fmtPKR(breakdown.totalSalary)}
               </div>
             </div>
-            <div className="px-7 py-[18px]" style={{ borderLeft: '0.5px solid rgba(91,63,248,0.15)' }}>
-              <KeyLabel>Final Payment</KeyLabel>
-              <div
-                className="mt-1"
-                style={{
-                  fontFamily: 'var(--ff-display)',
-                  fontWeight: 700,
-                  fontSize: 28,
-                  color: '#5B3FF8',
-                  lineHeight: 1.1,
-                }}
-              >
+            <div style={{ padding: '14px 18px', borderLeft: '1px solid #E5E1FA' }}>
+              <div style={{ fontSize: 11, color: '#9490B4', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Total Payment</div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#1DC97A', marginTop: 4 }}>
                 {fmtPKR(breakdown.finalPayment)}
               </div>
-              {statusInfo && breakdown.source === 'payroll' && (
-                <div className="mt-2">
-                  <Pill bg={statusInfo.bg} color={statusInfo.text}>{statusInfo.label}</Pill>
-                </div>
-              )}
             </div>
           </div>
-        </>
+
+          {/* 5. Footer note */}
+          <div style={{ textAlign: 'center', fontStyle: 'italic', fontSize: 11, color: '#9490B4' }}>
+            This is a computer generated slip. No signature required.
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 
