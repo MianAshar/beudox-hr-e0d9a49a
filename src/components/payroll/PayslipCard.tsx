@@ -396,19 +396,50 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       }
     : { title: 'Overtime Summary', rows: [] };
 
-  const pdfFilename = `${emp?.full_name || 'Payslip'} - ${monthLabelFull} - Payslip`;
+  const pdfFilename = `${emp?.full_name || 'Payslip'} - ${monthLabelFull} - Payslip.pdf`;
+  const [downloading, setDownloading] = useState(false);
 
-  const handleDownload = () => {
-    const originalTitle = document.title;
-    document.title = pdfFilename;
-    const restore = () => {
-      document.title = originalTitle;
-      window.removeEventListener('afterprint', restore);
-    };
-    window.addEventListener('afterprint', restore);
-    window.print();
-    // Safety fallback in case afterprint doesn't fire
-    setTimeout(() => { if (document.title === pdfFilename) document.title = originalTitle; }, 2000);
+  const handleDownload = async () => {
+    const el = document.getElementById(`payslip-print-${employeeId}`);
+    if (!el) return;
+    try {
+      setDownloading(true);
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 10;
+      const contentWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+      if (imgHeight <= pageHeight - margin * 2) {
+        pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, imgHeight);
+      } else {
+        // Multi-page
+        let heightLeft = imgHeight;
+        let position = margin;
+        pdf.addImage(imgData, 'PNG', margin, position, contentWidth, imgHeight);
+        heightLeft -= (pageHeight - margin * 2);
+        while (heightLeft > 0) {
+          pdf.addPage();
+          position = margin - (imgHeight - heightLeft);
+          pdf.addImage(imgData, 'PNG', margin, position, contentWidth, imgHeight);
+          heightLeft -= (pageHeight - margin * 2);
+        }
+      }
+      pdf.save(pdfFilename);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const formatJoiningDate = (d: string) => {
@@ -419,23 +450,21 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
     return `${day} ${month} ${dt.getFullYear()}`;
   };
 
+  // Avatar URL with cache-busting param stripped issues — html2canvas needs CORS image
+  const avatarSrc = emp?.avatar_url ? `${emp.avatar_url}${emp.avatar_url.includes('?') ? '&' : '?'}cors=1` : null;
+  const logoSrc = company?.logo_url ? `${company.logo_url}${company.logo_url.includes('?') ? '&' : '?'}cors=1` : null;
+
   return (
     <>
-      {/* Print styles — show only the print area */}
+      {/* Hide print-only render off-screen so html2canvas can capture it */}
       <style>{`
-        @page { size: A4; margin: 0; }
-        @media print {
-          body { margin: 1.5cm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          body * { visibility: hidden !important; }
-          #payslip-print-${employeeId}, #payslip-print-${employeeId} * { visibility: visible !important; }
-          #payslip-print-${employeeId} {
-            position: fixed !important; left: 0 !important; top: 0 !important;
-            width: 100% !important; padding: 0 !important; background: white !important;
-          }
-          .no-print { display: none !important; }
+        #payslip-print-${employeeId} {
+          position: fixed;
+          left: -10000px;
+          top: 0;
+          width: 794px;
+          background: white;
         }
-        #payslip-print-${employeeId} { display: none; }
-        @media print { #payslip-print-${employeeId} { display: block !important; } }
       `}</style>
 
       {/* ─── On-screen card ─── */}
