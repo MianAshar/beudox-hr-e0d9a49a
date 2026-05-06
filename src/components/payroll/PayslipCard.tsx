@@ -1,12 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AlertTriangle, Download, DollarSign } from 'lucide-react';
+import { AlertTriangle, Download, DollarSign, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const MONTHS_LBL: Record<string, string> = {
   '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'May', '06': 'Jun',
@@ -394,19 +396,50 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       }
     : { title: 'Overtime Summary', rows: [] };
 
-  const pdfFilename = `${emp?.full_name || 'Payslip'} - ${monthLabelFull} - Payslip`;
+  const pdfFilename = `${emp?.full_name || 'Payslip'} - ${monthLabelFull} - Payslip.pdf`;
+  const [downloading, setDownloading] = useState(false);
 
-  const handleDownload = () => {
-    const originalTitle = document.title;
-    document.title = pdfFilename;
-    const restore = () => {
-      document.title = originalTitle;
-      window.removeEventListener('afterprint', restore);
-    };
-    window.addEventListener('afterprint', restore);
-    window.print();
-    // Safety fallback in case afterprint doesn't fire
-    setTimeout(() => { if (document.title === pdfFilename) document.title = originalTitle; }, 2000);
+  const handleDownload = async () => {
+    const el = document.getElementById(`payslip-print-${employeeId}`);
+    if (!el) return;
+    try {
+      setDownloading(true);
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 10;
+      const contentWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+      if (imgHeight <= pageHeight - margin * 2) {
+        pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, imgHeight);
+      } else {
+        // Multi-page
+        let heightLeft = imgHeight;
+        let position = margin;
+        pdf.addImage(imgData, 'PNG', margin, position, contentWidth, imgHeight);
+        heightLeft -= (pageHeight - margin * 2);
+        while (heightLeft > 0) {
+          pdf.addPage();
+          position = margin - (imgHeight - heightLeft);
+          pdf.addImage(imgData, 'PNG', margin, position, contentWidth, imgHeight);
+          heightLeft -= (pageHeight - margin * 2);
+        }
+      }
+      pdf.save(pdfFilename);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const formatJoiningDate = (d: string) => {
@@ -417,23 +450,21 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
     return `${day} ${month} ${dt.getFullYear()}`;
   };
 
+  // Avatar URL with cache-busting param stripped issues — html2canvas needs CORS image
+  const avatarSrc = emp?.avatar_url ? `${emp.avatar_url}${emp.avatar_url.includes('?') ? '&' : '?'}cors=1` : null;
+  const logoSrc = company?.logo_url ? `${company.logo_url}${company.logo_url.includes('?') ? '&' : '?'}cors=1` : null;
+
   return (
     <>
-      {/* Print styles — show only the print area */}
+      {/* Hide print-only render off-screen so html2canvas can capture it */}
       <style>{`
-        @page { size: A4; margin: 0; }
-        @media print {
-          body { margin: 1.5cm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          body * { visibility: hidden !important; }
-          #payslip-print-${employeeId}, #payslip-print-${employeeId} * { visibility: visible !important; }
-          #payslip-print-${employeeId} {
-            position: fixed !important; left: 0 !important; top: 0 !important;
-            width: 100% !important; padding: 0 !important; background: white !important;
-          }
-          .no-print { display: none !important; }
+        #payslip-print-${employeeId} {
+          position: fixed;
+          left: -10000px;
+          top: 0;
+          width: 794px;
+          background: white;
         }
-        #payslip-print-${employeeId} { display: none; }
-        @media print { #payslip-print-${employeeId} { display: block !important; } }
       `}</style>
 
       {/* ─── On-screen card ─── */}
@@ -452,8 +483,9 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
             <div className="flex items-center gap-3">
               <Pill bg="#F6F5FF" color="#4B4468">{monthLabelShort}</Pill>
               {breakdown && (
-                <Button onClick={handleDownload} variant="ghost" size="sm" className="h-8">
-                  <Download className="h-4 w-4 mr-1.5" /> Download PDF
+                <Button onClick={handleDownload} variant="ghost" size="sm" className="h-8" disabled={downloading}>
+                  {downloading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Download className="h-4 w-4 mr-1.5" />}
+                  {downloading ? 'Generating…' : 'Download PDF'}
                 </Button>
               )}
             </div>
@@ -620,8 +652,8 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
             <tbody>
               <tr>
                 <td style={{ width: '30%', verticalAlign: 'middle' }}>
-                  {company?.logo_url ? (
-                    <img src={company.logo_url} alt="logo" style={{ height: 40, maxWidth: 150, objectFit: 'contain' }} />
+                  {logoSrc ? (
+                    <img src={logoSrc} crossOrigin="anonymous" alt="logo" style={{ height: 40, maxWidth: 150, objectFit: 'contain' }} />
                   ) : (
                     <div style={{ fontWeight: 700, fontSize: 14 }}>{company?.name || ''}</div>
                   )}
@@ -643,11 +675,24 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
             <tbody>
               <tr>
                 <td style={{ width: '50%', padding: 12, verticalAlign: 'top', lineHeight: 1.7 }}>
-                  <div><span style={{ color: '#9490B4' }}>Employee ID: </span><strong>{emp.employee_code || '—'}</strong></div>
-                  <div><span style={{ color: '#9490B4' }}>Employee Name: </span><strong>{emp.full_name}</strong></div>
-                  <div><span style={{ color: '#9490B4' }}>Designation: </span><strong>{emp.designation || '—'}</strong></div>
-                  <div><span style={{ color: '#9490B4' }}>Department: </span><strong>{emp.department || '—'}</strong></div>
-                  <div><span style={{ color: '#9490B4' }}>Joining Date: </span><strong>{emp.joining_date ? formatJoiningDate(emp.joining_date) : '—'}</strong></div>
+                  <table style={{ borderCollapse: 'collapse' }}><tbody><tr>
+                    <td style={{ verticalAlign: 'top', paddingRight: 12 }}>
+                      {avatarSrc ? (
+                        <img src={avatarSrc} crossOrigin="anonymous" alt="" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
+                      ) : (
+                        <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#5B3FF8', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18 }}>
+                          {initials(emp.full_name)}
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ verticalAlign: 'top' }}>
+                      <div><span style={{ color: '#9490B4' }}>Employee ID: </span><strong>{emp.employee_code || '—'}</strong></div>
+                      <div><span style={{ color: '#9490B4' }}>Employee Name: </span><strong>{emp.full_name}</strong></div>
+                      <div><span style={{ color: '#9490B4' }}>Designation: </span><strong>{emp.designation || '—'}</strong></div>
+                      <div><span style={{ color: '#9490B4' }}>Department: </span><strong>{emp.department || '—'}</strong></div>
+                      <div><span style={{ color: '#9490B4' }}>Joining Date: </span><strong>{emp.joining_date ? formatJoiningDate(emp.joining_date) : '—'}</strong></div>
+                    </td>
+                  </tr></tbody></table>
                 </td>
                 <td style={{ width: '50%', padding: 12, borderLeft: '1px solid #E5E1FA', verticalAlign: 'top', lineHeight: 1.7 }}>
                   <div><span style={{ color: '#9490B4' }}>Salary Month: </span><strong>{monthLabelFull}</strong></div>
