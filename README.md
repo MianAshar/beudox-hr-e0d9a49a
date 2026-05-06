@@ -1,39 +1,39 @@
 <!--
 generated_by: tessera
-source_sha: 3929819abf0e12b9f52e71b3a47fb8eb6bac72e3
-generated_at: 2026-05-06T15:19:33.829Z
+source_sha: 99a40ba569414f43251b340331e742906aca530b
+generated_at: 2026-05-06T15:45:53.734Z
 action: update
 -->
 
-# Beudox HR Portal
+# Beudox HR
 
-A comprehensive Human Resources Management System built with modern web technologies. This application provides a complete suite of HR tools for managing employees, attendance, payroll, leave, evaluations, projects, and more.
+A comprehensive Human Resources Management System built as a modern web application. Beudox HR provides companies with tools to manage employees, track attendance, handle leave requests, process payroll, manage projects, and configure HR policies.
 
 ## Features
 
-- **Employee Management**: Complete employee profiles, onboarding, and lifecycle management
-- **Attendance Tracking**: Automated attendance recording with analytics and reporting
-- **Leave Management**: Request, approve, and track various types of leave
-- **Payroll Processing**: Automated payroll calculations and payslip generation
-- **Performance Evaluations**: Regular and daily performance assessments
-- **Project Management**: Project tracking, task management, and team assignments
-- **Finance & Invoicing**: Client management, invoice generation, and financial reporting
-- **HR Policies**: Document management and policy administration
-- **Settings & Configuration**: Company settings, roles, departments, and system configuration
+- **Employee Management**: Profile management, onboarding, and employee directory
+- **Attendance Tracking**: Daily attendance records, overtime calculation, and analytics
+- **Leave Management**: Leave requests, balances, and approval workflows
+- **Payroll Processing**: Salary calculations, payslips, and payroll history
+- **Project Management**: Team assignments, task tracking, and project activity logs
+- **HR Policies**: Rich text policy documents and management
+- **Finance Overview**: Financial summaries and expense tracking
+- **Settings & Configuration**: Company settings, departments, roles, leave types, and more
+- **Notifications**: Automated notifications for HR events
+- **Reporting**: Comprehensive analytics and reporting dashboards
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **UI Framework**: shadcn/ui with Radix UI components
-- **Styling**: Tailwind CSS
-- **State Management**: React Query (TanStack Query)
-- **Routing**: React Router DOM
-- **Backend**: Supabase (PostgreSQL database with real-time features)
-- **Authentication**: Supabase Auth
+- **Styling**: Tailwind CSS with custom design system
+- **UI Components**: Radix UI primitives with Shadcn/ui
+- **State Management**: TanStack Query for server state, React Context for auth
 - **Forms**: React Hook Form with Zod validation
+- **Backend**: Supabase (PostgreSQL, Authentication, Storage)
+- **Routing**: React Router DOM
 - **Charts**: Recharts
-- **Rich Text Editor**: Tiptap
+- **Rich Text**: Tiptap
 - **Testing**: Vitest with React Testing Library
 - **E2E Testing**: Playwright
 
@@ -42,7 +42,8 @@ A comprehensive Human Resources Management System built with modern web technolo
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn or bun
+- npm or yarn
+- A Supabase project
 
 ### Installation
 
@@ -55,14 +56,11 @@ A comprehensive Human Resources Management System built with modern web technolo
 2. Install dependencies:
    ```bash
    npm install
-   # or
-   yarn install
-   # or
-   bun install
    ```
 
 3. Set up environment variables:
-   Copy `.env` and configure your Supabase credentials:
+   
+   Copy `.env` and update the Supabase configuration:
    ```bash
    cp .env .env.local
    ```
@@ -70,9 +68,14 @@ A comprehensive Human Resources Management System built with modern web technolo
    Update the following variables in `.env.local`:
    - `VITE_SUPABASE_URL`: Your Supabase project URL
    - `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase anon/public key
+   - `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
 
-4. Run database migrations:
-   The application uses Supabase migrations. Ensure your Supabase project has the migrations applied from the `supabase/migrations/` directory.
+4. Set up Supabase:
+   
+   The application uses Supabase for data storage. You'll need to:
+   - Create a Supabase project
+   - Run the database migrations located in `supabase/migrations/`
+   - Configure authentication and storage as needed
 
 5. Start the development server:
    ```bash
@@ -81,68 +84,48 @@ A comprehensive Human Resources Management System built with modern web technolo
 
 6. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Build for Production
+### Available Scripts
 
-```bash
-npm run build
-```
-
-### Testing
-
-Run unit tests:
-```bash
-npm run test
-```
-
-Run tests in watch mode:
-```bash
-npm run test:watch
-```
-
-Run E2E tests:
-```bash
-npx playwright test
-```
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests once
+- `npm run test:watch` - Run tests in watch mode
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   ├── layout/         # Layout components (AppLayout, Sidebar, etc.)
+│   ├── ui/             # Base UI components (shadcn/ui)
 │   ├── attendance/     # Attendance-related components
-│   ├── employee-profile/ # Employee profile tabs
+│   ├── employee-profile/ # Employee profile components
+│   ├── finance/        # Finance components
+│   ├── hr-policies/    # HR policy components
+│   ├── layout/         # Layout components (sidebar, topbar, etc.)
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
+│   ├── projects/       # Project management components
+│   ├── settings/       # Settings components
 │   └── ...
 ├── pages/              # Page components (routes)
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations (Supabase)
-└── types/              # TypeScript type definitions
-
-supabase/
-├── migrations/         # Database schema migrations
-└── config.toml        # Supabase configuration
+├── integrations/       # External service integrations
+└── test/               # Test files
 ```
-
-## Authentication & Authorization
-
-The application uses role-based access control with the following user roles:
-- Admin: Full system access
-- HR Manager: HR-related functions
-- Manager: Team management
-- Employee: Limited access to personal data
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+4. Run tests: `npm run test`
+5. Run linting: `npm run lint`
+6. Submit a pull request
 
 ## License
 
-This project is proprietary software. All rights reserved.
+This project is private and proprietary.
