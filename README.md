@@ -1,33 +1,33 @@
 <!--
 generated_by: tessera
-source_sha: 99a40ba569414f43251b340331e742906aca530b
-generated_at: 2026-05-06T15:49:16.492Z
+source_sha: d05e2703bc4ca812d900c6eabbedaad699b1d5da
+generated_at: 2026-05-06T17:22:08.016Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources Management System built as a modern web application for managing employee data, attendance, payroll, leave requests, and organizational settings.
+A comprehensive Human Resources Management System built as a modern web application for managing employee data, attendance, payroll, leave requests, evaluations, and more.
 
 ## Features
 
 - **Employee Management**: Profile management, onboarding, and organizational structure
-- **Attendance Tracking**: Automated attendance recording, analytics, and reporting
-- **Payroll Processing**: Salary calculations, payslips, and financial summaries
-- **Leave Management**: Request processing, balance tracking, and approval workflows
-- **Performance Reviews**: Evaluation timelines, salary reviews, and increment proposals
-- **Project Management**: Team assignments, activity logging, and task tracking
-- **HR Policies**: Rich text policy documents and compliance management
-- **Settings & Configuration**: Company settings, departments, roles, and system parameters
+- **Attendance Tracking**: Automated attendance recording, summary reports, and anomaly detection
+- **Leave Management**: Request and approval workflows for various leave types
+- **Payroll Processing**: Salary calculations, overtime tracking, and payslip generation
+- **Performance Evaluations**: Scheduled reviews and feedback systems
+- **Project Management**: Team assignments and activity tracking
+- **HR Policies**: Rich text policy documents and management
+- **Settings & Configuration**: Company settings, departments, roles, and system configuration
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
-- **Routing**: React Router (Pages Router pattern)
 - **Build Tool**: Vite
-- **UI Framework**: shadcn/ui components with Tailwind CSS
+- **Routing**: React Router
+- **Styling**: Tailwind CSS with shadcn/ui components
 - **Backend**: Supabase (PostgreSQL database with real-time features)
-- **Authentication**: Supabase Auth
+- **State Management**: React hooks and context
 - **Testing**: Vitest for unit tests, Playwright for E2E tests
 - **Deployment**: Configured for modern web hosting
 
@@ -55,31 +55,48 @@ A comprehensive Human Resources Management System built as a modern web applicat
    ```
 
 3. Set up environment variables:
-   - Copy `.env` and update with your Supabase credentials
-   - Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`
-
-4. Run database migrations:
-   ```bash
-   # Using Supabase CLI
-   supabase db push
+   
+   Copy `.env` and update the Supabase configuration:
+   ```env
+   VITE_SUPABASE_PROJECT_ID="your-project-id"
+   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
+   VITE_SUPABASE_URL="https://your-project.supabase.co"
    ```
 
-5. Start the development server:
+4. Start the development server:
    ```bash
    npm run dev
    # or
    bun run dev
    ```
 
-6. Open [http://localhost:5173](http://localhost:5173) in your browser
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Build for Production
+### Database Setup
 
+The application uses Supabase for data storage. The database schema includes tables for:
+
+- Employees and user authentication
+- Attendance records
+- Leave requests and balances
+- Payroll data
+- Company settings and configurations
+- Public holidays
+- Projects and tasks
+
+Database migrations are located in the `supabase/migrations/` directory.
+
+### Testing
+
+Run unit tests:
 ```bash
-npm run build
+npm run test
 ```
 
-The built files will be in the `dist/` directory.
+Run E2E tests:
+```bash
+npm run test:e2e
+```
 
 ## Project Structure
 
@@ -93,26 +110,20 @@ src/
 │   ├── payroll/        # Payroll components
 │   ├── settings/       # Admin settings components
 │   └── ...
-├── pages/              # Route components (Pages Router)
-├── integrations/       # External service integrations
-│   └── supabase/       # Supabase client and types
-├── lib/                # Utility functions and business logic
+├── pages/              # Page components
+├── lib/                # Utility functions and configurations
 ├── hooks/              # Custom React hooks
+├── integrations/       # External service integrations
 └── test/               # Test files
-
-supabase/
-├── migrations/         # Database schema migrations
-└── config.toml        # Supabase project configuration
 ```
 
-## Available Scripts
+## Key Components
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run unit tests
-- `npm run test:e2e` - Run end-to-end tests
-- `npm run lint` - Run ESLint
+- **AppLayout**: Main application layout with sidebar navigation
+- **AttendanceSummary**: Comprehensive attendance analytics and reporting
+- **MandatoryPasswordChange**: Secure password reset flow for new users
+- **SearchableEmployeeSelect**: Employee selection with search functionality
+- **BeudoxLogo**: Brand logo component with multiple variants
 
 ## Contributing
 
