@@ -675,11 +675,24 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
             <tbody>
               <tr>
                 <td style={{ width: '50%', padding: 12, verticalAlign: 'top', lineHeight: 1.7 }}>
-                  <div><span style={{ color: '#9490B4' }}>Employee ID: </span><strong>{emp.employee_code || '—'}</strong></div>
-                  <div><span style={{ color: '#9490B4' }}>Employee Name: </span><strong>{emp.full_name}</strong></div>
-                  <div><span style={{ color: '#9490B4' }}>Designation: </span><strong>{emp.designation || '—'}</strong></div>
-                  <div><span style={{ color: '#9490B4' }}>Department: </span><strong>{emp.department || '—'}</strong></div>
-                  <div><span style={{ color: '#9490B4' }}>Joining Date: </span><strong>{emp.joining_date ? formatJoiningDate(emp.joining_date) : '—'}</strong></div>
+                  <table style={{ borderCollapse: 'collapse' }}><tbody><tr>
+                    <td style={{ verticalAlign: 'top', paddingRight: 12 }}>
+                      {avatarSrc ? (
+                        <img src={avatarSrc} crossOrigin="anonymous" alt="" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
+                      ) : (
+                        <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#5B3FF8', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18 }}>
+                          {initials(emp.full_name)}
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ verticalAlign: 'top' }}>
+                      <div><span style={{ color: '#9490B4' }}>Employee ID: </span><strong>{emp.employee_code || '—'}</strong></div>
+                      <div><span style={{ color: '#9490B4' }}>Employee Name: </span><strong>{emp.full_name}</strong></div>
+                      <div><span style={{ color: '#9490B4' }}>Designation: </span><strong>{emp.designation || '—'}</strong></div>
+                      <div><span style={{ color: '#9490B4' }}>Department: </span><strong>{emp.department || '—'}</strong></div>
+                      <div><span style={{ color: '#9490B4' }}>Joining Date: </span><strong>{emp.joining_date ? formatJoiningDate(emp.joining_date) : '—'}</strong></div>
+                    </td>
+                  </tr></tbody></table>
                 </td>
                 <td style={{ width: '50%', padding: 12, borderLeft: '1px solid #E5E1FA', verticalAlign: 'top', lineHeight: 1.7 }}>
                   <div><span style={{ color: '#9490B4' }}>Salary Month: </span><strong>{monthLabelFull}</strong></div>
