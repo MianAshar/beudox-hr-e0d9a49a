@@ -483,8 +483,9 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
             <div className="flex items-center gap-3">
               <Pill bg="#F6F5FF" color="#4B4468">{monthLabelShort}</Pill>
               {breakdown && (
-                <Button onClick={handleDownload} variant="ghost" size="sm" className="h-8">
-                  <Download className="h-4 w-4 mr-1.5" /> Download PDF
+                <Button onClick={handleDownload} variant="ghost" size="sm" className="h-8" disabled={downloading}>
+                  {downloading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Download className="h-4 w-4 mr-1.5" />}
+                  {downloading ? 'Generating…' : 'Download PDF'}
                 </Button>
               )}
             </div>
