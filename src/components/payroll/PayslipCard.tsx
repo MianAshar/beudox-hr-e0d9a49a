@@ -394,14 +394,36 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       }
     : { title: 'Overtime Summary', rows: [] };
 
-  const handleDownload = () => window.print();
+  const pdfFilename = `${emp?.full_name || 'Payslip'} - ${monthLabelFull} - Payslip`;
+
+  const handleDownload = () => {
+    const originalTitle = document.title;
+    document.title = pdfFilename;
+    const restore = () => {
+      document.title = originalTitle;
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+    window.print();
+    // Safety fallback in case afterprint doesn't fire
+    setTimeout(() => { if (document.title === pdfFilename) document.title = originalTitle; }, 2000);
+  };
+
+  const formatJoiningDate = (d: string) => {
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return '—';
+    const day = String(dt.getDate()).padStart(2, '0');
+    const month = dt.toLocaleString('en-US', { month: 'short' });
+    return `${day} ${month} ${dt.getFullYear()}`;
+  };
 
   return (
     <>
       {/* Print styles — show only the print area */}
       <style>{`
+        @page { size: A4; margin: 0; }
         @media print {
-          @page { size: A4; margin: 16mm; }
+          body { margin: 1.5cm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           body * { visibility: hidden !important; }
           #payslip-print-${employeeId}, #payslip-print-${employeeId} * { visibility: visible !important; }
           #payslip-print-${employeeId} {
