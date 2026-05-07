@@ -1,40 +1,46 @@
 <!--
 generated_by: tessera
-source_sha: d05e2703bc4ca812d900c6eabbedaad699b1d5da
-generated_at: 2026-05-06T17:23:53.132Z
+source_sha: 03509de5f6208160253b996346e7b1f70041c3ca
+generated_at: 2026-05-07T05:53:02.960Z
 action: update
 -->
 
 # Beudox HR Portal
 
-A comprehensive Human Resources management system built as a modern web application. Beudox HR provides tools for employee management, attendance tracking, leave administration, payroll processing, and organizational settings.
+A comprehensive Human Resources management web application built for modern businesses. This frontend application provides a complete HR portal for managing employees, attendance, leave requests, payroll, evaluations, and organizational settings.
 
 ## Features
 
-- **Employee Management**: Profile management, role-based access control, and organizational hierarchy
-- **Attendance Tracking**: Automated attendance recording, analytics, and reporting
+### Core HR Functionality
+- **Employee Management**: Profile management, role-based access control, and employee directory
+- **Attendance Tracking**: Automated attendance recording, summary analytics, and anomaly detection
 - **Leave Management**: Leave request workflows, balance tracking, and approval processes
-- **Payroll Processing**: Automated payroll calculations, payslip generation, and financial reporting
-- **Settings & Configuration**: Company settings, departments, roles, leave types, and expense categories
-- **Notifications**: Automated alerts for reviews, leave approvals, and system events
+- **Payroll Processing**: Salary calculations, payslip generation, and payroll history
+- **Performance Evaluations**: Employee evaluations, review schedules, and salary increment proposals
+- **Project Management**: Team assignments, project tracking, and activity logging
+
+### Administrative Tools
+- **Company Settings**: Configure departments, roles, leave types, expense categories
+- **HR Policies**: Rich text editor for policy documentation
+- **Login Monitoring**: Track user login activity and device information
+- **Data Management**: Import/export capabilities and data clearing utilities
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
+- **Frontend Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui component library
+- **Styling**: Tailwind CSS with custom design system
+- **UI Components**: shadcn/ui component library
+- **Routing**: React Router DOM
 - **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
-- **Routing**: React Router
 - **State Management**: React hooks and context
-- **Testing**: Vitest for unit tests, Playwright for end-to-end tests
-- **Deployment**: Configured for modern web hosting platforms
+- **Testing**: Vitest and Playwright
+- **Package Manager**: Bun
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js 18+
-- npm or bun package manager
+- Node.js 18+ or Bun
 - Supabase account and project
 
 ### Installation
@@ -42,13 +48,11 @@ A comprehensive Human Resources management system built as a modern web applicat
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd beudox-hr
+   cd beudox-hr-e0d9a49a
    ```
 
 2. Install dependencies:
    ```bash
-   npm install
-   # or
    bun install
    ```
 
@@ -56,15 +60,13 @@ A comprehensive Human Resources management system built as a modern web applicat
    
    Copy `.env` and update the Supabase configuration:
    ```env
-   VITE_SUPABASE_PROJECT_ID=your_project_id
-   VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PROJECT_ID="your-project-id"
+   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
+   VITE_SUPABASE_URL="https://your-project.supabase.co"
    ```
 
 4. Start the development server:
    ```bash
-   npm run dev
-   # or
    bun run dev
    ```
 
@@ -73,7 +75,7 @@ A comprehensive Human Resources management system built as a modern web applicat
 ### Build for Production
 
 ```bash
-npm run build
+bun run build
 ```
 
 The built files will be in the `dist` directory.
@@ -82,12 +84,12 @@ The built files will be in the `dist` directory.
 
 Run unit tests:
 ```bash
-npm run test
+bun run test
 ```
 
 Run end-to-end tests:
 ```bash
-npm run test:e2e
+bun run test:e2e
 ```
 
 ## Project Structure
@@ -95,36 +97,39 @@ npm run test:e2e
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui base components
+│   ├── ui/             # shadcn/ui components
 │   ├── attendance/     # Attendance-related components
 │   ├── employee-profile/ # Employee profile sections
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   └── settings/       # Admin settings components
-├── pages/              # Page components (routes)
-├── lib/                # Utility functions and configurations
+│   ├── settings/       # Admin settings components
+│   └── ...
+├── pages/              # Page components
 ├── hooks/              # Custom React hooks
-└── integrations/       # External service integrations
+├── lib/                # Utility functions and configurations
+├── integrations/       # External service integrations
+└── main.tsx           # Application entry point
 ```
 
-## Database Schema
+## Key Components
 
-The application uses Supabase with PostgreSQL. Database migrations are located in `supabase/migrations/` and include tables for:
+- **AppLayout**: Main application layout with sidebar navigation
+- **AttendanceSummary**: Comprehensive attendance analytics dashboard
+- **MandatoryPasswordChange**: Secure password reset modal for new users
+- **SearchableEmployeeSelect**: Employee selection component with search functionality
+- **BeudoxLogo**: Brand logo component with multiple variants
 
-- Employees and user authentication
-- Attendance records
-- Leave requests and balances
-- Payroll data
-- Company settings and configurations
-- Audit logs and notifications
+## Authentication & Security
+
+The application uses Supabase authentication with role-based access control. New users are required to change their temporary password upon first login through the `MandatoryPasswordChange` component.
 
 ## Contributing
 
-1. Follow the existing code style and component patterns
+1. Follow the existing code style and TypeScript conventions
 2. Write tests for new features
 3. Update documentation as needed
-4. Ensure TypeScript types are properly defined
+4. Ensure all tests pass before submitting PRs
 
 ## License
 
-This project is proprietary software. All rights reserved.
+This project is proprietary software owned by Beudox.
