@@ -399,7 +399,6 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
     : { title: 'Overtime Summary', rows: [] };
 
   const pdfFilename = `${emp?.full_name || 'Payslip'} - ${monthLabelFull} - Payslip.pdf`;
-  const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
     const el = document.getElementById(`payslip-print-${employeeId}`);
