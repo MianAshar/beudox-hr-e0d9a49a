@@ -141,6 +141,8 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
   // Visibility: own payslip always shows everything. For viewing others, only CEO/Finance/HR can see salary.
   const canSeeSalary = isSelf || isCeo || isFinance || isHR;
 
+  const [downloading, setDownloading] = useState(false);
+
   const [year, month] = monthYear.split('-');
   const monthLabelShort = `${MONTHS_LBL[month]}-${year}`;
   const monthLabelFull = `${MONTHS_FULL[month]} ${year}`;
