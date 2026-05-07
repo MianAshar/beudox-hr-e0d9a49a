@@ -1,96 +1,86 @@
 <!--
 generated_by: tessera
 source_sha: 03509de5f6208160253b996346e7b1f70041c3ca
-generated_at: 2026-05-07T05:53:02.960Z
+generated_at: 2026-05-07T05:56:03.917Z
 action: update
 -->
 
-# Beudox HR Portal
+# Beudox HR
 
-A comprehensive Human Resources management web application built for modern businesses. This frontend application provides a complete HR portal for managing employees, attendance, leave requests, payroll, evaluations, and organizational settings.
+A comprehensive Human Resources management application built for companies to streamline employee management, attendance tracking, leave requests, payroll processing, and performance evaluations.
 
 ## Features
 
-### Core HR Functionality
 - **Employee Management**: Profile management, role-based access control, and employee directory
-- **Attendance Tracking**: Automated attendance recording, summary analytics, and anomaly detection
+- **Attendance Tracking**: Automated attendance recording, summary reports, and anomaly detection
 - **Leave Management**: Leave request workflows, balance tracking, and approval processes
-- **Payroll Processing**: Salary calculations, payslip generation, and payroll history
-- **Performance Evaluations**: Employee evaluations, review schedules, and salary increment proposals
-- **Project Management**: Team assignments, project tracking, and activity logging
-
-### Administrative Tools
-- **Company Settings**: Configure departments, roles, leave types, expense categories
-- **HR Policies**: Rich text editor for policy documentation
-- **Login Monitoring**: Track user login activity and device information
-- **Data Management**: Import/export capabilities and data clearing utilities
+- **Payroll Processing**: Salary calculations, payslips, and overtime tracking
+- **Performance Evaluations**: Review scheduling, evaluation forms, and salary reviews
+- **Finance & Projects**: Expense tracking, project management, and team assignments
+- **Settings**: Company configuration, departments, roles, and HR policies
 
 ## Technology Stack
 
-- **Frontend Framework**: React 18 with TypeScript
+- **Frontend**: React 18 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with custom design system
-- **UI Components**: shadcn/ui component library
-- **Routing**: React Router DOM
+- **Styling**: Tailwind CSS with shadcn/ui components
 - **Backend**: Supabase (PostgreSQL database, authentication, real-time subscriptions)
+- **Routing**: React Router
 - **State Management**: React hooks and context
-- **Testing**: Vitest and Playwright
-- **Package Manager**: Bun
+- **Testing**: Vitest for unit tests, Playwright for end-to-end tests
+- **Deployment**: Configured for modern web deployment
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ or Bun
+
+- Node.js 18+
+- npm or bun package manager
 - Supabase account and project
 
 ### Installation
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/MianAshar/beudox-hr-e0d9a49a.git
    cd beudox-hr-e0d9a49a
    ```
 
 2. Install dependencies:
    ```bash
+   npm install
+   # or
    bun install
    ```
 
-3. Configure environment variables:
-   
-   Copy `.env` and update the Supabase configuration:
-   ```env
-   VITE_SUPABASE_PROJECT_ID="your-project-id"
-   VITE_SUPABASE_PUBLISHABLE_KEY="your-anon-key"
-   VITE_SUPABASE_URL="https://your-project.supabase.co"
+3. Set up environment variables:
+   Copy `.env` and configure your Supabase credentials:
+   ```bash
+   cp .env .env.local
    ```
+   Update the values with your Supabase project details.
 
 4. Start the development server:
    ```bash
+   npm run dev
+   # or
    bun run dev
    ```
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Build for Production
+### Database Setup
 
-```bash
-bun run build
-```
+The application uses Supabase migrations for database schema. To set up the database:
 
-The built files will be in the `dist` directory.
+1. Install Supabase CLI
+2. Link your project: `supabase link --project-ref jqhiijbunselslmvhdwe`
+3. Run migrations: `supabase db push`
 
 ### Testing
 
-Run unit tests:
-```bash
-bun run test
-```
-
-Run end-to-end tests:
-```bash
-bun run test:e2e
-```
+- Run unit tests: `npm run test`
+- Run e2e tests: `npm run test:e2e`
 
 ## Project Structure
 
@@ -99,37 +89,24 @@ src/
 ├── components/          # Reusable UI components
 │   ├── ui/             # shadcn/ui components
 │   ├── attendance/     # Attendance-related components
-│   ├── employee-profile/ # Employee profile sections
+│   ├── employee-profile/ # Employee profile tabs
 │   ├── leave/          # Leave management components
 │   ├── payroll/        # Payroll components
-│   ├── settings/       # Admin settings components
 │   └── ...
 ├── pages/              # Page components
-├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions and configurations
-├── integrations/       # External service integrations
-└── main.tsx           # Application entry point
+├── hooks/              # Custom React hooks
+└── integrations/       # External service integrations
 ```
-
-## Key Components
-
-- **AppLayout**: Main application layout with sidebar navigation
-- **AttendanceSummary**: Comprehensive attendance analytics dashboard
-- **MandatoryPasswordChange**: Secure password reset modal for new users
-- **SearchableEmployeeSelect**: Employee selection component with search functionality
-- **BeudoxLogo**: Brand logo component with multiple variants
-
-## Authentication & Security
-
-The application uses Supabase authentication with role-based access control. New users are required to change their temporary password upon first login through the `MandatoryPasswordChange` component.
 
 ## Contributing
 
-1. Follow the existing code style and TypeScript conventions
-2. Write tests for new features
-3. Update documentation as needed
-4. Ensure all tests pass before submitting PRs
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
 
 ## License
 
-This project is proprietary software owned by Beudox.
+This project is proprietary software. All rights reserved.
