@@ -776,9 +776,15 @@ const EmployeeForm = () => {
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
-                {(roles || []).map((r) => (
+                {[...(roles || [])]
+                  .sort((a, b) => {
+                    const ai = ROLE_ORDER.indexOf(a.name);
+                    const bi = ROLE_ORDER.indexOf(b.name);
+                    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+                  })
+                  .map((r) => (
                   <SelectItem key={r.id} value={r.id}>
-                    {r.name.replace('_', ' ')}
+                    {formatRole(r.name)}
                   </SelectItem>
                 ))}
               </SelectContent>
