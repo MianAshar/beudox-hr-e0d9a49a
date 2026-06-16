@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatRole, ROLE_ORDER } from '@/lib/format-role';
 import { z } from 'zod';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
