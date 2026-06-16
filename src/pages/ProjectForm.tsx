@@ -18,8 +18,6 @@ import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X } from 'lucide-react';
 
-const STATUSES = ['pending', 'in_progress', 'qc_required', 'completed', 'submitted', 'on_hold', 'cancelled'];
-const PRIORITIES = ['high', 'medium', 'low'];
 
 const ProjectForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,8 +39,6 @@ const ProjectForm = () => {
     client_deadline: undefined as Date | undefined,
     internal_deadline: undefined as Date | undefined,
     project_lead_id: '',
-    priority: '',
-    status: 'pending',
     notes: '',
   });
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
@@ -116,8 +112,6 @@ const ProjectForm = () => {
         client_deadline: existingProject.client_deadline ? new Date(existingProject.client_deadline) : undefined,
         internal_deadline: existingProject.internal_deadline ? new Date(existingProject.internal_deadline) : undefined,
         project_lead_id: existingProject.project_lead_id || '',
-        priority: existingProject.priority || '',
-        status: existingProject.status,
         notes: existingProject.notes || '',
       });
     }
@@ -131,7 +125,7 @@ const ProjectForm = () => {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const payload = {
+      const payload: any = {
         project_code: form.project_code.trim(),
         project_name: form.project_name.trim(),
         client_id: form.client_id,
@@ -141,11 +135,10 @@ const ProjectForm = () => {
         client_deadline: form.client_deadline ? format(form.client_deadline, 'yyyy-MM-dd') : null,
         internal_deadline: form.internal_deadline ? format(form.internal_deadline, 'yyyy-MM-dd') : null,
         project_lead_id: form.project_lead_id || null,
-        priority: form.priority || null,
-        status: form.status,
         notes: form.notes.trim() || null,
         company_id: companyId!,
       };
+      if (!isEdit) payload.status = 'pending';
 
       if (isEdit) {
         const { error } = await supabase.from('projects').update(payload).eq('id', id!);
@@ -214,7 +207,7 @@ const ProjectForm = () => {
     setTeamMembers(prev => prev.filter(e => e !== empId));
   };
 
-  const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  
 
   const filteredClients = useMemo(() => {
     if (!clients) return [];
@@ -350,7 +343,7 @@ const ProjectForm = () => {
           </div>
         </div>
 
-        {/* Lead combobox + Priority + Status */}
+        {/* Lead combobox */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <Label>Project Lead</Label>
@@ -378,24 +371,6 @@ const ProjectForm = () => {
                 </Command>
               </PopoverContent>
             </Popover>
-          </div>
-          <div>
-            <Label>Priority</Label>
-            <Select value={form.priority} onValueChange={v => setForm({ ...form, priority: v })}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                {PRIORITIES.map(p => <SelectItem key={p} value={p}>{fmt(p)}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Status</Label>
-            <Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {STATUSES.map(s => <SelectItem key={s} value={s}>{fmt(s)}</SelectItem>)}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
