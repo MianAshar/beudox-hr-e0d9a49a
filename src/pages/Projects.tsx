@@ -182,8 +182,8 @@ const Projects = () => {
   const canSeeClient = ['hr_manager', 'ceo', 'finance_manager'].some(r => roles.includes(r));
   const canSeeFinancial = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const canSeeTeam = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
-  const canEditStatus = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
-  const canEditDeadline = canEditStatus;
+  const canEditStatus = true;
+  const canEditDeadline = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
   const canSeeActivity = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const canManageTeam = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
   const employeeId = employee?.employee_id;
