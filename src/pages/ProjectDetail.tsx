@@ -10,7 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play, UserCog } from 'lucide-react';
+import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play, UserCog, ChevronDown } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
@@ -49,7 +51,8 @@ const ProjectDetail = () => {
   const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
   const canManageTeam = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
   const canSeeActivity = ['hr_manager', 'ceo'].some(r => roles.includes(r));
-  const canStartProject = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
+  const canStartProject = true;
+  const canEditStatus = true;
   const employeeId = employee?.employee_id;
 
   const [deactivateOpen, setDeactivateOpen] = useState(false);
@@ -149,6 +152,33 @@ const ProjectDetail = () => {
     onError: (e: Error) => toast({ title: 'Failed to start project', description: e.message, variant: 'destructive' }),
   });
 
+  const STATUS_OPTIONS = ['pending', 'in_progress', 'on_hold', 'completed', 'invoiced', 'cancelled'];
+  const statusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      const previous = project?.status;
+      const { error } = await supabase.from('projects').update({ status: newStatus }).eq('id', id!);
+      if (error) throw error;
+      if (companyId && employeeId) {
+        await supabase.from('project_activity_logs').insert({
+          company_id: companyId,
+          project_id: id!,
+          employee_id: employeeId,
+          action: 'status_changed',
+          old_value: previous,
+          new_value: newStatus,
+        });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-detail'] });
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['projects-v2'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
+      toast({ title: 'Status updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' }),
+  });
+
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
@@ -181,7 +211,26 @@ const ProjectDetail = () => {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
-              <Badge className={statusColors[project.status] || ''}>{fmt(project.status)}</Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild disabled={statusMutation.isPending}>
+                  <button type="button" className="inline-flex">
+                    <Badge className={cn(statusColors[project.status] || '', 'cursor-pointer hover:opacity-90 inline-flex items-center gap-1')}>
+                      {fmt(project.status)}
+                      <ChevronDown className="h-3 w-3 opacity-70" />
+                    </Badge>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-popover">
+                  {STATUS_OPTIONS.map(s => (
+                    <DropdownMenuItem
+                      key={s}
+                      onSelect={() => { if (s !== project.status) statusMutation.mutate(s); }}
+                    >
+                      <Badge className={cn(statusColors[s] || '', 'pointer-events-none')}>{fmt(s)}</Badge>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               {project.priority && <Badge className={priorityColors[project.priority] || ''}>{fmt(project.priority)}</Badge>}
             </div>
             <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>

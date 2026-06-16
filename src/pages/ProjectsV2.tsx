@@ -626,8 +626,8 @@ const ProjectsV2 = () => {
   const isEmployee = roles.includes('employee');
   const canSeeClient = isManager;
   const canSeeTeam = isManager || isTeamLead;
-  const canEditStatus = isManager || isTeamLead;
-  const canEditDeadline = canEditStatus;
+  const canEditStatus = true;
+  const canEditDeadline = isManager || isTeamLead;
   const canManageTasks = isManager || isTeamLead;
   const canAddProject = isManager;
 
