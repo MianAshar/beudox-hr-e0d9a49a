@@ -152,6 +152,33 @@ const ProjectDetail = () => {
     onError: (e: Error) => toast({ title: 'Failed to start project', description: e.message, variant: 'destructive' }),
   });
 
+  const STATUS_OPTIONS = ['pending', 'in_progress', 'on_hold', 'completed', 'invoiced', 'cancelled'];
+  const statusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      const previous = project?.status;
+      const { error } = await supabase.from('projects').update({ status: newStatus }).eq('id', id!);
+      if (error) throw error;
+      if (companyId && employeeId) {
+        await supabase.from('project_activity_logs').insert({
+          company_id: companyId,
+          project_id: id!,
+          employee_id: employeeId,
+          action: 'status_changed',
+          old_value: previous,
+          new_value: newStatus,
+        });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-detail'] });
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['projects-v2'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
+      toast({ title: 'Status updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' }),
+  });
+
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
