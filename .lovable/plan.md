@@ -1,36 +1,27 @@
-# Mobile Responsive Fixes — Final Pass
+## Changes
 
-Address the 6 issues found during the QA sweep in a single coordinated pass.
+### 1. Hide Projects module from HR Manager (and confirm Finance Manager)
+In `src/lib/role-access.ts`:
+- Remove `'/projects'` and `'/projects-v2'` from the `hr_manager` routes list.
+- `finance_manager` already does not include projects — no change.
+- This automatically hides Projects + Projects V2 from the sidebar (filtered via `canAccess`) and blocks direct URL access for those roles. CEO, Team Lead, and Employee remain unchanged.
 
-## Files to edit
+### 2. Update role labels to Pascal/short form
+In `src/lib/format-role.ts`, update `ROLE_LABELS`:
+- `ceo` → `CEO`
+- `finance_manager` → `Finance` (was "Finance Manager")
+- `hr_manager` → `HR` (was "HR Manager")
+- `team_lead` → `Team Lead`
+- `employee` → `Employee`
 
-1. **`src/pages/Clients.tsx`** — Convert table to responsive card/stacked rows on mobile (mirror Projects pattern: `flex flex-wrap lg:flex-nowrap`, full-width name on mobile, secondary fields wrap below). Hide sticky table header below `lg`.
+This label change propagates everywhere `formatRole()` is used (profile, tables, badges, etc.).
 
-2. **`src/pages/Invoices.tsx`** — Same treatment as Clients: stacked rows on mobile with invoice number + client name full-width, status/amount/date wrapping below. Hide `lg`-only header row on mobile.
-
-3. **`src/pages/ClientDetail.tsx`**
-   - Header: change action bar to `flex-col sm:flex-row` with wrapping; allow title to wrap (`break-words`).
-   - Inner Projects table: wrap in `overflow-x-auto` with `min-w-[640px]` so columns stay legible while horizontally scrollable; add a subtle scroll hint on mobile.
-
-4. **`src/pages/InvoiceDetail.tsx`**
-   - Header action bar: stack Edit/Delete/PDF/Send buttons on mobile (`flex-wrap gap-2`), ensure title doesn't get clipped.
-   - Line items table: same `overflow-x-auto` + `min-w-[600px]` treatment.
-
-5. **`src/pages/ProjectDetail.tsx`** — Header action bar: allow buttons to wrap (`flex-wrap`), title `min-w-0 break-words`. No table changes needed.
-
-6. **`src/pages/ProjectForm.tsx`** — Select triggers truncating ("Selec…"): give selects `w-full` on mobile and remove fixed narrow widths so the trigger expands; ensure the form grid collapses to single column below `sm`.
-
-## Approach
-
-- Reuse the exact pattern already shipped in `src/pages/Projects.tsx` (flex-wrap rows, `basis-full lg:basis-auto`, hidden header row below `lg`) for both list pages — keeps visual consistency.
-- For detail-page inner tables where a card layout would lose meaning (line items, project rows), keep the table but make it horizontally scrollable inside a bordered container with `min-w-[Xpx]` so columns stay readable.
-- Header action bars: standardize on `flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3` with `flex-wrap` on the actions cluster.
-
-## QA after fixes
-
-Live browser sweep at 390x844 of: `/clients`, `/clients/:id`, `/invoices`, `/invoices/:id`, `/projects/:id`, `/projects/new`. Screenshot each and confirm no overflow, no clipped buttons, no truncated select labels. Fix any regressions before reporting back.
+### 3. Roles dropdown in Employees form — fixed order + proper labels
+In `src/pages/EmployeeForm.tsx` (around line 778):
+- Replace `{r.name.replace('_', ' ')}` with `formatRole(r.name)` so the dropdown uses the new Pascal labels.
+- Sort the `roles` list by the canonical order: `ceo`, `finance_manager`, `hr_manager`, `team_lead`, `employee` → displayed as **CEO, Finance, HR, Team Lead, Employee**.
+- Import `formatRole` from `@/lib/format-role`.
 
 ## Out of scope
-
-- No data/logic changes.
-- No desktop layout changes — all changes gated behind `lg:`/`sm:` breakpoints.
+- No DB changes (the underlying role keys stay `ceo`, `hr_manager`, etc.).
+- No changes to payroll, sidebar groups, or routing beyond removing projects from hr_manager.
