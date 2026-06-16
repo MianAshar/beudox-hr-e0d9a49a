@@ -207,7 +207,7 @@ const ProjectForm = () => {
     setTeamMembers(prev => prev.filter(e => e !== empId));
   };
 
-  const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  
 
   const filteredClients = useMemo(() => {
     if (!clients) return [];
