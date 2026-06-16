@@ -18,7 +18,7 @@ import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X } from 'lucide-react';
 
-const STATUSES = ['pending', 'in_progress', 'completed', 'invoiced', 'on_hold', 'cancelled'];
+const STATUSES = ['pending', 'in_progress', 'qc_required', 'completed', 'submitted', 'on_hold', 'cancelled'];
 const PRIORITIES = ['high', 'medium', 'low'];
 
 const ProjectForm = () => {
