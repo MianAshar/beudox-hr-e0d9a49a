@@ -488,6 +488,7 @@ export type Database = {
           ot_divisor: number
           shift_end_time: string
           shift_start_time: string
+          short_time_relaxation_hours: number | null
           timezone: string
           updated_at: string | null
           working_days: number[]
@@ -503,6 +504,7 @@ export type Database = {
           ot_divisor?: number
           shift_end_time?: string
           shift_start_time?: string
+          short_time_relaxation_hours?: number | null
           timezone?: string
           updated_at?: string | null
           working_days?: number[]
@@ -518,6 +520,7 @@ export type Database = {
           ot_divisor?: number
           shift_end_time?: string
           shift_start_time?: string
+          short_time_relaxation_hours?: number | null
           timezone?: string
           updated_at?: string | null
           working_days?: number[]
