@@ -312,6 +312,7 @@ const Attendance = () => {
   // TODO: Remove before production
   const [clearOpen, setClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [settings, setSettings] = useState<CompanySettings | null>(null);
 
@@ -598,7 +599,7 @@ const Attendance = () => {
     if (activeTab === 'my') fetchMy();
     if (activeTab === 'company') fetchCompany();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, month, year, employee?.company_id, employee?.employee_id, settings]);
+  }, [activeTab, month, year, employee?.company_id, employee?.employee_id, settings, refreshKey]);
 
   const filteredCompanyRecords = useMemo(() => {
     const q = companySearch.trim().toLowerCase();
@@ -631,6 +632,7 @@ const Attendance = () => {
 
       toast.success(`Attendance data cleared for ${month} ${year}`);
       setClearOpen(false);
+      setRefreshKey(k => k + 1);
       await Promise.all([fetchMy(), fetchCompany()]);
     } catch (err: any) {
       console.error(err);
@@ -721,6 +723,7 @@ const Attendance = () => {
           <TabsContent value="summary" className="mt-4">
             {employee?.company_id ? (
               <AttendanceSummary
+                key={refreshKey}
                 companyId={employee.company_id}
                 startDate={dateRange.startDate}
                 endDate={dateRange.endDate}
@@ -784,6 +787,7 @@ const Attendance = () => {
             onCancel={() => setUploadOpen(false)}
             onSuccess={() => {
               setUploadOpen(false);
+              setRefreshKey(k => k + 1);
               fetchMy();
               fetchCompany();
             }}
@@ -801,6 +805,7 @@ const Attendance = () => {
         lunchBreakHours={settings?.lunch_break_hours ?? 1}
         onClose={() => setMissingTarget(null)}
         onSaved={() => {
+          setRefreshKey(k => k + 1);
           if (activeTab === 'my') fetchMy();
           if (activeTab === 'company') fetchCompany();
         }}
