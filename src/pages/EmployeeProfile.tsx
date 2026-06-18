@@ -311,7 +311,7 @@ const EmployeeProfile = () => {
                 </p>
               </div>
               <div>
-                <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Allowance</p>
+                <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Fuel Allowance</p>
                 <p className="text-[15px] text-foreground font-semibold font-mono-bx">
                   {emp.allowance != null ? Number(emp.allowance).toLocaleString() : '—'}
                 </p>
