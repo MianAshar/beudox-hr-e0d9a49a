@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 
 const statusCls: Record<string, string> = {
@@ -44,8 +44,33 @@ const LeaveTab = ({ employeeId }: { employeeId: string }) => {
     enabled: !!employeeId,
   });
 
+  const overdrawn = (balances || [])
+    .map((b: any) => {
+      const total = Number(b.system_days || 0) + Number(b.adjustment_days || 0) + Number(b.carried_over_days || 0);
+      const remaining = total - Number(b.used_days || 0);
+      return { name: b.leave_types?.name || 'Leave', remaining };
+    })
+    .filter((x) => x.remaining < 0);
+
   return (
     <div className="space-y-6">
+      {overdrawn.length > 0 && (
+        <div
+          className="rounded-[10px] p-4 flex gap-3"
+          style={{ background: '#FEF3C7', borderLeft: '3px solid #F5A623', color: '#92400E' }}
+        >
+          <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <div className="text-[13px]" style={{ fontFamily: 'var(--ff-body)' }}>
+            <p className="font-semibold mb-1">This employee has overdrawn leave balances:</p>
+            <ul className="space-y-0.5">
+              {overdrawn.map((o) => (
+                <li key={o.name}>{o.name}: {o.remaining} days</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Balances */}
       <div>
         <h3 className="font-display font-semibold text-[14px] text-foreground mb-3" style={{ fontFamily: 'var(--ff-display)' }}>
@@ -63,13 +88,14 @@ const LeaveTab = ({ employeeId }: { employeeId: string }) => {
               const total = Number(b.system_days || 0) + Number(b.adjustment_days || 0) + Number(b.carried_over_days || 0);
               const used = Number(b.used_days || 0);
               const remaining = total - used;
+              const over = remaining < 0;
               return (
                 <div key={b.id} className="bg-card rounded-[12px] border p-4">
                   <p className="text-[11px] text-muted-foreground mb-1" style={{ fontFamily: 'var(--ff-body)' }}>
                     {b.leave_types?.name || 'Leave'}
                   </p>
                   <div className="flex items-baseline gap-1.5">
-                    <p className="text-[22px] font-bold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>{remaining}</p>
+                    <p className="text-[22px] font-bold" style={{ fontFamily: 'var(--ff-display)', color: over ? '#E84545' : undefined }}>{remaining}</p>
                     <p className="text-[11px] text-muted-foreground">/ {total} days</p>
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-1">Used: {used}</p>
@@ -79,6 +105,7 @@ const LeaveTab = ({ employeeId }: { employeeId: string }) => {
           </div>
         )}
       </div>
+
 
       {/* Requests */}
       <div>
