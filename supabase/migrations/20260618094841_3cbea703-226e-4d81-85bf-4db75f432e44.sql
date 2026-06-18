@@ -1,0 +1,1 @@
+ALTER TABLE public.payroll_records ADD COLUMN IF NOT EXISTS forgo_ot BOOLEAN NOT NULL DEFAULT false;
