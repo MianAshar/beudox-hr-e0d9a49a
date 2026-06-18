@@ -312,6 +312,7 @@ const Attendance = () => {
   // TODO: Remove before production
   const [clearOpen, setClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [settings, setSettings] = useState<CompanySettings | null>(null);
 
