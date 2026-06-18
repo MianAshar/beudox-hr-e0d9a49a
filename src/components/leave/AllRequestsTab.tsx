@@ -12,11 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { List, CalendarDays, Check, X } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { sendNotification } from '@/lib/notifications';
+
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   pending: { bg: '#FEF3C7', text: '#92400E' },
@@ -72,6 +74,29 @@ const AllRequestsTab = () => {
       return data || [];
     },
   });
+
+  // Current leave balances for this company (all years present in requests).
+  const { data: leaveBalances = [] } = useQuery({
+    queryKey: ['all-leave-balances', companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('leave_balances')
+        .select('employee_id, leave_type_id, year, system_days, adjustment_days, carried_over_days, used_days')
+        .eq('company_id', companyId!);
+      return data || [];
+    },
+  });
+
+  const balanceKey = (empId: string, ltId: string, year: number) => `${empId}|${ltId}|${year}`;
+  const balanceMap: Record<string, { remaining: number }> = {};
+  for (const b of leaveBalances as any[]) {
+    const total = Number(b.system_days || 0) + Number(b.adjustment_days || 0) + Number(b.carried_over_days || 0);
+    balanceMap[balanceKey(b.employee_id, b.leave_type_id, Number(b.year))] = {
+      remaining: total - Number(b.used_days || 0),
+    };
+  }
+
 
   const filtered = requests.filter((r: any) => {
     if (statusFilter !== 'all' && r.status !== statusFilter) return false;
