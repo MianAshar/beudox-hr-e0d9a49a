@@ -723,6 +723,7 @@ const Attendance = () => {
           <TabsContent value="summary" className="mt-4">
             {employee?.company_id ? (
               <AttendanceSummary
+                key={refreshKey}
                 companyId={employee.company_id}
                 startDate={dateRange.startDate}
                 endDate={dateRange.endDate}
