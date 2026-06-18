@@ -57,9 +57,19 @@ const Payroll = () => {
   const isHrViewer = !isCeoViewer && viewerRoles.includes('hr_manager');
   const canForgo = isCeoViewer || viewerRoles.includes('finance_manager') || viewerRoles.includes('hr_manager');
 
-  const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(String(now.getMonth() + 1).padStart(2, '0'));
-  const [selectedYear, setSelectedYear] = useState(String(now.getFullYear()));
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const stored = typeof window !== 'undefined' ? sessionStorage.getItem('payroll.selectedMonth') : null;
+    return stored ?? String(new Date().getMonth() + 1).padStart(2, '0');
+  });
+  const [selectedYear, setSelectedYear] = useState(() => {
+    const stored = typeof window !== 'undefined' ? sessionStorage.getItem('payroll.selectedYear') : null;
+    return stored ?? String(new Date().getFullYear());
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('payroll.selectedMonth', selectedMonth);
+    sessionStorage.setItem('payroll.selectedYear', selectedYear);
+  }, [selectedMonth, selectedYear]);
 
   const [records, setRecords] = useState<PayrollRecord[]>([]);
   const [loading, setLoading] = useState(false);
