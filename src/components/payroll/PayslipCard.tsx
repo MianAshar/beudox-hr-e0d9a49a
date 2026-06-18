@@ -344,6 +344,7 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       finalPayment: total - Number(loanDeduction || 0),
       status: 'draft',
       paymentDate: null as string | null,
+      forgone: false,
     };
   }, [emp, rates, record, attendance, attStats, loanDeduction]);
 
@@ -395,6 +396,9 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
         title: 'Overtime Summary',
         rows: [
           { label: 'Regular Overtime', value: fmtPKR(breakdown.regularOtAmount) },
+          ...(breakdown.forgone
+            ? [{ label: 'OT deduction forgone', value: '', note: true }]
+            : []),
           { label: 'Holiday Overtime', value: fmtPKR(breakdown.holidayOtAmount) },
           {
             label: 'Total Overtime',
