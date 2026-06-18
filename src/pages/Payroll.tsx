@@ -77,7 +77,14 @@ const Payroll = () => {
 
   const [approveOpen, setApproveOpen] = useState(false);
   const [approving, setApproving] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('summary');
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const stored = typeof window !== 'undefined' ? sessionStorage.getItem('payroll.activeTab') : null;
+    return stored ?? 'summary';
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('payroll.activeTab', activeTab);
+  }, [activeTab]);
 
   const [paidModal, setPaidModal] = useState<PayrollRecord | null>(null);
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
