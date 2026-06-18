@@ -787,6 +787,7 @@ const Attendance = () => {
             onCancel={() => setUploadOpen(false)}
             onSuccess={() => {
               setUploadOpen(false);
+              setRefreshKey(k => k + 1);
               fetchMy();
               fetchCompany();
             }}
@@ -804,6 +805,7 @@ const Attendance = () => {
         lunchBreakHours={settings?.lunch_break_hours ?? 1}
         onClose={() => setMissingTarget(null)}
         onSaved={() => {
+          setRefreshKey(k => k + 1);
           if (activeTab === 'my') fetchMy();
           if (activeTab === 'company') fetchCompany();
         }}
