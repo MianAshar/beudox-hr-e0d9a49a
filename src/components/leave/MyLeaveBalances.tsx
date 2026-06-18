@@ -114,7 +114,7 @@ const MyLeaveBalances = () => {
 
             const remainingColor = overUsed ? '#E84545' : exhausted ? '#F5A623' : '#5B3FF8';
             const remainingLabel = overUsed
-              ? `${Math.abs(remaining)} days over`
+              ? `${Math.abs(remaining)} days overdrawn`
               : 'days remaining';
 
             return (
@@ -127,19 +127,29 @@ const MyLeaveBalances = () => {
                   padding: '18px 20px',
                 }}
               >
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between mb-3 gap-2">
                   <span style={{ fontFamily: 'var(--ff-heading)', fontWeight: 600, fontSize: 14, color: '#120E36' }}>
                     {r.leave_type_name}
                   </span>
-                  <span
-                    className="px-2 py-0.5 rounded-full text-[11px] font-medium"
-                    style={{
-                      background: r.is_paid ? '#D1FAE5' : '#F3F4F6',
-                      color: r.is_paid ? '#065F46' : '#374151',
-                    }}
-                  >
-                    {r.is_paid ? 'Paid' : 'Unpaid'}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {overUsed && (
+                      <span
+                        className="px-2 py-0.5 rounded-full text-[11px] font-medium"
+                        style={{ background: '#FEE2E2', color: '#E84545' }}
+                      >
+                        Overdrawn
+                      </span>
+                    )}
+                    <span
+                      className="px-2 py-0.5 rounded-full text-[11px] font-medium"
+                      style={{
+                        background: r.is_paid ? '#D1FAE5' : '#F3F4F6',
+                        color: r.is_paid ? '#065F46' : '#374151',
+                      }}
+                    >
+                      {r.is_paid ? 'Paid' : 'Unpaid'}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="text-center my-2">
@@ -152,12 +162,13 @@ const MyLeaveBalances = () => {
                       <div style={{ fontFamily: 'var(--ff-heading)', fontWeight: 700, fontSize: 28, color: remainingColor, lineHeight: 1.1 }}>
                         {overUsed ? Math.abs(remaining) : remaining}
                       </div>
-                      <div style={{ fontSize: 12, color: '#9490B4', marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: overUsed ? '#E84545' : '#9490B4', marginTop: 2 }}>
                         {remainingLabel}
                       </div>
                     </>
                   )}
                 </div>
+
 
                 <div className="flex items-center justify-center gap-3 mt-3 mb-2" style={{ fontSize: 13, color: '#4B4468' }}>
                   <span>{r.used_days} used</span>

@@ -147,12 +147,9 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
 
     if (e < s) { toast.error('End date cannot be before start date'); return; }
 
-    if (lt.annual_entitlement > 0) {
-      const remaining = balances[leaveTypeId] ?? 0;
-      if (daysRequested > remaining) {
-        toast.error(`Insufficient balance. Remaining: ${remaining} days`); return;
-      }
-    }
+    // Overdraw is allowed — no balance gate here. A warning is shown in the UI.
+
+
 
     setSubmitting(true);
     try {
@@ -223,7 +220,23 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
                 ))}
               </SelectContent>
             </Select>
+            {(() => {
+              const lt = leaveTypes.find((t: any) => t.id === leaveTypeId);
+              if (!lt || !(lt.annual_entitlement > 0)) return null;
+              const remaining = balances[leaveTypeId] ?? 0;
+              const overBy = daysRequested - remaining;
+              if (daysRequested <= 0 || overBy <= 0) return null;
+              return (
+                <p
+                  className="text-xs mt-1"
+                  style={{ color: '#92400E', background: '#FEF3C7', borderLeft: '3px solid #F5A623', padding: '8px 10px', borderRadius: 6 }}
+                >
+                  Warning: This request will overdraw your {lt.name} balance by {overBy} day{overBy === 1 ? '' : 's'}. Your request will still be submitted.
+                </p>
+              );
+            })()}
           </div>
+
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">

@@ -12,11 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { List, CalendarDays, Check, X } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { sendNotification } from '@/lib/notifications';
+
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
   pending: { bg: '#FEF3C7', text: '#92400E' },
@@ -73,6 +75,29 @@ const AllRequestsTab = () => {
     },
   });
 
+  // Current leave balances for this company (all years present in requests).
+  const { data: leaveBalances = [] } = useQuery({
+    queryKey: ['all-leave-balances', companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('leave_balances')
+        .select('employee_id, leave_type_id, year, system_days, adjustment_days, carried_over_days, used_days')
+        .eq('company_id', companyId!);
+      return data || [];
+    },
+  });
+
+  const balanceKey = (empId: string, ltId: string, year: number) => `${empId}|${ltId}|${year}`;
+  const balanceMap: Record<string, { remaining: number }> = {};
+  for (const b of leaveBalances as any[]) {
+    const total = Number(b.system_days || 0) + Number(b.adjustment_days || 0) + Number(b.carried_over_days || 0);
+    balanceMap[balanceKey(b.employee_id, b.leave_type_id, Number(b.year))] = {
+      remaining: total - Number(b.used_days || 0),
+    };
+  }
+
+
   const filtered = requests.filter((r: any) => {
     if (statusFilter !== 'all' && r.status !== statusFilter) return false;
     if (employeeFilter !== 'all' && r.employee_id !== employeeFilter) return false;
@@ -115,6 +140,8 @@ const AllRequestsTab = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-leave-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['all-leave-balances'] });
+
       setDetailModal({ open: false, request: null });
       toast.success('Leave approved');
     },
@@ -223,7 +250,38 @@ const AllRequestsTab = () => {
                 <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No leave requests</TableCell></TableRow>
               ) : sorted.map((r: any) => (
                 <TableRow key={r.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(r)}>
-                  <TableCell className="text-sm font-medium">{r.employees?.full_name || '-'}</TableCell>
+                  <TableCell className="text-sm font-medium">
+                    {(() => {
+                      const name = r.employees?.full_name || '-';
+                      if (r.status !== 'approved') return name;
+                      const year = new Date(r.start_date).getFullYear();
+                      const bal = balanceMap[balanceKey(r.employee_id, r.leave_type_id, year)];
+                      if (!bal || bal.remaining >= 0) return name;
+                      const overBy = Math.abs(bal.remaining);
+                      const ltName = r.leave_types?.name || 'leave';
+                      return (
+                        <span className="inline-flex items-center gap-1.5">
+                          {name}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span
+                                  className="px-1.5 py-0.5 rounded text-[10px] font-medium cursor-default"
+                                  style={{ background: '#FEF3C7', color: '#92400E' }}
+                                >
+                                  Overdrawn
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Employee's {ltName} balance is overdrawn by {overBy} day{overBy === 1 ? '' : 's'}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </span>
+                      );
+                    })()}
+                  </TableCell>
+
                   <TableCell className="text-sm">{r.leave_types?.name || '-'}</TableCell>
                    <TableCell className="text-sm">{formatDate(r.start_date)}</TableCell>
                   <TableCell className="text-sm">{formatDate(r.end_date)}</TableCell>
