@@ -172,7 +172,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
               <SectionTitle>Salary Breakdown</SectionTitle>
               <div className="divide-y" style={{ borderColor: 'hsl(var(--border))' }}>
                 <Row label="Basic Salary" value={fmtPKR(basic)} />
-                <Row label="Allowance" value={fmtPKR(allowance)} />
+                <Row label="Fuel Allowance" value={fmtPKR(allowance)} />
                 {bonus > 0 && <Row label="Bonus" value={fmtPKR(bonus)} />}
                 {loan > 0 && <Row label="Loan Deduction" value={`- ${fmtPKR(loan)}`} valueColor="#E84545" />}
                 {dinner > 0 && <Row label="Dinner Expense" value={fmtPKR(dinner)} />}

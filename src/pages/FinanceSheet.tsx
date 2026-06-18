@@ -444,7 +444,7 @@ const FinanceSheet = () => {
     const boldRows: number[] = [];
 
     // Payroll header
-    const payrollHeaders = ['Employee', 'Basic', 'Allowance', 'OT Hrs', 'OT Amt', 'Bonus', 'Dinner', 'Loan Ded.', 'Final Pmt'];
+    const payrollHeaders = ['Employee', 'Basic', 'Fuel Allowance', 'OT Hrs', 'OT Amt', 'Bonus', 'Dinner', 'Loan Ded.', 'Final Pmt'];
     boldRows.push(rows.length);
     rows.push(['PAYROLL SUMMARY']);
     rows.push(payrollHeaders);
@@ -656,7 +656,7 @@ const FinanceSheet = () => {
                         <TableRow>
                           <TableHead>Employee</TableHead>
                           <TableHead className="text-right">Basic</TableHead>
-                          <TableHead className="text-right">Allowance</TableHead>
+                          <TableHead className="text-right">Fuel Allowance</TableHead>
                           <TableHead className="text-right">OT Hrs</TableHead>
                           <TableHead className="text-right">OT Amt</TableHead>
                           <TableHead className="text-right">Bonus</TableHead>

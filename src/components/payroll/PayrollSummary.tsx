@@ -409,7 +409,7 @@ export const PayrollSummary = ({ companyId, selectedMonth, selectedYear, records
               <TableRow>
                 <SortableHeader column="employee" sort={sort} onSort={toggleSort}>Employee</SortableHeader>
                 <SortableHeader column="basic" sort={sort} onSort={toggleSort} align="right">Basic</SortableHeader>
-                <SortableHeader column="allowance" sort={sort} onSort={toggleSort} align="right">Allowance</SortableHeader>
+                <SortableHeader column="allowance" sort={sort} onSort={toggleSort} align="right">Fuel Allowance</SortableHeader>
                 <SortableHeader column="ot" sort={sort} onSort={toggleSort} align="right">OT</SortableHeader>
                 <SortableHeader column="bonus" sort={sort} onSort={toggleSort} align="right">Bonus</SortableHeader>
                 <SortableHeader column="loan" sort={sort} onSort={toggleSort} align="right">Loan Ded.</SortableHeader>
