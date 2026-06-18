@@ -62,8 +62,9 @@ const KeyLabel = ({ children }: { children: React.ReactNode }) => (
 // ─── Three-column table block ─────────────────────────────────────────────
 interface TableSpec {
   title: string;
-  rows: { label: string; value: React.ReactNode; bold?: boolean; valueColor?: string }[];
+  rows: { label: string; value: React.ReactNode; bold?: boolean; valueColor?: string; note?: boolean }[];
 }
+
 
 const PayslipTable = ({ spec }: { spec: TableSpec }) => (
   <div style={{ width: '100%' }}>
@@ -103,17 +104,18 @@ const PayslipTable = ({ spec }: { spec: TableSpec }) => (
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          padding: '10px 16px',
-          fontSize: 13,
+          padding: r.note ? '4px 16px 8px' : '10px 16px',
+          fontSize: r.note ? 11 : 13,
           background: i % 2 === 1 ? '#F6F5FF' : '#fff',
-          borderBottom: '0.5px solid rgba(91,63,248,0.15)',
+          borderBottom: r.note ? 'none' : '0.5px solid rgba(91,63,248,0.15)',
           fontFamily: 'var(--ff-body)',
+          fontStyle: r.note ? 'italic' : 'normal',
         }}
       >
-        <span style={{ color: '#4B4468', fontWeight: r.bold ? 600 : 400 }}>{r.label}</span>
+        <span style={{ color: r.note ? '#9490B4' : '#4B4468', fontWeight: r.bold ? 600 : 400 }}>{r.label}</span>
         <span
           style={{
-            color: r.valueColor || '#120E36',
+            color: r.note ? '#9490B4' : (r.valueColor || '#120E36'),
             fontWeight: r.bold ? 700 : 500,
             textAlign: 'right',
           }}
@@ -122,6 +124,7 @@ const PayslipTable = ({ spec }: { spec: TableSpec }) => (
         </span>
       </div>
     ))}
+
   </div>
 );
 
@@ -299,21 +302,26 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
         if (v < 0) st += v;
         else if (v > 0) ot += v;
       }
+      const forgone = !!(record as any).forgo_ot;
+      const regularOtAmount = forgone ? 0 : Number(record.regular_ot_amount || 0);
+      const holidayOtAmount = Number(record.holiday_ot_amount || 0);
       return {
         source: 'payroll' as const,
         basic: Number(record.basic_salary || 0),
         allowance: Number(record.allowance || 0),
         shortTime: st,
         overtime: ot,
-        regularOtAmount: Number(record.regular_ot_amount || 0),
-        holidayOtAmount: Number(record.holiday_ot_amount || 0),
-        totalOt: Number(record.regular_ot_amount || 0) + Number(record.holiday_ot_amount || 0),
+        regularOtAmount,
+        holidayOtAmount,
+        totalOt: regularOtAmount + holidayOtAmount,
         loan: Number(record.loan_deduction || 0),
         totalSalary: Number(record.total_salary || 0),
         finalPayment: Number(record.final_payment || 0),
         status: String(record.status || 'draft'),
         paymentDate: (record as any).payment_date || null,
+        forgone,
       };
+
     }
     if ((attendance?.length ?? 0) === 0) return null;
     const regularOtAmount = attStats.otSum * rates.perHour;
@@ -336,6 +344,7 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       finalPayment: total - Number(loanDeduction || 0),
       status: 'draft',
       paymentDate: null as string | null,
+      forgone: false,
     };
   }, [emp, rates, record, attendance, attStats, loanDeduction]);
 
@@ -387,6 +396,9 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
         title: 'Overtime Summary',
         rows: [
           { label: 'Regular Overtime', value: fmtPKR(breakdown.regularOtAmount) },
+          ...(breakdown.forgone
+            ? [{ label: 'OT deduction forgone', value: '', note: true }]
+            : []),
           { label: 'Holiday Overtime', value: fmtPKR(breakdown.holidayOtAmount) },
           {
             label: 'Total Overtime',

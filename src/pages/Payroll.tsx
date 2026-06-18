@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -54,6 +55,7 @@ const Payroll = () => {
   const viewerRoles = employee?.roles ?? [];
   const isCeoViewer = viewerRoles.includes('ceo');
   const isHrViewer = !isCeoViewer && viewerRoles.includes('hr_manager');
+  const canForgo = isCeoViewer || viewerRoles.includes('finance_manager');
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(String(now.getMonth() + 1).padStart(2, '0'));
@@ -212,6 +214,37 @@ const Payroll = () => {
     }
   };
 
+  const handleToggleForgo = async (record: PayrollRecord, next: boolean) => {
+    const basicSalary = Number(record.basic_salary || 0);
+    const allowance = Number(record.allowance || 0);
+    const rawRegularOt = Number(record.regular_ot_amount || 0);
+    const effectiveRegularOt = next ? 0 : rawRegularOt;
+    const holidayOtAmount = Number(record.holiday_ot_amount || 0);
+    const bonus = Number(record.bonus || 0);
+    const dinnerExpense = Number(record.dinner_expense || 0);
+    const loanDeduction = Number(record.loan_deduction || 0);
+
+    const totalSalary = Math.max(0, basicSalary + allowance + effectiveRegularOt + holidayOtAmount + bonus + dinnerExpense - loanDeduction);
+    const finalPayment = Math.ceil(totalSalary / 50) * 50;
+
+    const prev = records;
+    setRecords(p => p.map(r =>
+      r.id === record.id
+        ? { ...r, forgo_ot: next, total_salary: totalSalary, final_payment: finalPayment }
+        : r
+    ));
+
+    const { error } = await supabase
+      .from('payroll_records')
+      .update({ forgo_ot: next, total_salary: totalSalary, final_payment: finalPayment } as any)
+      .eq('id', record.id);
+    if (error) {
+      setRecords(prev);
+      toast.error('Failed to update');
+    }
+  };
+
+
   const handleApprove = async () => {
     setApproving(true);
     try {
@@ -365,6 +398,7 @@ const Payroll = () => {
 
   const renderDeptTable = (recs: PayrollRecord[]) => {
     const groups = groupForTable(recs);
+    const colCount = canForgo ? 7 : 6;
     return (
       <div className="overflow-x-auto rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
         <Table>
@@ -375,6 +409,7 @@ const Payroll = () => {
               <TableHead className="text-right hidden md:table-cell">Fuel Allowance</TableHead>
               <TableHead className="text-right hidden lg:table-cell">OT Amount</TableHead>
               <TableHead className="text-right hidden lg:table-cell">Loan Deduction</TableHead>
+              {canForgo && <TableHead className="text-center hidden lg:table-cell">Forgo</TableHead>}
               <TableHead className="text-right">Final Payment</TableHead>
             </TableRow>
           </TableHeader>
@@ -390,7 +425,7 @@ const Payroll = () => {
               return (
                 <Fragment key={dept}>
                   <TableRow className="hover:bg-transparent border-b-0">
-                    <TableCell colSpan={6} className="p-0 border-b-0">
+                    <TableCell colSpan={colCount} className="p-0 border-b-0">
                       <div
                         className="flex items-center gap-2 h-9 pl-4 pr-4"
                         style={{ backgroundColor: 'rgba(91, 63, 248, 0.08)', borderLeft: '3px solid #5B3FF8' }}
@@ -415,10 +450,14 @@ const Payroll = () => {
                     const masked = <span className="text-muted-foreground">—</span>;
                     const otAmount = Number(rec.regular_ot_amount || 0) + Number(rec.holiday_ot_amount || 0);
                     const loan = Number(rec.loan_deduction || 0);
+                    const negativeRegOt = Number(rec.regular_ot_amount || 0) < 0;
+                    const canShowForgo = canForgo && rec.status === 'draft' && negativeRegOt;
+                    const forgoOn = !!rec.forgo_ot;
                     return (
                       <TableRow
                         key={rec.id}
                         className="cursor-pointer hover:bg-muted/40 transition-colors"
+                        style={forgoOn ? { backgroundColor: 'rgba(29, 201, 122, 0.06)' } : undefined}
                         onClick={() => setDetailRecord(rec)}
                       >
                         <TableCell>
@@ -449,6 +488,22 @@ const Payroll = () => {
                         <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
                           {hideSalary ? masked : loan > 0 ? fmtPKR(loan) : <span className="text-muted-foreground">—</span>}
                         </TableCell>
+                        {canForgo && (
+                          <TableCell className="text-center hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
+                            {canShowForgo ? (
+                              <div className="flex items-center justify-center gap-2">
+                                <Switch
+                                  checked={forgoOn}
+                                  onCheckedChange={(v) => handleToggleForgo(rec, v)}
+                                  aria-label="Forgo deduction"
+                                />
+                                <span className="text-[11px] text-muted-foreground">Forgo deduction</span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: hideSalary ? undefined : '#5B3FF8' }}>
                           {hideSalary ? masked : fmtPKR(Number(rec.final_payment))}
                         </TableCell>
@@ -456,7 +511,7 @@ const Payroll = () => {
                     );
                   })}
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={5} className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <TableCell colSpan={colCount - 1} className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {dept} Subtotal
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: '#5B3FF8' }}>
@@ -470,6 +525,7 @@ const Payroll = () => {
         </Table>
       </div>
     );
+
   };
 
 
