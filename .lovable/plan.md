@@ -1,42 +1,32 @@
-# Rename "Allowance" → "Fuel Allowance" (Display Only)
+## Add "Short Time Relaxation" setting
 
-Update user-facing label text only. Database column `allowance`, API calls, and variable names remain unchanged.
+### 1. Database migration
+Add column to `company_settings`:
+```sql
+ALTER TABLE company_settings
+ADD COLUMN IF NOT EXISTS short_time_relaxation_hours NUMERIC DEFAULT 0;
+```
 
-## Scope
+### 2. Settings UI — `src/components/settings/AttendanceTab.tsx`
+- Add `short_time_relaxation_hours` to the local form state (default `0`) and hydrate it from the loaded `settings` row.
+- Include it in the upsert payload in `handleSave`.
+- Render a new field directly below "Lunch Break Duration", inside the same conditional block gated by the "Overtime & Short Time Adjustment" toggle (`enable_ot_adjustment`):
+  - Label: **Short Time Relaxation**
+  - Helper text: *Monthly grace hours forgiven before short time affects overtime calculation. e.g. set to 3 means up to 3 hours of short time per month is ignored.*
+  - Number input, suffix "hours", `min=0`, `step=0.5`, default `0`.
+- No other settings UI changes.
 
-Find every visible occurrence of the word "Allowance" (and "ALLOWANCE") tied to the salary `allowance` field and replace the display text with "Fuel Allowance" / "FUEL ALLOWANCE". Leave code identifiers, JSON keys, DB columns, and Supabase queries untouched.
+### 3. Edge function — `supabase/functions/generate-payroll/index.ts`
+After `short_time` is calculated and before `regular_ot_total`:
+```ts
+const relaxation = companySettings.short_time_relaxation_hours || 0
+const adjustedShortTime = short_time + relaxation
+const effectiveShortTime = adjustedShortTime >= 0 ? 0 : adjustedShortTime
+const regular_ot_total = effectiveShortTime + overtime
+```
+Replace all subsequent uses of `short_time` in downstream payroll calculations with `effectiveShortTime`. The raw `short_time` value remains available for record-keeping/storage as-is (no schema change to `payroll_records`).
 
-## Files to Update
-
-1. **Employee Form** — `src/pages/EmployeeForm.tsx`
-   - `<Label>` for the allowance input → "Fuel Allowance"
-
-2. **Employee Profile overview** — `src/pages/EmployeeProfile.tsx`
-   - Salary section label → "Fuel Allowance"
-
-3. **Payroll table** — `src/pages/Payroll.tsx`
-   - Column header → "Fuel Allowance"
-
-4. **Payroll breakdown sidebar** — `src/components/payroll/PayrollDetailSheet.tsx`
-   - Row label → "Fuel Allowance"
-
-5. **Payslip card** (used by `src/pages/MyPayslip.tsx` and `src/components/employee-profile/PayrollTab.tsx`) — `src/components/payroll/PayslipCard.tsx`
-   - Salary Breakdown row: "Fuel Allowance"
-   - Key figures grid: "FUEL ALLOWANCE"
-
-6. **PDF payslip generator** — `supabase/functions/generate-payroll/index.ts` (and any helper) 
-   - All label strings rendered into the PDF → "Fuel Allowance"
-
-7. **Finance sheet/summary** — `src/pages/FinanceSheet.tsx` and `src/components/finance/FinanceSummary.tsx`
-   - Any "Allowance" label → "Fuel Allowance"
-
-## Approach
-
-- Search for `Allowance` / `ALLOWANCE` across `src/` and `supabase/functions/` to confirm all occurrences before editing.
-- Only change strings inside JSX text, `<Label>`, table headers, and PDF text literals. Skip property keys, variable names, comments referencing the DB column, and translation keys that map to data fields.
-- No DB migration. No type changes. No query changes.
-
-## Verification
-
-- Visually confirm the new label appears on: Add/Edit Employee, Employee Profile, Payroll list, Payroll detail sheet, My Payslip, Employee Profile → Payroll tab, generated PDF, Finance Sheet.
-- Confirm payroll calculations and saved values are unchanged.
+### 4. Verification
+- Confirm the field appears/hides with the OT toggle.
+- Save and reload — value persists.
+- Re-generate a payroll for an employee with short_time ≤ relaxation hours → OT should not be reduced.
