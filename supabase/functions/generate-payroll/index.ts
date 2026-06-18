@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     // 1. Fetch company_settings
     const { data: settings } = await supabase
       .from('company_settings')
-      .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, enable_ot_adjustment')
+      .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, enable_ot_adjustment, short_time_relaxation_hours')
       .eq('company_id', company_id)
       .maybeSingle();
 
@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
     const lunchBreakHours = Number((settings as any)?.lunch_break_hours ?? 1);
     const otDivisor = settings?.ot_divisor || 30;
     const enableOtAdjustment = (settings as any)?.enable_ot_adjustment ?? true;
+    const shortTimeRelaxation = Number((settings as any)?.short_time_relaxation_hours ?? 0);
     const workingHoursPerDay = Math.max(0.0001, shiftHours - lunchBreakHours);
 
     // 2. Fetch active employees (full_time + director)
@@ -201,7 +202,14 @@ Deno.serve(async (req) => {
         const att = attendanceMap[emp.id];
         const shortTime = att?.shortTime || 0; // negative
         const overtime = att?.overtime || 0;   // positive
-        regularOtHours = Math.round((shortTime + overtime) * 100) / 100; // net, can be negative
+
+        // Apply monthly short-time relaxation: up to N hours of short time per month are forgiven.
+        const relaxation = shortTimeRelaxation || 0;
+        const adjustedShortTime = shortTime + relaxation;
+        const effectiveShortTime = adjustedShortTime >= 0 ? 0 : adjustedShortTime;
+        const regularOtTotal = effectiveShortTime + overtime;
+
+        regularOtHours = Math.round(regularOtTotal * 100) / 100; // net, can be negative
         holidayOtHours = att?.holidayOt || 0;
 
         const perDaySalary = basicSalary / otDivisor;

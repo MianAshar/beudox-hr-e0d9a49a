@@ -1,0 +1,1 @@
+ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS short_time_relaxation_hours NUMERIC DEFAULT 0;

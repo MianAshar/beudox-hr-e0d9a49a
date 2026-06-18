@@ -61,6 +61,7 @@ const AttendanceTab = () => {
     timezone: 'Asia/Karachi',
     lunch_break_hours: 1,
     enable_ot_adjustment: true,
+    short_time_relaxation_hours: 0,
   });
   const [saving, setSaving] = useState(false);
 
@@ -75,6 +76,7 @@ const AttendanceTab = () => {
         timezone: settings.timezone || 'Asia/Karachi',
         lunch_break_hours: (settings as any).lunch_break_hours ?? 1,
         enable_ot_adjustment: (settings as any).enable_ot_adjustment ?? true,
+        short_time_relaxation_hours: Number((settings as any).short_time_relaxation_hours ?? 0),
       });
     }
   }, [settings]);
@@ -102,6 +104,7 @@ const AttendanceTab = () => {
         timezone: form.timezone,
         lunch_break_hours: form.lunch_break_hours,
         enable_ot_adjustment: form.enable_ot_adjustment,
+        short_time_relaxation_hours: form.short_time_relaxation_hours,
       };
 
       if (settings) {
@@ -244,25 +247,47 @@ const AttendanceTab = () => {
           </div>
 
           {form.enable_ot_adjustment && (
-            <div className="max-w-xs">
-              <Label>Lunch Break Duration</Label>
-              <div className="relative">
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.25"
-                  value={form.lunch_break_hours}
-                  onChange={e => setForm(prev => ({ ...prev, lunch_break_hours: parseFloat(e.target.value) || 0 }))}
-                  className="pr-16"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
-                  hours
-                </span>
+            <>
+              <div className="max-w-xs">
+                <Label>Lunch Break Duration</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.25"
+                    value={form.lunch_break_hours}
+                    onChange={e => setForm(prev => ({ ...prev, lunch_break_hours: parseFloat(e.target.value) || 0 }))}
+                    className="pr-16"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+                    hours
+                  </span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+                  Subtracted from shift duration to compute working hours per day for OT rate calculation.
+                </p>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
-                Subtracted from shift duration to compute working hours per day for OT rate calculation.
-              </p>
-            </div>
+
+              <div className="max-w-xs">
+                <Label>Short Time Relaxation</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.5"
+                    value={form.short_time_relaxation_hours}
+                    onChange={e => setForm(prev => ({ ...prev, short_time_relaxation_hours: parseFloat(e.target.value) || 0 }))}
+                    className="pr-16"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+                    hours
+                  </span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+                  Monthly grace hours forgiven before short time affects overtime calculation. e.g. set to 3 means up to 3 hours of short time per month is ignored.
+                </p>
+              </div>
+            </>
           )}
         </div>
       </div>
