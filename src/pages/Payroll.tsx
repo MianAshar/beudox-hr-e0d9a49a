@@ -473,7 +473,7 @@ const Payroll = () => {
                     return (
                       <TableRow
                         key={rec.id}
-                        className="cursor-pointer hover:bg-muted/40 transition-colors"
+                        className="cursor-pointer hover:bg-[#F6F5FF] transition-colors"
                         style={forgoOn ? { backgroundColor: 'rgba(29, 201, 122, 0.06)' } : undefined}
                         onClick={() => setDetailRecord(rec)}
                       >
