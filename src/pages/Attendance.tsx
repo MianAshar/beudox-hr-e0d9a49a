@@ -632,6 +632,7 @@ const Attendance = () => {
 
       toast.success(`Attendance data cleared for ${month} ${year}`);
       setClearOpen(false);
+      setRefreshKey(k => k + 1);
       await Promise.all([fetchMy(), fetchCompany()]);
     } catch (err: any) {
       console.error(err);
