@@ -398,6 +398,7 @@ const Payroll = () => {
 
   const renderDeptTable = (recs: PayrollRecord[]) => {
     const groups = groupForTable(recs);
+    const colCount = canForgo ? 7 : 6;
     return (
       <div className="overflow-x-auto rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
         <Table>
@@ -408,6 +409,7 @@ const Payroll = () => {
               <TableHead className="text-right hidden md:table-cell">Fuel Allowance</TableHead>
               <TableHead className="text-right hidden lg:table-cell">OT Amount</TableHead>
               <TableHead className="text-right hidden lg:table-cell">Loan Deduction</TableHead>
+              {canForgo && <TableHead className="text-center hidden lg:table-cell">Forgo</TableHead>}
               <TableHead className="text-right">Final Payment</TableHead>
             </TableRow>
           </TableHeader>
@@ -423,7 +425,7 @@ const Payroll = () => {
               return (
                 <Fragment key={dept}>
                   <TableRow className="hover:bg-transparent border-b-0">
-                    <TableCell colSpan={6} className="p-0 border-b-0">
+                    <TableCell colSpan={colCount} className="p-0 border-b-0">
                       <div
                         className="flex items-center gap-2 h-9 pl-4 pr-4"
                         style={{ backgroundColor: 'rgba(91, 63, 248, 0.08)', borderLeft: '3px solid #5B3FF8' }}
@@ -448,10 +450,14 @@ const Payroll = () => {
                     const masked = <span className="text-muted-foreground">—</span>;
                     const otAmount = Number(rec.regular_ot_amount || 0) + Number(rec.holiday_ot_amount || 0);
                     const loan = Number(rec.loan_deduction || 0);
+                    const negativeRegOt = Number(rec.regular_ot_amount || 0) < 0;
+                    const canShowForgo = canForgo && rec.status === 'draft' && negativeRegOt;
+                    const forgoOn = !!rec.forgo_ot;
                     return (
                       <TableRow
                         key={rec.id}
                         className="cursor-pointer hover:bg-muted/40 transition-colors"
+                        style={forgoOn ? { backgroundColor: 'rgba(29, 201, 122, 0.06)' } : undefined}
                         onClick={() => setDetailRecord(rec)}
                       >
                         <TableCell>
@@ -482,6 +488,22 @@ const Payroll = () => {
                         <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
                           {hideSalary ? masked : loan > 0 ? fmtPKR(loan) : <span className="text-muted-foreground">—</span>}
                         </TableCell>
+                        {canForgo && (
+                          <TableCell className="text-center hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
+                            {canShowForgo ? (
+                              <div className="flex items-center justify-center gap-2">
+                                <Switch
+                                  checked={forgoOn}
+                                  onCheckedChange={(v) => handleToggleForgo(rec, v)}
+                                  aria-label="Forgo deduction"
+                                />
+                                <span className="text-[11px] text-muted-foreground">Forgo deduction</span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: hideSalary ? undefined : '#5B3FF8' }}>
                           {hideSalary ? masked : fmtPKR(Number(rec.final_payment))}
                         </TableCell>
@@ -489,7 +511,7 @@ const Payroll = () => {
                     );
                   })}
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={5} className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <TableCell colSpan={colCount - 1} className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {dept} Subtotal
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: '#5B3FF8' }}>
@@ -503,6 +525,7 @@ const Payroll = () => {
         </Table>
       </div>
     );
+
   };
 
 
