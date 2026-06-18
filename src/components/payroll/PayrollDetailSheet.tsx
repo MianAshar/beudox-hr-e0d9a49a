@@ -100,13 +100,13 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
       const [attRes, leaveRes, csRes] = await Promise.all([
         supabase
           .from('attendance_records')
-          .select('regular_ot_hours, is_late, is_absent')
+          .select('date, regular_ot_hours, is_late, is_absent, is_weekend, is_holiday')
           .eq('employee_id', employeeId!)
           .gte('date', startDate)
           .lte('date', endDate),
         supabase
           .from('leave_requests')
-          .select('start_date, end_date, days_requested')
+          .select('start_date, end_date')
           .eq('employee_id', employeeId!)
           .eq('status', 'approved')
           .lte('start_date', endDate)
@@ -118,12 +118,35 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
           .maybeSingle(),
       ]);
 
+      // Expand approved leaves into a set of weekday leave dates within the month
+      const leaveDates = new Set<string>();
+      const startMs = new Date(startDate + 'T00:00:00').getTime();
+      const endMs = new Date(endDate + 'T00:00:00').getTime();
+      for (const lr of leaveRes.data ?? []) {
+        const ls = new Date(lr.start_date + 'T00:00:00').getTime();
+        const le = new Date(lr.end_date + 'T00:00:00').getTime();
+        const clipS = Math.max(ls, startMs);
+        const clipE = Math.min(le, endMs);
+        if (clipE < clipS) continue;
+        const cur = new Date(clipS);
+        const stop = new Date(clipE);
+        while (cur <= stop) {
+          const dow = cur.getDay();
+          if (dow !== 0 && dow !== 6) {
+            leaveDates.add(cur.toISOString().split('T')[0]);
+          }
+          cur.setDate(cur.getDate() + 1);
+        }
+      }
+
       const att = attRes.data ?? [];
       let shortHours = 0;
       let overtimeHours = 0;
       let lateCount = 0;
       let absentCount = 0;
       for (const r of att) {
+        // Leave days are neutral — skip entirely
+        if (leaveDates.has(r.date as string)) continue;
         const v = Number(r.regular_ot_hours || 0);
         if (v < 0) shortHours += Math.abs(v);
         else if (v > 0) overtimeHours += v;
@@ -131,21 +154,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
         if (r.is_absent) absentCount++;
       }
 
-      // Clip leave days to month
-      let leaveDays = 0;
-      const startMs = new Date(startDate + 'T00:00:00').getTime();
-      const endMs = new Date(endDate + 'T00:00:00').getTime();
-      for (const lr of leaveRes.data ?? []) {
-        const ls = new Date(lr.start_date + 'T00:00:00').getTime();
-        const le = new Date(lr.end_date + 'T00:00:00').getTime();
-        const total = (le - ls) / 86400000 + 1;
-        const req = Number(lr.days_requested || total);
-        const perDay = total > 0 ? req / total : req;
-        const clipS = Math.max(ls, startMs);
-        const clipE = Math.min(le, endMs);
-        const days = clipE >= clipS ? (clipE - clipS) / 86400000 + 1 : 0;
-        leaveDays += days * perDay;
-      }
+      const leaveDays = leaveDates.size;
 
       const cs = csRes.data;
       const otDivisor = Number(cs?.ot_divisor) || 26;
