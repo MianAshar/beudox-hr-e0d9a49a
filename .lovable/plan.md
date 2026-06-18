@@ -1,33 +1,42 @@
-## Goal
-Allow any signed-in employee in the company to change a project's status (on both Projects and Projects V2 lists, and Project Detail).
+# Rename "Allowance" → "Fuel Allowance" (Display Only)
 
-## Changes
+Update user-facing label text only. Database column `allowance`, API calls, and variable names remain unchanged.
 
-### 1. Database (RLS) — `supabase/migrations`
-The `projects` table currently only allows UPDATE for `hr_manager`, `ceo`, and `team_lead`. Add a new policy that lets any active employee in the same company UPDATE projects:
+## Scope
 
-```sql
-CREATE POLICY projects_update_any_company_member
-ON public.projects
-FOR UPDATE
-TO authenticated
-USING (company_id = get_company_id_for_auth(auth.uid()))
-WITH CHECK (company_id = get_company_id_for_auth(auth.uid()));
-```
+Find every visible occurrence of the word "Allowance" (and "ALLOWANCE") tied to the salary `allowance` field and replace the display text with "Fuel Allowance" / "FUEL ALLOWANCE". Leave code identifiers, JSON keys, DB columns, and Supabase queries untouched.
 
-Note: Postgres RLS cannot restrict which columns are updated. Since the request is "any user can update status," this policy will technically permit other column updates too — the UI only exposes the status control, so non-managers won't see edit affordances for other fields. If column-level restriction is required, flag it and we'll add a trigger.
+## Files to Update
 
-### 2. Frontend — unlock the status control for everyone
+1. **Employee Form** — `src/pages/EmployeeForm.tsx`
+   - `<Label>` for the allowance input → "Fuel Allowance"
 
-- `src/pages/Projects.tsx` (line 185): change `canEditStatus = ['hr_manager','ceo','team_lead']...` → `canEditStatus = true`. Keep `canEditDeadline` tied to the manager check (only status is being opened up).
-- `src/pages/ProjectsV2.tsx` (line 629): same — `canEditStatus = true`, keep `canEditDeadline` as manager-only (re-derive it from the prior manager/team-lead check rather than from `canEditStatus`).
-- `src/pages/ProjectDetail.tsx`: 
-  - Allow the status badge to be clickable for everyone (mirror the dropdown used in the list views) so a user landing on a project detail page can change status too.
-  - "Start project" (pending → in_progress) currently gated by `canStartProject` — extend to all roles so a pending project isn't a dead end for non-managers.
+2. **Employee Profile overview** — `src/pages/EmployeeProfile.tsx`
+   - Salary section label → "Fuel Allowance"
 
-### 3. Activity log
-Status changes already write to `project_activity_logs` via `logProjectActivity`. No change needed; the actor will be the current user, so audit trail is preserved.
+3. **Payroll table** — `src/pages/Payroll.tsx`
+   - Column header → "Fuel Allowance"
 
-## Out of scope
-- No changes to who can edit deadline, fee, client, team, or other project fields.
-- No changes to who can create/delete projects.
+4. **Payroll breakdown sidebar** — `src/components/payroll/PayrollDetailSheet.tsx`
+   - Row label → "Fuel Allowance"
+
+5. **Payslip card** (used by `src/pages/MyPayslip.tsx` and `src/components/employee-profile/PayrollTab.tsx`) — `src/components/payroll/PayslipCard.tsx`
+   - Salary Breakdown row: "Fuel Allowance"
+   - Key figures grid: "FUEL ALLOWANCE"
+
+6. **PDF payslip generator** — `supabase/functions/generate-payroll/index.ts` (and any helper) 
+   - All label strings rendered into the PDF → "Fuel Allowance"
+
+7. **Finance sheet/summary** — `src/pages/FinanceSheet.tsx` and `src/components/finance/FinanceSummary.tsx`
+   - Any "Allowance" label → "Fuel Allowance"
+
+## Approach
+
+- Search for `Allowance` / `ALLOWANCE` across `src/` and `supabase/functions/` to confirm all occurrences before editing.
+- Only change strings inside JSX text, `<Label>`, table headers, and PDF text literals. Skip property keys, variable names, comments referencing the DB column, and translation keys that map to data fields.
+- No DB migration. No type changes. No query changes.
+
+## Verification
+
+- Visually confirm the new label appears on: Add/Edit Employee, Employee Profile, Payroll list, Payroll detail sheet, My Payslip, Employee Profile → Payroll tab, generated PDF, Finance Sheet.
+- Confirm payroll calculations and saved values are unchanged.
