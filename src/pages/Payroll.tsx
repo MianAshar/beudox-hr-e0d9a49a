@@ -55,7 +55,7 @@ const Payroll = () => {
   const viewerRoles = employee?.roles ?? [];
   const isCeoViewer = viewerRoles.includes('ceo');
   const isHrViewer = !isCeoViewer && viewerRoles.includes('hr_manager');
-  const canForgo = isCeoViewer || viewerRoles.includes('finance_manager');
+  const canForgo = isCeoViewer || viewerRoles.includes('finance_manager') || viewerRoles.includes('hr_manager');
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(String(now.getMonth() + 1).padStart(2, '0'));
