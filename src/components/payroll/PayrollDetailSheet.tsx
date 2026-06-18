@@ -162,10 +162,14 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
 
                   <SectionTitle>OT Amounts</SectionTitle>
                   <div className="divide-y" style={{ borderColor: 'hsl(var(--border))' }}>
-                    <Row label="Regular OT Amount" value={fmtPKR(regOtAmt)} />
+                    <Row label="Regular OT Amount" value={fmtPKR(record.forgo_ot ? 0 : regOtAmt)} />
+                    {record.forgo_ot && (
+                      <div className="px-1 py-1 text-[11px] italic text-muted-foreground">OT deduction forgone</div>
+                    )}
                     <Row label="Holiday OT Amount" value={fmtPKR(holOtAmt)} />
-                    <Row label="Total OT" value={fmtPKR(totalOtAmt)} bold />
+                    <Row label="Total OT" value={fmtPKR((record.forgo_ot ? 0 : regOtAmt) + holOtAmt)} bold />
                   </div>
+
                 </>
               )}
 
