@@ -441,7 +441,10 @@ const Projects = () => {
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+  const isCEO = roles.includes('ceo');
+
+  const listContent = (
+    <>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">
