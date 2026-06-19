@@ -628,8 +628,25 @@ const Projects = () => {
           currentUserId={employeeId}
         />
       )}
-    </div>
+    </>
   );
+
+  if (isCEO) {
+    return (
+      <div className="p-4 lg:p-6 space-y-6">
+        <Tabs defaultValue="list">
+          <TabsList>
+            <TabsTrigger value="list">All Projects</TabsTrigger>
+            <TabsTrigger value="summary">Summary</TabsTrigger>
+          </TabsList>
+          <TabsContent value="list" className="space-y-6 mt-4">{listContent}</TabsContent>
+          <TabsContent value="summary" className="mt-4"><ProjectsSummary /></TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  return <div className="p-4 lg:p-6 space-y-6">{listContent}</div>;
 };
 
 interface ProjectCardProps {
