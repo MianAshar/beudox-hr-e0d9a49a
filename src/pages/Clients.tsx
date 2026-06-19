@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Search, Pencil, XCircle, Building2, RotateCcw } from 'lucide-react';
+import { SubSeriesTagInput } from '@/components/clients/SubSeriesTagInput';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   ActivityCategory,
@@ -37,6 +38,7 @@ interface Client {
   billing_currency: string;
   notes: string | null;
   is_active: boolean;
+  sub_series: string[] | null;
 }
 
 const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
@@ -49,6 +51,7 @@ const emptyForm = {
   country: '',
   billing_currency: 'USD',
   notes: '',
+  sub_series: [] as string[],
 };
 
 const Clients = () => {
@@ -139,6 +142,7 @@ const Clients = () => {
         country: form.country.trim() || null,
         billing_currency: form.billing_currency,
         notes: form.notes.trim() || null,
+        sub_series: form.sub_series,
         company_id: companyId!,
       };
       if (editingId) {
@@ -197,6 +201,7 @@ const Clients = () => {
       country: c.country || '',
       billing_currency: c.billing_currency,
       notes: c.notes || '',
+      sub_series: c.sub_series || [],
     });
     setModalOpen(true);
   };
@@ -366,13 +371,24 @@ const Clients = () => {
                 return (
                   <TableRow key={c.id}>
                     <TableCell>
-                      <button
-                        onClick={() => navigate(`/clients/${c.id}`)}
-                        className="text-primary hover:underline font-medium"
-                      >
-                        {c.name}
-                      </button>
-                      {!c.is_active && <Badge variant="outline" className="ml-2 text-xs">Inactive</Badge>}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => navigate(`/clients/${c.id}`)}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {c.name}
+                          </button>
+                          {!c.is_active && <Badge variant="outline" className="text-xs">Inactive</Badge>}
+                        </div>
+                        {c.sub_series && c.sub_series.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {c.sub_series.map(s => (
+                              <span key={s} className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '3px 10px' }}>{s}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     {showActivity && (
                       <TableCell>
@@ -469,6 +485,11 @@ const Clients = () => {
                   {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label>Sub-Series</Label>
+              <p className="text-xs text-muted-foreground mb-2">Add sub-series or divisions under this client (e.g. different property types, regions, or project lines)</p>
+              <SubSeriesTagInput value={form.sub_series} onChange={v => setForm({ ...form, sub_series: v })} />
             </div>
             <div>
               <Label>Notes</Label>

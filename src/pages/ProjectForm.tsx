@@ -16,7 +16,8 @@ import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
-import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X, Plus } from 'lucide-react';
+import { NewClientModal } from '@/components/clients/NewClientModal';
 
 
 const ProjectForm = () => {
@@ -40,7 +41,11 @@ const ProjectForm = () => {
     internal_deadline: undefined as Date | undefined,
     project_lead_id: '',
     notes: '',
+    sub_series: '',
   });
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [addingSubSeries, setAddingSubSeries] = useState(false);
+  const [newSubSeries, setNewSubSeries] = useState('');
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -57,7 +62,7 @@ const ProjectForm = () => {
   const { data: clients } = useQuery({
     queryKey: ['clients-lookup', companyId],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id, name, billing_currency').eq('company_id', companyId!).eq('is_active', true).order('name');
+      const { data } = await supabase.from('clients').select('id, name, billing_currency, sub_series').eq('company_id', companyId!).eq('is_active', true).order('name');
       return data ?? [];
     },
     enabled: !!companyId,
@@ -119,6 +124,7 @@ const ProjectForm = () => {
         internal_deadline: existingProject.internal_deadline ? new Date(existingProject.internal_deadline) : undefined,
         project_lead_id: existingProject.project_lead_id || '',
         notes: existingProject.notes || '',
+        sub_series: (existingProject as any).sub_series || '',
       });
     }
   }, [existingProject]);
@@ -162,6 +168,7 @@ const ProjectForm = () => {
         internal_deadline: form.internal_deadline ? format(form.internal_deadline, 'yyyy-MM-dd') : null,
         project_lead_id: form.project_lead_id || null,
         notes: form.notes.trim() || null,
+        sub_series: form.sub_series || null,
         company_id: companyId!,
       };
       if (!isEdit) payload.status = 'pending';
@@ -298,11 +305,18 @@ const ProjectForm = () => {
                     <CommandEmpty>No clients found.</CommandEmpty>
                     <CommandGroup>
                       {filteredClients.map(c => (
-                        <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id }); setClientOpen(false); setClientSearch(''); }}>
+                        <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id, sub_series: '' }); setClientOpen(false); setClientSearch(''); }}>
                           <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
                           {c.name}
                         </CommandItem>
                       ))}
+                      <CommandItem
+                        value="__add_new_client__"
+                        onSelect={() => { setClientOpen(false); setClientSearch(''); setNewClientOpen(true); }}
+                        className="border-t mt-1 text-[#5B3FF8] font-medium"
+                      >
+                        <Plus className="mr-2 h-4 w-4" /> Add New Client
+                      </CommandItem>
                     </CommandGroup>
                   </CommandList>
                 </Command>
@@ -326,6 +340,62 @@ const ProjectForm = () => {
             </Select>
           </div>
         </div>
+
+        {/* Sub-Series - shown when a client is selected */}
+        {form.client_id && (
+          <div>
+            <Label>Sub-Series</Label>
+            <Select
+              value={form.sub_series || '__none__'}
+              onValueChange={v => {
+                if (v === '__add_new__') { setAddingSubSeries(true); setNewSubSeries(''); return; }
+                setForm({ ...form, sub_series: v === '__none__' ? '' : v });
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Select sub-series" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— None —</SelectItem>
+                {(selectedClient?.sub_series ?? []).map((s: string) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+                <SelectItem value="__add_new__" className="text-[#5B3FF8] font-medium">+ Add New Sub-Series</SelectItem>
+              </SelectContent>
+            </Select>
+            {addingSubSeries && (
+              <div className="mt-2 flex gap-2">
+                <Input
+                  autoFocus
+                  value={newSubSeries}
+                  onChange={e => setNewSubSeries(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('add-sub-series-btn')?.click(); } }}
+                  placeholder="New sub-series name"
+                />
+                <Button
+                  id="add-sub-series-btn"
+                  type="button"
+                  onClick={async () => {
+                    const v = newSubSeries.trim();
+                    if (!v || !form.client_id) return;
+                    const current = selectedClient?.sub_series ?? [];
+                    if (current.includes(v)) {
+                      setForm({ ...form, sub_series: v });
+                      setAddingSubSeries(false);
+                      return;
+                    }
+                    const next = [...current, v];
+                    const { error } = await supabase.from('clients').update({ sub_series: next }).eq('id', form.client_id);
+                    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+                    await qc.invalidateQueries({ queryKey: ['clients-lookup'] });
+                    setForm({ ...form, sub_series: v });
+                    setAddingSubSeries(false);
+                    setNewSubSeries('');
+                  }}
+                >Add</Button>
+                <Button type="button" variant="outline" onClick={() => { setAddingSubSeries(false); setNewSubSeries(''); }}>Cancel</Button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Scope */}
         <div>
@@ -510,6 +580,15 @@ const ProjectForm = () => {
           </Button>
         </div>
       </div>
+
+      {companyId && (
+        <NewClientModal
+          open={newClientOpen}
+          onOpenChange={setNewClientOpen}
+          companyId={companyId}
+          onCreated={(id) => setForm(f => ({ ...f, client_id: id, sub_series: '' }))}
+        />
+      )}
     </div>
   );
 };

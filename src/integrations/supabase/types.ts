@@ -323,6 +323,7 @@ export type Database = {
           is_active: boolean
           name: string
           notes: string | null
+          sub_series: string[]
           updated_at: string | null
         }
         Insert: {
@@ -337,6 +338,7 @@ export type Database = {
           is_active?: boolean
           name: string
           notes?: string | null
+          sub_series?: string[]
           updated_at?: string | null
         }
         Update: {
@@ -351,6 +353,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           notes?: string | null
+          sub_series?: string[]
           updated_at?: string | null
         }
         Relationships: [
@@ -2515,6 +2518,7 @@ export type Database = {
           project_name: string
           scope_of_work: string | null
           status: string
+          sub_series: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2534,6 +2538,7 @@ export type Database = {
           project_name: string
           scope_of_work?: string | null
           status?: string
+          sub_series?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2553,6 +2558,7 @@ export type Database = {
           project_name?: string
           scope_of_work?: string | null
           status?: string
+          sub_series?: string | null
           updated_at?: string | null
         }
         Relationships: [
