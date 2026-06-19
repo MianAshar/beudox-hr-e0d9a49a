@@ -275,6 +275,7 @@ const Projects = () => {
         .eq('is_active', true)
         .in('id', assignedIds)
         .neq('status', 'pending')
+        .neq('status', 'submitted')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
