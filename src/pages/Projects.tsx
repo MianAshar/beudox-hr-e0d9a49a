@@ -377,7 +377,30 @@ const Projects = () => {
   });
 
   const sortedFiltered = useMemo(() => {
-    if (sortBy === 'default') return filtered;
+    if (sortBy === 'default') {
+      if (!isPureEmployee) return filtered;
+      // Employee default sort: pending/in-progress first, then QC, on-hold, completed, cancelled.
+      // Within each group, sort by internal_deadline ascending (soonest first).
+      const priority: Record<string, number> = {
+        in_progress: 1,
+        pending: 1,
+        qc_required: 2,
+        on_hold: 3,
+        completed: 4,
+        cancelled: 5,
+      };
+      return [...filtered].sort((a, b) => {
+        const pa = priority[a.status] ?? 99;
+        const pb = priority[b.status] ?? 99;
+        if (pa !== pb) return pa - pb;
+        const da = a.internal_deadline || '';
+        const db = b.internal_deadline || '';
+        if (!da && !db) return 0;
+        if (!da) return 1;
+        if (!db) return -1;
+        return String(da).localeCompare(String(db));
+      });
+    }
     const accessors: Record<string, (p: any) => any> = {
       project_code: (p) => p.project_code || '',
       project_name: (p) => p.project_name || '',
@@ -397,7 +420,7 @@ const Projects = () => {
       if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * mul;
       return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * mul;
     });
-  }, [filtered, sortBy, sortDir]);
+  }, [filtered, sortBy, sortDir, isPureEmployee]);
 
   const allExpanded = filtered.length > 0 && filtered.every((p: any) => expandedIds.has(p.id));
   const toggleAll = () => {
