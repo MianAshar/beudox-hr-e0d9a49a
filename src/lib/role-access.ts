@@ -9,7 +9,6 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/dashboard',
     '/attendance',
     '/projects',
-    '/projects-v2',
     '/evaluations',
     '/evaluations/daily',
     '/hr-policies',
@@ -62,7 +61,7 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/attendance',
     '/holidays',
     '/projects',
-    '/projects-v2',
+    
     '/evaluations',
     '/evaluations/daily',
     '/hr-policies',

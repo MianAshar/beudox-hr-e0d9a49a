@@ -82,7 +82,7 @@ const ProjectForm = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('employees')
-        .select('id, full_name, employee_code, employment_type, employee_roles(roles(name))')
+        .select('id, full_name, employee_code, employment_type, department, employee_roles(roles(name))')
         .eq('company_id', companyId!)
         .eq('status', 'active')
         .order('full_name');
@@ -90,6 +90,25 @@ const ProjectForm = () => {
     },
     enabled: !!companyId,
   });
+
+  // Eligible employees for Lead/Resources: estimation team only.
+  // Exclude roles ceo/hr_manager/finance_manager, exclude director employment_type,
+  // exclude Admin/Director departments.
+  const eligibleEmployees = useMemo(() => {
+    if (!employees) return [];
+    const excludedRoles = new Set(['ceo', 'hr_manager', 'finance_manager']);
+    const excludedDepts = new Set(['admin', 'director']);
+    return employees.filter((e: any) => {
+      if (e.employment_type === 'director') return false;
+      const dept = (e.department || '').trim().toLowerCase();
+      if (excludedDepts.has(dept)) return false;
+      const roleNames: string[] = (e.employee_roles ?? [])
+        .map((er: any) => er?.roles?.name)
+        .filter(Boolean);
+      if (roleNames.some(r => excludedRoles.has(r))) return false;
+      return true;
+    });
+  }, [employees]);
 
   // Fetch existing project for edit
   const { data: existingProject } = useQuery({
@@ -133,25 +152,15 @@ const ProjectForm = () => {
     if (existingAssignments) setTeamMembers(existingAssignments);
   }, [existingAssignments]);
 
-  // On NEW project, pre-select all active employees excluding CEO / HR Manager / Finance Manager / Director.
+  // On NEW project, pre-select all eligible (estimation-team) employees.
   const didPrefillRef = useRef(false);
   useEffect(() => {
     if (isEdit) return;
-    if (!employees || employees.length === 0) return;
+    if (!eligibleEmployees || eligibleEmployees.length === 0) return;
     if (didPrefillRef.current) return;
-    const excludedRoles = new Set(['ceo', 'hr_manager', 'finance_manager']);
-    const eligibleIds = employees
-      .filter((e: any) => {
-        if (e.employment_type === 'director') return false;
-        const roleNames: string[] = (e.employee_roles ?? [])
-          .map((er: any) => er?.roles?.name)
-          .filter(Boolean);
-        return !roleNames.some((r) => excludedRoles.has(r));
-      })
-      .map((e: any) => e.id);
-    setTeamMembers(eligibleIds);
+    setTeamMembers(eligibleEmployees.map((e: any) => e.id));
     didPrefillRef.current = true;
-  }, [employees, isEdit]);
+  }, [eligibleEmployees, isEdit]);
 
   const selectedClient = clients?.find(c => c.id === form.client_id);
 
@@ -250,18 +259,16 @@ const ProjectForm = () => {
   }, [clients, clientSearch]);
 
   const filteredLeadEmployees = useMemo(() => {
-    if (!employees) return [];
-    if (!leadSearch) return employees;
+    if (!leadSearch) return eligibleEmployees;
     const q = leadSearch.toLowerCase();
-    return employees.filter(e => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
-  }, [employees, leadSearch]);
+    return eligibleEmployees.filter((e: any) => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
+  }, [eligibleEmployees, leadSearch]);
 
   const filteredTeamEmployees = useMemo(() => {
-    if (!employees) return [];
-    if (!teamSearch) return employees;
+    if (!teamSearch) return eligibleEmployees;
     const q = teamSearch.toLowerCase();
-    return employees.filter(e => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
-  }, [employees, teamSearch]);
+    return eligibleEmployees.filter((e: any) => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
+  }, [eligibleEmployees, teamSearch]);
 
   return (
     <div className="p-6 max-w-3xl space-y-6">
@@ -287,59 +294,43 @@ const ProjectForm = () => {
           </div>
         </div>
 
-        {/* Row 2: Client combobox + Category */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <Label>Client *</Label>
-            <Popover open={clientOpen} onOpenChange={setClientOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={clientOpen} className="w-full justify-between font-normal">
-                  {selectedClient?.name || 'Select client…'}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                <Command shouldFilter={false}>
-                  <CommandInput placeholder="Search clients…" value={clientSearch} onValueChange={setClientSearch} />
-                  <CommandList>
-                    <CommandEmpty>No clients found.</CommandEmpty>
-                    <CommandGroup>
-                      {filteredClients.map(c => (
-                        <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id, sub_series: '' }); setClientOpen(false); setClientSearch(''); }}>
-                          <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
-                          {c.name}
-                        </CommandItem>
-                      ))}
-                      <CommandItem
-                        value="__add_new_client__"
-                        onSelect={() => { setClientOpen(false); setClientSearch(''); setNewClientOpen(true); }}
-                        className="border-t mt-1 text-[#5B3FF8] font-medium"
-                      >
-                        <Plus className="mr-2 h-4 w-4" /> Add New Client
+        {/* Row 2: Client combobox */}
+        <div>
+          <Label>Client *</Label>
+          <Popover open={clientOpen} onOpenChange={setClientOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" role="combobox" aria-expanded={clientOpen} className="w-full justify-between font-normal">
+                {selectedClient?.name || 'Select client…'}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+              <Command shouldFilter={false}>
+                <CommandInput placeholder="Search clients…" value={clientSearch} onValueChange={setClientSearch} />
+                <CommandList>
+                  <CommandEmpty>No clients found.</CommandEmpty>
+                  <CommandGroup>
+                    {filteredClients.map(c => (
+                      <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id, sub_series: '' }); setClientOpen(false); setClientSearch(''); }}>
+                        <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
+                        {c.name}
                       </CommandItem>
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
-          </div>
-          <div>
-            <Label>Category</Label>
-            <Select value={form.category_id} onValueChange={v => setForm({ ...form, category_id: v })}>
-              <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-              <SelectContent>
-                {categories && categories.length > 0 ? (
-                  categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)
-                ) : (
-                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                    No categories defined. Add categories in Settings.
-                  </div>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+                    ))}
+                    <CommandItem
+                      value="__add_new_client__"
+                      onSelect={() => { setClientOpen(false); setClientSearch(''); setNewClientOpen(true); }}
+                      className="border-t mt-1 text-[#5B3FF8] font-medium"
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Add New Client
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
         </div>
+
 
         {/* Sub-Series - shown when a client is selected */}
         {form.client_id && (
