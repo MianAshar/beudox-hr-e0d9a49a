@@ -580,6 +580,15 @@ const ProjectForm = () => {
           </Button>
         </div>
       </div>
+
+      {companyId && (
+        <NewClientModal
+          open={newClientOpen}
+          onOpenChange={setNewClientOpen}
+          companyId={companyId}
+          onCreated={(id) => setForm(f => ({ ...f, client_id: id, sub_series: '' }))}
+        />
+      )}
     </div>
   );
 };
