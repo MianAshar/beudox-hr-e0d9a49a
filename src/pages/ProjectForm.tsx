@@ -426,34 +426,73 @@ const ProjectForm = () => {
               </Command>
             </PopoverContent>
           </Popover>
-          {/* Selected members list */}
-          {teamMembers.length > 0 && (
-            <div className="mt-3 space-y-1.5">
-              {teamMembers.map(empId => {
-                const emp = employees?.find(e => e.id === empId);
-                const name = emp?.full_name || 'Unknown';
-                const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-                return (
-                  <div key={empId} className="flex items-center justify-between rounded-md border bg-muted/50 px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                        {initials}
+          {/* Selected members - collapsed summary + expandable list */}
+          {teamMembers.length > 0 && (() => {
+            const members = teamMembers.map(id => {
+              const emp = employees?.find(e => e.id === id);
+              const name = emp?.full_name || 'Unknown';
+              const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+              return { id, emp, name, initials };
+            });
+            const visible = members.slice(0, 8);
+            const extra = members.length - visible.length;
+            return (
+              <div className="mt-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-dm-sans font-medium text-[13px] text-[#120E36]">
+                    {members.length} team member{members.length === 1 ? '' : 's'} selected
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setTeamExpanded(v => !v)}
+                    className="font-dm-sans font-medium text-[12px] text-[#5B3FF8] hover:underline"
+                  >
+                    {teamExpanded ? 'Hide' : 'Show all'}
+                  </button>
+                </div>
+
+                {!teamExpanded ? (
+                  <div className="flex items-center h-9 mt-1.5">
+                    {visible.map(m => (
+                      <div
+                        key={m.id}
+                        title={m.name}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary border-[1.5px] border-white -ml-[10px] first:ml-0"
+                      >
+                        {m.initials}
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{name}</p>
-                        {emp?.employee_code && (
-                          <p className="text-xs text-muted-foreground">{emp.employee_code}</p>
-                        )}
+                    ))}
+                    {extra > 0 && (
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F6F5FF] text-[10px] font-medium text-[#4B4468] border-[1.5px] border-white -ml-[10px]">
+                        +{extra}
                       </div>
-                    </div>
-                    <button type="button" onClick={() => removeTeamMember(empId)} className="rounded-full p-1 hover:bg-muted">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                    </button>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
+                ) : (
+                  <div className="mt-2 space-y-1.5">
+                    {members.map(m => (
+                      <div key={m.id} className="flex items-center justify-between rounded-md border bg-muted/50 px-3 py-2">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                            {m.initials}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{m.name}</p>
+                            {m.emp?.employee_code && (
+                              <p className="text-xs text-muted-foreground">{m.emp.employee_code}</p>
+                            )}
+                          </div>
+                        </div>
+                        <button type="button" onClick={() => removeTeamMember(m.id)} className="rounded-full p-1 hover:bg-muted">
+                          <X className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Notes */}
