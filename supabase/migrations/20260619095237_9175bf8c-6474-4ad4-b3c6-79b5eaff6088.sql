@@ -1,0 +1,2 @@
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS sub_series TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS sub_series TEXT;
