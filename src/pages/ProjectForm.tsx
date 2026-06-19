@@ -48,6 +48,7 @@ const ProjectForm = () => {
   const [clientOpen, setClientOpen] = useState(false);
   const [leadOpen, setLeadOpen] = useState(false);
   const [teamOpen, setTeamOpen] = useState(false);
+  const [teamExpanded, setTeamExpanded] = useState(false);
   const [clientSearch, setClientSearch] = useState('');
   const [leadSearch, setLeadSearch] = useState('');
   const [teamSearch, setTeamSearch] = useState('');
