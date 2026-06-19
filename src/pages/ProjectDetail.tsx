@@ -284,9 +284,16 @@ const ProjectDetail = () => {
             {canSeeClient && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Client</span>
-                <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
-                  {(project.clients as any)?.name || '—'}
-                </Link>
+                <span className="inline-flex items-center gap-1.5">
+                  <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
+                    {(project.clients as any)?.name || '—'}
+                  </Link>
+                  {(project as any).sub_series && (
+                    <span className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '2px 8px' }}>
+                      {(project as any).sub_series}
+                    </span>
+                  )}
+                </span>
               </div>
             )}
             <div className="flex justify-between">
