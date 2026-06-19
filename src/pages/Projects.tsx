@@ -783,7 +783,7 @@ const ProjectCard = ({
                   {p.fee != null && p.fee > 0 ? Number(p.fee).toLocaleString() : '—'}
                 </MetaRow>
               )}
-              {canSeeFinancial && (
+              {isCeoOrDirector && (
                 <MetaRow label="Client Deadline">{formatDate(p.client_deadline) || '—'}</MetaRow>
               )}
               <MetaRow label="Internal Deadline">{formatDate(p.internal_deadline) || '—'}</MetaRow>
