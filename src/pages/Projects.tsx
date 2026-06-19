@@ -620,12 +620,13 @@ interface ProjectCardProps {
   companyId: string;
   employeeId: string;
   role?: string | null;
+  isCeoOrDirector: boolean;
 }
 
 const ProjectCard = ({
   project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, onManageTeam, isDueToday,
   isManager, canSeeClient, canSeeFinancial, canSeeTeam, canManageTeam, canEditStatus, canEditDeadline, canSeeActivity,
-  companyId, employeeId, role,
+  companyId, employeeId, role, isCeoOrDirector,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
   const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].includes(role || '');
@@ -670,7 +671,7 @@ const ProjectCard = ({
         {/* Project Code */}
         <span className="font-mono text-xs text-muted-foreground w-16 lg:w-20 shrink-0 truncate">{p.project_code}</span>
 
-        {/* Project Name — takes remaining space, wraps to full width on mobile */}
+        {/* Project Name */}
         <div className="flex-1 min-w-0 flex items-center gap-2 order-1 lg:order-none basis-full lg:basis-auto">
           <button
             type="button"
@@ -683,18 +684,29 @@ const ProjectCard = ({
           {!p.is_active && <Badge variant="outline" className="text-xs shrink-0">Inactive</Badge>}
         </div>
 
-        {/* Status */}
-        <div onClick={e => e.stopPropagation()} className="w-[140px] lg:w-[160px] shrink-0 order-2 lg:order-none">
-          <StatusCell project={p} canEdit={canEditStatus} companyId={companyId} employeeId={employeeId} />
+        {/* Scope of Work */}
+        <div className="w-[220px] shrink-0 text-xs text-foreground/80 truncate order-2 lg:order-none" title={p.scope_of_work || ''}>
+          {p.scope_of_work?.trim() || <span className="text-muted-foreground">—</span>}
         </div>
 
-        {/* Internal Deadline */}
-        <div onClick={e => e.stopPropagation()} className="w-[130px] lg:w-[140px] shrink-0 text-sm order-3 lg:order-none">
-          <DeadlineCell project={p} canEdit={canEditDeadline} companyId={companyId} employeeId={employeeId} isDueToday={isDueToday} />
+        {/* Deadline */}
+        <div onClick={e => e.stopPropagation()} className="w-[180px] shrink-0 text-sm order-3 lg:order-none">
+          {isCeoOrDirector ? (
+            <div className="flex flex-col leading-tight">
+              <span style={{ fontFamily: 'DM Sans', fontWeight: 400, fontSize: 12, color: '#4B4468' }}>
+                Client: {formatDate(p.client_deadline) || '—'}
+              </span>
+              <span style={{ fontFamily: 'DM Sans', fontWeight: 400, fontSize: 12, color: '#9490B4' }}>
+                Internal: {formatDate(p.internal_deadline) || '—'}
+              </span>
+            </div>
+          ) : (
+            <DeadlineCell project={p} canEdit={canEditDeadline} companyId={companyId} employeeId={employeeId} isDueToday={isDueToday} />
+          )}
         </div>
 
-        {/* Team Lead */}
-        <div className="w-[150px] lg:w-[160px] shrink-0 flex items-center gap-2 min-w-0 order-4 lg:order-none">
+        {/* Lead */}
+        <div className="w-[160px] shrink-0 flex items-center gap-2 min-w-0 order-4 lg:order-none">
           {p.lead ? (
             <>
               <Avatar className="h-6 w-6 shrink-0">
@@ -708,31 +720,13 @@ const ProjectCard = ({
           )}
         </div>
 
-        {/* Team Members */}
-        {canSeeTeam && (
-          <div className="w-[120px] shrink-0 order-5 lg:order-none" onClick={e => e.stopPropagation()}>
-            {canManageTeam ? (
-              <button
-                type="button"
-                className="rounded-md hover:bg-muted/40 px-1 py-0.5 -mx-1 -my-0.5 transition-colors cursor-pointer"
-                onClick={onManageTeam}
-                title="Manage team"
-              >
-                <TeamMembersStack members={team} />
-              </button>
-            ) : (
-              <TeamMembersStack members={team} />
-            )}
-          </div>
-        )}
-
-        {/* Task progress */}
-        <div className="w-[70px] shrink-0 text-xs text-muted-foreground order-6 lg:order-none">
-          {taskCount && taskCount.total > 0 ? `${taskCount.completed}/${taskCount.total} tasks` : ''}
+        {/* Status */}
+        <div onClick={e => e.stopPropagation()} className="w-[160px] shrink-0 order-5 lg:order-none">
+          <StatusCell project={p} canEdit={canEditStatus} companyId={companyId} employeeId={employeeId} />
         </div>
 
         {/* Delete */}
-        <div className="w-10 shrink-0 flex items-center justify-center ml-auto lg:ml-0 order-7 lg:order-none">
+        <div className="w-10 shrink-0 flex items-center justify-center ml-auto lg:ml-0 order-6 lg:order-none">
           {isManager && p.is_active && (
             <Button
               variant="ghost"
