@@ -168,7 +168,7 @@ const priorityColors: Record<string, string> = {
   low: 'bg-green-100 text-green-700',
 };
 
-const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\bQc\b/g, 'QC');
 
 const Projects = () => {
   const { employee } = useAuth();

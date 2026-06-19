@@ -180,7 +180,7 @@ const ProjectDetail = () => {
     onError: (e: Error) => toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' }),
   });
 
-  const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\bQc\b/g, 'QC');
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   if (isLoading) {
