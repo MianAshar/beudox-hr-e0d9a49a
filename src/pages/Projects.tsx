@@ -25,6 +25,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
 import { ManageTeamModal } from '@/components/projects/ManageTeamModal';
+import { ProjectsSummary } from '@/components/projects/ProjectsSummary';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const getInitials = (name: string) =>
   name
