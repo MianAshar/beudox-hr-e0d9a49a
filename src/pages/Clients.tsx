@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Search, Pencil, XCircle, Building2, RotateCcw } from 'lucide-react';
+import { SubSeriesTagInput } from '@/components/clients/SubSeriesTagInput';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   ActivityCategory,
