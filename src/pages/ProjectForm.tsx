@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -127,11 +127,11 @@ const ProjectForm = () => {
   }, [existingAssignments]);
 
   // On NEW project, pre-select all active employees excluding CEO / HR Manager / Finance Manager / Director.
-  const didPrefillRef = (useState({ done: false } as { done: boolean })[0]);
+  const didPrefillRef = useRef(false);
   useEffect(() => {
     if (isEdit) return;
     if (!employees || employees.length === 0) return;
-    if (didPrefillRef.done) return;
+    if (didPrefillRef.current) return;
     const excludedRoles = new Set(['ceo', 'hr_manager', 'finance_manager']);
     const eligibleIds = employees
       .filter((e: any) => {
@@ -143,8 +143,8 @@ const ProjectForm = () => {
       })
       .map((e: any) => e.id);
     setTeamMembers(eligibleIds);
-    didPrefillRef.done = true;
-  }, [employees, isEdit, didPrefillRef]);
+    didPrefillRef.current = true;
+  }, [employees, isEdit]);
 
   const selectedClient = clients?.find(c => c.id === form.client_id);
 
