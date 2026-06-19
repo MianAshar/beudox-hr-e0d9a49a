@@ -259,18 +259,16 @@ const ProjectForm = () => {
   }, [clients, clientSearch]);
 
   const filteredLeadEmployees = useMemo(() => {
-    if (!employees) return [];
-    if (!leadSearch) return employees;
+    if (!leadSearch) return eligibleEmployees;
     const q = leadSearch.toLowerCase();
-    return employees.filter(e => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
-  }, [employees, leadSearch]);
+    return eligibleEmployees.filter((e: any) => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
+  }, [eligibleEmployees, leadSearch]);
 
   const filteredTeamEmployees = useMemo(() => {
-    if (!employees) return [];
-    if (!teamSearch) return employees;
+    if (!teamSearch) return eligibleEmployees;
     const q = teamSearch.toLowerCase();
-    return employees.filter(e => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
-  }, [employees, teamSearch]);
+    return eligibleEmployees.filter((e: any) => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
+  }, [eligibleEmployees, teamSearch]);
 
   return (
     <div className="p-6 max-w-3xl space-y-6">
