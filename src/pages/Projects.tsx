@@ -559,6 +559,7 @@ const Projects = () => {
                 companyId={companyId!}
                 employeeId={employeeId!}
                 role={role}
+                isCeoOrDirector={isCeoOrDirector}
               />
             );
           })}
