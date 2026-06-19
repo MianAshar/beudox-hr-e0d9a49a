@@ -371,13 +371,24 @@ const Clients = () => {
                 return (
                   <TableRow key={c.id}>
                     <TableCell>
-                      <button
-                        onClick={() => navigate(`/clients/${c.id}`)}
-                        className="text-primary hover:underline font-medium"
-                      >
-                        {c.name}
-                      </button>
-                      {!c.is_active && <Badge variant="outline" className="ml-2 text-xs">Inactive</Badge>}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => navigate(`/clients/${c.id}`)}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {c.name}
+                          </button>
+                          {!c.is_active && <Badge variant="outline" className="text-xs">Inactive</Badge>}
+                        </div>
+                        {c.sub_series && c.sub_series.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {c.sub_series.map(s => (
+                              <span key={s} className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '3px 10px' }}>{s}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     {showActivity && (
                       <TableCell>
