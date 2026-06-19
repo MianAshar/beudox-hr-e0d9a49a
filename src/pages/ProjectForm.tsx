@@ -152,25 +152,15 @@ const ProjectForm = () => {
     if (existingAssignments) setTeamMembers(existingAssignments);
   }, [existingAssignments]);
 
-  // On NEW project, pre-select all active employees excluding CEO / HR Manager / Finance Manager / Director.
+  // On NEW project, pre-select all eligible (estimation-team) employees.
   const didPrefillRef = useRef(false);
   useEffect(() => {
     if (isEdit) return;
-    if (!employees || employees.length === 0) return;
+    if (!eligibleEmployees || eligibleEmployees.length === 0) return;
     if (didPrefillRef.current) return;
-    const excludedRoles = new Set(['ceo', 'hr_manager', 'finance_manager']);
-    const eligibleIds = employees
-      .filter((e: any) => {
-        if (e.employment_type === 'director') return false;
-        const roleNames: string[] = (e.employee_roles ?? [])
-          .map((er: any) => er?.roles?.name)
-          .filter(Boolean);
-        return !roleNames.some((r) => excludedRoles.has(r));
-      })
-      .map((e: any) => e.id);
-    setTeamMembers(eligibleIds);
+    setTeamMembers(eligibleEmployees.map((e: any) => e.id));
     didPrefillRef.current = true;
-  }, [employees, isEdit]);
+  }, [eligibleEmployees, isEdit]);
 
   const selectedClient = clients?.find(c => c.id === form.client_id);
 
