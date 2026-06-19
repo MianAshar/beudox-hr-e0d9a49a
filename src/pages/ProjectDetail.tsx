@@ -56,6 +56,16 @@ const ProjectDetail = () => {
   const canEditStatus = true;
   const employeeId = employee?.employee_id;
 
+  const { data: currentEmpMeta } = useQuery({
+    queryKey: ['current-employee-employment-type', employeeId],
+    queryFn: async () => {
+      const { data } = await supabase.from('employees').select('employment_type').eq('id', employeeId!).maybeSingle();
+      return data;
+    },
+    enabled: !!employeeId,
+  });
+  const isCeoOrDirector = isCeo || currentEmpMeta?.employment_type === 'director';
+
   const [deactivateOpen, setDeactivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -301,7 +311,7 @@ const ProjectDetail = () => {
             <Calendar className="h-4 w-4" /> Deadlines
           </h2>
           <div className="space-y-3 text-sm">
-            {isManager && (
+            {isCeoOrDirector && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Client Deadline</span>
                 <span className="text-foreground">{formatDate(project.client_deadline)}</span>
