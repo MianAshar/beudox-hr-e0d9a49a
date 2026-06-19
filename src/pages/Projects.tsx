@@ -181,21 +181,25 @@ const Projects = () => {
   const canSeeClient = ['hr_manager', 'ceo', 'finance_manager'].some(r => roles.includes(r));
   const canSeeFinancial = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const canSeeTeam = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
-  const canEditStatus = true;
   const canEditDeadline = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
   const canSeeActivity = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const canManageTeam = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
   const employeeId = employee?.employee_id;
+  const isPureEmployee = roles.length > 0 && roles.every(r => r === 'employee');
 
   const { data: currentEmpMeta } = useQuery({
     queryKey: ['current-employee-employment-type', employeeId],
     queryFn: async () => {
-      const { data } = await supabase.from('employees').select('employment_type').eq('id', employeeId!).maybeSingle();
+      const { data } = await supabase.from('employees').select('employment_type, department').eq('id', employeeId!).maybeSingle();
       return data;
     },
     enabled: !!employeeId,
   });
   const isCeoOrDirector = roles.includes('ceo') || currentEmpMeta?.employment_type === 'director';
+  const currentDept = (currentEmpMeta?.department || '').trim().toLowerCase();
+  const isEstimationTeam = currentDept === 'gc team' || currentDept === 'mep team';
+  // Estimation team members can edit status on projects they're assigned to (handled per-row).
+  const canEditStatus = isManager || roles.includes('team_lead') || isCeoOrDirector || isEstimationTeam;
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
