@@ -41,7 +41,11 @@ const ProjectForm = () => {
     internal_deadline: undefined as Date | undefined,
     project_lead_id: '',
     notes: '',
+    sub_series: '',
   });
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [addingSubSeries, setAddingSubSeries] = useState(false);
+  const [newSubSeries, setNewSubSeries] = useState('');
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
