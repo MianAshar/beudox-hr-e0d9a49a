@@ -82,7 +82,7 @@ const ProjectForm = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('employees')
-        .select('id, full_name, employee_code, employment_type, employee_roles(roles(name))')
+        .select('id, full_name, employee_code, employment_type, department, employee_roles(roles(name))')
         .eq('company_id', companyId!)
         .eq('status', 'active')
         .order('full_name');
@@ -90,6 +90,25 @@ const ProjectForm = () => {
     },
     enabled: !!companyId,
   });
+
+  // Eligible employees for Lead/Resources: estimation team only.
+  // Exclude roles ceo/hr_manager/finance_manager, exclude director employment_type,
+  // exclude Admin/Director departments.
+  const eligibleEmployees = useMemo(() => {
+    if (!employees) return [];
+    const excludedRoles = new Set(['ceo', 'hr_manager', 'finance_manager']);
+    const excludedDepts = new Set(['admin', 'director']);
+    return employees.filter((e: any) => {
+      if (e.employment_type === 'director') return false;
+      const dept = (e.department || '').trim().toLowerCase();
+      if (excludedDepts.has(dept)) return false;
+      const roleNames: string[] = (e.employee_roles ?? [])
+        .map((er: any) => er?.roles?.name)
+        .filter(Boolean);
+      if (roleNames.some(r => excludedRoles.has(r))) return false;
+      return true;
+    });
+  }, [employees]);
 
   // Fetch existing project for edit
   const { data: existingProject } = useQuery({
