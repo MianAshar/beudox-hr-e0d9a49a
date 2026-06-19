@@ -16,7 +16,8 @@ import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
-import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X, Plus } from 'lucide-react';
+import { NewClientModal } from '@/components/clients/NewClientModal';
 
 
 const ProjectForm = () => {
