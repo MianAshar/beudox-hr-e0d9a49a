@@ -187,6 +187,16 @@ const Projects = () => {
   const canManageTeam = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
   const employeeId = employee?.employee_id;
 
+  const { data: currentEmpMeta } = useQuery({
+    queryKey: ['current-employee-employment-type', employeeId],
+    queryFn: async () => {
+      const { data } = await supabase.from('employees').select('employment_type').eq('id', employeeId!).maybeSingle();
+      return data;
+    },
+    enabled: !!employeeId,
+  });
+  const isCeoOrDirector = roles.includes('ceo') || currentEmpMeta?.employment_type === 'director';
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
