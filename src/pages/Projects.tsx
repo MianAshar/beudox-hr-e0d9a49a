@@ -25,6 +25,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
 import { ManageTeamModal } from '@/components/projects/ManageTeamModal';
+import { ProjectsSummary } from '@/components/projects/ProjectsSummary';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const getInitials = (name: string) =>
   name
@@ -438,8 +440,10 @@ const Projects = () => {
     });
   };
 
-  return (
-    <div className="p-4 lg:p-6 space-y-6">
+  const isCEO = roles.includes('ceo');
+
+  const listContent = (
+    <>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">
@@ -623,8 +627,25 @@ const Projects = () => {
           currentUserId={employeeId}
         />
       )}
-    </div>
+    </>
   );
+
+  if (isCEO) {
+    return (
+      <div className="p-4 lg:p-6 space-y-6">
+        <Tabs defaultValue="list">
+          <TabsList>
+            <TabsTrigger value="list">All Projects</TabsTrigger>
+            <TabsTrigger value="summary">Summary</TabsTrigger>
+          </TabsList>
+          <TabsContent value="list" className="space-y-6 mt-4">{listContent}</TabsContent>
+          <TabsContent value="summary" className="mt-4"><ProjectsSummary /></TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  return <div className="p-4 lg:p-6 space-y-6">{listContent}</div>;
 };
 
 interface ProjectCardProps {
