@@ -201,6 +201,7 @@ const Clients = () => {
       country: c.country || '',
       billing_currency: c.billing_currency,
       notes: c.notes || '',
+      sub_series: c.sub_series || [],
     });
     setModalOpen(true);
   };
