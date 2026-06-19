@@ -79,8 +79,7 @@ const SidebarBody = ({ collapsed, onToggleCollapse, onNavigate, showCollapseTogg
   const isActive = (path: string) => {
     if (path === '/evaluations') return location.pathname === '/evaluations' || (location.pathname.startsWith('/evaluations/') && !location.pathname.startsWith('/evaluations/daily'));
     if (path === '/evaluations/daily') return location.pathname.startsWith('/evaluations/daily');
-    if (path === '/projects') return location.pathname === '/projects' || (location.pathname.startsWith('/projects/') && !location.pathname.startsWith('/projects-v2'));
-    if (path === '/projects-v2') return location.pathname === '/projects-v2';
+    if (path === '/projects') return location.pathname === '/projects' || location.pathname.startsWith('/projects/');
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
   const companyLogo = employee?.company_logo_url || null;
