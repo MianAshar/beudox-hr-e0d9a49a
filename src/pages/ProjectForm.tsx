@@ -74,7 +74,12 @@ const ProjectForm = () => {
   const { data: employees } = useQuery({
     queryKey: ['employees-lookup', companyId],
     queryFn: async () => {
-      const { data } = await supabase.from('employees').select('id, full_name, employee_code').eq('company_id', companyId!).eq('status', 'active').order('full_name');
+      const { data } = await supabase
+        .from('employees')
+        .select('id, full_name, employee_code, employment_type, employee_roles(roles(name))')
+        .eq('company_id', companyId!)
+        .eq('status', 'active')
+        .order('full_name');
       return data ?? [];
     },
     enabled: !!companyId,
@@ -120,6 +125,26 @@ const ProjectForm = () => {
   useEffect(() => {
     if (existingAssignments) setTeamMembers(existingAssignments);
   }, [existingAssignments]);
+
+  // On NEW project, pre-select all active employees excluding CEO / HR Manager / Finance Manager / Director.
+  const didPrefillRef = (useState({ done: false } as { done: boolean })[0]);
+  useEffect(() => {
+    if (isEdit) return;
+    if (!employees || employees.length === 0) return;
+    if (didPrefillRef.done) return;
+    const excludedRoles = new Set(['ceo', 'hr_manager', 'finance_manager']);
+    const eligibleIds = employees
+      .filter((e: any) => {
+        if (e.employment_type === 'director') return false;
+        const roleNames: string[] = (e.employee_roles ?? [])
+          .map((er: any) => er?.roles?.name)
+          .filter(Boolean);
+        return !roleNames.some((r) => excludedRoles.has(r));
+      })
+      .map((e: any) => e.id);
+    setTeamMembers(eligibleIds);
+    didPrefillRef.done = true;
+  }, [employees, isEdit, didPrefillRef]);
 
   const selectedClient = clients?.find(c => c.id === form.client_id);
 
