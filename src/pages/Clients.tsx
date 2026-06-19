@@ -490,6 +490,7 @@ const Clients = () => {
               <Label>Sub-Series</Label>
               <p className="text-xs text-muted-foreground mb-2">Add sub-series or divisions under this client (e.g. different property types, regions, or project lines)</p>
               <SubSeriesTagInput value={form.sub_series} onChange={v => setForm({ ...form, sub_series: v })} />
+            </div>
             <div>
               <Label>Notes</Label>
               <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
