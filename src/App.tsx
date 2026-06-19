@@ -15,7 +15,7 @@ import EmployeeForm from "./pages/EmployeeForm";
 import Settings from "./pages/Settings";
 import PublicHolidays from "./pages/PublicHolidays";
 import Projects from "./pages/Projects";
-import ProjectsV2 from "./pages/ProjectsV2";
+
 import ProjectForm from "./pages/ProjectForm";
 import ProjectDetail from "./pages/ProjectDetail";
 import Clients from "./pages/Clients";
