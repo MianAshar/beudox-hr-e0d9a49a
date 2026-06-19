@@ -62,7 +62,7 @@ const ProjectForm = () => {
   const { data: clients } = useQuery({
     queryKey: ['clients-lookup', companyId],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id, name, billing_currency').eq('company_id', companyId!).eq('is_active', true).order('name');
+      const { data } = await supabase.from('clients').select('id, name, billing_currency, sub_series').eq('company_id', companyId!).eq('is_active', true).order('name');
       return data ?? [];
     },
     enabled: !!companyId,
