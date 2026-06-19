@@ -440,7 +440,6 @@ const Projects = () => {
     });
   };
 
-  return (
   const isCEO = roles.includes('ceo');
 
   const listContent = (
