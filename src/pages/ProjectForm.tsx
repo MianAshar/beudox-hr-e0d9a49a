@@ -294,59 +294,43 @@ const ProjectForm = () => {
           </div>
         </div>
 
-        {/* Row 2: Client combobox + Category */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <Label>Client *</Label>
-            <Popover open={clientOpen} onOpenChange={setClientOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={clientOpen} className="w-full justify-between font-normal">
-                  {selectedClient?.name || 'Select client…'}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                <Command shouldFilter={false}>
-                  <CommandInput placeholder="Search clients…" value={clientSearch} onValueChange={setClientSearch} />
-                  <CommandList>
-                    <CommandEmpty>No clients found.</CommandEmpty>
-                    <CommandGroup>
-                      {filteredClients.map(c => (
-                        <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id, sub_series: '' }); setClientOpen(false); setClientSearch(''); }}>
-                          <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
-                          {c.name}
-                        </CommandItem>
-                      ))}
-                      <CommandItem
-                        value="__add_new_client__"
-                        onSelect={() => { setClientOpen(false); setClientSearch(''); setNewClientOpen(true); }}
-                        className="border-t mt-1 text-[#5B3FF8] font-medium"
-                      >
-                        <Plus className="mr-2 h-4 w-4" /> Add New Client
+        {/* Row 2: Client combobox */}
+        <div>
+          <Label>Client *</Label>
+          <Popover open={clientOpen} onOpenChange={setClientOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" role="combobox" aria-expanded={clientOpen} className="w-full justify-between font-normal">
+                {selectedClient?.name || 'Select client…'}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+              <Command shouldFilter={false}>
+                <CommandInput placeholder="Search clients…" value={clientSearch} onValueChange={setClientSearch} />
+                <CommandList>
+                  <CommandEmpty>No clients found.</CommandEmpty>
+                  <CommandGroup>
+                    {filteredClients.map(c => (
+                      <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id, sub_series: '' }); setClientOpen(false); setClientSearch(''); }}>
+                        <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
+                        {c.name}
                       </CommandItem>
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
-          </div>
-          <div>
-            <Label>Category</Label>
-            <Select value={form.category_id} onValueChange={v => setForm({ ...form, category_id: v })}>
-              <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-              <SelectContent>
-                {categories && categories.length > 0 ? (
-                  categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)
-                ) : (
-                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                    No categories defined. Add categories in Settings.
-                  </div>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+                    ))}
+                    <CommandItem
+                      value="__add_new_client__"
+                      onSelect={() => { setClientOpen(false); setClientSearch(''); setNewClientOpen(true); }}
+                      className="border-t mt-1 text-[#5B3FF8] font-medium"
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Add New Client
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
         </div>
+
 
         {/* Sub-Series - shown when a client is selected */}
         {form.client_id && (
