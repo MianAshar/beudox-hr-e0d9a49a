@@ -142,6 +142,7 @@ const Clients = () => {
         country: form.country.trim() || null,
         billing_currency: form.billing_currency,
         notes: form.notes.trim() || null,
+        sub_series: form.sub_series,
         company_id: companyId!,
       };
       if (editingId) {
