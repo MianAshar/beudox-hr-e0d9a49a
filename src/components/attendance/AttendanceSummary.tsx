@@ -393,7 +393,7 @@ const AttendanceSummary = ({
     );
   }
 
-  if (records.length === 0) {
+  if (records.length === 0 && metrics.totalAbsences === 0 && employees.size === 0) {
     return (
       <Card className="p-12 flex flex-col items-center justify-center text-center">
         <CalendarCheck className="mb-3" style={{ width: 48, height: 48, color: '#9490B4' }} />
