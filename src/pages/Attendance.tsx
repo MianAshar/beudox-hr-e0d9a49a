@@ -182,7 +182,7 @@ function RecordsTable({
                       </TableCell>
                     )}
                     <TableCell>
-                      {isOnLeave ? (
+                      {isOnLeave || isAbsent ? (
                         <span className="text-muted-foreground">—</span>
                       ) : r.check_in ? (
                         <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
@@ -193,7 +193,7 @@ function RecordsTable({
                       )}
                     </TableCell>
                     <TableCell>
-                      {isOnLeave ? (
+                      {isOnLeave || isAbsent ? (
                         <span className="text-muted-foreground">—</span>
                       ) : r.check_out ? (
                         <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
@@ -206,6 +206,8 @@ function RecordsTable({
                     <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
                       {isOnLeave ? (
                         <span style={{ fontSize: '13px', fontWeight: 500, color: '#60A5FA' }}>On Leave</span>
+                      ) : isAbsent ? (
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#E84545' }}>Absent</span>
                       ) : (
                         <div className="flex flex-col items-end leading-tight">
                           <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
