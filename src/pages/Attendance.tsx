@@ -618,6 +618,13 @@ const Attendance = () => {
 
       const rows = (data ?? []) as AttendanceRow[];
 
+      // No real attendance for this month → empty state. Don't fabricate
+      // absent/leave rows when the underlying month has been cleared.
+      if (rows.length === 0) {
+        setCompanyRecords([]);
+        return;
+      }
+
       // Fetch all active employees so we can include leave-only rows for people
       // who have no attendance records yet this month.
       const { data: allEmps } = await supabase
