@@ -1,0 +1,3 @@
+CREATE POLICY attendance_imports_delete_hr_ceo ON public.attendance_imports FOR DELETE TO authenticated USING ((company_id = get_company_id_for_auth(auth.uid())) AND (get_employee_role_for_auth(auth.uid()) = ANY (ARRAY['hr_manager'::text, 'ceo'::text])));
+
+CREATE POLICY attendance_manual_logs_delete_hr_ceo ON public.attendance_manual_logs FOR DELETE TO authenticated USING ((company_id = get_company_id_for_auth(auth.uid())) AND (get_employee_role_for_auth(auth.uid()) = ANY (ARRAY['hr_manager'::text, 'ceo'::text])));

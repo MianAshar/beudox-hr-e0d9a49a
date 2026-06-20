@@ -715,6 +715,14 @@ const Attendance = () => {
         .lte('date', dateRange.endDate);
       if (recErr) throw recErr;
 
+      const { error: manErr } = await supabase
+        .from('attendance_manual_logs')
+        .delete()
+        .eq('company_id', employee.company_id)
+        .gte('date', dateRange.startDate)
+        .lte('date', dateRange.endDate);
+      if (manErr) throw manErr;
+
       const { error: impErr } = await supabase
         .from('attendance_imports')
         .delete()
