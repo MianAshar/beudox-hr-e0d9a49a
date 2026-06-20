@@ -253,11 +253,12 @@ const AttendanceSummary = ({
       empRecordedDays.get(r.employee_id)!.add(r.date);
     });
 
-    // Implicit absences: active employees with no record on a working day
+    // Implicit absences: active employees with no record AND no approved leave on a working day
     let implicitAbsences = 0;
     employees.forEach((_emp, empId) => {
       const seen = empRecordedDays.get(empId) ?? new Set<string>();
-      workingDaySet.forEach(d => { if (!seen.has(d)) implicitAbsences++; });
+      const leaves = leaveDatesByEmp.get(empId) ?? new Set<string>();
+      workingDaySet.forEach(d => { if (!seen.has(d) && !leaves.has(d)) implicitAbsences++; });
     });
     const totalAbsences = absentRecords.length + implicitAbsences;
 
