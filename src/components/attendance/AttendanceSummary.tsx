@@ -382,7 +382,7 @@ const AttendanceSummary = ({
       singlePunch,
       weekendWorkers,
     };
-  }, [records, employees, activeEmployeeCount, holidayDates, startDate, endDate]);
+  }, [records, employees, activeEmployeeCount, holidayDates, leaveDatesByEmp, startDate, endDate]);
 
   if (loading) {
     return (
