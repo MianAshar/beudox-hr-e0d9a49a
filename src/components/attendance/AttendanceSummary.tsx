@@ -331,13 +331,15 @@ const AttendanceSummary = ({
       if (!r.employee_id) return;
       absencesByEmp.set(r.employee_id, (absencesByEmp.get(r.employee_id) ?? 0) + 1);
     });
-    employees.forEach((_e, empId) => {
-      const seen = empRecordedDays.get(empId) ?? new Set<string>();
-      const leaves = leaveDatesByEmp.get(empId) ?? new Set<string>();
-      let missed = 0;
-      workingDaySet.forEach(d => { if (!seen.has(d) && !leaves.has(d)) missed++; });
-      if (missed > 0) absencesByEmp.set(empId, (absencesByEmp.get(empId) ?? 0) + missed);
-    });
+    if (records.length > 0) {
+      employees.forEach((_e, empId) => {
+        const seen = empRecordedDays.get(empId) ?? new Set<string>();
+        const leaves = leaveDatesByEmp.get(empId) ?? new Set<string>();
+        let missed = 0;
+        workingDaySet.forEach(d => { if (!seen.has(d) && !leaves.has(d)) missed++; });
+        if (missed > 0) absencesByEmp.set(empId, (absencesByEmp.get(empId) ?? 0) + missed);
+      });
+    }
     const highAbsence = Array.from(absencesByEmp.entries())
       .filter(([, c]) => c >= 3)
       .map(([id, c]) => ({ emp: employees.get(id), count: c }))
