@@ -400,7 +400,8 @@ const Attendance = () => {
   // Fetch approved leaves overlapping the visible month and company holidays/working_days.
   // Returns a map: employeeId -> { dateStr -> leaveTypeName } for working days only.
   const fetchLeaveDayMap = async (employeeIds: string[] | null) => {
-    if (!employee?.company_id) return new Map<string, Map<string, string>>();
+    const emptyResult = { leaveMap: new Map<string, Map<string, string>>(), holidaySet: new Set<string>(), workingDays: [1, 2, 3, 4, 5] as number[] };
+    if (!employee?.company_id) return emptyResult;
     const { startDate, endDate } = dateRange;
 
     // Working days config
