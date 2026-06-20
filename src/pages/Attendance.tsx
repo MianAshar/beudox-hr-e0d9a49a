@@ -465,7 +465,7 @@ const Attendance = () => {
         cur.setDate(cur.getDate() + 1);
       }
     });
-    return map;
+    return { leaveMap: map, holidaySet, workingDays };
   };
 
   // Build synthetic on_leave rows for an employee where no attendance record
@@ -497,6 +497,52 @@ const Attendance = () => {
         employee_name: employeeName,
       });
     });
+    return rows;
+  };
+
+  // Build synthetic absent rows for working days with no attendance record AND no leave.
+  const buildAbsentRows = (
+    employeeId: string,
+    employeeCode: string | null,
+    employeeName: string | null,
+    holidaySet: Set<string>,
+    workingDays: number[],
+    attendedDates: Set<string>,
+    leaveDates: Set<string>,
+  ): AttendanceRow[] => {
+    const { startDate, endDate } = dateRange;
+    const rows: AttendanceRow[] = [];
+    const cur = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    while (cur <= end) {
+      const ds = fmt(cur);
+      const dow = cur.getDay();
+      if (
+        workingDays.includes(dow)
+        && !holidaySet.has(ds)
+        && !attendedDates.has(ds)
+        && !leaveDates.has(ds)
+      ) {
+        rows.push({
+          id: `absent-${employeeId}-${ds}`,
+          employee_code: employeeCode,
+          employee_id: employeeId,
+          date: ds,
+          check_in: null,
+          check_out: null,
+          working_hours: null,
+          notes: 'Absent',
+          is_late: false,
+          regular_ot_hours: 0,
+          holiday_ot_hours: 0,
+          status: 'absent',
+          employee_name: employeeName,
+        });
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
     return rows;
   };
 
