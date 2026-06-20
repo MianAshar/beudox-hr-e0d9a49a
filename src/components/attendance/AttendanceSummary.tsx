@@ -129,13 +129,14 @@ const AttendanceSummary = ({
   const [employees, setEmployees] = useState<Map<string, EmployeeLite>>(new Map());
   const [activeEmployeeCount, setActiveEmployeeCount] = useState(0);
   const [holidayDates, setHolidayDates] = useState<Set<string>>(new Set());
+  const [leaveDatesByEmp, setLeaveDatesByEmp] = useState<Map<string, Set<string>>>(new Map());
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       try {
-        const [recRes, empRes, holRes] = await Promise.all([
+        const [recRes, empRes, holRes, leaveRes] = await Promise.all([
           supabase
             .from('attendance_records')
             .select('id, employee_id, employee_code, date, check_in, check_out, working_hours, regular_ot_hours, holiday_ot_hours, is_late, is_absent, is_weekend, is_holiday')
@@ -151,6 +152,13 @@ const AttendanceSummary = ({
             .from('public_holidays')
             .select('date, end_date, is_recurring, year')
             .eq('company_id', companyId),
+          supabase
+            .from('leave_requests')
+            .select('employee_id, start_date, end_date')
+            .eq('company_id', companyId)
+            .eq('status', 'approved')
+            .lte('start_date', endDate)
+            .gte('end_date', startDate),
         ]);
 
         if (cancelled) return;
@@ -176,7 +184,6 @@ const AttendanceSummary = ({
             });
           };
           if (h.is_recurring) {
-            // Apply recurring date to the selected year
             const orig = new Date(`${h.date}T00:00:00Z`);
             const mm = String(orig.getUTCMonth() + 1).padStart(2, '0');
             const dd = String(orig.getUTCDate()).padStart(2, '0');
@@ -194,10 +201,23 @@ const AttendanceSummary = ({
           }
         });
 
+        // Build per-employee leave date set within the month window
+        const leaveMap = new Map<string, Set<string>>();
+        (leaveRes.data ?? []).forEach((lr: any) => {
+          if (!lr.employee_id) return;
+          const dates = eachDate(lr.start_date, lr.end_date);
+          dates.forEach(d => {
+            if (d < startDate || d > endDate) return;
+            if (!leaveMap.has(lr.employee_id)) leaveMap.set(lr.employee_id, new Set());
+            leaveMap.get(lr.employee_id)!.add(d);
+          });
+        });
+
         setRecords(rows);
         setEmployees(empMap);
         setActiveEmployeeCount(activeCount);
         setHolidayDates(holSet);
+        setLeaveDatesByEmp(leaveMap);
       } catch (err) {
         console.error('Summary load failed', err);
       } finally {
@@ -233,11 +253,12 @@ const AttendanceSummary = ({
       empRecordedDays.get(r.employee_id)!.add(r.date);
     });
 
-    // Implicit absences: active employees with no record on a working day
+    // Implicit absences: active employees with no record AND no approved leave on a working day
     let implicitAbsences = 0;
     employees.forEach((_emp, empId) => {
       const seen = empRecordedDays.get(empId) ?? new Set<string>();
-      workingDaySet.forEach(d => { if (!seen.has(d)) implicitAbsences++; });
+      const leaves = leaveDatesByEmp.get(empId) ?? new Set<string>();
+      workingDaySet.forEach(d => { if (!seen.has(d) && !leaves.has(d)) implicitAbsences++; });
     });
     const totalAbsences = absentRecords.length + implicitAbsences;
 
@@ -308,8 +329,9 @@ const AttendanceSummary = ({
     });
     employees.forEach((_e, empId) => {
       const seen = empRecordedDays.get(empId) ?? new Set<string>();
+      const leaves = leaveDatesByEmp.get(empId) ?? new Set<string>();
       let missed = 0;
-      workingDaySet.forEach(d => { if (!seen.has(d)) missed++; });
+      workingDaySet.forEach(d => { if (!seen.has(d) && !leaves.has(d)) missed++; });
       if (missed > 0) absencesByEmp.set(empId, (absencesByEmp.get(empId) ?? 0) + missed);
     });
     const highAbsence = Array.from(absencesByEmp.entries())
@@ -360,7 +382,7 @@ const AttendanceSummary = ({
       singlePunch,
       weekendWorkers,
     };
-  }, [records, employees, activeEmployeeCount, holidayDates, startDate, endDate]);
+  }, [records, employees, activeEmployeeCount, holidayDates, leaveDatesByEmp, startDate, endDate]);
 
   if (loading) {
     return (
@@ -371,7 +393,7 @@ const AttendanceSummary = ({
     );
   }
 
-  if (records.length === 0) {
+  if (records.length === 0 && metrics.totalAbsences === 0 && employees.size === 0) {
     return (
       <Card className="p-12 flex flex-col items-center justify-center text-center">
         <CalendarCheck className="mb-3" style={{ width: 48, height: 48, color: '#9490B4' }} />

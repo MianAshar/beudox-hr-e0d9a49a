@@ -167,9 +167,10 @@ function RecordsTable({
               {group.rows.map(r => {
                 const isUnmatched = !r.employee_id;
                 const isOnLeave = r.status === 'on_leave';
+                const isAbsent = r.status === 'absent';
                 const missingField: 'check_in' | 'check_out' | null =
                   !r.check_in ? 'check_in' : !r.check_out ? 'check_out' : null;
-                const editable = !isOnLeave && missingField && canEdit(r);
+                const editable = !isOnLeave && !isAbsent && missingField && canEdit(r);
                 return (
                   <TableRow key={r.id}>
                     {showCodeAndName && (
@@ -181,7 +182,7 @@ function RecordsTable({
                       </TableCell>
                     )}
                     <TableCell>
-                      {isOnLeave ? (
+                      {isOnLeave || isAbsent ? (
                         <span className="text-muted-foreground">—</span>
                       ) : r.check_in ? (
                         <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
@@ -192,7 +193,7 @@ function RecordsTable({
                       )}
                     </TableCell>
                     <TableCell>
-                      {isOnLeave ? (
+                      {isOnLeave || isAbsent ? (
                         <span className="text-muted-foreground">—</span>
                       ) : r.check_out ? (
                         <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
@@ -205,6 +206,8 @@ function RecordsTable({
                     <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
                       {isOnLeave ? (
                         <span style={{ fontSize: '13px', fontWeight: 500, color: '#60A5FA' }}>On Leave</span>
+                      ) : isAbsent ? (
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#E84545' }}>Absent</span>
                       ) : (
                         <div className="flex flex-col items-end leading-tight">
                           <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
@@ -238,6 +241,14 @@ function RecordsTable({
                             padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
                           }}>
                             {r.notes || 'On Leave'}
+                          </span>
+                        ) : isAbsent ? (
+                          <span style={{
+                            backgroundColor: '#FEE2E2', color: '#991B1B',
+                            fontSize: '11px', fontWeight: 600,
+                            padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                          }}>
+                            Absent
                           </span>
                         ) : (
                           <>
@@ -389,7 +400,8 @@ const Attendance = () => {
   // Fetch approved leaves overlapping the visible month and company holidays/working_days.
   // Returns a map: employeeId -> { dateStr -> leaveTypeName } for working days only.
   const fetchLeaveDayMap = async (employeeIds: string[] | null) => {
-    if (!employee?.company_id) return new Map<string, Map<string, string>>();
+    const emptyResult = { leaveMap: new Map<string, Map<string, string>>(), holidaySet: new Set<string>(), workingDays: [1, 2, 3, 4, 5] as number[] };
+    if (!employee?.company_id) return emptyResult;
     const { startDate, endDate } = dateRange;
 
     // Working days config
@@ -454,7 +466,7 @@ const Attendance = () => {
         cur.setDate(cur.getDate() + 1);
       }
     });
-    return map;
+    return { leaveMap: map, holidaySet, workingDays };
   };
 
   // Build synthetic on_leave rows for an employee where no attendance record
@@ -489,6 +501,52 @@ const Attendance = () => {
     return rows;
   };
 
+  // Build synthetic absent rows for working days with no attendance record AND no leave.
+  const buildAbsentRows = (
+    employeeId: string,
+    employeeCode: string | null,
+    employeeName: string | null,
+    holidaySet: Set<string>,
+    workingDays: number[],
+    attendedDates: Set<string>,
+    leaveDates: Set<string>,
+  ): AttendanceRow[] => {
+    const { startDate, endDate } = dateRange;
+    const rows: AttendanceRow[] = [];
+    const cur = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    while (cur <= end) {
+      const ds = fmt(cur);
+      const dow = cur.getDay();
+      if (
+        workingDays.includes(dow)
+        && !holidaySet.has(ds)
+        && !attendedDates.has(ds)
+        && !leaveDates.has(ds)
+      ) {
+        rows.push({
+          id: `absent-${employeeId}-${ds}`,
+          employee_code: employeeCode,
+          employee_id: employeeId,
+          date: ds,
+          check_in: null,
+          check_out: null,
+          working_hours: null,
+          notes: 'Absent',
+          is_late: false,
+          regular_ot_hours: 0,
+          holiday_ot_hours: 0,
+          status: 'absent',
+          employee_name: employeeName,
+        });
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    return rows;
+  };
+
   const fetchMy = async () => {
     if (!employee?.company_id || !employee?.employee_id) return;
     setLoadingMy(true);
@@ -508,16 +566,27 @@ const Attendance = () => {
         employee_name: employee.full_name,
       }));
 
-      const leaveMap = await fetchLeaveDayMap([employee.employee_id]);
+      const { leaveMap, holidaySet, workingDays } = await fetchLeaveDayMap([employee.employee_id]);
       const existingDates = new Set(baseRows.map(r => r.date));
+      const leaveDateMap = leaveMap.get(employee.employee_id);
       const leaveRows = buildLeaveRows(
         employee.employee_id,
         null,
         employee.full_name ?? null,
-        leaveMap.get(employee.employee_id),
+        leaveDateMap,
         existingDates,
       );
-      setMyRecords([...baseRows, ...leaveRows]);
+      const leaveDateSet = new Set<string>(leaveDateMap ? Array.from(leaveDateMap.keys()) : []);
+      const absentRows = buildAbsentRows(
+        employee.employee_id,
+        null,
+        employee.full_name ?? null,
+        holidaySet,
+        workingDays,
+        existingDates,
+        leaveDateSet,
+      );
+      setMyRecords([...baseRows, ...leaveRows, ...absentRows]);
     } catch (err) {
       console.error(err);
       setMyRecords([]);
@@ -561,12 +630,16 @@ const Attendance = () => {
         employee_name: r.employee_id ? idToName.get(r.employee_id) ?? null : null,
       }));
 
-      const leaveMap = await fetchLeaveDayMap(Array.from(idToName.keys()));
+      const { leaveMap, holidaySet, workingDays } = await fetchLeaveDayMap(Array.from(idToName.keys()));
 
       // existing (employee_id, date) pairs
       const existingPairs = new Set<string>();
+      const attendedByEmp = new Map<string, Set<string>>();
       baseRows.forEach(r => {
-        if (r.employee_id) existingPairs.add(`${r.employee_id}|${r.date}`);
+        if (!r.employee_id) return;
+        existingPairs.add(`${r.employee_id}|${r.date}`);
+        if (!attendedByEmp.has(r.employee_id)) attendedByEmp.set(r.employee_id, new Set());
+        attendedByEmp.get(r.employee_id)!.add(r.date);
       });
 
       const extraLeaveRows: AttendanceRow[] = [];
@@ -586,7 +659,26 @@ const Attendance = () => {
         );
       });
 
-      setCompanyRecords([...baseRows, ...extraLeaveRows]);
+      // Synthetic absent rows for every active employee
+      const absentRows: AttendanceRow[] = [];
+      idToName.forEach((name, empId) => {
+        const attended = attendedByEmp.get(empId) ?? new Set<string>();
+        const leaveDates = leaveMap.get(empId);
+        const leaveSet = new Set<string>(leaveDates ? Array.from(leaveDates.keys()) : []);
+        absentRows.push(
+          ...buildAbsentRows(
+            empId,
+            idToCode.get(empId) ?? null,
+            name,
+            holidaySet,
+            workingDays,
+            attended,
+            leaveSet,
+          ),
+        );
+      });
+
+      setCompanyRecords([...baseRows, ...extraLeaveRows, ...absentRows]);
     } catch (err) {
       console.error(err);
       setCompanyRecords([]);

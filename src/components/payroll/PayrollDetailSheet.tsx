@@ -97,7 +97,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
       const startDate = `${monthYear}-01`;
       const endDate = `${monthYear}-${String(last).padStart(2, '0')}`;
 
-      const [attRes, leaveRes, csRes] = await Promise.all([
+      const [attRes, leaveRes, csRes, holRes] = await Promise.all([
         supabase
           .from('attendance_records')
           .select('date, regular_ot_hours, is_late, is_absent, is_weekend, is_holiday')
@@ -113,9 +113,13 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
           .gte('end_date', startDate),
         supabase
           .from('company_settings')
-          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours')
+          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, working_days')
           .eq('company_id', companyId!)
           .maybeSingle(),
+        supabase
+          .from('public_holidays' as any)
+          .select('date, end_date, is_recurring')
+          .eq('company_id', companyId!),
       ]);
 
       // Expand approved leaves into a set of weekday leave dates within the month
@@ -133,7 +137,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
         while (cur <= stop) {
           const dow = cur.getDay();
           if (dow !== 0 && dow !== 6) {
-            leaveDates.add(cur.toISOString().split('T')[0]);
+            leaveDates.add(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`);
           }
           cur.setDate(cur.getDate() + 1);
         }
@@ -143,21 +147,24 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
       let shortHours = 0;
       let overtimeHours = 0;
       let lateCount = 0;
-      let absentCount = 0;
+      const attendedDates = new Set<string>();
       for (const r of att) {
+        attendedDates.add(r.date as string);
         // Leave days are neutral — skip entirely
         if (leaveDates.has(r.date as string)) continue;
         const v = Number(r.regular_ot_hours || 0);
         if (v < 0) shortHours += Math.abs(v);
         else if (v > 0) overtimeHours += v;
         if (r.is_late) lateCount++;
-        if (r.is_absent) absentCount++;
       }
 
       const leaveDays = leaveDates.size;
 
       const cs = csRes.data;
       const otDivisor = Number(cs?.ot_divisor) || 26;
+      const workingDays: number[] = Array.isArray((cs as any)?.working_days)
+        ? (cs as any).working_days
+        : [1, 2, 3, 4, 5];
       let workingHoursPerDay = 8;
       if (cs?.shift_start_time && cs?.shift_end_time) {
         const toMin = (t: string) => {
@@ -166,6 +173,46 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
         };
         const diff = (toMin(cs.shift_end_time) - toMin(cs.shift_start_time)) / 60;
         workingHoursPerDay = Math.max(1, diff - Number(cs.lunch_break_hours || 0));
+      }
+
+      // Expand public holidays into a set of YYYY-MM-DD within the month
+      const holidayDates = new Set<string>();
+      const fmtDate = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      (holRes.data ?? []).forEach((h: any) => {
+        const hStart = h.is_recurring
+          ? `${monthYear!.split('-')[0]}-${(h.date as string).slice(5)}`
+          : (h.date as string);
+        const hEnd = h.end_date
+          ? (h.is_recurring
+            ? `${monthYear!.split('-')[0]}-${(h.end_date as string).slice(5)}`
+            : (h.end_date as string))
+          : hStart;
+        const cur = new Date(hStart + 'T00:00:00');
+        const stop = new Date(hEnd + 'T00:00:00');
+        while (cur <= stop) {
+          const ds = fmtDate(cur);
+          if (ds >= startDate && ds <= endDate) holidayDates.add(ds);
+          cur.setDate(cur.getDate() + 1);
+        }
+      });
+
+      // Compute absent days: working days with no attendance and no leave
+      let absentCount = 0;
+      const cur = new Date(startDate + 'T00:00:00');
+      const stop = new Date(endDate + 'T00:00:00');
+      while (cur <= stop) {
+        const ds = fmtDate(cur);
+        const dow = cur.getDay();
+        if (
+          workingDays.includes(dow)
+          && !holidayDates.has(ds)
+          && !attendedDates.has(ds)
+          && !leaveDates.has(ds)
+        ) {
+          absentCount++;
+        }
+        cur.setDate(cur.getDate() + 1);
       }
 
       return {
