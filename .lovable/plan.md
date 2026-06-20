@@ -1,38 +1,42 @@
-## Goal
-Add a temporary diagnostic log to `generate-payroll` to trace what happens for employee_code `511122` on each April 2026 attendance record, then capture the logs for `2026-04-23`.
+## Remove Short-Time Relaxation from Payroll OT Calculation
 
-## Changes
+### Problem
+The `generate-payroll` Edge Function silently applies `short_time_relaxation_hours` to reduce an employee's short-time deficit before calculating `regular_ot_total`, `regular_ot_amount`, and ultimately `total_salary`. This setting must remain purely informational and never modify the actual payroll math.
 
-### 1. `supabase/functions/generate-payroll/index.ts`
-Resolve employee_code → employee_id once at function start (cheap, scoped to the target code only), then log inside the attendance loop for that employee.
+### Files to Change
 
-- After `employees` are fetched, compute:
-  ```ts
-  const DEBUG_EMP_CODE = '511122';
-  const { data: debugEmpRow } = await supabase
-    .from('employees')
-    .select('id')
-    .eq('company_id', company_id)
-    .eq('employee_code', DEBUG_EMP_CODE)
-    .maybeSingle();
-  const debugEmpId = debugEmpRow?.id ?? null;
+#### 1. `supabase/functions/generate-payroll/index.ts`
+- **Lines 241-244** — Replace the relaxation-adjusted OT calculation:
   ```
-- In the attendance loop, in the **regular working day** branch, immediately before the `if (leaveDatesByEmp[empId]?.has(recDate)) continue;` line, insert:
-  ```ts
-  const deviation = Number(rec.regular_ot_hours || 0);
-  if (debugEmpId && empId === debugEmpId) {
-    console.log(`Processing ${recDate} for emp ${empId}: deviation=${deviation}, inLeaveSet=${leaveDatesByEmp[empId]?.has(recDate)}, hasCheckIn=${!!(rec as any).check_in}, hasCheckOut=${!!(rec as any).check_out}`);
-  }
+  const relaxation = shortTimeRelaxation || 0;
+  const adjustedShortTime = shortTime + relaxation;
+  const effectiveShortTime = adjustedShortTime >= 0 ? 0 : adjustedShortTime;
+  const regularOtTotal = effectiveShortTime + overtime;
   ```
-  Move the existing `const deviation = ...` further down so it isn't redeclared (or reuse this one).
+  with:
+  ```
+  const regularOtTotal = shortTime + overtime;
+  ```
+- **Lines 78-85** — Remove the `DEBUG_EMP_CODE` resolution block.
+- **Lines 151-153** — Remove the `console.log` inside the attendance summation loop.
+- **Lines 162-166** — Remove the `FINAL` `console.log` after the summation loop.
+- Keep `shortTimeRelaxation` and its fetch from `company_settings` unchanged — it may still be passed along for informational display elsewhere.
 
-No calculation logic changes. No other files touched.
+#### 2. No frontend changes
+The `short_time_relaxation_hours` setting stays editable in Attendance Settings. If the payroll breakdown sidebar already shows it, that display is allowed to remain as a reference value. The fix is strictly backend.
 
-## Verification
-1. After deploy, ask the user to regenerate April 2026 payroll from the UI.
-2. Fetch `generate-payroll` Edge Function logs filtered to `2026-04-23` via `supabase--edge_function_logs` and surface them.
-3. Once root cause is identified in a follow-up turn, remove the temporary log.
+### Verification Steps
+1. Deploy the updated Edge Function.
+2. Trigger payroll generation for April 2026.
+3. Pull Edge Function logs and confirm for `employee_code` `511122`:
+   - `shortTime` = -7.13 (raw, unmodified)
+   - `overtime` = 4.01
+   - `regularOtTotal` = -3.12
+4. Confirm the Forgo toggle appears on the employee's payroll row because `regularOtTotal` is now negative.
+5. Confirm `total_salary` and `final_payment` reflect the unrelaxed values.
 
-## Notes
-- Log is gated on `debugEmpId` so it produces zero output for other companies/employees.
-- Will be removed in a follow-up once debugging is complete.
+### What is NOT Changing
+- Attendance summation loop logic
+- Leave exclusion logic
+- Forgo toggle UI/logic
+- Any other module
