@@ -147,12 +147,16 @@ Deno.serve(async (req) => {
       }
 
       // Regular working day — must have both punches and not be a leave day.
+      const deviation = Number(rec.regular_ot_hours || 0);
+      if (debugEmpId && empId === debugEmpId) {
+        console.log(`Processing ${recDate} for emp ${empId}: deviation=${deviation}, inLeaveSet=${leaveDatesByEmp[empId]?.has(recDate)}, hasCheckIn=${!!(rec as any).check_in}, hasCheckOut=${!!(rec as any).check_out}`);
+      }
       if (leaveDatesByEmp[empId]?.has(recDate)) continue;
       if (!(rec as any).check_in || !(rec as any).check_out) continue;
 
-      const deviation = Number(rec.regular_ot_hours || 0);
       if (deviation < 0) attendanceMap[empId].shortTime += deviation;
       else attendanceMap[empId].overtime += deviation;
+
     }
 
     // 4. Fetch active loans
