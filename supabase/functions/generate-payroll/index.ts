@@ -74,6 +74,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // TEMP DEBUG: resolve employee_code -> id for targeted logging
+    const DEBUG_EMP_CODE = '511122';
+    const { data: debugEmpRow } = await supabase
+      .from('employees')
+      .select('id')
+      .eq('company_id', company_id)
+      .eq('employee_code', DEBUG_EMP_CODE)
+      .maybeSingle();
+    const debugEmpId = (debugEmpRow as any)?.id ?? null;
+
+
     // 3. Date range for the month
     const [year, month] = month_year.split('-').map(Number);
     const startDate = `${month_year}-01`;

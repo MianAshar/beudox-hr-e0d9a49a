@@ -1,40 +1,38 @@
-## Fix: include every valid attendance day in short-time/overtime sum
+## Goal
+Add a temporary diagnostic log to `generate-payroll` to trace what happens for employee_code `511122` on each April 2026 attendance record, then capture the logs for `2026-04-23`.
 
-### Root cause
-`supabase/functions/generate-payroll/index.ts` only selects `employee_id, date, regular_ot_hours, holiday_ot_hours` from `attendance_records` and only skips leave days. It never explicitly checks `is_weekend`, `is_holiday`, `check_in`, or `check_out`. Days that should be summed are being silently filtered because the query/loop relies on indirect signals rather than the explicit rules from the spec, and the current `else if (reg > 0)` branch also drops any record whose `regular_ot_hours` is exactly stored as `0` from being part of the contract — and ambiguously handles edge cases where stored deviations come back as `null`/odd values.
+## Changes
 
-### Change
-Update the attendance fetch + summation loop in `supabase/functions/generate-payroll/index.ts`:
+### 1. `supabase/functions/generate-payroll/index.ts`
+Resolve employee_code → employee_id once at function start (cheap, scoped to the target code only), then log inside the attendance loop for that employee.
 
-1. Expand the `select` to include `is_weekend, is_holiday, check_in, check_out, regular_ot_hours, holiday_ot_hours, date, employee_id`.
-2. Replace the current loop with the canonical version from the spec:
-
-```ts
-for (const rec of attendance || []) {
-  const empId = rec.employee_id;
-  const recDate = rec.date;
-
-  if (rec.is_weekend || rec.is_holiday) continue;
-  if (leaveDatesByEmp[empId]?.has(recDate)) continue;
-  if (!rec.check_in || !rec.check_out) continue; // single punch
-
-  if (!attendanceMap[empId]) {
-    attendanceMap[empId] = { shortTime: 0, overtime: 0, holidayOt: 0 };
-  }
-
+- After `employees` are fetched, compute:
+  ```ts
+  const DEBUG_EMP_CODE = '511122';
+  const { data: debugEmpRow } = await supabase
+    .from('employees')
+    .select('id')
+    .eq('company_id', company_id)
+    .eq('employee_code', DEBUG_EMP_CODE)
+    .maybeSingle();
+  const debugEmpId = debugEmpRow?.id ?? null;
+  ```
+- In the attendance loop, in the **regular working day** branch, immediately before the `if (leaveDatesByEmp[empId]?.has(recDate)) continue;` line, insert:
+  ```ts
   const deviation = Number(rec.regular_ot_hours || 0);
-  if (deviation < 0) attendanceMap[empId].shortTime += deviation;
-  else attendanceMap[empId].overtime += deviation;
-}
-```
+  if (debugEmpId && empId === debugEmpId) {
+    console.log(`Processing ${recDate} for emp ${empId}: deviation=${deviation}, inLeaveSet=${leaveDatesByEmp[empId]?.has(recDate)}, hasCheckIn=${!!(rec as any).check_in}, hasCheckOut=${!!(rec as any).check_out}`);
+  }
+  ```
+  Move the existing `const deviation = ...` further down so it isn't redeclared (or reuse this one).
 
-3. Keep `holiday_ot_hours` accumulated in a separate pass that DOES allow weekend/holiday rows (since that's where holiday OT lives) but still excludes leave days and single-punch days. This preserves existing holiday-OT behavior.
+No calculation logic changes. No other files touched.
 
-### Out of scope
-- Leave exclusion logic (unchanged).
-- Weekend/holiday detection upstream (unchanged — relies on stored flags).
-- Forgo toggle UI/logic.
-- Any other module or downstream calculation (per-hour rate, rounding, arrears, loans).
+## Verification
+1. After deploy, ask the user to regenerate April 2026 payroll from the UI.
+2. Fetch `generate-payroll` Edge Function logs filtered to `2026-04-23` via `supabase--edge_function_logs` and surface them.
+3. Once root cause is identified in a follow-up turn, remove the temporary log.
 
-### Verification
-After deploy, regenerate April 2026 payroll and confirm Sadaqat Ali shows Short Time -7.13, Overtime +4.00, Net -3.13 with the Forgo toggle visible.
+## Notes
+- Log is gated on `debugEmpId` so it produces zero output for other companies/employees.
+- Will be removed in a follow-up once debugging is complete.
