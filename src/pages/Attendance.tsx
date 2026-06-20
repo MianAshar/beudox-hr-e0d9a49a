@@ -167,9 +167,10 @@ function RecordsTable({
               {group.rows.map(r => {
                 const isUnmatched = !r.employee_id;
                 const isOnLeave = r.status === 'on_leave';
+                const isAbsent = r.status === 'absent';
                 const missingField: 'check_in' | 'check_out' | null =
                   !r.check_in ? 'check_in' : !r.check_out ? 'check_out' : null;
-                const editable = !isOnLeave && missingField && canEdit(r);
+                const editable = !isOnLeave && !isAbsent && missingField && canEdit(r);
                 return (
                   <TableRow key={r.id}>
                     {showCodeAndName && (
