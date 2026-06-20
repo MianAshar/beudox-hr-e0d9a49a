@@ -633,13 +633,28 @@ const Projects = () => {
   if (isCEO) {
     return (
       <div className="p-4 lg:p-6 space-y-6">
-        <Tabs defaultValue="list">
-          <TabsList>
-            <TabsTrigger value="list">All Projects</TabsTrigger>
-            <TabsTrigger value="summary">Summary</TabsTrigger>
+        <Tabs defaultValue="summary" className="w-full">
+          <TabsList
+            className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
+            style={{ borderColor: 'hsl(var(--border))' }}
+          >
+            <TabsTrigger
+              value="summary"
+              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
+              style={{ fontFamily: 'var(--ff-body)' }}
+            >
+              Summary
+            </TabsTrigger>
+            <TabsTrigger
+              value="list"
+              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
+              style={{ fontFamily: 'var(--ff-body)' }}
+            >
+              All Projects
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="list" className="space-y-6 mt-4">{listContent}</TabsContent>
-          <TabsContent value="summary" className="mt-4"><ProjectsSummary /></TabsContent>
+          <TabsContent value="summary" className="mt-6"><ProjectsSummary /></TabsContent>
+          <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
         </Tabs>
       </div>
     );
