@@ -242,6 +242,14 @@ function RecordsTable({
                           }}>
                             {r.notes || 'On Leave'}
                           </span>
+                        ) : isAbsent ? (
+                          <span style={{
+                            backgroundColor: '#FEE2E2', color: '#991B1B',
+                            fontSize: '11px', fontWeight: 600,
+                            padding: '2px 8px', borderRadius: '9999px', lineHeight: 1.4,
+                          }}>
+                            Absent
+                          </span>
                         ) : (
                           <>
                             {r.is_late && (
