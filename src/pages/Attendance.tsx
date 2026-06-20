@@ -630,12 +630,16 @@ const Attendance = () => {
         employee_name: r.employee_id ? idToName.get(r.employee_id) ?? null : null,
       }));
 
-      const leaveMap = await fetchLeaveDayMap(Array.from(idToName.keys()));
+      const { leaveMap, holidaySet, workingDays } = await fetchLeaveDayMap(Array.from(idToName.keys()));
 
       // existing (employee_id, date) pairs
       const existingPairs = new Set<string>();
+      const attendedByEmp = new Map<string, Set<string>>();
       baseRows.forEach(r => {
-        if (r.employee_id) existingPairs.add(`${r.employee_id}|${r.date}`);
+        if (!r.employee_id) return;
+        existingPairs.add(`${r.employee_id}|${r.date}`);
+        if (!attendedByEmp.has(r.employee_id)) attendedByEmp.set(r.employee_id, new Set());
+        attendedByEmp.get(r.employee_id)!.add(r.date);
       });
 
       const extraLeaveRows: AttendanceRow[] = [];
@@ -655,7 +659,26 @@ const Attendance = () => {
         );
       });
 
-      setCompanyRecords([...baseRows, ...extraLeaveRows]);
+      // Synthetic absent rows for every active employee
+      const absentRows: AttendanceRow[] = [];
+      idToName.forEach((name, empId) => {
+        const attended = attendedByEmp.get(empId) ?? new Set<string>();
+        const leaveDates = leaveMap.get(empId);
+        const leaveSet = new Set<string>(leaveDates ? Array.from(leaveDates.keys()) : []);
+        absentRows.push(
+          ...buildAbsentRows(
+            empId,
+            idToCode.get(empId) ?? null,
+            name,
+            holidaySet,
+            workingDays,
+            attended,
+            leaveSet,
+          ),
+        );
+      });
+
+      setCompanyRecords([...baseRows, ...extraLeaveRows, ...absentRows]);
     } catch (err) {
       console.error(err);
       setCompanyRecords([]);
