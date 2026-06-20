@@ -159,6 +159,13 @@ Deno.serve(async (req) => {
 
     }
 
+    // TEMP DEBUG: final accumulated values for target employee
+    if (debugEmpId && attendanceMap[debugEmpId]) {
+      const a = attendanceMap[debugEmpId];
+      console.log(`FINAL for emp ${debugEmpId}: shortTime=${a.shortTime}, overtime=${a.overtime}, holidayOt=${a.holidayOt}`);
+    }
+
+
     // 4. Fetch active loans
     const { data: loans } = await supabase
       .from('loans')
