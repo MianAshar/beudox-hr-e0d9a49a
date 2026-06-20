@@ -446,6 +446,7 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
     title: 'Attendance Summary',
     rows: [
       { label: 'Present Days', value: attStats.present },
+      { label: 'Absents', value: attStats.absent, valueColor: attStats.absent > 0 ? '#E84545' : undefined },
       { label: 'Leaves Taken', value: attStats.leaveDays },
       { label: 'Late Arrivals', value: attStats.late },
       { label: 'Short Time', value: `${Math.abs(attStats.shortTime).toFixed(2)} hrs` },
