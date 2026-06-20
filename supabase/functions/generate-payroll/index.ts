@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     // Fetch all attendance records for this month + company
     const { data: attendance } = await supabase
       .from('attendance_records')
-      .select('employee_id, date, regular_ot_hours, holiday_ot_hours')
+      .select('employee_id, date, regular_ot_hours, holiday_ot_hours, is_weekend, is_holiday, check_in, check_out')
       .eq('company_id', company_id)
       .gte('date', startDate)
       .lte('date', endDate);
@@ -116,20 +116,32 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Group attendance by employee — split positive (overtime) from negative (short time).
-    // Skip dates that fall on an approved leave day — leave is neutral for payroll.
+    // Group attendance by employee — split negative (short time) from positive (overtime).
+    // Include every record that is NOT weekend/holiday/leave AND has both check_in and check_out.
+    // No threshold on size of deviation — every valid day counts at its full value.
     const attendanceMap: Record<string, { shortTime: number; overtime: number; holidayOt: number }> = {};
     for (const rec of attendance || []) {
       const empId = (rec as any).employee_id as string;
       const recDate = (rec as any).date as string;
-      if (leaveDatesByEmp[empId]?.has(recDate)) continue;
       if (!attendanceMap[empId]) {
         attendanceMap[empId] = { shortTime: 0, overtime: 0, holidayOt: 0 };
       }
-      const reg = Number(rec.regular_ot_hours || 0);
-      if (reg < 0) attendanceMap[empId].shortTime += reg;
-      else if (reg > 0) attendanceMap[empId].overtime += reg;
-      attendanceMap[empId].holidayOt += Number(rec.holiday_ot_hours || 0);
+
+      // Holiday OT accumulates from weekend/holiday rows (skip leave + single-punch).
+      if ((rec as any).is_weekend || (rec as any).is_holiday) {
+        if (leaveDatesByEmp[empId]?.has(recDate)) continue;
+        if (!(rec as any).check_in || !(rec as any).check_out) continue;
+        attendanceMap[empId].holidayOt += Number(rec.holiday_ot_hours || 0);
+        continue;
+      }
+
+      // Regular working day — must have both punches and not be a leave day.
+      if (leaveDatesByEmp[empId]?.has(recDate)) continue;
+      if (!(rec as any).check_in || !(rec as any).check_out) continue;
+
+      const deviation = Number(rec.regular_ot_hours || 0);
+      if (deviation < 0) attendanceMap[empId].shortTime += deviation;
+      else attendanceMap[empId].overtime += deviation;
     }
 
     // 4. Fetch active loans

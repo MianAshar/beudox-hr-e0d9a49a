@@ -1,99 +1,40 @@
-## Goal
+## Fix: include every valid attendance day in short-time/overtime sum
 
-Rebuild the payroll row detail sidebar so it shows the full breakdown defined in the brief. Row click → open is already wired (`onClick={() => setDetailRecord(rec)}` on each `TableRow` in `Payroll.tsx`), and `PayrollDetailSheet` is already mounted at the bottom of the page. The work is confined to:
+### Root cause
+`supabase/functions/generate-payroll/index.ts` only selects `employee_id, date, regular_ot_hours, holiday_ot_hours` from `attendance_records` and only skips leave days. It never explicitly checks `is_weekend`, `is_holiday`, `check_in`, or `check_out`. Days that should be summed are being silently filtered because the query/loop relies on indirect signals rather than the explicit rules from the spec, and the current `else if (reg > 0)` branch also drops any record whose `regular_ot_hours` is exactly stored as `0` from being part of the contract — and ambiguously handles edge cases where stored deviations come back as `null`/odd values.
 
-1. **`src/components/payroll/PayrollDetailSheet.tsx`** — full UI rewrite + extra data fetch.
-2. **`src/pages/Payroll.tsx`** — tiny tweak to the row's hover background (use `#F6F5FF`) and add `cursor-pointer` (already present). No other table changes.
+### Change
+Update the attendance fetch + summation loop in `supabase/functions/generate-payroll/index.ts`:
 
-Approve/Paid flow, Forgo toggle on the row, table columns, and every other screen stay untouched.
+1. Expand the `select` to include `is_weekend, is_holiday, check_in, check_out, regular_ot_hours, holiday_ot_hours, date, employee_id`.
+2. Replace the current loop with the canonical version from the spec:
 
-## Sidebar behaviour
+```ts
+for (const rec of attendance || []) {
+  const empId = rec.employee_id;
+  const recDate = rec.date;
 
-- Width: `420px` on `sm+`, full-screen on mobile (`w-full sm:w-[420px] sm:max-w-[420px]`).
-- Slide-in from right, 200ms ease (Radix `Sheet` default animation is close — override the inline transition duration to `200ms`).
-- Close on: X button (already in `SheetContent`), outside click and `Esc` (handled by Radix).
-- Scrollable body.
+  if (rec.is_weekend || rec.is_holiday) continue;
+  if (leaveDatesByEmp[empId]?.has(recDate)) continue;
+  if (!rec.check_in || !rec.check_out) continue; // single punch
 
-## Sidebar header (top, border-bottom)
+  if (!attendanceMap[empId]) {
+    attendanceMap[empId] = { shortTime: 0, overtime: 0, holidayOt: 0 };
+  }
 
-- 48px circular avatar (initials fallback).
-- Full name — Syne 700, 18px, `#120E36`.
-- Designation — DM Sans 400, 13px, `#9490B4`.
-- Month/year pill — small rounded badge: bg `rgba(91,63,248,0.08)`, text `#5B3FF8`, 11px, padding `2px 8px`.
+  const deviation = Number(rec.regular_ot_hours || 0);
+  if (deviation < 0) attendanceMap[empId].shortTime += deviation;
+  else attendanceMap[empId].overtime += deviation;
+}
+```
 
-## Sidebar content — sections
+3. Keep `holiday_ot_hours` accumulated in a separate pass that DOES allow weekend/holiday rows (since that's where holiday OT lives) but still excludes leave days and single-punch days. This preserves existing holiday-OT behavior.
 
-Reusable `Row` component:
-- Container: `padding: 10px 0; border-bottom: 0.5px solid rgba(91,63,248,0.1)`.
-- Label: DM Sans 400, 13px, `#9490B4`.
-- Value: DM Sans 500, 13px, `#120E36` (overridable for red/green/bold/larger).
+### Out of scope
+- Leave exclusion logic (unchanged).
+- Weekend/holiday detection upstream (unchanged — relies on stored flags).
+- Forgo toggle UI/logic.
+- Any other module or downstream calculation (per-hour rate, rounding, arrears, loans).
 
-Section heading style: DM Sans 600, 11px, `#5B3FF8`, uppercase, letter-spacing `0.08em`, `margin: 16px 0 4px`.
-
-### 1. SALARY
-- Basic Salary — `PKR basic_salary`
-- Fuel Allowance — `PKR allowance`
-- Total Base Salary — `PKR (basic + allowance)` (bold)
-
-### 2. ATTENDANCE SUMMARY
-- Leaves — `N days`
-- Absents — `N days`
-- Lates — `N times`
-- Short Time — `X hrs` (red `#E84545` when > 0)
-- Overtime — `X hrs` (green `#1DC97A` when > 0)
-- Regular Days OT (net) — `X hrs` (red if < 0, green if > 0)
-- Holiday OT — `X hrs` (green if > 0)
-
-### 3. SALARY BREAKDOWN
-- Per Day Salary — `PKR basic / ot_divisor`
-- Per Hour Salary — `PKR perDay / working_hours_per_day`
-- Regular OT Salary — `PKR regular_ot_amount` (red if < 0, green if > 0; show 0 if `forgo_ot`)
-- Holiday OT Salary — `PKR holiday_ot_amount` (green if > 0)
-- Total OT Salary — `PKR sum` (bold)
-- Loan Deduction — `- PKR loan_deduction` (red, only if > 0)
-- Bonus — `+ PKR bonus` (green, only if > 0)
-
-### 4. FINAL
-- Total Salary — `PKR total_salary` (bold, 15px)
-- Final Payment — `PKR final_payment` (Syne 700, 20px, `#5B3FF8`)
-- Forgo Applied — `Yes` in green (only when `forgo_ot = true`)
-- Status badge — Draft / Approved / Paid (reuse existing `statusStyles` colors)
-
-If `hideSalary` (HR viewer + CEO/director employee), keep current restricted-message body — no change.
-
-## Data fetched per open
-
-Single `useQuery` keyed `['payroll-detail', employeeId, monthYear]` running in parallel (`Promise.all`):
-
-1. `attendance_records` for the month — `regular_ot_hours, is_late, is_absent`. Used to compute:
-   - `shortHours = Σ |regular_ot_hours| where < 0`
-   - `overtimeHours = Σ regular_ot_hours where > 0`
-   - `lateCount = count(is_late)`
-   - `absentCount = count(is_absent)`
-2. `leave_requests` for the month — `status='approved'`, overlapping `[month start, month end]`. Sum `days_requested` clipped to the month → `leaveDays`.
-3. `company_settings` (single row by `company_id`) — `ot_divisor`, `shift_start_time`, `shift_end_time`, `lunch_break_hours`. Used to compute:
-   - `workingHoursPerDay = (shift_end − shift_start) − lunch_break_hours` (fallback 8).
-   - `perDay = basic_salary / ot_divisor` (fallback divisor 26).
-   - `perHour = perDay / workingHoursPerDay`.
-
-All values from `payroll_records` come directly from the existing `record` prop — no extra fetch needed.
-
-Net Regular OT (hrs) = `record.regular_ot_hours` (already net). Total OT amount = `(forgo_ot ? 0 : regular_ot_amount) + holiday_ot_amount`.
-
-## Row hover
-
-Update the `TableRow` className in `Payroll.tsx` from `hover:bg-muted/40` to use `#F6F5FF` (inline style on mouse enter is overkill — easier: add a tailwind arbitrary class `hover:bg-[#F6F5FF]`). `cursor-pointer` already applied.
-
-## Out of scope
-
-- Table columns, ordering, approve/paid modal, forgo switch on rows, other screens.
-- No DB schema changes, no edge function changes.
-
-## Verification
-
-1. Click any payroll row → sidebar opens from right, 420px, with employee header, month pill, all sections populated.
-2. Toggle Forgo on the row → reopen sheet → Regular OT Salary shows 0 and Forgo Applied = Yes.
-3. Employee with loan deduction shows red `- PKR …`; employee with bonus shows green `+ PKR …`.
-4. Press Esc / click overlay / click X → sidebar closes.
-5. Mobile viewport → sidebar covers full screen.
-6. HR viewer opens a CEO/director row → restricted message still shown.
+### Verification
+After deploy, regenerate April 2026 payroll and confirm Sadaqat Ali shows Short Time -7.13, Overtime +4.00, Net -3.13 with the Forgo toggle visible.
