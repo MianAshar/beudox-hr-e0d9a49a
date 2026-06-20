@@ -808,7 +808,7 @@ const ProjectCard = ({
       {/* Expanded panel */}
       {!isCollapsed && (
         <div
-          className="px-4 py-4 space-y-5"
+          className="px-4 py-4 space-y-5 bg-white"
           style={{ borderTop: '1px solid rgba(91,63,248,0.15)' }}
         >
           {p.status === 'pending' && canEditStatus && (
