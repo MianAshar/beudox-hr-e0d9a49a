@@ -280,6 +280,7 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
 
   const attStats = useMemo(() => {
     let present = 0, late = 0, otSum = 0, holOt = 0, shortTime = 0, overtime = 0;
+    const attendedDates = new Set<string>();
     for (const r of attendance ?? []) {
       const st = String(r.status || '').toLowerCase();
       if (st === 'present' || st === 'late') present++;
@@ -289,21 +290,80 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       if (v < 0) shortTime += v;
       else if (v > 0) overtime += v;
       holOt += Number(r.holiday_ot_hours || 0);
+      if ((r as any).date) attendedDates.add(String((r as any).date));
     }
-    const leaveDays = (leaves ?? []).reduce((s: number, l: any) => {
-      const [y, m] = monthYear.split('-').map(Number);
-      const monthStart = new Date(y, m - 1, 1);
-      const monthEnd = new Date(y, m, 0);
-      const ls = new Date(l.start_date);
-      const le = new Date(l.end_date);
-      const start = ls > monthStart ? ls : monthStart;
-      const end = le < monthEnd ? le : monthEnd;
-      const days = Math.max(0, Math.round((end.getTime() - start.getTime()) / 86400000) + 1);
-      const total = Number(l.days_requested || days);
-      return s + Math.min(days, total);
-    }, 0);
-    return { present, late, leaveDays, otSum, holOt, shortTime, overtime };
-  }, [attendance, leaves, monthYear]);
+
+    const [y, m] = monthYear.split('-').map(Number);
+    const startDate = `${monthYear}-01`;
+    const lastDay = new Date(y, m, 0).getDate();
+    const endDate = `${monthYear}-${String(lastDay).padStart(2, '0')}`;
+    const fmtDate = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    // Expand leaves into a date set (any day; weekend/holiday filter applied below)
+    const leaveDateSet = new Set<string>();
+    (leaves ?? []).forEach((l: any) => {
+      const ls = new Date(l.start_date + 'T00:00:00');
+      const le = new Date(l.end_date + 'T00:00:00');
+      const start = ls.getTime() < new Date(startDate + 'T00:00:00').getTime() ? new Date(startDate + 'T00:00:00') : ls;
+      const end = le.getTime() > new Date(endDate + 'T00:00:00').getTime() ? new Date(endDate + 'T00:00:00') : le;
+      const cur = new Date(start);
+      while (cur <= end) {
+        leaveDateSet.add(fmtDate(cur));
+        cur.setDate(cur.getDate() + 1);
+      }
+    });
+
+    // Working day config and holiday set
+    const workingDays: number[] = Array.isArray((settings as any)?.working_days)
+      ? (settings as any).working_days
+      : [1, 2, 3, 4, 5];
+    const holidaySet = new Set<string>();
+    (holidays ?? []).forEach((h: any) => {
+      const hStart = h.is_recurring
+        ? `${monthYear.split('-')[0]}-${(h.date as string).slice(5)}`
+        : (h.date as string);
+      const hEnd = h.end_date
+        ? (h.is_recurring
+          ? `${monthYear.split('-')[0]}-${(h.end_date as string).slice(5)}`
+          : (h.end_date as string))
+        : hStart;
+      const cur = new Date(hStart + 'T00:00:00');
+      const stop = new Date(hEnd + 'T00:00:00');
+      while (cur <= stop) {
+        const ds = fmtDate(cur);
+        if (ds >= startDate && ds <= endDate) holidaySet.add(ds);
+        cur.setDate(cur.getDate() + 1);
+      }
+    });
+
+    // Count leave days restricted to working days within window
+    let leaveDays = 0;
+    leaveDateSet.forEach(ds => {
+      const dow = new Date(ds + 'T00:00:00').getDay();
+      if (workingDays.includes(dow) && !holidaySet.has(ds)) leaveDays++;
+    });
+
+    // Compute absent days: working days with no attendance and no leave
+    let absent = 0;
+    const cur = new Date(startDate + 'T00:00:00');
+    const stop = new Date(endDate + 'T00:00:00');
+    while (cur <= stop) {
+      const ds = fmtDate(cur);
+      const dow = cur.getDay();
+      if (
+        workingDays.includes(dow)
+        && !holidaySet.has(ds)
+        && !attendedDates.has(ds)
+        && !leaveDateSet.has(ds)
+      ) {
+        absent++;
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    return { present, late, leaveDays, otSum, holOt, shortTime, overtime, absent };
+  }, [attendance, leaves, monthYear, settings, holidays]);
 
   const breakdown = useMemo(() => {
     if (!emp || !rates) return null;
