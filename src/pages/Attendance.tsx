@@ -566,6 +566,13 @@ const Attendance = () => {
         employee_name: employee.full_name,
       }));
 
+      // No real attendance for this month → empty state. Don't synthesize
+      // leave/absent rows on top of an empty month (would mask cleared data).
+      if (baseRows.length === 0) {
+        setMyRecords([]);
+        return;
+      }
+
       const { leaveMap, holidaySet, workingDays } = await fetchLeaveDayMap([employee.employee_id]);
       const existingDates = new Set(baseRows.map(r => r.date));
       const leaveDateMap = leaveMap.get(employee.employee_id);
@@ -610,6 +617,13 @@ const Attendance = () => {
       if (error) throw error;
 
       const rows = (data ?? []) as AttendanceRow[];
+
+      // No real attendance for this month → empty state. Don't fabricate
+      // absent/leave rows when the underlying month has been cleared.
+      if (rows.length === 0) {
+        setCompanyRecords([]);
+        return;
+      }
 
       // Fetch all active employees so we can include leave-only rows for people
       // who have no attendance records yet this month.

@@ -253,13 +253,17 @@ const AttendanceSummary = ({
       empRecordedDays.get(r.employee_id)!.add(r.date);
     });
 
-    // Implicit absences: active employees with no record AND no approved leave on a working day
+    // Implicit absences: active employees with no record AND no approved leave on a working day.
+    // Only compute when at least one real attendance record exists for the month — otherwise
+    // a freshly-cleared month would still show every working day × every employee as "absent".
     let implicitAbsences = 0;
-    employees.forEach((_emp, empId) => {
-      const seen = empRecordedDays.get(empId) ?? new Set<string>();
-      const leaves = leaveDatesByEmp.get(empId) ?? new Set<string>();
-      workingDaySet.forEach(d => { if (!seen.has(d) && !leaves.has(d)) implicitAbsences++; });
-    });
+    if (records.length > 0) {
+      employees.forEach((_emp, empId) => {
+        const seen = empRecordedDays.get(empId) ?? new Set<string>();
+        const leaves = leaveDatesByEmp.get(empId) ?? new Set<string>();
+        workingDaySet.forEach(d => { if (!seen.has(d) && !leaves.has(d)) implicitAbsences++; });
+      });
+    }
     const totalAbsences = absentRecords.length + implicitAbsences;
 
     const lateCount = records.filter(r => r.is_late).length;
@@ -327,13 +331,15 @@ const AttendanceSummary = ({
       if (!r.employee_id) return;
       absencesByEmp.set(r.employee_id, (absencesByEmp.get(r.employee_id) ?? 0) + 1);
     });
-    employees.forEach((_e, empId) => {
-      const seen = empRecordedDays.get(empId) ?? new Set<string>();
-      const leaves = leaveDatesByEmp.get(empId) ?? new Set<string>();
-      let missed = 0;
-      workingDaySet.forEach(d => { if (!seen.has(d) && !leaves.has(d)) missed++; });
-      if (missed > 0) absencesByEmp.set(empId, (absencesByEmp.get(empId) ?? 0) + missed);
-    });
+    if (records.length > 0) {
+      employees.forEach((_e, empId) => {
+        const seen = empRecordedDays.get(empId) ?? new Set<string>();
+        const leaves = leaveDatesByEmp.get(empId) ?? new Set<string>();
+        let missed = 0;
+        workingDaySet.forEach(d => { if (!seen.has(d) && !leaves.has(d)) missed++; });
+        if (missed > 0) absencesByEmp.set(empId, (absencesByEmp.get(empId) ?? 0) + missed);
+      });
+    }
     const highAbsence = Array.from(absencesByEmp.entries())
       .filter(([, c]) => c >= 3)
       .map(([id, c]) => ({ emp: employees.get(id), count: c }))
