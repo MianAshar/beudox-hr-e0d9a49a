@@ -698,24 +698,20 @@ const ProjectCard = ({
     <div
       className={cn(
         'rounded-[14px] border overflow-hidden transition-colors',
-        isExpanded ? '' : 'bg-card',
+        isExpanded ? 'bg-[#F6F5FF]' : 'bg-card',
         isDueToday && !isExpanded && 'bg-[#FEF3C7]',
       )}
       style={{
         borderColor: 'hsl(var(--border))',
-        ...(isExpanded
-          ? {
-              backgroundColor: '#F6F5FF',
-              borderLeft: '3px solid #5B3FF8',
-            }
-          : {}),
+        borderLeftWidth: isExpanded ? '3px' : undefined,
+        borderLeftColor: isExpanded ? '#5B3FF8' : undefined,
       }}
     >
       {/* Header row (always visible) */}
       <div
         className={cn(
           'flex flex-wrap lg:flex-nowrap items-center gap-x-3 gap-y-2 px-4 py-3 cursor-pointer transition-colors',
-          isExpanded ? 'hover:bg-[#EFEDFF]' : 'hover:bg-muted/40',
+          isExpanded ? 'bg-[#F6F5FF] hover:bg-[#EFEDFF]' : 'hover:bg-muted/40',
           isDueToday && !isExpanded && 'hover:bg-[#FEF3C7]/80',
         )}
         onClick={onToggle}
