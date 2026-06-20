@@ -129,13 +129,14 @@ const AttendanceSummary = ({
   const [employees, setEmployees] = useState<Map<string, EmployeeLite>>(new Map());
   const [activeEmployeeCount, setActiveEmployeeCount] = useState(0);
   const [holidayDates, setHolidayDates] = useState<Set<string>>(new Set());
+  const [leaveDatesByEmp, setLeaveDatesByEmp] = useState<Map<string, Set<string>>>(new Map());
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       try {
-        const [recRes, empRes, holRes] = await Promise.all([
+        const [recRes, empRes, holRes, leaveRes] = await Promise.all([
           supabase
             .from('attendance_records')
             .select('id, employee_id, employee_code, date, check_in, check_out, working_hours, regular_ot_hours, holiday_ot_hours, is_late, is_absent, is_weekend, is_holiday')
@@ -151,6 +152,13 @@ const AttendanceSummary = ({
             .from('public_holidays')
             .select('date, end_date, is_recurring, year')
             .eq('company_id', companyId),
+          supabase
+            .from('leave_requests')
+            .select('employee_id, start_date, end_date')
+            .eq('company_id', companyId)
+            .eq('status', 'approved')
+            .lte('start_date', endDate)
+            .gte('end_date', startDate),
         ]);
 
         if (cancelled) return;
@@ -176,7 +184,6 @@ const AttendanceSummary = ({
             });
           };
           if (h.is_recurring) {
-            // Apply recurring date to the selected year
             const orig = new Date(`${h.date}T00:00:00Z`);
             const mm = String(orig.getUTCMonth() + 1).padStart(2, '0');
             const dd = String(orig.getUTCDate()).padStart(2, '0');
@@ -194,10 +201,23 @@ const AttendanceSummary = ({
           }
         });
 
+        // Build per-employee leave date set within the month window
+        const leaveMap = new Map<string, Set<string>>();
+        (leaveRes.data ?? []).forEach((lr: any) => {
+          if (!lr.employee_id) return;
+          const dates = eachDate(lr.start_date, lr.end_date);
+          dates.forEach(d => {
+            if (d < startDate || d > endDate) return;
+            if (!leaveMap.has(lr.employee_id)) leaveMap.set(lr.employee_id, new Set());
+            leaveMap.get(lr.employee_id)!.add(d);
+          });
+        });
+
         setRecords(rows);
         setEmployees(empMap);
         setActiveEmployeeCount(activeCount);
         setHolidayDates(holSet);
+        setLeaveDatesByEmp(leaveMap);
       } catch (err) {
         console.error('Summary load failed', err);
       } finally {
