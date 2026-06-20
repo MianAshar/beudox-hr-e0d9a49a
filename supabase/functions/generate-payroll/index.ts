@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     // Fetch all attendance records for this month + company
     const { data: attendance } = await supabase
       .from('attendance_records')
-      .select('employee_id, date, regular_ot_hours, holiday_ot_hours')
+      .select('employee_id, date, regular_ot_hours, holiday_ot_hours, is_weekend, is_holiday, check_in, check_out')
       .eq('company_id', company_id)
       .gte('date', startDate)
       .lte('date', endDate);
