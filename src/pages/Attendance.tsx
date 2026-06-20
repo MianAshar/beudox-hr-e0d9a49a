@@ -566,16 +566,27 @@ const Attendance = () => {
         employee_name: employee.full_name,
       }));
 
-      const leaveMap = await fetchLeaveDayMap([employee.employee_id]);
+      const { leaveMap, holidaySet, workingDays } = await fetchLeaveDayMap([employee.employee_id]);
       const existingDates = new Set(baseRows.map(r => r.date));
+      const leaveDateMap = leaveMap.get(employee.employee_id);
       const leaveRows = buildLeaveRows(
         employee.employee_id,
         null,
         employee.full_name ?? null,
-        leaveMap.get(employee.employee_id),
+        leaveDateMap,
         existingDates,
       );
-      setMyRecords([...baseRows, ...leaveRows]);
+      const leaveDateSet = new Set<string>(leaveDateMap ? Array.from(leaveDateMap.keys()) : []);
+      const absentRows = buildAbsentRows(
+        employee.employee_id,
+        null,
+        employee.full_name ?? null,
+        holidaySet,
+        workingDays,
+        existingDates,
+        leaveDateSet,
+      );
+      setMyRecords([...baseRows, ...leaveRows, ...absentRows]);
     } catch (err) {
       console.error(err);
       setMyRecords([]);
