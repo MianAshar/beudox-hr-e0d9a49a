@@ -182,10 +182,22 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
     queryFn: async () => {
       const { data } = await supabase
         .from('company_settings')
-        .select('shift_start_time, shift_end_time, lunch_break_hours, ot_divisor, enable_ot_adjustment')
+        .select('shift_start_time, shift_end_time, lunch_break_hours, ot_divisor, enable_ot_adjustment, working_days')
         .eq('company_id', emp!.company_id)
         .maybeSingle();
       return data;
+    },
+    enabled: !!emp?.company_id,
+  });
+
+  const { data: holidays } = useQuery({
+    queryKey: ['payslip-holidays', emp?.company_id, monthYear],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('public_holidays' as any)
+        .select('date, end_date, is_recurring')
+        .eq('company_id', emp!.company_id);
+      return data ?? [];
     },
     enabled: !!emp?.company_id,
   });
@@ -213,7 +225,7 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       const last = new Date(y, m, 0).getDate();
       const { data } = await supabase
         .from('attendance_records')
-        .select('regular_ot_hours, holiday_ot_hours, status, is_late')
+        .select('date, regular_ot_hours, holiday_ot_hours, status, is_late')
         .eq('employee_id', employeeId)
         .gte('date', `${monthYear}-01`)
         .lte('date', `${monthYear}-${String(last).padStart(2, '0')}`);
