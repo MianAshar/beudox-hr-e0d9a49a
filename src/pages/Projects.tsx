@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/comp
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import {
-  Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight,
+  Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight, Trash2,
   Pencil, FileText, Users, ListChecks, History, ChevronsDownUp, ChevronsUpDown, ArrowUpDown, Play,
 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
@@ -208,7 +208,8 @@ const Projects = () => {
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
-  const [deactivateTarget, setDeactivateTarget] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [manageTeamProject, setManageTeamProject] = useState<any>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<string>('default');
@@ -352,15 +353,16 @@ const Projects = () => {
     return map;
   }, [taskCounts]);
 
-  const deactivateMutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: async (projectId: string) => {
-      const { error } = await supabase.from('projects').update({ is_active: false, status: 'cancelled' }).eq('id', projectId);
+      const { error } = await supabase.from('projects').delete().eq('id', projectId).eq('company_id', companyId!);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['projects'] });
-      toast({ title: 'Project deactivated' });
-      setDeactivateTarget(null);
+      toast({ title: 'Project deleted' });
+      setDeleteTarget(null);
+      setDeleteConfirmText('');
     },
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
@@ -577,7 +579,7 @@ const Projects = () => {
                 isCollapsed={isCollapsed}
                 onToggle={() => toggleOne(p.id)}
                 onOpenDetail={() => navigate(`/projects/${p.id}`)}
-                onDeactivate={() => setDeactivateTarget(p)}
+                onDelete={() => { setDeleteTarget(p); setDeleteConfirmText(''); }}
                 onManageTeam={() => setManageTeamProject(p)}
                 canManageTeam={canManageTeam}
                 isDueToday={isDueToday}
@@ -598,23 +600,40 @@ const Projects = () => {
         </div>
       )}
 
-      {/* Deactivate Dialog */}
-      <Dialog open={!!deactivateTarget} onOpenChange={v => { if (!v) setDeactivateTarget(null); }}>
+      {/* Delete Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={v => { if (!v) { setDeleteTarget(null); setDeleteConfirmText(''); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Deactivate Project</DialogTitle>
+            <DialogTitle>Delete Project</DialogTitle>
             <DialogDescription>
-              Are you sure you want to deactivate "{deactivateTarget?.project_name}"? The project will be marked as cancelled.
+              This will permanently delete <span className="font-semibold">"{deleteTarget?.project_name}"</span> and <span className="font-semibold">all of its tasks</span>. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="delete-project-confirm">
+              Type <span className="font-semibold">{deleteTarget?.project_name}</span> to confirm
+            </Label>
+            <Input
+              id="delete-project-confirm"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={deleteTarget?.project_name ?? ''}
+              autoComplete="off"
+            />
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeactivateTarget(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => deactivateMutation.mutate(deactivateTarget?.id)} disabled={deactivateMutation.isPending}>
-              {deactivateMutation.isPending ? 'Deactivating…' : 'Deactivate'}
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteConfirmText(''); }}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteMutation.mutate(deleteTarget?.id)}
+              disabled={deleteMutation.isPending || deleteConfirmText !== (deleteTarget?.project_name ?? '___')}
+            >
+              {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       {/* Manage Team Modal */}
       {manageTeamProject && companyId && employeeId && (
@@ -670,7 +689,7 @@ interface ProjectCardProps {
   isCollapsed: boolean;
   onToggle: () => void;
   onOpenDetail: () => void;
-  onDeactivate: () => void;
+  onDelete: () => void;
   onManageTeam: () => void;
   isDueToday: boolean;
   isManager: boolean;
@@ -688,7 +707,7 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({
-  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, onManageTeam, isDueToday,
+  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDelete, onManageTeam, isDueToday,
   isManager, canSeeClient, canSeeFinancial, canSeeTeam, canManageTeam, canEditStatus, canEditDeadline, canSeeActivity,
   companyId, employeeId, role, isCeoOrDirector,
 }: ProjectCardProps) => {
@@ -792,10 +811,10 @@ const ProjectCard = ({
               variant="ghost"
               size="icon"
               className="h-7 w-7"
-              onClick={e => { e.stopPropagation(); onDeactivate(); }}
-              aria-label="Deactivate project"
+              onClick={e => { e.stopPropagation(); onDelete(); }}
+              aria-label="Delete project"
             >
-              <XCircle className="h-4 w-4 text-destructive" />
+              <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
           )}
         </div>
