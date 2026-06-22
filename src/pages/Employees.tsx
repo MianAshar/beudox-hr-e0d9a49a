@@ -269,6 +269,8 @@ const Employees = () => {
             <TableBody>
               {sorted.map((emp) => {
                 const roleName = getRoleName(emp);
+                const isSelf = employee?.employee_id === emp.id;
+                const canDelete = canManageEmployee(roles, emp) && !(isSelf && !isCeo);
                 return (
                   <TableRow
                     key={emp.id}
