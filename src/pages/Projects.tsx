@@ -579,7 +579,7 @@ const Projects = () => {
                 isCollapsed={isCollapsed}
                 onToggle={() => toggleOne(p.id)}
                 onOpenDetail={() => navigate(`/projects/${p.id}`)}
-                onDeactivate={() => setDeactivateTarget(p)}
+                onDelete={() => { setDeleteTarget(p); setDeleteConfirmText(''); }}
                 onManageTeam={() => setManageTeamProject(p)}
                 canManageTeam={canManageTeam}
                 isDueToday={isDueToday}
