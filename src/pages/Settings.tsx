@@ -8,7 +8,7 @@ import RolesTab from '@/components/settings/RolesTab';
 import DangerZoneTab from '@/components/settings/DangerZoneTab';
 import ExpenseCategoriesTab from '@/components/settings/ExpenseCategoriesTab';
 import LeaveTypesTab from '@/components/settings/LeaveTypesTab';
-import ProjectCategoriesTab from '@/components/settings/ProjectCategoriesTab';
+
 import LoginLogsTab from '@/components/settings/LoginLogsTab';
 import LeaveOverwriteLogTab from '@/components/settings/LeaveOverwriteLogTab';
 
