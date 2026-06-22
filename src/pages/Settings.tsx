@@ -83,9 +83,6 @@ const Settings = () => {
           <TabsContent value="leave-types" className="mt-6"><LeaveTypesTab /></TabsContent>
         )}
         {(isCeo || isHr) && (
-          <TabsContent value="project-categories" className="mt-6"><ProjectCategoriesTab /></TabsContent>
-        )}
-        {(isCeo || isHr) && (
           <TabsContent value="login-logs" className="mt-6"><LoginLogsTab /></TabsContent>
         )}
         {(isCeo || isHr) && (
