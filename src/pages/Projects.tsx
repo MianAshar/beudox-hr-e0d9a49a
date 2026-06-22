@@ -811,10 +811,10 @@ const ProjectCard = ({
               variant="ghost"
               size="icon"
               className="h-7 w-7"
-              onClick={e => { e.stopPropagation(); onDeactivate(); }}
-              aria-label="Deactivate project"
+              onClick={e => { e.stopPropagation(); onDelete(); }}
+              aria-label="Delete project"
             >
-              <XCircle className="h-4 w-4 text-destructive" />
+              <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
           )}
         </div>
