@@ -263,6 +263,7 @@ const Employees = () => {
                 <SortableHeader column="joining_date" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Joining Date</SortableHeader>
                 <SortableHeader column="role" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Role</SortableHeader>
                 <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
+                {isManager && <TableHead className="w-[80px] text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
