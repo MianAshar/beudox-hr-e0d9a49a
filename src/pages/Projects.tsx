@@ -600,23 +600,40 @@ const Projects = () => {
         </div>
       )}
 
-      {/* Deactivate Dialog */}
-      <Dialog open={!!deactivateTarget} onOpenChange={v => { if (!v) setDeactivateTarget(null); }}>
+      {/* Delete Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={v => { if (!v) { setDeleteTarget(null); setDeleteConfirmText(''); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Deactivate Project</DialogTitle>
+            <DialogTitle>Delete Project</DialogTitle>
             <DialogDescription>
-              Are you sure you want to deactivate "{deactivateTarget?.project_name}"? The project will be marked as cancelled.
+              This will permanently delete <span className="font-semibold">"{deleteTarget?.project_name}"</span> and <span className="font-semibold">all of its tasks</span>. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="delete-project-confirm">
+              Type <span className="font-semibold">{deleteTarget?.project_name}</span> to confirm
+            </Label>
+            <Input
+              id="delete-project-confirm"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={deleteTarget?.project_name ?? ''}
+              autoComplete="off"
+            />
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeactivateTarget(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => deactivateMutation.mutate(deactivateTarget?.id)} disabled={deactivateMutation.isPending}>
-              {deactivateMutation.isPending ? 'Deactivating…' : 'Deactivate'}
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteConfirmText(''); }}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteMutation.mutate(deleteTarget?.id)}
+              disabled={deleteMutation.isPending || deleteConfirmText !== (deleteTarget?.project_name ?? '___')}
+            >
+              {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       {/* Manage Team Modal */}
       {manageTeamProject && companyId && employeeId && (
