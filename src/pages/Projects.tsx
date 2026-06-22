@@ -353,15 +353,16 @@ const Projects = () => {
     return map;
   }, [taskCounts]);
 
-  const deactivateMutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: async (projectId: string) => {
-      const { error } = await supabase.from('projects').update({ is_active: false, status: 'cancelled' }).eq('id', projectId);
+      const { error } = await supabase.from('projects').delete().eq('id', projectId).eq('company_id', companyId!);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['projects'] });
-      toast({ title: 'Project deactivated' });
-      setDeactivateTarget(null);
+      toast({ title: 'Project deleted' });
+      setDeleteTarget(null);
+      setDeleteConfirmText('');
     },
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
