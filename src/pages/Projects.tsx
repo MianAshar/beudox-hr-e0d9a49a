@@ -689,7 +689,7 @@ interface ProjectCardProps {
   isCollapsed: boolean;
   onToggle: () => void;
   onOpenDetail: () => void;
-  onDeactivate: () => void;
+  onDelete: () => void;
   onManageTeam: () => void;
   isDueToday: boolean;
   isManager: boolean;
