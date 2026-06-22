@@ -59,6 +59,12 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Resolve caller's own employee id to block self-deletion by non-CEO managers
+    const { data: callerEmployeeId } = await adminClient.rpc(
+      "get_employee_id_for_auth",
+      { _auth_id: callerAuthId }
+    );
+
     // Parse body
     const body = await req.json();
     const employeeId = body.employee_id;
@@ -68,6 +74,16 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: "employee_id is required" }),
         {
           status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (callerRole !== "ceo" && callerEmployeeId === employeeId) {
+      return new Response(
+        JSON.stringify({ error: "You cannot delete your own account." }),
+        {
+          status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );

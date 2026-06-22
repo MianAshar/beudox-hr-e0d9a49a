@@ -98,9 +98,11 @@ const EmployeeProfile = () => {
   });
 
   const canView = isManager || isSelfView;
-  const canManage = isManager && canManageEmployee(roles, emp);
+  // HR/Finance managers cannot deactivate or delete their own account — only CEO/Director can manage themselves.
+  const isSelfNonCeo = !isCeo && !!authEmployee?.employee_id && authEmployee.employee_id === emp?.id;
+  const canManage = isManager && canManageEmployee(roles, emp) && !isSelfNonCeo;
   const canSeeCompensation = canViewCompensation(roles, emp);
-  const isHrBlocked = isManager && !canManage && isProtectedFromHr(emp);
+  const isHrBlocked = isManager && !canManage && isProtectedFromHr(emp) && !isSelfNonCeo;
 
   const handleDelete = async () => {
     if (!emp?.id) return;
