@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { formatRole } from '@/lib/format-role';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -23,10 +23,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { SortableHeader } from '@/components/ui/sortable-header';
 import { useSort } from '@/hooks/useSort';
-import { Search, Plus, Users } from 'lucide-react';
+import { Search, Plus, Users, Trash2 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import { canManageEmployee } from '@/lib/role-hierarchy';
+import { toast } from 'sonner';
 
 const DEPARTMENTS = ['GC Team', 'MEP Team', 'Admin', 'Director'];
 const STATUS_OPTIONS = ['active', 'inactive', 'resigned'];
@@ -64,6 +75,13 @@ const Employees = () => {
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
   const canAdd = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const isCeo = roles.includes('ceo');
+  const isManager = isCeo || roles.includes('hr_manager');
+  const queryClient = useQueryClient();
+
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const { data: employees, isLoading } = useQuery({
     queryKey: ['employees-list', companyId],
@@ -72,7 +90,7 @@ const Employees = () => {
         .from('employees')
         .select(`
           id, full_name, designation, department, employee_code,
-          joining_date, status, avatar_url,
+          joining_date, status, avatar_url, employment_type,
           employee_roles (
             roles ( name )
           )
@@ -84,6 +102,25 @@ const Employees = () => {
     },
     enabled: !!companyId,
   });
+
+  const handleDelete = async () => {
+    if (!deleteTarget?.id) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke('delete-employee', {
+        body: { employee_id: deleteTarget.id },
+      });
+      if (error) throw error;
+      toast.success('Employee permanently deleted.');
+      setDeleteTarget(null);
+      setDeleteConfirmText('');
+      queryClient.invalidateQueries({ queryKey: ['employees-list', companyId] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete employee');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const filtered = (employees || []).filter((emp) => {
     const matchesSearch =
@@ -226,11 +263,14 @@ const Employees = () => {
                 <SortableHeader column="joining_date" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Joining Date</SortableHeader>
                 <SortableHeader column="role" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Role</SortableHeader>
                 <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
+                {isManager && <TableHead className="w-[80px] text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {sorted.map((emp) => {
                 const roleName = getRoleName(emp);
+                const isSelf = employee?.employee_id === emp.id;
+                const canDelete = canManageEmployee(roles, emp) && !(isSelf && !isCeo);
                 return (
                   <TableRow
                     key={emp.id}
@@ -307,6 +347,26 @@ const Employees = () => {
                         {emp.status || 'active'}
                       </Badge>
                     </TableCell>
+                    {isManager && (
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        {canDelete ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              setDeleteTarget(emp);
+                              setDeleteConfirmText('');
+                            }}
+                            aria-label={`Delete ${emp.full_name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
@@ -315,6 +375,55 @@ const Employees = () => {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTarget(null);
+            setDeleteConfirmText('');
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete employee permanently?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete <span className="font-medium text-foreground">{deleteTarget?.full_name}</span> and all related records. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label className="text-[12px]">
+              Type <span className="font-mono-bx font-medium text-foreground">{deleteTarget?.full_name}</span> to confirm
+            </Label>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={deleteTarget?.full_name || ''}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteTarget(null);
+                setDeleteConfirmText('');
+              }}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting || deleteConfirmText.trim() !== (deleteTarget?.full_name || '').trim()}
+            >
+              {deleting ? 'Deleting…' : 'Delete permanently'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
