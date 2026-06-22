@@ -155,20 +155,8 @@ const Dashboard = () => {
     enabled: !!companyId && isFinanceOrCeo,
   });
 
-  // Active projects count
-  const { data: projectCount, isLoading: projLoading } = useQuery({
-    queryKey: ['dashboard-projects', companyId],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from('projects')
-        .select('*', { count: 'exact', head: true })
-        .eq('company_id', companyId!)
-        .eq('status', 'in_progress');
-      if (error) { console.error('Project count error:', error); return null; }
-      return count;
-    },
-    enabled: !!companyId,
-  });
+
+
 
   // Increment due check — runs once per dashboard load for HR/CEO
   const incrementCheckRan = useRef(false);
@@ -297,13 +285,6 @@ const Dashboard = () => {
             loading={payLoading}
           />
         )}
-        <StatCard
-          icon={<FolderKanban size={24} />}
-          value={projectCount ?? '—'}
-          label="Active projects"
-          variant="accent"
-          loading={projLoading}
-        />
       </div>
     </div>
   );
