@@ -73,6 +73,9 @@ Deno.serve(async (req) => {
     if (!employee_id || typeof employee_id !== "string") {
       return json(400, { error: "employee_id is required" });
     }
+    if (callerRole !== "ceo" && callerEmployeeId === employee_id) {
+      return json(403, { error: "You cannot deactivate your own account." });
+    }
     if (!reason || !["resigned", "fired", "other"].includes(reason)) {
       return json(400, { error: "Invalid reason" });
     }
