@@ -707,7 +707,7 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({
-  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDeactivate, onManageTeam, isDueToday,
+  project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDelete, onManageTeam, isDueToday,
   isManager, canSeeClient, canSeeFinancial, canSeeTeam, canManageTeam, canEditStatus, canEditDeadline, canSeeActivity,
   companyId, employeeId, role, isCeoOrDirector,
 }: ProjectCardProps) => {
