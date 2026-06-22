@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/comp
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import {
-  Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight,
+  Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight, Trash2,
   Pencil, FileText, Users, ListChecks, History, ChevronsDownUp, ChevronsUpDown, ArrowUpDown, Play,
 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
