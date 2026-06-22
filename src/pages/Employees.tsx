@@ -75,6 +75,13 @@ const Employees = () => {
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
   const canAdd = ['hr_manager', 'ceo'].some(r => roles.includes(r));
+  const isCeo = roles.includes('ceo');
+  const isManager = isCeo || roles.includes('hr_manager');
+  const queryClient = useQueryClient();
+
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const { data: employees, isLoading } = useQuery({
     queryKey: ['employees-list', companyId],
@@ -83,7 +90,7 @@ const Employees = () => {
         .from('employees')
         .select(`
           id, full_name, designation, department, employee_code,
-          joining_date, status, avatar_url,
+          joining_date, status, avatar_url, employment_type,
           employee_roles (
             roles ( name )
           )
@@ -95,6 +102,25 @@ const Employees = () => {
     },
     enabled: !!companyId,
   });
+
+  const handleDelete = async () => {
+    if (!deleteTarget?.id) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke('delete-employee', {
+        body: { employee_id: deleteTarget.id },
+      });
+      if (error) throw error;
+      toast.success('Employee permanently deleted.');
+      setDeleteTarget(null);
+      setDeleteConfirmText('');
+      queryClient.invalidateQueries({ queryKey: ['employees-list', companyId] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete employee');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const filtered = (employees || []).filter((emp) => {
     const matchesSearch =
