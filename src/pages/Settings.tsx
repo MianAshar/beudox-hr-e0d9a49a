@@ -8,7 +8,7 @@ import RolesTab from '@/components/settings/RolesTab';
 import DangerZoneTab from '@/components/settings/DangerZoneTab';
 import ExpenseCategoriesTab from '@/components/settings/ExpenseCategoriesTab';
 import LeaveTypesTab from '@/components/settings/LeaveTypesTab';
-import ProjectCategoriesTab from '@/components/settings/ProjectCategoriesTab';
+
 import LoginLogsTab from '@/components/settings/LoginLogsTab';
 import LeaveOverwriteLogTab from '@/components/settings/LeaveOverwriteLogTab';
 
@@ -40,7 +40,7 @@ const Settings = () => {
       : []),
     ...(!isHr ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
     ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
-    ...(isCeo || isHr ? [{ value: 'project-categories', label: 'Project Categories' }] : []),
+    
     ...(isCeo || isHr ? [{ value: 'login-logs', label: 'Login Logs' }] : []),
     ...(isCeo || isHr ? [{ value: 'leave-overwrites', label: 'Leave Overwrite Log' }] : []),
     ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
@@ -81,9 +81,6 @@ const Settings = () => {
         )}
         {(isCeo || isHr) && (
           <TabsContent value="leave-types" className="mt-6"><LeaveTypesTab /></TabsContent>
-        )}
-        {(isCeo || isHr) && (
-          <TabsContent value="project-categories" className="mt-6"><ProjectCategoriesTab /></TabsContent>
         )}
         {(isCeo || isHr) && (
           <TabsContent value="login-logs" className="mt-6"><LoginLogsTab /></TabsContent>
