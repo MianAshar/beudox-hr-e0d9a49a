@@ -59,6 +59,12 @@ Deno.serve(async (req) => {
       return json(403, { error: "Forbidden: insufficient role" });
     }
 
+    // Prevent non-CEO managers from deactivating their own account
+    const { data: callerEmployeeId } = await admin.rpc(
+      "get_employee_id_for_auth",
+      { _auth_id: callerAuthId }
+    );
+
     const body = await req.json();
     const employee_id: string | undefined = body.employee_id;
     const reason: string | undefined = body.reason;
