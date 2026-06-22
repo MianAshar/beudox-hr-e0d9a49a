@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { formatRole } from '@/lib/format-role';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -23,10 +23,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { SortableHeader } from '@/components/ui/sortable-header';
 import { useSort } from '@/hooks/useSort';
-import { Search, Plus, Users } from 'lucide-react';
+import { Search, Plus, Users, Trash2 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import { canManageEmployee } from '@/lib/role-hierarchy';
+import { toast } from 'sonner';
 
 const DEPARTMENTS = ['GC Team', 'MEP Team', 'Admin', 'Director'];
 const STATUS_OPTIONS = ['active', 'inactive', 'resigned'];
