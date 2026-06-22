@@ -347,6 +347,26 @@ const Employees = () => {
                         {emp.status || 'active'}
                       </Badge>
                     </TableCell>
+                    {isManager && (
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        {canDelete ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              setDeleteTarget(emp);
+                              setDeleteConfirmText('');
+                            }}
+                            aria-label={`Delete ${emp.full_name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
