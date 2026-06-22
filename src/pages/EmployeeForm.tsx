@@ -39,7 +39,7 @@ const REVIEW_FREQUENCIES = [
 
 const employeeSchema = z.object({
   full_name: z.string().trim().min(1, 'Full name is required').max(255),
-  employee_code: z.string().trim().min(1, 'Employee code is required').max(50),
+  employee_code: z.string().trim().regex(/^\d{2}-\d{2}-\d{4}$/, 'Employee code must be in 00-00-0000 format'),
   cnic: z.string().max(20).optional().or(z.literal('')),
   phone: z.string().max(20).optional().or(z.literal('')),
   email: z.string().email('Invalid email'),
@@ -627,8 +627,20 @@ const EmployeeForm = () => {
             </Label>
             <Input
               value={form.employee_code}
-              onChange={(e) => updateField('employee_code', e.target.value)}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+                let formatted = digits;
+                if (digits.length > 4) {
+                  formatted = `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
+                } else if (digits.length > 2) {
+                  formatted = `${digits.slice(0, 2)}-${digits.slice(2)}`;
+                }
+                updateField('employee_code', formatted);
+              }}
               onBlur={() => validateField('employee_code', form.employee_code)}
+              placeholder="00-00-0000"
+              inputMode="numeric"
+              maxLength={10}
               className="font-mono-bx"
             />
             <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
