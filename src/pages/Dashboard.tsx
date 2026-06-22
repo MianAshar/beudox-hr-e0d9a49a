@@ -285,13 +285,6 @@ const Dashboard = () => {
             loading={payLoading}
           />
         )}
-        <StatCard
-          icon={<FolderKanban size={24} />}
-          value={projectCount ?? '—'}
-          label="Active projects"
-          variant="accent"
-          loading={projLoading}
-        />
       </div>
     </div>
   );
