@@ -201,7 +201,8 @@ const Projects = () => {
   const currentDept = (currentEmpMeta?.department || '').trim().toLowerCase();
   const isEstimationTeam = currentDept === 'gc team' || currentDept === 'mep team';
   // Estimation team members can edit status on projects they're assigned to (handled per-row).
-  const canEditStatus = isManager || roles.includes('team_lead') || isCeoOrDirector || isEstimationTeam;
+  // Pure employees also see only their assigned projects in this list, so allow status edits.
+  const canEditStatus = isManager || roles.includes('team_lead') || isCeoOrDirector || isEstimationTeam || isPureEmployee;
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
