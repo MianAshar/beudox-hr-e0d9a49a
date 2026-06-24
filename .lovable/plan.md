@@ -1,29 +1,41 @@
-## Goal
+## Root cause
 
-Change the "Delete" action on the Projects list from a soft-delete (`is_active = false`, `status = 'cancelled'`) to a true hard delete that removes the project row and cascades to delete all of its tasks (and any other rows with `ON DELETE CASCADE` on `projects.id`).
+New projects **are** being assigned correctly. The breakage is on the read side.
 
-The database FK `project_tasks.project_id → projects(id) ON DELETE CASCADE` is already in place, so no migration is needed — tasks will be removed automatically by Postgres.
+In `src/pages/Projects.tsx` (lines 274–282), the query that loads projects for a **pure employee** (no `team_lead` / manager role) filters out projects whose status is `pending` or `submitted`:
 
-## Changes
+```ts
+.in('id', assignedIds)
+.neq('status', 'pending')
+.neq('status', 'submitted')
+```
 
-**`src/pages/Projects.tsx`**
+But in `src/pages/ProjectForm.tsx` line 183, every newly created project is inserted with:
 
-1. Replace `deactivateMutation` with a `deleteMutation` that calls:
-   ```ts
-   supabase.from('projects').delete().eq('id', projectId).eq('company_id', companyId)
-   ```
-   (tenant-scoped per project rules).
-2. Rename related state/handlers: `deactivateTarget` → `deleteTarget`, `onDeactivate` → `onDelete`.
-3. Update the confirmation dialog:
-   - Title: "Delete Project"
-   - Description: Warn that the project and **all of its tasks** will be permanently deleted and this cannot be undone. Require typing the project name to confirm (matches the destructive-confirmation pattern used elsewhere, e.g. employee delete).
-   - Primary button: "Delete" (destructive), disabled until typed name matches.
-4. Update the row action button `aria-label` to "Delete project" and keep the `XCircle`/`Trash2` icon (use `Trash2` for consistency with the employees list).
-5. Toast success message: "Project deleted".
-6. Permission gate stays the same (`isManager && p.is_active`), but since rows will be hard-deleted, the `p.is_active` check effectively just hides the button for already-soft-deleted legacy rows.
+```ts
+if (!isEdit) payload.status = 'pending';
+```
+
+Result: the assignment row exists (so the project page correctly shows "assigned to all tech employees"), but when the employee logs in, the project is hidden by the `status != pending/submitted` filter. It only appears once a manager moves the status forward (e.g. to `in_progress`).
+
+Team leads and managers don't hit this filter, which is why it looks fine from the admin/manager side.
+
+## Fix
+
+In `src/pages/Projects.tsx`, remove the two `.neq('status', ...)` lines from the pure-employee branch so assigned employees see their projects regardless of status (matching the team-lead branch, which has no status filter).
+
+```text
+Before:                                        After:
+.in('id', assignedIds)                         .in('id', assignedIds)
+.neq('status', 'pending')                      .order('created_at', { ascending: false })
+.neq('status', 'submitted')
+.order('created_at', { ascending: false })
+```
+
+No other files change. No DB / RLS / migration changes. Assignment logic in `ProjectForm.tsx` already covers all eligible (tech / estimation-team) employees via the `eligibleEmployees` prefill, so that side is correct.
 
 ## Out of scope
 
-- No database migration (cascade already exists).
-- No backfill for previously soft-deleted projects.
-- No changes to other modules (clients, invoices, etc.).
+- Changing the default status of new projects.
+- Changing which employees get auto-assigned (current rule: estimation team, excluding ceo/hr_manager/finance_manager/director/admin).
+- Backfilling assignments for previously created projects.
