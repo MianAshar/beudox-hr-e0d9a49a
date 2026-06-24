@@ -524,6 +524,7 @@ const EmployeeProfile = () => {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                  </>
                 )}
                 {isCeo && (
                   <Dialog
