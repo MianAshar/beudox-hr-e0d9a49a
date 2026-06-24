@@ -1,5 +1,7 @@
-## Fix invite email URL
+## Add "Resend Invite" to Employee Profile
 
-Update the hardcoded `portalUrl` in `supabase/functions/invite-employee/index.ts` from `https://beudox-hr.lovable.app/login` to `https://forte-hr.lovable.app/login`, then redeploy the edge function.
+In `src/pages/EmployeeProfile.tsx`, add a "Resend Invite" action in the Danger Zone tab (above Deactivate), visible only when `canManage` is true and the employee has an email.
 
-That's the only reference; the email body's CTA button uses this variable, so the link in new invite emails will point to the new domain.
+- Add `resending` state and `handleResendInvite` that calls the existing `invite-employee` edge function with the employee's `email`, `id`, and `full_name`.
+- Show a toast on success ("Invite email sent to {email}") and on failure (show error message).
+- The function already resets the temporary password to `Forte@123` and re-sends the welcome email — no edge function changes needed.
