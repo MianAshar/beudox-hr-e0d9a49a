@@ -78,6 +78,7 @@ const EmployeeProfile = () => {
   const [reactivateOpen, setReactivateOpen] = useState(false);
   const [reactReason, setReactReason] = useState('');
   const [reactivating, setReactivating] = useState(false);
+  const [resending, setResending] = useState(false);
   const queryClient = useQueryClient();
   const isCeo = roles.includes('ceo');
 
