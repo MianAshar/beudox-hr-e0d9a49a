@@ -455,6 +455,19 @@ const EmployeeProfile = () => {
                     </DialogContent>
                   </Dialog>
                 ) : (
+                  <>
+                    {emp.email && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={handleResendInvite}
+                        disabled={resending}
+                      >
+                        <Mail className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                        {resending ? 'Sending…' : 'Resend Invite'}
+                      </Button>
+                    )}
                   <Dialog open={deactivateOpen} onOpenChange={(open) => { setDeactivateOpen(open); if (!open) { setDeactReason('resigned'); setDeactCustom(''); } }}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm" className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive" disabled={deactivating}>
