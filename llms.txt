@@ -1,0 +1,140 @@
+<!--
+generated_by: tessera
+source_sha: 03509de5f6208160253b996346e7b1f70041c3ca
+generated_at: 2026-05-07T05:56:03.917Z
+action: create
+-->
+
+# Beudox HR - Technical Context for AI Assistants
+
+## Architecture Overview
+
+Beudox HR is a modern React-based frontend application built with TypeScript, designed as a single-page application (SPA) using Vite as the build tool. The application follows a component-based architecture with feature-organized directory structure.
+
+### Core Technologies
+- **React 18** with functional components and hooks
+- **TypeScript** for type safety
+- **Vite** for fast development and optimized builds
+- **React Router** for client-side routing
+- **Supabase** for backend services (database, auth, real-time)
+- **Tailwind CSS** with shadcn/ui for styling
+
+### Application Structure
+
+#### Entry Points
+- `src/main.tsx`: Application bootstrap and root rendering
+- `src/pages/Index.tsx`: Main application page (Next.js Pages Router pattern, but using Vite)
+- Additional pages: JobDescriptionDetail.tsx, JobDescriptionForm.tsx, JobDescriptions.tsx
+
+#### Component Organization
+Components are organized by business domain:
+- **attendance/**: Attendance tracking and reporting (AttendanceSummary, AttendanceUploadFlow, etc.)
+- **employee-profile/**: Employee profile tabs (AttendanceTab, LeaveTab, PayrollTab, etc.)
+- **leave/**: Leave management (ApplyLeaveModal, LeaveBalancesTab, etc.)
+- **payroll/**: Payroll processing (PayrollSummary, PayslipCard, etc.)
+- **evaluations/**: Performance reviews (EvaluationTimeline)
+- **finance/**: Financial summaries
+- **projects/**: Project management (ManageTeamModal, ProjectTasksSection)
+- **settings/**: Administrative settings (CompanyTab, DepartmentsTab, etc.)
+- **ui/**: Reusable UI components (buttons, forms, tables, etc. from shadcn/ui)
+
+#### Key Components
+- **BeudoxLogo**: Logo component with variant support (default/sidebar)
+- **MandatoryPasswordChange**: Modal for setting permanent password after temporary login
+- **NavLink**: React Router NavLink wrapper with active state support
+- **SearchableEmployeeSelect**: Employee selection dropdown with search functionality
+- **AttendanceSummary**: Complex dashboard component showing attendance metrics, overtime, punctuality, and anomalies
+
+### Business Logic & Utilities
+
+#### Attendance Processing (`src/lib/attendance-format.ts`)
+- `formatTime12h()`: Convert time to 12-hour format
+- `formatWorkingHours()`: Format working hours display
+
+#### Leave Management (`src/lib/leave-utils.ts`)
+- `countWorkingDays()`: Calculate working days between dates
+- `ensureLeaveBalance()`: Ensure leave balance exists for employee
+- `getRemainingBalance()`: Calculate remaining leave balance
+
+#### Review Scheduling (`src/lib/review-schedule.ts`)
+- `computeNextReviewDate()`: Calculate next review date
+- `formatNextReviewLabel()`: Format review schedule display
+- `getReviewStatus()`: Determine review status
+
+#### Role Access Control (`src/lib/role-access.ts`)
+- `canAccess()`: Check user permissions
+- `hasRole()`: Check if user has specific role
+- `hasAnyRole()`: Check if user has any of the specified roles
+- `toRoles()`: Convert role data
+
+#### Notifications (`src/lib/notifications.ts`)
+- `sendNotification()`: Send notifications to employees
+- `getEmployeeIdsByRole()`: Get employee IDs by role
+- `uniqueRecipients()`: Deduplicate notification recipients
+
+#### Client Activity (`src/lib/client-activity.ts`)
+- Activity categorization and labeling for audit trails
+
+### Data Flow & State Management
+
+The application uses React hooks for local state management and Supabase client for data operations:
+
+- **Authentication**: Supabase Auth with custom password change flow
+- **Database Queries**: Direct Supabase client calls in components
+- **Real-time**: Supabase subscriptions for live updates
+- **File Storage**: Supabase Storage for avatars and documents
+
+### Configuration
+
+#### Build Configuration
+- `vite.config.ts`: Vite configuration
+- `tsconfig.json`: TypeScript configuration
+- `tailwind.config.ts`: Tailwind CSS configuration
+- `eslint.config.js`: ESLint configuration
+
+#### Environment
+- `.env`: Supabase project configuration
+- Environment variables for Supabase URL and keys
+
+### Testing Strategy
+
+- **Unit Tests**: `src/test/` with Vitest
+- **E2E Tests**: Playwright configuration for browser testing
+- **Test Setup**: `src/test/setup.ts` for test environment
+
+### Key Patterns & Conventions
+
+1. **Component Props**: Interface definitions for component props
+2. **Utility Functions**: Pure functions in `src/lib/` for reusable logic
+3. **Custom Hooks**: React hooks for shared stateful logic
+4. **Type Safety**: Extensive use of TypeScript interfaces
+5. **Styling**: CSS custom properties for consistent theming
+6. **Error Handling**: Try-catch blocks with user-friendly error messages
+7. **Loading States**: Loading indicators during async operations
+
+### Database Integration
+
+The frontend integrates with Supabase PostgreSQL database through:
+- **Authentication**: User login/logout, password management
+- **CRUD Operations**: Employee, attendance, leave, payroll data
+- **Real-time Subscriptions**: Live updates for collaborative features
+- **File Uploads**: Document and avatar storage
+- **Row Level Security**: Database-level access control
+
+### Performance Considerations
+
+- **Lazy Loading**: Components loaded on demand
+- **Memoization**: React.memo and useMemo for expensive computations
+- **Optimized Queries**: Selective field queries to reduce payload
+- **Pagination**: Large datasets handled with pagination
+- **Caching**: Browser caching for static assets
+
+### Security Features
+
+- **Authentication**: Supabase Auth with JWT tokens
+- **Authorization**: Role-based access control
+- **Data Validation**: Client-side validation with server confirmation
+- **Secure Storage**: Sensitive data handled server-side
+- **Session Management**: Automatic session refresh
+
+This architecture supports a scalable, maintainable HR management system with clear separation of concerns and modern React patterns.
