@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Pencil, Trash2, Lock, AlertTriangle, UserX, UserCheck } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Lock, AlertTriangle, UserX, UserCheck, Mail } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -78,6 +78,7 @@ const EmployeeProfile = () => {
   const [reactivateOpen, setReactivateOpen] = useState(false);
   const [reactReason, setReactReason] = useState('');
   const [reactivating, setReactivating] = useState(false);
+  const [resending, setResending] = useState(false);
   const queryClient = useQueryClient();
   const isCeo = roles.includes('ceo');
 
@@ -121,6 +122,23 @@ const EmployeeProfile = () => {
       setDeleteDialogOpen(false);
       setDeleteConfirmText('');
       setDeleteStep(1);
+    }
+  };
+
+  const handleResendInvite = async () => {
+    if (!emp?.id || !emp?.email) return;
+    setResending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('invite-employee', {
+        body: { email: emp.email, employee_id: emp.id, full_name: emp.full_name },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Invite email sent to ${emp.email}`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to resend invite');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -437,6 +455,19 @@ const EmployeeProfile = () => {
                     </DialogContent>
                   </Dialog>
                 ) : (
+                  <>
+                    {emp.email && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={handleResendInvite}
+                        disabled={resending}
+                      >
+                        <Mail className="h-3.5 w-3.5" style={{ strokeWidth: 1.5 }} />
+                        {resending ? 'Sending…' : 'Resend Invite'}
+                      </Button>
+                    )}
                   <Dialog open={deactivateOpen} onOpenChange={(open) => { setDeactivateOpen(open); if (!open) { setDeactReason('resigned'); setDeactCustom(''); } }}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm" className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive" disabled={deactivating}>
@@ -493,6 +524,7 @@ const EmployeeProfile = () => {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                  </>
                 )}
                 {isCeo && (
                   <Dialog
