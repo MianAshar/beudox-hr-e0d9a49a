@@ -125,6 +125,23 @@ const EmployeeProfile = () => {
     }
   };
 
+  const handleResendInvite = async () => {
+    if (!emp?.id || !emp?.email) return;
+    setResending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('invite-employee', {
+        body: { email: emp.email, employee_id: emp.id, full_name: emp.full_name },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Invite email sent to ${emp.email}`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to resend invite');
+    } finally {
+      setResending(false);
+    }
+  };
+
   const handleDeactivate = async () => {
     if (!emp?.id) return;
     if (deactReason === 'other' && !deactCustom.trim()) {
