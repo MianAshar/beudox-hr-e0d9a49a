@@ -1,7 +1,31 @@
-## Add "Resend Invite" to Employee Profile
+## Fix: Finance Manager cannot add/update expenses
 
-In `src/pages/EmployeeProfile.tsx`, add a "Resend Invite" action in the Danger Zone tab (above Deactivate), visible only when `canManage` is true and the employee has an email.
+### Root cause
+The RLS policies on `monthly_expenses`, `expense_line_items`, and `expense_categories` gate writes with:
 
-- Add `resending` state and `handleResendInvite` that calls the existing `invite-employee` edge function with the employee's `email`, `id`, and `full_name`.
-- Show a toast on success ("Invite email sent to {email}") and on failure (show error message).
-- The function already resets the temporary password to `Forte@123` and re-sends the welcome email — no edge function changes needed.
+```
+get_employee_role_for_auth(auth.uid()) = ANY (ARRAY['finance_manager','ceo'])
+```
+
+`get_employee_role_for_auth` returns only the **single highest-priority** role. The finance manager account (`tahaijaz147@gmail.com`) holds both `hr_manager` and `finance_manager`, and `hr_manager` outranks `finance_manager` in the priority order — so the function returns `'hr_manager'`, the check fails, and every INSERT/UPDATE/DELETE on expense tables is blocked by RLS.
+
+### Fix
+Replace the single-role check with the existing multi-role helper `auth_has_any_role(auth.uid(), ARRAY['finance_manager','ceo'])` on all expense-related policies. This helper already scans every role the user holds.
+
+### Migration (one call)
+Drop and recreate these policies on `monthly_expenses`, `expense_line_items`, and `expense_categories`:
+- `*_insert_finance_ceo` (WITH CHECK)
+- `*_update_finance_ceo` (USING + WITH CHECK)
+- `*_delete_finance_ceo` (USING)
+- `monthly_expenses_select_finance_ceo` (USING) — same bug affects reads
+
+New predicate everywhere:
+```
+company_id = get_company_id_for_auth(auth.uid())
+AND public.auth_has_any_role(auth.uid(), ARRAY['finance_manager','ceo'])
+```
+
+No frontend or edge-function changes required.
+
+### Verification
+After the migration, signing in as Taha and adding/editing a row in Finance Sheet should succeed with no RLS error.
