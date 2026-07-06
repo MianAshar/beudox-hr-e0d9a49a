@@ -178,7 +178,7 @@ const Projects = () => {
   const qc = useQueryClient();
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
-  const role = employee?.role_name ?? null;
+  const roleKey = roles.join(',');
   const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const canSeeClient = ['hr_manager', 'ceo', 'finance_manager'].some(r => roles.includes(r));
   const canSeeFinancial = ['hr_manager', 'ceo'].some(r => roles.includes(r));
@@ -217,7 +217,7 @@ const Projects = () => {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   const { data: projects, isLoading } = useQuery({
-    queryKey: ['projects', companyId, role, employeeId, showInactive],
+    queryKey: ['projects', companyId, roleKey, employeeId, showInactive],
     queryFn: async () => {
       const projectSelect = '*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)';
 
@@ -283,7 +283,7 @@ const Projects = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!companyId && !!employeeId && !!role,
+    enabled: !!companyId && !!employeeId && roles.length > 0,
   });
 
   const { data: clients } = useQuery({
@@ -591,7 +591,7 @@ const Projects = () => {
                 canSeeActivity={canSeeActivity}
                 companyId={companyId!}
                 employeeId={employeeId!}
-                role={role}
+                roles={roles}
                 isCeoOrDirector={isCeoOrDirector}
               />
             );
@@ -701,17 +701,17 @@ interface ProjectCardProps {
   canSeeActivity: boolean;
   companyId: string;
   employeeId: string;
-  role?: string | null;
+  roles: string[];
   isCeoOrDirector: boolean;
 }
 
 const ProjectCard = ({
   project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDelete, onManageTeam, isDueToday,
   isManager, canSeeClient, canSeeFinancial, canSeeTeam, canManageTeam, canEditStatus, canEditDeadline, canSeeActivity,
-  companyId, employeeId, role, isCeoOrDirector,
+  companyId, employeeId, roles, isCeoOrDirector,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
-  const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].includes(role || '');
+  const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
   return (
     <div
       className={cn(
