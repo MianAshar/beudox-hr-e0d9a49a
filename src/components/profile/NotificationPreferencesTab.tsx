@@ -85,7 +85,6 @@ interface PrefRow {
 
 const NotificationPreferencesTab = () => {
   const { employee } = useAuth();
-  const role = (employee?.role_name || 'employee') as Role;
   const roles = (employee?.roles?.length ? employee.roles : ['employee']) as Role[];
 
   const [loading, setLoading] = useState(true);
