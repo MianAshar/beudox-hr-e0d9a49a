@@ -38,7 +38,7 @@ const Settings = () => {
           { value: 'roles', label: 'Roles' },
         ]
       : []),
-    ...(!isHr ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
+    ...(isCeo || isFinance ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
     ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
     
     ...(isCeo || isHr ? [{ value: 'login-logs', label: 'Login Logs' }] : []),
@@ -74,7 +74,7 @@ const Settings = () => {
             <TabsContent value="roles" className="mt-6"><RolesTab /></TabsContent>
           </>
         )}
-        {!isHr && (
+        {(isCeo || isFinance) && (
           <TabsContent value="expense-categories" className="mt-6">
             <ExpenseCategoriesTab />
           </TabsContent>

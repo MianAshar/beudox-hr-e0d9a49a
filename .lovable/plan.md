@@ -1,35 +1,19 @@
-## Plan: Allow one user to fully use multiple roles
+## Problem
 
-### Goal
-A user with both `hr_manager` and `finance_manager` should receive the combined permissions of both roles, instead of being limited to whichever role is ranked first.
+In `src/pages/Settings.tsx`, the Expense Categories tab is gated with `!isHr` — meaning it *hides* whenever the user has the HR role, even if they also have Finance. For a user with both HR + Finance, Finance-only tabs disappear.
 
-### What I found
-- The frontend already loads all roles into `employee.roles` and most route/UI checks use that array.
-- The remaining core problem is database RLS policies still using `get_employee_role_for_auth(auth.uid())`, which returns only one highest-priority role.
-- This can block access whenever a user has multiple roles and the required role is not the highest-priority one.
+Additionally, the current tab list only includes: Expense Categories (finance), Leave Types (HR/CEO), Login Logs (HR/CEO), Leave Overwrite Log (HR/CEO). There is no explicit "finance-only" tab beyond Expense Categories, so Finance Managers currently only get that one tab.
 
-### Implementation steps
-1. **Update database policies to use multi-role helpers**
-   - Replace role checks like:
-     - `get_employee_role_for_auth(auth.uid()) IN (...)`
-     - `get_employee_role_for_auth(auth.uid()) = '...'`
-   - With:
-     - `auth_has_any_role(auth.uid(), ARRAY[...])` for multi-role access
-     - `auth_has_role(auth.uid(), '...')` for single-role access
-   - Preserve all existing company/employee ownership restrictions.
+## Fix
 
-2. **Cover all affected modules, not only Expenses**
-   - Finance: invoices, invoice payments, invoice line items, payroll records, loans, expenses.
-   - HR: employees, employee roles, attendance, leave, evaluations, HR documents, settings-related tables.
-   - Projects/clients/tasks where HR, finance, team lead, and CEO checks appear.
-   - CEO-only policies remain CEO-only, but will check whether the user has the CEO role instead of whether CEO is the single returned role.
+Update `src/pages/Settings.tsx` gating so tabs are shown additively based on each role the user holds (not exclusively):
 
-3. **Frontend audit for single-role usage**
-   - Keep using `employee.roles` for route access and sidebar visibility.
-   - Replace any remaining permission logic that depends on `employee.role_name` with `employee.roles` where it controls access.
-   - Keep `role_name` only for display/backward compatibility if needed.
+1. Change Expense Categories gate from `!isHr` to `isCeo || isFinance`.
+2. Keep Leave Types / Login Logs / Leave Overwrite Log as `isCeo || isHr` (unchanged).
+3. Update `defaultTab` logic so a Finance-only user lands on `expense-categories`, HR-only lands on `leave-types`, CEO on `company`. For dual-role HR+Finance, default to `leave-types` (or first available) — pick first tab in list to keep it deterministic.
 
-4. **Verify**
-   - Run the Supabase linter after the migration.
-   - Confirm no active RLS policies still depend on `get_employee_role_for_auth(auth.uid())` for permission checks.
-   - Confirm finance + HR users can access and manage both finance and HR modules.
+No database or business-logic changes; presentation-only fix.
+
+## Files
+
+- `src/pages/Settings.tsx` — fix tab visibility gates and default tab selection.
