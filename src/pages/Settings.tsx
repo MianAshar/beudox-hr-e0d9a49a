@@ -38,7 +38,7 @@ const Settings = () => {
           { value: 'roles', label: 'Roles' },
         ]
       : []),
-    ...(!isHr ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
+    ...(isCeo || isFinance ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
     ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
     
     ...(isCeo || isHr ? [{ value: 'login-logs', label: 'Login Logs' }] : []),
