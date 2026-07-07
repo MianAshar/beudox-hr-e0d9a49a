@@ -74,7 +74,7 @@ const Settings = () => {
             <TabsContent value="roles" className="mt-6"><RolesTab /></TabsContent>
           </>
         )}
-        {!isHr && (
+        {(isCeo || isFinance) && (
           <TabsContent value="expense-categories" className="mt-6">
             <ExpenseCategoriesTab />
           </TabsContent>
