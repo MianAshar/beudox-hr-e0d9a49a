@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Star, ArrowLeft, Settings2, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { computeAbsentDates } from '@/lib/absent-days';
 
 const currentHalf = () => {
   const now = new Date();
@@ -131,6 +132,128 @@ const EvaluationForm = () => {
     },
     enabled: isEdit && !!companyId,
   });
+
+  // Attendance overview for selected employee (current calendar year)
+  const currentYear = new Date().getFullYear();
+  const { data: overview, isLoading: overviewLoading } = useQuery({
+    queryKey: ['eval-attendance-overview', companyId, employeeId, currentYear],
+    enabled: !!companyId && !!employeeId,
+    queryFn: async () => {
+      const yearStart = `${currentYear}-01-01`;
+      const today = new Date();
+      const todayStr = `${currentYear}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const yearEnd = `${currentYear}-12-31`;
+
+      const [attRes, leaveRes, holRes, setRes, taskRes] = await Promise.all([
+        supabase
+          .from('attendance_records')
+          .select('date, check_in, check_out, is_weekend, is_holiday, is_late, working_hours, regular_ot_hours, holiday_ot_hours')
+          .eq('company_id', companyId!)
+          .eq('employee_id', employeeId)
+          .gte('date', yearStart)
+          .lte('date', todayStr),
+        supabase
+          .from('leave_requests')
+          .select('start_date, end_date, status')
+          .eq('company_id', companyId!)
+          .eq('employee_id', employeeId)
+          .eq('status', 'approved')
+          .lte('start_date', todayStr)
+          .gte('end_date', yearStart),
+        supabase
+          .from('public_holidays')
+          .select('date')
+          .eq('company_id', companyId!)
+          .gte('date', yearStart)
+          .lte('date', yearEnd),
+        supabase
+          .from('company_settings')
+          .select('working_days, shift_start_time, shift_end_time, lunch_break_hours')
+          .eq('company_id', companyId!)
+          .maybeSingle(),
+        supabase
+          .from('project_tasks')
+          .select('id', { count: 'exact', head: true })
+          .eq('company_id', companyId!)
+          .eq('assigned_to', employeeId)
+          .eq('is_completed', true)
+          .gte('completed_at', `${yearStart}T00:00:00`)
+          .lte('completed_at', `${todayStr}T23:59:59`),
+      ]);
+
+      const records = attRes.data || [];
+      const settings = setRes.data;
+      const workingDays = settings?.working_days || [1, 2, 3, 4, 5];
+
+      // Required daily hours from shift
+      const parseHM = (s?: string | null) => {
+        if (!s) return null;
+        const [h, m] = s.split(':').map(Number);
+        return h + (m || 0) / 60;
+      };
+      const startH = parseHM(settings?.shift_start_time) ?? 9;
+      const endH = parseHM(settings?.shift_end_time) ?? 18;
+      const lunch = Number(settings?.lunch_break_hours ?? 1);
+      const requiredHours = Math.max(0, endH - startH - lunch);
+
+      const holidayDates = new Set<string>((holRes.data || []).map((h: any) => h.date));
+      records.forEach((r: any) => { if (r.is_holiday) holidayDates.add(r.date); });
+
+      const leaveDates = new Set<string>();
+      (leaveRes.data || []).forEach((l: any) => {
+        const s = new Date(l.start_date + 'T00:00:00');
+        const e = new Date(l.end_date + 'T00:00:00');
+        const cur = new Date(s);
+        while (cur <= e) {
+          leaveDates.add(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`);
+          cur.setDate(cur.getDate() + 1);
+        }
+      });
+
+      const attendedDates = new Set<string>(
+        records.filter((r: any) => r.check_in && r.check_out).map((r: any) => r.date)
+      );
+
+      let daysPresent = 0;
+      let lateArrivals = 0;
+      let totalOt = 0;
+      let totalUndertime = 0;
+
+      records.forEach((r: any) => {
+        const isWknd = !!r.is_weekend;
+        const isHol = !!r.is_holiday || holidayDates.has(r.date);
+        const hasBoth = !!r.check_in && !!r.check_out;
+        totalOt += Number(r.regular_ot_hours || 0) + Number(r.holiday_ot_hours || 0);
+        if (hasBoth && !isWknd && !isHol) {
+          daysPresent += 1;
+          if (r.is_late) lateArrivals += 1;
+          if (!leaveDates.has(r.date) && r.working_hours != null && Number(r.working_hours) < requiredHours) {
+            totalUndertime += requiredHours - Number(r.working_hours);
+          }
+        }
+      });
+
+      const absents = computeAbsentDates({
+        startDate: yearStart,
+        endDate: todayStr,
+        workingDays,
+        holidayDates,
+        attendedDates,
+        leaveDates,
+      });
+
+      return {
+        daysPresent,
+        daysAbsent: absents.length,
+        lateArrivals,
+        totalOvertime: totalOt,
+        totalUndertime,
+        tasksCompleted: taskRes.count || 0,
+      };
+    },
+  });
+
+
 
   useEffect(() => {
     if (existing) {
@@ -383,17 +506,31 @@ const EvaluationForm = () => {
           </Button>
         </div>
 
-        {/* Attendance mock card */}
+        {/* Attendance overview */}
         <div>
           <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">Attendance Overview (sample data)</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                Attendance Overview ({currentYear})
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Days Present</span><span className="font-medium">18</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Days Absent</span><span className="font-medium">2</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Late Arrivals</span><span className="font-medium">3</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Total OT Hours</span><span className="font-medium">12.5</span></div>
+              {!employeeId ? (
+                <p className="text-muted-foreground text-sm">Select an employee to view attendance.</p>
+              ) : overviewLoading || !overview ? (
+                <>
+                  {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-5 w-full" />)}
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Days Present</span><span className="font-medium">{overview.daysPresent}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Days Absent</span><span className="font-medium">{overview.daysAbsent}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Late Arrivals</span><span className="font-medium">{overview.lateArrivals}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Total Overtime</span><span className="font-medium">{overview.totalOvertime.toFixed(1)} hrs</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Total Undertime</span><span className="font-medium">{overview.totalUndertime.toFixed(1)} hrs</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Tasks Completed</span><span className="font-medium">{overview.tasksCompleted}</span></div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
