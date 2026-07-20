@@ -18,7 +18,6 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/leave',
     '/my-payslip',
     '/my-tasks',
-    '/notifications',
   ],
   hr_manager: [
     '/dashboard',
@@ -32,7 +31,6 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/job-descriptions',
     '/loans',
     '/my-payslip',
-    '/notifications',
     '/settings',
   ],
   finance_manager: [
@@ -41,7 +39,6 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/attendance',
     '/holidays',
     '/payroll',
-    
     '/finance',
     '/loans',
     '/leave',
@@ -51,7 +48,6 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/job-descriptions',
     '/my-payslip',
     '/my-tasks',
-    '/notifications',
     '/settings',
   ],
   team_lead: [
@@ -59,7 +55,6 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/attendance',
     '/holidays',
     '/projects',
-    
     '/evaluations',
     '/evaluations/daily',
     '/hr-policies',
@@ -68,7 +63,6 @@ const roleRoutes: Record<Exclude<AppRole, 'ceo'>, string[]> = {
     '/leave',
     '/my-payslip',
     '/my-tasks',
-    '/notifications',
   ],
 };
 
@@ -100,8 +94,7 @@ export function hasRole(roles: string | string[] | null | undefined, role: strin
   return toRoles(roles).includes(role);
 }
 
-/** Returns true if the user holds ANY of the given roles. */
-export function hasAnyRole(roles: string | string[] | null | undefined, required: string[]): boolean {
-  const list = toRoles(roles);
-  return required.some(r => list.includes(r));
+/** Returns true if the user has any of the listed roles. */
+export function hasAnyRole(roles: string | string[] | null | undefined, rolesToCheck: string[]): boolean {
+  return toRoles(roles).some(r => rolesToCheck.includes(r));
 }
