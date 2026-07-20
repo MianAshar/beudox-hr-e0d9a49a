@@ -488,7 +488,8 @@ const FinanceSheet = () => {
     rows.push(['Description', 'Amount (PKR)']);
     boldRows.push(rows.length - 1);
 
-    (categories || []).forEach(cat => {
+    const exportCategories = (categories || []).filter(c => c.id !== bdCategoryId);
+    exportCategories.forEach(cat => {
       boldRows.push(rows.length);
       rows.push([cat.name, '']);
       const items = (lineItems || []).filter(li => li.category_id === cat.id);
@@ -506,6 +507,24 @@ const FinanceSheet = () => {
     boldRows.push(rows.length);
     rows.push(['Total Expenses', expensesGrandTotal]);
     rows.push([]);
+
+    // BD Expenses section (CEO only)
+    if (isCeo && bdCategory) {
+      boldRows.push(rows.length);
+      rows.push(['BD EXPENSES']);
+      rows.push(['Description', 'Amount (PKR)']);
+      boldRows.push(rows.length - 1);
+      const bdItems = (lineItems || []).filter(li => li.category_id === bdCategory.id);
+      bdItems.forEach(li => {
+        rows.push([li.description, getExpenseAmount(li.id)]);
+      });
+      getOneTimeExpenses(bdCategory.id).forEach((ot: any) => {
+        rows.push([ot.description, Number(ot.amount)]);
+      });
+      boldRows.push(rows.length);
+      rows.push(['Total BD Expenses', bdGrandTotal]);
+      rows.push([]);
+    }
 
     boldRows.push(rows.length);
     rows.push(['Grand Total (Payroll + Expenses)', '', '', '', '', '', '', '', payrollGrandTotal + expensesGrandTotal]);
