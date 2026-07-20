@@ -458,7 +458,7 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
         title: 'Salary Breakdown',
         rows: [
           { label: 'Basic Salary', value: mask(fmtPKR(breakdown.basic)) },
-          { label: 'Fuel Allowance', value: fmtPKR(breakdown.allowance) },
+          { label: 'Allowance', value: fmtPKR(breakdown.allowance) },
           { label: 'Per Day Salary', value: rates ? mask(fmtPKR(rates.perDay)) : '—' },
           { label: 'Per Hour Salary', value: rates ? mask(fmtPKR(rates.perHour)) : '—' },
         ],
@@ -633,7 +633,7 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
                   borderRight: '0.5px solid rgba(91,63,248,0.15)',
                 }}
               >
-                <KeyLabel>Fuel Allowance</KeyLabel>
+                <KeyLabel>Allowance</KeyLabel>
                 <div className="text-[15px] font-medium mt-1.5" style={{ color: '#120E36', fontFamily: 'var(--ff-body)' }}>
                   {fmtPKR(breakdown.allowance)}
                 </div>
@@ -783,7 +783,7 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
                 <td style={{ width: '50%', padding: 12, borderLeft: '1px solid #E5E1FA', verticalAlign: 'top', lineHeight: 1.7 }}>
                   <div><span style={{ color: '#9490B4' }}>Salary Month: </span><strong>{monthLabelFull}</strong></div>
                   <div><span style={{ color: '#9490B4' }}>Basic Salary: </span><strong>{mask(fmtPKR(breakdown.basic))}</strong></div>
-                  <div><span style={{ color: '#9490B4' }}>Fuel Allowance: </span><strong>{fmtPKR(breakdown.allowance)}</strong></div>
+                  <div><span style={{ color: '#9490B4' }}>Allowance: </span><strong>{fmtPKR(breakdown.allowance)}</strong></div>
                   <div><span style={{ color: '#9490B4' }}>Total Salary: </span><strong>{fmtPKR(breakdown.totalSalary)}</strong></div>
                   <div><span style={{ color: '#9490B4' }}>Payment Date: </span><strong>{breakdown.paymentDate ? formatJoiningDate(breakdown.paymentDate) : '-'}</strong></div>
                 </td>

@@ -323,7 +323,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
               <SectionTitle>Salary</SectionTitle>
               <div>
                 <Row label="Basic Salary" value={fmtPKR(basic)} />
-                <Row label="Fuel Allowance" value={fmtPKR(allowance)} />
+                <Row label="Allowance" value={fmtPKR(allowance)} />
                 <Row label="Total Base Salary" value={fmtPKR(basic + allowance)} bold />
               </div>
 

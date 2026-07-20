@@ -423,7 +423,7 @@ const Payroll = () => {
             <TableRow>
               <TableHead>Employee</TableHead>
               <TableHead className="text-right hidden md:table-cell">Basic Salary</TableHead>
-              <TableHead className="text-right hidden md:table-cell">Fuel Allowance</TableHead>
+              <TableHead className="text-right hidden md:table-cell">Allowance</TableHead>
               <TableHead className="text-right hidden lg:table-cell">OT Amount</TableHead>
               <TableHead className="text-right hidden lg:table-cell">Loan Deduction</TableHead>
               {canForgo && <TableHead className="text-center hidden lg:table-cell">Forgo</TableHead>}
