@@ -1,19 +1,23 @@
-## Problem
+## Employees module updates
 
-In `src/pages/Settings.tsx`, the Expense Categories tab is gated with `!isHr` — meaning it *hides* whenever the user has the HR role, even if they also have Finance. For a user with both HR + Finance, Finance-only tabs disappear.
+### 1. Employees list (`src/pages/Employees.tsx`)
+- Remove `'resigned'` from the `STATUS_OPTIONS` array so it no longer appears in the Status filter dropdown.
+- Change the default value of `statusFilter` from `'all'` to `'active'` so the list opens showing only active employees. Keep "All Status" as a selectable option so managers can still view inactive/resigned records on demand.
 
-Additionally, the current tab list only includes: Expense Categories (finance), Leave Types (HR/CEO), Login Logs (HR/CEO), Leave Overwrite Log (HR/CEO). There is no explicit "finance-only" tab beyond Expense Categories, so Finance Managers currently only get that one tab.
+### 2. Add/Edit Employee form (`src/pages/EmployeeForm.tsx`)
+- Move the **Employee Code** field out of the Personal Information section and place it inside the **Employment Information** section, directly below the **Joining Date** field. Keep its Zod validation, auto-hyphen formatting, and existing behavior unchanged.
+- Remove the **Employment Type** dropdown from the UI. Keep the field in the Zod schema/state defaulted to `'full_time'` and continue writing `'full_time'` on insert/update so existing DB column and downstream logic (e.g. director checks) stay intact.
 
-## Fix
+### 3. Rename "Fuel Allowance" → "Allowance" (label only, no DB change)
+The underlying column is already named `allowance`; only display strings need updating in:
+- `src/pages/EmployeeForm.tsx` (field label)
+- `src/pages/EmployeeProfile.tsx`
+- `src/pages/Payroll.tsx` (table header)
+- `src/pages/FinanceSheet.tsx` (Excel export header + table header)
+- `src/components/payroll/PayslipCard.tsx` (3 occurrences)
+- `src/components/payroll/PayrollSummary.tsx` (sortable header)
+- `src/components/payroll/PayrollDetailSheet.tsx` (Row label)
 
-Update `src/pages/Settings.tsx` gating so tabs are shown additively based on each role the user holds (not exclusively):
-
-1. Change Expense Categories gate from `!isHr` to `isCeo || isFinance`.
-2. Keep Leave Types / Login Logs / Leave Overwrite Log as `isCeo || isHr` (unchanged).
-3. Update `defaultTab` logic so a Finance-only user lands on `expense-categories`, HR-only lands on `leave-types`, CEO on `company`. For dual-role HR+Finance, default to `leave-types` (or first available) — pick first tab in list to keep it deterministic.
-
-No database or business-logic changes; presentation-only fix.
-
-## Files
-
-- `src/pages/Settings.tsx` — fix tab visibility gates and default tab selection.
+### Out of scope
+- No database migration (columns `employment_type` and `allowance` stay as-is).
+- No changes to payroll calculation logic.
