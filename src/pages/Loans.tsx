@@ -56,7 +56,7 @@ const Loans = () => {
   const isManager = roles.some(r => MANAGER_ROLES.includes(r));
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('active');
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
