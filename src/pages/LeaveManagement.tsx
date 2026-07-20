@@ -98,7 +98,9 @@ const LeaveManagement = () => {
         {isHrOrCeo && (
           <TabsContent value="all-requests" className="mt-6"><AllRequestsTab /></TabsContent>
         )}
-        <TabsContent value="my-requests" className="mt-6"><MyRequestsTab /></TabsContent>
+        {!isCeo && (
+          <TabsContent value="my-requests" className="mt-6"><MyRequestsTab /></TabsContent>
+        )}
         {isHrOrCeo && (
           <TabsContent value="balances" className="mt-6"><LeaveBalancesTab /></TabsContent>
         )}
