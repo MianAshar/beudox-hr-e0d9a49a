@@ -23,6 +23,7 @@ const LeaveManagement = () => {
   const { employee } = useAuth();
   const roles = employee?.roles ?? [];
   const companyId = employee?.company_id;
+  const isCeo = roles.includes('ceo');
   const isHrOrCeo = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('');
@@ -55,7 +56,7 @@ const LeaveManagement = () => {
 
   const tabs = [
     ...(isHrOrCeo ? [{ value: 'all-requests', label: 'All Requests' }] : []),
-    { value: 'my-requests', label: 'My Requests' },
+    ...(!isCeo ? [{ value: 'my-requests', label: 'My Requests' }] : []),
     ...(isHrOrCeo ? [{ value: 'balances', label: 'Leave Balances' }] : []),
   ];
 
@@ -66,7 +67,7 @@ const LeaveManagement = () => {
 
   return (
     <div className="space-y-6">
-      <MyLeaveBalances />
+      {!isCeo && <MyLeaveBalances />}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="hidden sm:block" />
@@ -97,7 +98,9 @@ const LeaveManagement = () => {
         {isHrOrCeo && (
           <TabsContent value="all-requests" className="mt-6"><AllRequestsTab /></TabsContent>
         )}
-        <TabsContent value="my-requests" className="mt-6"><MyRequestsTab /></TabsContent>
+        {!isCeo && (
+          <TabsContent value="my-requests" className="mt-6"><MyRequestsTab /></TabsContent>
+        )}
         {isHrOrCeo && (
           <TabsContent value="balances" className="mt-6"><LeaveBalancesTab /></TabsContent>
         )}

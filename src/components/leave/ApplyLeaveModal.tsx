@@ -29,6 +29,7 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
   const { employee } = useAuth();
   const roles = employee?.roles ?? [];
   const companyId = employee?.company_id;
+  const isCeo = roles.includes('ceo');
   const isHrOrCeo = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const queryClient = useQueryClient();
 
@@ -156,6 +157,9 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
       const year = new Date().getFullYear();
       await ensureLeaveBalance(companyId, selectedEmployee, leaveTypeId, year);
 
+      const autoApprove = isCeo;
+      const nowIso = new Date().toISOString();
+
       const { error } = await supabase.from('leave_requests').insert({
         company_id: companyId,
         employee_id: selectedEmployee,
@@ -165,27 +169,46 @@ const ApplyLeaveModal = ({ open, onOpenChange, onSuccess }: Props) => {
         half_day: halfDay,
         half_day_period: halfDay ? halfDayPeriod : null,
         reason: reason || null,
-        status: 'pending',
+        status: autoApprove ? 'approved' : 'pending',
+        actioned_by: autoApprove ? employee!.employee_id : null,
+        actioned_at: autoApprove ? nowIso : null,
       } as any);
       if (error) throw error;
 
-      const { data: empData } = await supabase.from('employees').select('full_name').eq('id', selectedEmployee).single();
-      const empName = empData?.full_name || 'An employee';
+      if (autoApprove) {
+        const { data: balance } = await supabase
+          .from('leave_balances')
+          .select('id, used_days')
+          .eq('company_id', companyId)
+          .eq('employee_id', selectedEmployee)
+          .eq('leave_type_id', leaveTypeId)
+          .eq('year', year)
+          .maybeSingle();
+        if (balance) {
+          await supabase.from('leave_balances')
+            .update({ used_days: (balance.used_days || 0) + daysRequested } as any)
+            .eq('id', balance.id);
+        }
+      } else {
+        const { data: empData } = await supabase.from('employees').select('full_name').eq('id', selectedEmployee).single();
+        const empName = empData?.full_name || 'An employee';
 
-      const hrIds = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
-      const recipients = uniqueRecipients(hrIds);
-      if (recipients.length > 0) {
-        sendNotification({
-          companyId, recipientIds: recipients,
-          type: 'leave_submitted', title: 'Leave Request Submitted',
-          message: `${empName} has requested ${daysRequested} day(s) of ${lt.name} from ${s} to ${e}.`,
-          referenceType: 'leave',
-        });
+        const hrIds = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
+        const recipients = uniqueRecipients(hrIds);
+        if (recipients.length > 0) {
+          sendNotification({
+            companyId, recipientIds: recipients,
+            type: 'leave_submitted', title: 'Leave Request Submitted',
+            message: `${empName} has requested ${daysRequested} day(s) of ${lt.name} from ${s} to ${e}.`,
+            referenceType: 'leave',
+          });
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['my-leave-requests'] });
       queryClient.invalidateQueries({ queryKey: ['all-leave-requests'] });
-      toast.success('Leave request submitted');
+      queryClient.invalidateQueries({ queryKey: ['employee-leave-balances'] });
+      toast.success(autoApprove ? 'Leave approved' : 'Leave request submitted');
       onSuccess();
     } catch (err: any) {
       toast.error(err.message || 'Failed to submit');
