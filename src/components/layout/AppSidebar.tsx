@@ -12,7 +12,7 @@ import { useMobileSidebar } from './MobileSidebarContext';
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
-  FolderKanban, ClipboardCheck, ClipboardList, FileText, Settings, Bell, FileSpreadsheet,
+  FolderKanban, ClipboardCheck, ClipboardList, FileText, Settings, FileSpreadsheet,
   ChevronLeft, ChevronRight, Briefcase, Wallet, ListChecks,
 } from 'lucide-react';
 
@@ -59,7 +59,6 @@ const navSections = [
     label: 'SYSTEM',
     items: [
       { title: 'My Payslip', icon: Wallet, path: '/my-payslip' },
-      { title: 'Notifications', icon: Bell, path: '/notifications' },
       { title: 'Settings', icon: Settings, path: '/settings' },
     ],
   },
