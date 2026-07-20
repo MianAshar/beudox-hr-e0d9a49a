@@ -56,7 +56,7 @@ const LeaveManagement = () => {
 
   const tabs = [
     ...(isHrOrCeo ? [{ value: 'all-requests', label: 'All Requests' }] : []),
-    { value: 'my-requests', label: 'My Requests' },
+    ...(!isCeo ? [{ value: 'my-requests', label: 'My Requests' }] : []),
     ...(isHrOrCeo ? [{ value: 'balances', label: 'Leave Balances' }] : []),
   ];
 
