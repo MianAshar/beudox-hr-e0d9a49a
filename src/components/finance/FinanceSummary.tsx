@@ -40,7 +40,7 @@ const buildMonthRange = (year: number, monthIdx: number, count: number) => {
   return months;
 };
 
-export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: FinanceSummaryProps) => {
+export const FinanceSummary = ({ companyId, selectedMonth, selectedYear, excludeCategoryId }: FinanceSummaryProps) => {
   const monthIdx = parseInt(selectedMonth, 10) - 1;
   const year = parseInt(selectedYear, 10);
 
