@@ -506,17 +506,31 @@ const EvaluationForm = () => {
           </Button>
         </div>
 
-        {/* Attendance mock card */}
+        {/* Attendance overview */}
         <div>
           <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">Attendance Overview (sample data)</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                Attendance Overview ({currentYear})
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Days Present</span><span className="font-medium">18</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Days Absent</span><span className="font-medium">2</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Late Arrivals</span><span className="font-medium">3</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Total OT Hours</span><span className="font-medium">12.5</span></div>
+              {!employeeId ? (
+                <p className="text-muted-foreground text-sm">Select an employee to view attendance.</p>
+              ) : overviewLoading || !overview ? (
+                <>
+                  {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-5 w-full" />)}
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Days Present</span><span className="font-medium">{overview.daysPresent}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Days Absent</span><span className="font-medium">{overview.daysAbsent}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Late Arrivals</span><span className="font-medium">{overview.lateArrivals}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Total Overtime</span><span className="font-medium">{overview.totalOvertime.toFixed(1)} hrs</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Total Undertime</span><span className="font-medium">{overview.totalUndertime.toFixed(1)} hrs</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Tasks Completed</span><span className="font-medium">{overview.tasksCompleted}</span></div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
