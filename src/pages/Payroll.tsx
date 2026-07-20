@@ -606,10 +606,25 @@ const Payroll = () => {
           </Select>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button onClick={handleGenerate} disabled={loading} className="w-full sm:w-auto">
-            {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <DollarSign className="h-4 w-4 mr-2" />}
-            Generate Payroll
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="w-full sm:w-auto inline-block">
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={loading || checkingAttendance || !hasAttendance}
+                    className="w-full sm:w-auto"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <DollarSign className="h-4 w-4 mr-2" />}
+                    Generate Payroll
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!checkingAttendance && !hasAttendance && (
+                <TooltipContent>Upload attendance for this month before generating payroll.</TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           {/* TODO: Remove before production */}
           {isCeoViewer && (
             <Button
