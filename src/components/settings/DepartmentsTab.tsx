@@ -4,11 +4,23 @@ import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, X, Plus } from 'lucide-react';
+import { Loader2, Trash2, Plus, Pencil, Check, X, Users } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+type DeptRow = { id: string; original: string | null; name: string };
+
+const genId = () => Math.random().toString(36).slice(2, 10);
 
 const DepartmentsTab = () => {
   const { employee } = useAuth();
@@ -29,7 +41,6 @@ const DepartmentsTab = () => {
     enabled: !!companyId,
   });
 
-  // Fetch employee department counts
   const { data: deptCounts } = useQuery({
     queryKey: ['department-counts', companyId],
     queryFn: async () => {
@@ -41,122 +52,242 @@ const DepartmentsTab = () => {
       if (error) throw error;
       const counts: Record<string, number> = {};
       data?.forEach(e => {
-        if (e.department) {
-          counts[e.department] = (counts[e.department] || 0) + 1;
-        }
+        if (e.department) counts[e.department] = (counts[e.department] || 0) + 1;
       });
       return counts;
     },
     enabled: !!companyId,
   });
 
-  const [departments, setDepartments] = useState<string[]>([]);
+  const [rows, setRows] = useState<DeptRow[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
   const [newDept, setNewDept] = useState('');
   const [saving, setSaving] = useState(false);
-  const [removeErrors, setRemoveErrors] = useState<Record<string, string>>({});
+  const [deleteTarget, setDeleteTarget] = useState<DeptRow | null>(null);
 
   useEffect(() => {
     if (company) {
-      setDepartments((company as any).departments || ['GC Team', 'MEP Team', 'Admin', 'Director']);
+      const list: string[] = (company as any).departments || ['GC Team', 'MEP Team', 'Admin', 'Director'];
+      setRows(list.map(name => ({ id: genId(), original: name, name })));
     }
   }, [company]);
+
+  const countFor = (row: DeptRow) => (row.original ? deptCounts?.[row.original] || 0 : 0);
+
+  const startEdit = (row: DeptRow) => {
+    setEditingId(row.id);
+    setEditValue(row.name);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const commitEdit = (id: string) => {
+    const name = editValue.trim();
+    if (!name) {
+      toast.error('Department name cannot be empty');
+      return;
+    }
+    if (rows.some(r => r.id !== id && r.name.toLowerCase() === name.toLowerCase())) {
+      toast.error('Department already exists');
+      return;
+    }
+    setRows(prev => prev.map(r => (r.id === id ? { ...r, name } : r)));
+    setEditingId(null);
+    setEditValue('');
+  };
 
   const handleAdd = () => {
     const name = newDept.trim();
     if (!name) return;
-    if (departments.includes(name)) {
+    if (rows.some(r => r.name.toLowerCase() === name.toLowerCase())) {
       toast.error('Department already exists');
       return;
     }
-    setDepartments(prev => [...prev, name]);
+    setRows(prev => [...prev, { id: genId(), original: null, name }]);
     setNewDept('');
   };
 
-  const handleRemove = (dept: string) => {
-    const count = deptCounts?.[dept] || 0;
-    if (count > 0) {
-      setRemoveErrors(prev => ({
-        ...prev,
-        [dept]: `Cannot remove ${dept} — ${count} employee${count > 1 ? 's are' : ' is'} currently assigned to this department`,
-      }));
+  const confirmDelete = (row: DeptRow) => {
+    if (countFor(row) > 0) {
+      toast.error(
+        `Cannot delete ${row.original} — ${countFor(row)} employee${countFor(row) > 1 ? 's are' : ' is'} assigned to this department`
+      );
       return;
     }
-    setRemoveErrors(prev => {
-      const next = { ...prev };
-      delete next[dept];
-      return next;
-    });
-    setDepartments(prev => prev.filter(d => d !== dept));
+    setDeleteTarget(row);
+  };
+
+  const performDelete = () => {
+    if (!deleteTarget) return;
+    setRows(prev => prev.filter(r => r.id !== deleteTarget.id));
+    setDeleteTarget(null);
   };
 
   const handleSave = useCallback(async () => {
     if (!companyId) return;
+    // Determine renames (original present, name changed)
+    const renames = rows
+      .filter(r => r.original && r.original !== r.name)
+      .map(r => ({ from: r.original as string, to: r.name }));
+    const names = rows.map(r => r.name);
+
     setSaving(true);
     try {
+      // Apply renames to employees first so the array update never orphans rows
+      for (const { from, to } of renames) {
+        const { error } = await supabase
+          .from('employees')
+          .update({ department: to })
+          .eq('company_id', companyId)
+          .eq('department', from);
+        if (error) throw error;
+      }
+
       const { error } = await supabase
         .from('companies')
-        .update({ departments } as any)
+        .update({ departments: names } as any)
         .eq('id', companyId);
       if (error) throw error;
+
       toast.success('Departments updated');
       qc.invalidateQueries({ queryKey: ['company-settings'] });
       qc.invalidateQueries({ queryKey: ['company-departments'] });
+      qc.invalidateQueries({ queryKey: ['department-counts'] });
+      qc.invalidateQueries({ queryKey: ['employees'] });
     } catch (err: any) {
       toast.error(err.message || 'Failed to save');
     } finally {
       setSaving(false);
     }
-  }, [companyId, departments, qc]);
+  }, [companyId, rows, qc]);
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-[200px] rounded-[14px]" />
+        <Skeleton className="h-[300px] rounded-[14px]" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[14px] border p-6" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))' }}>
-        <h3 className="text-[16px] font-semibold text-foreground mb-1" style={{ fontFamily: 'var(--ff-display)' }}>
+      <div
+        className="rounded-[14px] border p-6"
+        style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))' }}
+      >
+        <h3
+          className="text-[16px] font-semibold text-foreground mb-1"
+          style={{ fontFamily: 'var(--ff-display)' }}
+        >
           Departments
         </h3>
-        <p className="text-[13px] text-muted-foreground mb-5" style={{ fontFamily: 'var(--ff-body)' }}>
-          Manage company departments. These appear as options in the employee form.
+        <p
+          className="text-[13px] text-muted-foreground mb-5"
+          style={{ fontFamily: 'var(--ff-body)' }}
+        >
+          Manage company departments. Rename, remove, or add departments. Renames automatically apply
+          to all employees currently assigned.
         </p>
 
-        <div className="flex flex-wrap gap-2 mb-4">
-          {departments.map(dept => (
-            <div key={dept} className="flex flex-col">
-              <Badge
-                variant="secondary"
-                className="text-[13px] px-3 py-1.5 gap-1.5"
-                style={{ fontFamily: 'var(--ff-body)' }}
-              >
-                {dept}
-                <button
-                  onClick={() => handleRemove(dept)}
-                  className="ml-1 hover:text-destructive transition-colors"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-              {removeErrors[dept] && (
-                <p className="text-[10px] text-destructive mt-1 max-w-[200px]" style={{ fontFamily: 'var(--ff-body)' }}>
-                  {removeErrors[dept]}
-                </p>
-              )}
-            </div>
-          ))}
-          {departments.length === 0 && (
-            <p className="text-[13px] text-muted-foreground" style={{ fontFamily: 'var(--ff-body)' }}>
+        {/* List */}
+        <div className="divide-y rounded-[10px] border" style={{ borderColor: 'hsl(var(--border))' }}>
+          {rows.length === 0 && (
+            <p
+              className="text-[13px] text-muted-foreground p-4"
+              style={{ fontFamily: 'var(--ff-body)' }}
+            >
               No departments added yet.
             </p>
           )}
+          {rows.map(row => {
+            const count = countFor(row);
+            const isEditing = editingId === row.id;
+            return (
+              <div
+                key={row.id}
+                className="flex items-center gap-3 px-4 py-2.5"
+              >
+                {isEditing ? (
+                  <>
+                    <Input
+                      value={editValue}
+                      onChange={e => setEditValue(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') commitEdit(row.id);
+                        if (e.key === 'Escape') cancelEdit();
+                      }}
+                      autoFocus
+                      className="h-9 max-w-sm"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-primary"
+                      onClick={() => commitEdit(row.id)}
+                      title="Save"
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={cancelEdit}
+                      title="Cancel"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <span
+                      className="text-[14px] text-foreground flex-1"
+                      style={{ fontFamily: 'var(--ff-body)' }}
+                    >
+                      {row.name}
+                    </span>
+                    {count > 0 && (
+                      <span
+                        className="inline-flex items-center gap-1 text-[12px] text-muted-foreground"
+                        style={{ fontFamily: 'var(--ff-body)' }}
+                        title={`${count} active employee${count > 1 ? 's' : ''}`}
+                      >
+                        <Users className="h-3.5 w-3.5" />
+                        {count}
+                      </span>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => startEdit(row)}
+                      title="Rename"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => confirmDelete(row)}
+                      disabled={count > 0}
+                      title={count > 0 ? 'Reassign employees before deleting' : 'Delete'}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <div className="flex gap-2 max-w-sm">
+        {/* Add */}
+        <div className="flex gap-2 max-w-sm mt-4">
           <Input
             value={newDept}
             onChange={e => setNewDept(e.target.value)}
@@ -171,11 +302,27 @@ const DepartmentsTab = () => {
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving || editingId !== null}>
           {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
           Save Departments
         </Button>
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={open => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete department?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Remove <span className="font-semibold">{deleteTarget?.name}</span> from the department
+              list. This won't take effect until you click Save Departments.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={performDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
