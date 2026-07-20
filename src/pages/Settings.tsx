@@ -29,24 +29,19 @@ const Settings = () => {
   }
 
   const tabs = [
-    ...(isCeo
-      ? [
-          { value: 'company', label: 'Company' },
-          { value: 'attendance', label: 'Attendance & Payroll' },
-          { value: 'departments', label: 'Departments' },
-          { value: 'eval-params', label: 'Evaluation Parameters' },
-          { value: 'roles', label: 'Roles' },
-        ]
-      : []),
+    ...(isCeo ? [{ value: 'company', label: 'Company' }] : []),
+    ...(isCeo || isHr ? [{ value: 'attendance', label: 'Attendance & Payroll' }] : []),
+    ...(isCeo ? [{ value: 'departments', label: 'Departments' }] : []),
+    ...(isCeo || isHr ? [{ value: 'eval-params', label: 'Evaluation Parameters' }] : []),
+    ...(isCeo ? [{ value: 'roles', label: 'Roles' }] : []),
     ...(isCeo || isFinance ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
     ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
-    
     ...(isCeo || isHr ? [{ value: 'login-logs', label: 'Login Logs' }] : []),
     ...(isCeo || isHr ? [{ value: 'leave-overwrites', label: 'Leave Overwrite Log' }] : []),
     ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
-  const defaultTab = isCeo ? 'company' : isHr ? 'leave-types' : 'expense-categories';
+  const defaultTab = isCeo ? 'company' : isHr ? 'attendance' : 'expense-categories';
 
   return (
     <div className="space-y-6">
@@ -66,14 +61,21 @@ const Settings = () => {
         </TabsList>
 
         {isCeo && (
-          <>
-            <TabsContent value="company" className="mt-6"><CompanyTab /></TabsContent>
-            <TabsContent value="attendance" className="mt-6"><AttendanceTab /></TabsContent>
-            <TabsContent value="departments" className="mt-6"><DepartmentsTab /></TabsContent>
-            <TabsContent value="eval-params" className="mt-6"><EvaluationParametersTab /></TabsContent>
-            <TabsContent value="roles" className="mt-6"><RolesTab /></TabsContent>
-          </>
+          <TabsContent value="company" className="mt-6"><CompanyTab /></TabsContent>
         )}
+        {(isCeo || isHr) && (
+          <TabsContent value="attendance" className="mt-6"><AttendanceTab /></TabsContent>
+        )}
+        {isCeo && (
+          <TabsContent value="departments" className="mt-6"><DepartmentsTab /></TabsContent>
+        )}
+        {(isCeo || isHr) && (
+          <TabsContent value="eval-params" className="mt-6"><EvaluationParametersTab /></TabsContent>
+        )}
+        {isCeo && (
+          <TabsContent value="roles" className="mt-6"><RolesTab /></TabsContent>
+        )}
+
         {(isCeo || isFinance) && (
           <TabsContent value="expense-categories" className="mt-6">
             <ExpenseCategoriesTab />
