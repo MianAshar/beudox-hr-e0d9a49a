@@ -147,9 +147,15 @@ const FinanceSheet = () => {
     return recurringTotal + oneTimeTotal;
   };
 
-  const expensesGrandTotal = (categories || []).reduce(
+  // ─── BD CATEGORY DETECTION ───
+  const bdCategory = (categories || []).find(c => c.name.toLowerCase().includes('bd expense'));
+  const bdCategoryId = bdCategory?.id;
+  const nonBdCategories = (categories || []).filter(c => c.id !== bdCategoryId);
+
+  const expensesGrandTotal = nonBdCategories.reduce(
     (sum, cat) => sum + getCategoryTotal(cat.id), 0
   );
+  const bdGrandTotal = bdCategoryId ? getCategoryTotal(bdCategoryId) : 0;
 
   // ─── EDIT MODAL HANDLERS ───
   const openEditModal = (categoryId: string) => {
