@@ -70,7 +70,7 @@ const Employees = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('active');
 
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
