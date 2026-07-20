@@ -76,6 +76,9 @@ const Payroll = () => {
   const [records, setRecords] = useState<PayrollRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [hasAttendance, setHasAttendance] = useState(false);
+  const [checkingAttendance, setCheckingAttendance] = useState(true);
+  const navigate = useNavigate();
 
   const [approveOpen, setApproveOpen] = useState(false);
   const [approving, setApproving] = useState(false);
