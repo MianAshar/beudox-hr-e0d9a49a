@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Star, ArrowLeft, Settings2, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { computeAbsentDates } from '@/lib/absent-days';
 
 const currentHalf = () => {
   const now = new Date();
