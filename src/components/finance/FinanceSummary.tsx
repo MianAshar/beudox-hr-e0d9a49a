@@ -17,6 +17,8 @@ interface FinanceSummaryProps {
   companyId: string;
   selectedMonth: string; // '01'..'12'
   selectedYear: string; // 'YYYY'
+  /** Optional category_id to exclude from expense totals (e.g. BD Expenses for non-CEO viewers). */
+  excludeCategoryId?: string;
 }
 
 const MONTH_LABELS = [
