@@ -745,7 +745,7 @@ const EmployeeForm = () => {
             onChange={(v) => updateField('basic_salary', v)}
           />
           <FormField
-            label="Fuel Allowance"
+            label="Allowance"
             type="number"
             value={form.allowance || ''}
             onChange={(v) => updateField('allowance', v)}
