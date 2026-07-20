@@ -205,6 +205,10 @@ const Payroll = () => {
 
   const handleGenerate = async () => {
     if (!companyId) return;
+    if (!hasAttendance) {
+      toast.error('Upload attendance for this month before generating payroll.');
+      return;
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-payroll', {
