@@ -144,7 +144,7 @@ const InvoiceForm = () => {
       const prefix = company.invoice_prefix || 'INV';
       const year = new Date().getFullYear();
       const seq = String(invoiceCount + 1).padStart(3, '0');
-      setInvoiceNumber(`${prefix}-INV-${year}-${seq}`);
+      setInvoiceNumber(`${prefix}-${year}-${seq}`);
     }
   }, [company, invoiceCount, isEdit]);
 
