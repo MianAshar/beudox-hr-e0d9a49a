@@ -647,7 +647,23 @@ const Payroll = () => {
         </div>
       )}
 
-      {!loading && !generated && (
+      {!loading && !generated && !checkingAttendance && !hasAttendance && (
+        <div className="flex flex-col items-center justify-center py-12 px-6 text-center rounded-xl border border-[#F5C6C6] bg-[#FEF6F6]">
+          <AlertTriangle className="h-10 w-10 mb-3 text-[#B91C1C]" />
+          <p className="text-lg font-semibold text-[#7F1D1D]">No attendance data for {monthLabelFull}</p>
+          <p className="text-sm mt-1 text-[#991B1B] max-w-md">
+            Upload attendance data for this month before generating payroll.
+          </p>
+          <Button
+            onClick={() => navigate('/attendance')}
+            className="mt-4"
+          >
+            Go to Attendance
+          </Button>
+        </div>
+      )}
+
+      {!loading && !generated && hasAttendance && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <DollarSign className="h-12 w-12 mb-4 opacity-40" />
           <p className="text-lg font-medium">No payroll data</p>
