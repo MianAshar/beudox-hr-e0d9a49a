@@ -23,6 +23,7 @@ const LeaveManagement = () => {
   const { employee } = useAuth();
   const roles = employee?.roles ?? [];
   const companyId = employee?.company_id;
+  const isCeo = roles.includes('ceo');
   const isHrOrCeo = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('');
