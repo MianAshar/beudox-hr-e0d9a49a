@@ -1,16 +1,25 @@
-## Changes to Leave Management for CEO role
+## Goal
+Prevent accidental payroll generation when no attendance data exists for the selected month. Show a clear prompt to upload attendance first.
 
-**`src/pages/LeaveManagement.tsx`**
-- Add `isCeo` flag from roles.
-- Hide `<MyLeaveBalances />` widget when `isCeo`.
-- Remove the "My Requests" tab from the tab list when `isCeo`, and skip rendering its `TabsContent`.
-- Update the default active tab logic so CEO lands on `all-requests` (already does since `isHrOrCeo` covers it) — ensure CEO never defaults to `my-requests`.
+## Changes (single file: `src/pages/Payroll.tsx`)
 
-**`src/components/leave/ApplyLeaveModal.tsx`**
-- When the submitting user is CEO, insert the leave request with `status: 'approved'` instead of `'pending'`, and set `approved_by` = current employee id and `approved_at` = now (matching existing approval fields on `leave_requests`).
-- Skip sending the "leave submitted" notification to HR/CEO when auto-approved (or send an "approved" notification instead — will keep it simple and just skip since CEO approves their own).
-- Also deduct from balance immediately for CEO auto-approved leaves, mirroring how the existing approval flow updates `used_days` on `leave_balances` (will reuse the same helper/logic used in `AllRequestsTab` approval path).
+1. **Attendance availability check**
+   - Add `hasAttendance` state (boolean) and `checkingAttendance` state.
+   - In `fetchExisting` (and `handleMonthYearChange`), also query `attendance_records` for the selected `company_id` and month (filter rows whose date falls in `monthYear`), `select('id', { count: 'exact', head: true })`, limit 1. Set `hasAttendance = count > 0`.
+   - Run this whenever month/year changes.
 
-**Notes**
-- Data-model already supports approval fields; no migration needed.
-- Non-CEO behavior is unchanged.
+2. **Disable Generate Payroll button**
+   - Add `disabled={loading || checkingAttendance || !hasAttendance}` to the Generate button.
+   - When disabled due to missing attendance, wrap it in a Tooltip: "Upload attendance for this month before generating payroll."
+
+3. **Inline warning banner**
+   - When `!checkingAttendance && !hasAttendance && !generated`, show a warning card above the empty state:
+     - Icon (AlertTriangle), title "No attendance data for {Month Year}", body "Upload attendance data for this month before generating payroll.", and a button "Go to Attendance" that navigates to `/attendance`.
+   - Replace/augment the existing "No payroll data" empty state so the warning takes precedence when attendance is missing.
+
+4. **Guard `handleGenerate`**
+   - Early return with `toast.error('Upload attendance for this month before generating payroll.')` if `!hasAttendance`, as a safety net.
+
+## Notes
+- No changes to the edge function or DB. Purely a frontend guardrail.
+- Uses existing `attendance_records` table already queried elsewhere in the app.

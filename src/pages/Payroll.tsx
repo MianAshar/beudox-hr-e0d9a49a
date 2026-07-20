@@ -14,7 +14,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
-import { Loader2, DollarSign, CalendarIcon, CheckCircle2 } from 'lucide-react';
+import { Loader2, DollarSign, CalendarIcon, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
@@ -74,6 +76,9 @@ const Payroll = () => {
   const [records, setRecords] = useState<PayrollRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [hasAttendance, setHasAttendance] = useState(false);
+  const [checkingAttendance, setCheckingAttendance] = useState(true);
+  const navigate = useNavigate();
 
   const [approveOpen, setApproveOpen] = useState(false);
   const [approving, setApproving] = useState(false);
@@ -152,6 +157,30 @@ const Payroll = () => {
     fetchExisting();
   }, [fetchExisting]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const checkAttendance = async () => {
+      if (!companyId) return;
+      setCheckingAttendance(true);
+      const [y, m] = monthYear.split('-').map(Number);
+      const start = `${monthYear}-01`;
+      const endDate = new Date(y, m, 0);
+      const end = `${monthYear}-${String(endDate.getDate()).padStart(2, '0')}`;
+      const { count } = await supabase
+        .from('attendance_records')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', companyId)
+        .gte('date', start)
+        .lte('date', end);
+      if (!cancelled) {
+        setHasAttendance((count ?? 0) > 0);
+        setCheckingAttendance(false);
+      }
+    };
+    checkAttendance();
+    return () => { cancelled = true; };
+  }, [companyId, monthYear]);
+
   const handleMonthYearChange = (month: string, year: string) => {
     setSelectedMonth(month);
     setSelectedYear(year);
@@ -176,6 +205,10 @@ const Payroll = () => {
 
   const handleGenerate = async () => {
     if (!companyId) return;
+    if (!hasAttendance) {
+      toast.error('Upload attendance for this month before generating payroll.');
+      return;
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-payroll', {
@@ -573,10 +606,25 @@ const Payroll = () => {
           </Select>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button onClick={handleGenerate} disabled={loading} className="w-full sm:w-auto">
-            {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <DollarSign className="h-4 w-4 mr-2" />}
-            Generate Payroll
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="w-full sm:w-auto inline-block">
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={loading || checkingAttendance || !hasAttendance}
+                    className="w-full sm:w-auto"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <DollarSign className="h-4 w-4 mr-2" />}
+                    Generate Payroll
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!checkingAttendance && !hasAttendance && (
+                <TooltipContent>Upload attendance for this month before generating payroll.</TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           {/* TODO: Remove before production */}
           {isCeoViewer && (
             <Button
@@ -599,7 +647,23 @@ const Payroll = () => {
         </div>
       )}
 
-      {!loading && !generated && (
+      {!loading && !generated && !checkingAttendance && !hasAttendance && (
+        <div className="flex flex-col items-center justify-center py-12 px-6 text-center rounded-xl border border-[#F5C6C6] bg-[#FEF6F6]">
+          <AlertTriangle className="h-10 w-10 mb-3 text-[#B91C1C]" />
+          <p className="text-lg font-semibold text-[#7F1D1D]">No attendance data for {monthLabelFull}</p>
+          <p className="text-sm mt-1 text-[#991B1B] max-w-md">
+            Upload attendance data for this month before generating payroll.
+          </p>
+          <Button
+            onClick={() => navigate('/attendance')}
+            className="mt-4"
+          >
+            Go to Attendance
+          </Button>
+        </div>
+      )}
+
+      {!loading && !generated && hasAttendance && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <DollarSign className="h-12 w-12 mb-4 opacity-40" />
           <p className="text-lg font-medium">No payroll data</p>
