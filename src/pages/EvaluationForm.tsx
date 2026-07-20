@@ -133,6 +133,128 @@ const EvaluationForm = () => {
     enabled: isEdit && !!companyId,
   });
 
+  // Attendance overview for selected employee (current calendar year)
+  const currentYear = new Date().getFullYear();
+  const { data: overview, isLoading: overviewLoading } = useQuery({
+    queryKey: ['eval-attendance-overview', companyId, employeeId, currentYear],
+    enabled: !!companyId && !!employeeId,
+    queryFn: async () => {
+      const yearStart = `${currentYear}-01-01`;
+      const today = new Date();
+      const todayStr = `${currentYear}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const yearEnd = `${currentYear}-12-31`;
+
+      const [attRes, leaveRes, holRes, setRes, taskRes] = await Promise.all([
+        supabase
+          .from('attendance_records')
+          .select('date, check_in, check_out, is_weekend, is_holiday, is_late, working_hours, regular_ot_hours, holiday_ot_hours')
+          .eq('company_id', companyId!)
+          .eq('employee_id', employeeId)
+          .gte('date', yearStart)
+          .lte('date', todayStr),
+        supabase
+          .from('leave_requests')
+          .select('start_date, end_date, status')
+          .eq('company_id', companyId!)
+          .eq('employee_id', employeeId)
+          .eq('status', 'approved')
+          .lte('start_date', todayStr)
+          .gte('end_date', yearStart),
+        supabase
+          .from('public_holidays')
+          .select('date')
+          .eq('company_id', companyId!)
+          .gte('date', yearStart)
+          .lte('date', yearEnd),
+        supabase
+          .from('company_settings')
+          .select('working_days, shift_start_time, shift_end_time, lunch_break_hours')
+          .eq('company_id', companyId!)
+          .maybeSingle(),
+        supabase
+          .from('project_tasks')
+          .select('id', { count: 'exact', head: true })
+          .eq('company_id', companyId!)
+          .eq('assigned_to', employeeId)
+          .eq('is_completed', true)
+          .gte('completed_at', `${yearStart}T00:00:00`)
+          .lte('completed_at', `${todayStr}T23:59:59`),
+      ]);
+
+      const records = attRes.data || [];
+      const settings = setRes.data;
+      const workingDays = settings?.working_days || [1, 2, 3, 4, 5];
+
+      // Required daily hours from shift
+      const parseHM = (s?: string | null) => {
+        if (!s) return null;
+        const [h, m] = s.split(':').map(Number);
+        return h + (m || 0) / 60;
+      };
+      const startH = parseHM(settings?.shift_start_time) ?? 9;
+      const endH = parseHM(settings?.shift_end_time) ?? 18;
+      const lunch = Number(settings?.lunch_break_hours ?? 1);
+      const requiredHours = Math.max(0, endH - startH - lunch);
+
+      const holidayDates = new Set<string>((holRes.data || []).map((h: any) => h.date));
+      records.forEach((r: any) => { if (r.is_holiday) holidayDates.add(r.date); });
+
+      const leaveDates = new Set<string>();
+      (leaveRes.data || []).forEach((l: any) => {
+        const s = new Date(l.start_date + 'T00:00:00');
+        const e = new Date(l.end_date + 'T00:00:00');
+        const cur = new Date(s);
+        while (cur <= e) {
+          leaveDates.add(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`);
+          cur.setDate(cur.getDate() + 1);
+        }
+      });
+
+      const attendedDates = new Set<string>(
+        records.filter((r: any) => r.check_in && r.check_out).map((r: any) => r.date)
+      );
+
+      let daysPresent = 0;
+      let lateArrivals = 0;
+      let totalOt = 0;
+      let totalUndertime = 0;
+
+      records.forEach((r: any) => {
+        const isWknd = !!r.is_weekend;
+        const isHol = !!r.is_holiday || holidayDates.has(r.date);
+        const hasBoth = !!r.check_in && !!r.check_out;
+        totalOt += Number(r.regular_ot_hours || 0) + Number(r.holiday_ot_hours || 0);
+        if (hasBoth && !isWknd && !isHol) {
+          daysPresent += 1;
+          if (r.is_late) lateArrivals += 1;
+          if (!leaveDates.has(r.date) && r.working_hours != null && Number(r.working_hours) < requiredHours) {
+            totalUndertime += requiredHours - Number(r.working_hours);
+          }
+        }
+      });
+
+      const absents = computeAbsentDates({
+        startDate: yearStart,
+        endDate: todayStr,
+        workingDays,
+        holidayDates,
+        attendedDates,
+        leaveDates,
+      });
+
+      return {
+        daysPresent,
+        daysAbsent: absents.length,
+        lateArrivals,
+        totalOvertime: totalOt,
+        totalUndertime,
+        tasksCompleted: taskRes.count || 0,
+      };
+    },
+  });
+
+
+
   useEffect(() => {
     if (existing) {
       setEmployeeId(existing.employee_id);
