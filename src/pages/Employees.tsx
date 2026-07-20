@@ -40,7 +40,7 @@ import { canManageEmployee } from '@/lib/role-hierarchy';
 import { toast } from 'sonner';
 
 const DEPARTMENTS = ['GC Team', 'MEP Team', 'Admin', 'Director'];
-const STATUS_OPTIONS = ['active', 'inactive', 'resigned'];
+const STATUS_OPTIONS = ['active', 'inactive'];
 
 const getInitials = (name: string) => {
   return name
