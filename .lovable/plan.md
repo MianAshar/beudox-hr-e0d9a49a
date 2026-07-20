@@ -1,4 +1,7 @@
-## Fix
-In `src/pages/InvoiceForm.tsx` line 147, the auto-generated invoice number template is `${prefix}-INV-${year}-${seq}`, which duplicates `INV` when `invoice_prefix` is already `INV` (the default). Change it to `${prefix}-${year}-${seq}` so only the configured prefix is used.
+Change the default status filter on the Loans listing screen from "All Statuses" to "Active" so managers land on a focused view of currently outstanding loans.
 
-No other changes.
+### Change
+- File: `src/pages/Loans.tsx`
+- Update the `statusFilter` React state initializer on line 59 from `'all'` to `'active'`.
+
+This keeps the status dropdown available so users can still switch to All / Settled / On Hold when needed.
