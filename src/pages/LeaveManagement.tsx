@@ -67,7 +67,7 @@ const LeaveManagement = () => {
 
   return (
     <div className="space-y-6">
-      <MyLeaveBalances />
+      {!isCeo && <MyLeaveBalances />}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="hidden sm:block" />
