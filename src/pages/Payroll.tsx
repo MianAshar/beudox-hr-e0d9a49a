@@ -157,6 +157,30 @@ const Payroll = () => {
     fetchExisting();
   }, [fetchExisting]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const checkAttendance = async () => {
+      if (!companyId) return;
+      setCheckingAttendance(true);
+      const [y, m] = monthYear.split('-').map(Number);
+      const start = `${monthYear}-01`;
+      const endDate = new Date(y, m, 0);
+      const end = `${monthYear}-${String(endDate.getDate()).padStart(2, '0')}`;
+      const { count } = await supabase
+        .from('attendance_records')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', companyId)
+        .gte('date', start)
+        .lte('date', end);
+      if (!cancelled) {
+        setHasAttendance((count ?? 0) > 0);
+        setCheckingAttendance(false);
+      }
+    };
+    checkAttendance();
+    return () => { cancelled = true; };
+  }, [companyId, monthYear]);
+
   const handleMonthYearChange = (month: string, year: string) => {
     setSelectedMonth(month);
     setSelectedYear(year);
