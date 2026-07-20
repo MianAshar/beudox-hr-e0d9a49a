@@ -613,6 +613,7 @@ const FinanceSheet = () => {
               { value: 'summary', label: 'Summary' },
               { value: 'payroll', label: 'Payroll' },
               { value: 'expenses', label: 'Expenses' },
+              ...(isCeo ? [{ value: 'bd', label: 'BD Expenses' }] : []),
             ].map(tab => (
               <TabsTrigger
                 key={tab.value}
