@@ -652,7 +652,9 @@ const FinanceSheet = () => {
                 companyId={companyId}
                 selectedMonth={selectedMonth}
                 selectedYear={selectedYear}
+                excludeCategoryId={isCeo ? undefined : bdCategoryId}
               />
+
             )}
           </TabsContent>
 
