@@ -621,41 +621,13 @@ const EmployeeForm = () => {
             onChange={(v) => updateField('full_name', v)}
             onBlur={() => validateField('full_name', form.full_name)}
           />
-          <div>
-            <Label className="text-[12px] text-muted-foreground mb-1.5 block">
-              Employee Code <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              value={form.employee_code}
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
-                let formatted = digits;
-                if (digits.length >= 4) {
-                  formatted = `${digits.slice(0, 2)}-${digits.slice(2, 4)}${digits.length > 4 ? '-' + digits.slice(4) : '-'}`;
-                } else if (digits.length >= 2) {
-                  formatted = `${digits.slice(0, 2)}-${digits.slice(2)}`;
-                }
-                updateField('employee_code', formatted);
-              }}
-              onBlur={() => validateField('employee_code', form.employee_code)}
-              placeholder="00-00-0000"
-              inputMode="numeric"
-              maxLength={10}
-              className="font-mono-bx"
-            />
-            <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
-              Must match the employee's ID in the ZKTeco attendance machine exactly
-            </p>
-            {errors.employee_code && (
-              <p className="text-[11px] text-destructive mt-1">{errors.employee_code}</p>
-            )}
-          </div>
           <FormField
             label="CNIC"
             value={form.cnic || ''}
             error={errors.cnic}
             onChange={(v) => updateField('cnic', v)}
           />
+
           <FormField
             label="Phone"
             value={form.phone || ''}
@@ -727,26 +699,36 @@ const EmployeeForm = () => {
           />
           <div>
             <Label className="text-[12px] text-muted-foreground mb-1.5 block">
-              Employment Type
+              Employee Code <span className="text-destructive">*</span>
             </Label>
-            <Select
-              value={form.employment_type}
-              onValueChange={(v) => updateField('employment_type', v)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {EMPLOYMENT_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t.replace('_', ' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              value={form.employee_code}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+                let formatted = digits;
+                if (digits.length >= 4) {
+                  formatted = `${digits.slice(0, 2)}-${digits.slice(2, 4)}${digits.length > 4 ? '-' + digits.slice(4) : '-'}`;
+                } else if (digits.length >= 2) {
+                  formatted = `${digits.slice(0, 2)}-${digits.slice(2)}`;
+                }
+                updateField('employee_code', formatted);
+              }}
+              onBlur={() => validateField('employee_code', form.employee_code)}
+              placeholder="00-00-0000"
+              inputMode="numeric"
+              maxLength={10}
+              className="font-mono-bx"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1" style={{ fontFamily: 'var(--ff-body)' }}>
+              Must match the employee's ID in the ZKTeco attendance machine exactly
+            </p>
+            {errors.employee_code && (
+              <p className="text-[11px] text-destructive mt-1">{errors.employee_code}</p>
+            )}
           </div>
         </div>
       </div>
+
 
       <div className="bg-card rounded-[14px] border p-6 space-y-5">
         <h3
@@ -763,7 +745,7 @@ const EmployeeForm = () => {
             onChange={(v) => updateField('basic_salary', v)}
           />
           <FormField
-            label="Fuel Allowance"
+            label="Allowance"
             type="number"
             value={form.allowance || ''}
             onChange={(v) => updateField('allowance', v)}
