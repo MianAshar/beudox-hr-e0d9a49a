@@ -739,7 +739,7 @@ const FinanceSheet = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {(categories || []).map(cat => {
+                        {nonBdCategories.map(cat => {
                           const items = (lineItems || []).filter(li => li.category_id === cat.id);
                           const catTotal = getCategoryTotal(cat.id);
                           return (
