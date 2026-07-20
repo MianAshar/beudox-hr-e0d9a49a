@@ -17,6 +17,8 @@ interface FinanceSummaryProps {
   companyId: string;
   selectedMonth: string; // '01'..'12'
   selectedYear: string; // 'YYYY'
+  /** Optional category_id to exclude from expense totals (e.g. BD Expenses for non-CEO viewers). */
+  excludeCategoryId?: string;
 }
 
 const MONTH_LABELS = [
@@ -38,7 +40,7 @@ const buildMonthRange = (year: number, monthIdx: number, count: number) => {
   return months;
 };
 
-export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: FinanceSummaryProps) => {
+export const FinanceSummary = ({ companyId, selectedMonth, selectedYear, excludeCategoryId }: FinanceSummaryProps) => {
   const monthIdx = parseInt(selectedMonth, 10) - 1;
   const year = parseInt(selectedYear, 10);
 
@@ -56,7 +58,7 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
   }, [months, previousMonthKey]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['finance-summary', companyId, rangeKeys.join(',')],
+    queryKey: ['finance-summary', companyId, rangeKeys.join(','), excludeCategoryId ?? 'all'],
     queryFn: async () => {
       const [payrollRes, expensesRes] = await Promise.all([
         supabase
@@ -67,7 +69,7 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
           .in('month_year', rangeKeys),
         supabase
           .from('monthly_expenses')
-          .select('month_year, amount')
+          .select('month_year, amount, category_id')
           .eq('company_id', companyId)
           .in('month_year', rangeKeys),
       ]);
@@ -86,6 +88,7 @@ export const FinanceSummary = ({ companyId, selectedMonth, selectedYear }: Finan
       });
       const expensesByMonth: Record<string, number> = {};
       (expensesRes.data ?? []).forEach((r: any) => {
+        if (excludeCategoryId && r.category_id === excludeCategoryId) return;
         expensesByMonth[r.month_year] = (expensesByMonth[r.month_year] || 0) + Number(r.amount || 0);
       });
       return { payrollByMonth, otByMonth, bonusByMonth, loanByMonth, expensesByMonth };
