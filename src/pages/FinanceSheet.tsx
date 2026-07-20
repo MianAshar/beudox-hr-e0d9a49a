@@ -828,8 +828,104 @@ const FinanceSheet = () => {
                 </div>
               </TabsContent>
 
+              {/* ═══ BD EXPENSES TAB (CEO only) ═══ */}
+              {isCeo && (
+                <TabsContent value="bd" className="mt-4">
+                  <div className="fs-section">
+                    <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right w-[180px]">Amount (PKR)</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {!bdCategory ? (
+                            <TableRow>
+                              <TableCell colSpan={2} className="text-center text-sm text-muted-foreground py-8">
+                                No BD Expenses category found. Create one in Settings → Expense Categories.
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            <>
+                              <TableRow>
+                                <TableCell colSpan={2} className="py-2" style={{ background: 'hsl(var(--muted))' }}>
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-[12px] uppercase tracking-wider" style={{ fontFamily: 'var(--ff-display)' }}>
+                                      {bdCategory.name}
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 px-2 text-xs no-print"
+                                      onClick={() => openEditModal(bdCategory.id)}
+                                    >
+                                      <Pencil className="h-3 w-3 mr-1" /> Edit
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                              {(lineItems || []).filter(li => li.category_id === bdCategory.id).map(li => {
+                                const expRow = (monthlyExpenses || []).find((e: any) => e.line_item_id === li.id);
+                                const receiptUrl = expRow?.receipt_url;
+                                return (
+                                  <TableRow key={li.id}>
+                                    <TableCell className="text-[13px]" style={{ fontFamily: 'var(--ff-body)' }}>
+                                      {li.description}
+                                    </TableCell>
+                                    <TableCell className="text-right text-[12px] font-mono">
+                                      <span className="inline-flex items-center gap-1.5 justify-end">
+                                        {getExpenseAmount(li.id).toLocaleString()}
+                                        {receiptUrl && (
+                                          <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                            {isImageUrl(receiptUrl) ? <ImageIcon className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+                                          </a>
+                                        )}
+                                      </span>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                              {getOneTimeExpenses(bdCategory.id).map((ot: any) => {
+                                const receiptUrl = ot.receipt_url;
+                                return (
+                                  <TableRow key={ot.id}>
+                                    <TableCell className="text-[13px] italic" style={{ fontFamily: 'var(--ff-body)' }}>
+                                      {ot.description}
+                                    </TableCell>
+                                    <TableCell className="text-right text-[12px] font-mono">
+                                      <span className="inline-flex items-center gap-1.5 justify-end">
+                                        {Number(ot.amount).toLocaleString()}
+                                        {receiptUrl && (
+                                          <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="no-print inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted text-muted-foreground hover:text-primary" title="View receipt">
+                                            {isImageUrl(receiptUrl) ? <ImageIcon className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+                                          </a>
+                                        )}
+                                      </span>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                              <TableRow className="fs-grand-row" style={{ background: '#5B3FF8' }}>
+                                <TableCell className="text-right text-[13px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
+                                  Total BD Expenses
+                                </TableCell>
+                                <TableCell className="text-right text-[14px] font-bold font-mono text-white">
+                                  {fmtPKR(bdGrandTotal)}
+                                </TableCell>
+                              </TableRow>
+                            </>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
+
               {/* ═══ GRAND TOTAL (hidden on Summary tab) ═══ */}
-              {activeTab !== 'summary' && (
+              {activeTab !== 'summary' && activeTab !== 'bd' && (
                 <div className="rounded-[14px] overflow-hidden fs-grand-total-bar mt-6" style={{ background: '#1A1240' }}>
                   <div className="flex items-center justify-between px-6 py-4">
                     <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
