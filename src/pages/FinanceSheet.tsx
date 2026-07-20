@@ -553,7 +553,7 @@ const FinanceSheet = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, `Finance Sheet - ${monthLabel} ${selectedYear}`);
     XLSX.writeFile(wb, `Finance_Sheet_${monthLabel}_${selectedYear}.xlsx`);
-  }, [departments, payrollByDept, payrollGrandTotal, categories, lineItems, monthlyExpenses, monthLabel, selectedYear, expensesGrandTotal]);
+  }, [departments, payrollByDept, payrollGrandTotal, categories, lineItems, monthlyExpenses, monthLabel, selectedYear, expensesGrandTotal, bdCategory, bdCategoryId, bdGrandTotal, isCeo]);
 
   const [activeTab, setActiveTab] = useState('summary');
   const isLoading = payrollLoading || expensesLoading;
