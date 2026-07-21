@@ -363,6 +363,37 @@ const ProjectDetail = () => {
               <span className="text-muted-foreground">Project Lead</span>
               <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
             </div>
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-muted-foreground shrink-0 flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> Location</span>
+              {editingLocation ? (
+                <div className="flex items-center gap-1 flex-1 justify-end">
+                  <Input
+                    autoFocus
+                    value={locationDraft}
+                    onChange={e => setLocationDraft(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') fieldMutation.mutate({ field: 'location', value: locationDraft.trim() || null, action: 'location_changed' });
+                      if (e.key === 'Escape') setEditingLocation(false);
+                    }}
+                    className="h-7 text-sm max-w-[180px]"
+                    placeholder="Add location"
+                  />
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => fieldMutation.mutate({ field: 'location', value: locationDraft.trim() || null, action: 'location_changed' })} disabled={fieldMutation.isPending}>
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingLocation(false)}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <span className="text-foreground inline-flex items-center gap-1">
+                  {(project as any).location || <span className="text-muted-foreground">—</span>}
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setLocationDraft((project as any).location || ''); setEditingLocation(true); }}>
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                </span>
+              )}
+            </div>
             {isManager && project.fee != null && project.fee > 0 && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Fee</span>
