@@ -42,6 +42,7 @@ const ProjectForm = () => {
     project_lead_id: '',
     notes: '',
     sub_series: '',
+    location: '',
   });
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [addingSubSeries, setAddingSubSeries] = useState(false);
@@ -144,6 +145,7 @@ const ProjectForm = () => {
         project_lead_id: existingProject.project_lead_id || '',
         notes: existingProject.notes || '',
         sub_series: (existingProject as any).sub_series || '',
+        location: (existingProject as any).location || '',
       });
     }
   }, [existingProject]);
@@ -178,6 +180,7 @@ const ProjectForm = () => {
         project_lead_id: form.project_lead_id || null,
         notes: form.notes.trim() || null,
         sub_series: form.sub_series || null,
+        location: form.location.trim() || null,
         company_id: companyId!,
       };
       if (!isEdit) payload.status = 'pending';
@@ -387,6 +390,12 @@ const ProjectForm = () => {
             )}
           </div>
         )}
+
+        {/* Location */}
+        <div>
+          <Label>Location</Label>
+          <Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. New York, NY" />
+        </div>
 
         {/* Scope */}
         <div>

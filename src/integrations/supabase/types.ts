@@ -2511,6 +2511,7 @@ export type Database = {
           id: string
           internal_deadline: string | null
           is_active: boolean
+          location: string | null
           notes: string | null
           priority: string | null
           project_code: string
@@ -2531,6 +2532,7 @@ export type Database = {
           id?: string
           internal_deadline?: string | null
           is_active?: boolean
+          location?: string | null
           notes?: string | null
           priority?: string | null
           project_code: string
@@ -2551,6 +2553,7 @@ export type Database = {
           id?: string
           internal_deadline?: string | null
           is_active?: boolean
+          location?: string | null
           notes?: string | null
           priority?: string | null
           project_code?: string
