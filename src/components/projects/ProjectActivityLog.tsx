@@ -12,6 +12,9 @@ interface ProjectActivityLogProps {
 const actionLabels: Record<string, string> = {
   status_changed: 'Status changed',
   deadline_changed: 'Deadline changed',
+  name_changed: 'Name changed',
+  location_changed: 'Location changed',
+  project_started: 'Project started',
 };
 
 const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());

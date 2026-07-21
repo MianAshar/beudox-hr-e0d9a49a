@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play, UserCog, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play, UserCog, ChevronDown, Check, X, MapPin } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
@@ -71,6 +71,10 @@ const ProjectDetail = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [startOpen, setStartOpen] = useState(false);
   const [manageTeamOpen, setManageTeamOpen] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [locationDraft, setLocationDraft] = useState('');
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project-detail', id, companyId],
@@ -190,6 +194,35 @@ const ProjectDetail = () => {
     onError: (e: Error) => toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' }),
   });
 
+  const fieldMutation = useMutation({
+    mutationFn: async ({ field, value, action }: { field: 'project_name' | 'location'; value: string | null; action: string }) => {
+      const previous = (project as any)?.[field] ?? null;
+      if ((previous || null) === (value || null)) return;
+      const patch: any = { [field]: value };
+      const { error } = await supabase.from('projects').update(patch).eq('id', id!);
+      if (error) throw error;
+      if (companyId && employeeId) {
+        await supabase.from('project_activity_logs').insert({
+          company_id: companyId,
+          project_id: id!,
+          employee_id: employeeId,
+          action,
+          old_value: previous,
+          new_value: value,
+        });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-detail'] });
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
+      toast({ title: 'Updated' });
+      setEditingName(false);
+      setEditingLocation(false);
+    },
+    onError: (e: Error) => toast({ title: 'Update failed', description: e.message, variant: 'destructive' }),
+  });
+
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\bQc\b/g, 'QC');
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
@@ -221,7 +254,33 @@ const ProjectDetail = () => {
           </Button>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
+              {editingName ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    autoFocus
+                    value={nameDraft}
+                    onChange={e => setNameDraft(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && nameDraft.trim()) fieldMutation.mutate({ field: 'project_name', value: nameDraft.trim(), action: 'name_changed' });
+                      if (e.key === 'Escape') setEditingName(false);
+                    }}
+                    className="h-9 text-2xl font-semibold w-[320px]"
+                  />
+                  <Button size="icon" variant="ghost" onClick={() => nameDraft.trim() && fieldMutation.mutate({ field: 'project_name', value: nameDraft.trim(), action: 'name_changed' })} disabled={fieldMutation.isPending}>
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => setEditingName(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setNameDraft(project.project_name); setEditingName(true); }}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild disabled={statusMutation.isPending}>
                   <button type="button" className="inline-flex">
@@ -303,6 +362,37 @@ const ProjectDetail = () => {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Project Lead</span>
               <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
+            </div>
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-muted-foreground shrink-0 flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> Location</span>
+              {editingLocation ? (
+                <div className="flex items-center gap-1 flex-1 justify-end">
+                  <Input
+                    autoFocus
+                    value={locationDraft}
+                    onChange={e => setLocationDraft(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') fieldMutation.mutate({ field: 'location', value: locationDraft.trim() || null, action: 'location_changed' });
+                      if (e.key === 'Escape') setEditingLocation(false);
+                    }}
+                    className="h-7 text-sm max-w-[180px]"
+                    placeholder="Add location"
+                  />
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => fieldMutation.mutate({ field: 'location', value: locationDraft.trim() || null, action: 'location_changed' })} disabled={fieldMutation.isPending}>
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingLocation(false)}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <span className="text-foreground inline-flex items-center gap-1">
+                  {(project as any).location || <span className="text-muted-foreground">—</span>}
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setLocationDraft((project as any).location || ''); setEditingLocation(true); }}>
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                </span>
+              )}
             </div>
             {isManager && project.fee != null && project.fee > 0 && (
               <div className="flex justify-between">

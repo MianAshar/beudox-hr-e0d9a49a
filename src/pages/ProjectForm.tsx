@@ -42,6 +42,7 @@ const ProjectForm = () => {
     project_lead_id: '',
     notes: '',
     sub_series: '',
+    location: '',
   });
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [addingSubSeries, setAddingSubSeries] = useState(false);
@@ -144,6 +145,7 @@ const ProjectForm = () => {
         project_lead_id: existingProject.project_lead_id || '',
         notes: existingProject.notes || '',
         sub_series: (existingProject as any).sub_series || '',
+        location: (existingProject as any).location || '',
       });
     }
   }, [existingProject]);
@@ -178,6 +180,7 @@ const ProjectForm = () => {
         project_lead_id: form.project_lead_id || null,
         notes: form.notes.trim() || null,
         sub_series: form.sub_series || null,
+        location: form.location.trim() || null,
         company_id: companyId!,
       };
       if (!isEdit) payload.status = 'pending';
@@ -185,6 +188,15 @@ const ProjectForm = () => {
       if (isEdit) {
         const { error } = await supabase.from('projects').update(payload).eq('id', id!);
         if (error) throw error;
+        // Log name/location changes
+        const logs: any[] = [];
+        if (existingProject && existingProject.project_name !== payload.project_name) {
+          logs.push({ company_id: companyId!, project_id: id!, employee_id: employee?.employee_id!, action: 'name_changed', old_value: existingProject.project_name, new_value: payload.project_name });
+        }
+        if (existingProject && ((existingProject as any).location || null) !== payload.location) {
+          logs.push({ company_id: companyId!, project_id: id!, employee_id: employee?.employee_id!, action: 'location_changed', old_value: (existingProject as any).location || null, new_value: payload.location });
+        }
+        if (logs.length) await supabase.from('project_activity_logs').insert(logs);
         const prev = existingAssignments ?? [];
         const removed = prev.filter(e => !teamMembers.includes(e));
         const added = teamMembers.filter(e => !prev.includes(e));
@@ -387,6 +399,12 @@ const ProjectForm = () => {
             )}
           </div>
         )}
+
+        {/* Location */}
+        <div>
+          <Label>Location</Label>
+          <Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. New York, NY" />
+        </div>
 
         {/* Scope */}
         <div>
