@@ -198,7 +198,8 @@ const ProjectDetail = () => {
     mutationFn: async ({ field, value, action }: { field: 'project_name' | 'location'; value: string | null; action: string }) => {
       const previous = (project as any)?.[field] ?? null;
       if ((previous || null) === (value || null)) return;
-      const { error } = await supabase.from('projects').update({ [field]: value }).eq('id', id!);
+      const patch: any = { [field]: value };
+      const { error } = await supabase.from('projects').update(patch).eq('id', id!);
       if (error) throw error;
       if (companyId && employeeId) {
         await supabase.from('project_activity_logs').insert({
