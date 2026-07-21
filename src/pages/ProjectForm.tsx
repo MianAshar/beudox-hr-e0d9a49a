@@ -188,6 +188,15 @@ const ProjectForm = () => {
       if (isEdit) {
         const { error } = await supabase.from('projects').update(payload).eq('id', id!);
         if (error) throw error;
+        // Log name/location changes
+        const logs: any[] = [];
+        if (existingProject && existingProject.project_name !== payload.project_name) {
+          logs.push({ company_id: companyId!, project_id: id!, employee_id: employee?.employee_id!, action: 'name_changed', old_value: existingProject.project_name, new_value: payload.project_name });
+        }
+        if (existingProject && ((existingProject as any).location || null) !== payload.location) {
+          logs.push({ company_id: companyId!, project_id: id!, employee_id: employee?.employee_id!, action: 'location_changed', old_value: (existingProject as any).location || null, new_value: payload.location });
+        }
+        if (logs.length) await supabase.from('project_activity_logs').insert(logs);
         const prev = existingAssignments ?? [];
         const removed = prev.filter(e => !teamMembers.includes(e));
         const added = teamMembers.filter(e => !prev.includes(e));
