@@ -183,7 +183,7 @@ const ForgotPassword = () => {
                   onMouseEnter={e => (e.currentTarget.style.background = '#4429E0')}
                   onMouseLeave={e => (e.currentTarget.style.background = '#5B3FF8')}
                 >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send reset link'}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Reset password'}
                 </button>
               </form>
 
