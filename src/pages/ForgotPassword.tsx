@@ -144,7 +144,7 @@ const ForgotPassword = () => {
                 className="text-center text-[14px] text-muted-foreground mt-2 mb-8"
                 style={{ fontFamily: 'var(--ff-body)' }}
               >
-                Enter your email to receive a reset link
+                Enter your email to receive a temporary password
               </p>
 
               {error && (
