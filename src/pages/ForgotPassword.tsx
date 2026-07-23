@@ -15,11 +15,13 @@ const ForgotPassword = () => {
     if (!email) { setError('Email is required'); return; }
     setError('');
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}`,
+    const { data, error } = await supabase.functions.invoke('reset-employee-password', {
+      body: { email: email.trim() },
     });
     if (error) {
-      setError(error.message);
+      setError(error.message || 'Could not reset password. Please try again.');
+    } else if (data && !data.success) {
+      setError(data.error || 'Could not reset password. Please try again.');
     } else {
       setSent(true);
     }
