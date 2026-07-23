@@ -202,7 +202,7 @@ const ForgotPassword = () => {
                   className="text-center text-[12px]"
                   style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
                 >
-                  Secure login powered by Beudox
+                  Secure login powered by Forte
                 </p>
               </div>
             </>
