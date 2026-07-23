@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const portalUrl = 'https://forte-hr.lovable.app/login';
+    const portalUrl = 'https://portal.forteestimating.com/login';
     const html = `
       <div style="font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:#120E36; max-width:520px; margin:0 auto;">
         <h2 style="color:#120E36;">Welcome${full_name ? `, ${full_name}` : ''}!</h2>

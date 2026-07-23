@@ -15,11 +15,13 @@ const ForgotPassword = () => {
     if (!email) { setError('Email is required'); return; }
     setError('');
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}`,
+    const { data, error } = await supabase.functions.invoke('reset-employee-password', {
+      body: { email: email.trim() },
     });
     if (error) {
-      setError(error.message);
+      setError(error.message || 'Could not reset password. Please try again.');
+    } else if (data && !data.success) {
+      setError(data.error || 'Could not reset password. Please try again.');
     } else {
       setSent(true);
     }
@@ -120,7 +122,7 @@ const ForgotPassword = () => {
                 className="text-[14px] text-muted-foreground mt-2 mb-8"
                 style={{ fontFamily: 'var(--ff-body)' }}
               >
-                We sent a password reset link to <strong>{email}</strong>
+                We sent a temporary password to <strong>{email}</strong>. You'll be asked to set a new password the next time you sign in.
               </p>
               <Link
                 to="/login"
@@ -142,7 +144,7 @@ const ForgotPassword = () => {
                 className="text-center text-[14px] text-muted-foreground mt-2 mb-8"
                 style={{ fontFamily: 'var(--ff-body)' }}
               >
-                Enter your email to receive a reset link
+                Enter your email to receive a temporary password
               </p>
 
               {error && (
@@ -181,7 +183,7 @@ const ForgotPassword = () => {
                   onMouseEnter={e => (e.currentTarget.style.background = '#4429E0')}
                   onMouseLeave={e => (e.currentTarget.style.background = '#5B3FF8')}
                 >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send reset link'}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Reset password'}
                 </button>
               </form>
 
@@ -200,7 +202,7 @@ const ForgotPassword = () => {
                   className="text-center text-[12px]"
                   style={{ color: '#9490B4', fontFamily: 'var(--ff-body)' }}
                 >
-                  Secure login powered by Beudox
+                  Secure login powered by Forte
                 </p>
               </div>
             </>
