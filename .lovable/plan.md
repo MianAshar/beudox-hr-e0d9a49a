@@ -1,35 +1,43 @@
-Fix the broken password reset flow and update email domains to the new production domain.
+## Root cause
 
-## Problem
-- The Forgot Password screen currently uses the built-in Supabase password reset, which is not sending emails in this project.
-- The reset experience must match the initial invite flow: reset the password to a temporary default, then force the employee to set a new password on the next login.
-- The email domain is still pointing to the old Lovable URL (`https://forte-hr.lovable.app`) and must be updated to the production custom domain (`https://portal.forteestimating.com`).
+Abu Baker Abid triggered 6 CEO notifications on 2026-07-23 (at 09:11, 10:54, 11:00, 11:10, 11:12, 11:12) — 3 recipients each. Two independent client-side code paths generate these, and both fire on ordinary user activity:
 
-## Plan
+1. **`src/lib/review-alerts.ts`** — called from `AppLayout` on every session that mounts the shell. Uses `first_review_date` + `review_frequency_months`. Notifies CEO only. Throttled in-memory 30 min per session (resets on every refresh / new tab / new user login).
+2. **`src/pages/Dashboard.tsx`** (lines ~170–226) — runs on Dashboard mount. Uses a *different* rule (`joining_date` anniversary). Notifies **hr_manager + ceo**. No throttle.
 
-### 1. Create a new `reset-employee-password` Edge Function
-- Accept the employee's email address.
-- Use the service role to look up the employee and their `auth_user_id`.
-- If the user exists and is active, update their Supabase Auth password to the temporary password `Forte@123`.
-- Set `must_change_password = true` on the employee record so the next login forces a password change.
-- Use the existing Resend integration to send a password-reset notification email. The email will tell the user to log in with the temporary password and then set a new one.
-- Include the correct `portalUrl` of `https://portal.forteestimating.com/` in the email body/link.
+Both paths have a 7-day dedup DB check, but:
+- The check is per-session/per-mount, so concurrent users or rapid navigation race: multiple runs all read "no recent notification" before any INSERT lands, then each inserts.
+- The two paths use different date rules, so one can fire even when the other's dedup would have blocked it.
+- The 30-min in-memory throttle resets on every page refresh and per browser tab, so any active workday with a few logins/refreshes produces several bursts.
 
-### 2. Update the Forgot Password screen
-- Replace the current `supabase.auth.resetPasswordForEmail()` call with an invocation of the new `reset-employee-password` Edge Function.
-- Show clear loading, success, and error states.
-- On success, tell the user to check their email and to log in with the temporary password.
+That matches the pattern in the data exactly — bursts a few minutes apart, always the same 3 CEO recipients.
 
-### 3. Ensure the mandatory password-change flow is enforced
-- The existing `MandatoryPasswordChange` component already intercepts logins when `must_change_password = true`.
-- Verify that after the Edge Function resets the password, the employee record's `must_change_password` flag is correctly set, so the employee is forced to choose a new password on the next login.
+## Fix
 
-### 4. Update the invite email domain
-- In `supabase/functions/invite-employee/index.ts`, change the `portalUrl` from `https://forte-hr.lovable.app` to `https://portal.forteestimating.com/`.
-- Confirm the email body and any login links use the new domain.
+Consolidate to a single code path and make dedup race-proof at the database level.
 
-### 5. Verify the login flow end-to-end
-- After the changes, confirm that the Forgot Password form calls the new function, the email sends to the user's inbox, the temporary password works at the new domain, and the mandatory password-change screen appears after login.
+1. **Delete the Dashboard salary-review notification block** (`src/pages/Dashboard.tsx` lines ~166–230, the whole `useEffect` that inserts `increment_due` notifications). Keep the visual "upcoming reviews" widget if it exists; only remove the insert side-effect.
+2. **Keep `src/lib/review-alerts.ts` as the single source** and tighten it:
+   - Broaden recipients to `['ceo', 'hr_manager']` so HR still gets alerted (matching the previous Dashboard behavior and `NotificationPreferencesTab` which lists this type for both roles).
+   - Change dedup window from "last 7 days" to "same calendar day" — good enough to stop bursts, still allows a fresh reminder next day if unresolved.
+   - Route inserts through the existing `send-notification` edge function (via `sendNotification` in `src/lib/notifications.ts`) so per-user notification preferences are respected, instead of bypassing them with a direct `notifications.insert`.
+3. **Add a database-level guard** so races can never produce same-day duplicates for the same employee/type/recipient:
+   - Migration: `CREATE UNIQUE INDEX notifications_increment_due_daily_uniq ON public.notifications (company_id, recipient_id, reference_id, (created_at::date)) WHERE type = 'increment_due';`
+   - The edge function already tolerates conflicts on insert; wrap the insert with `.onConflict(...).ignore()` equivalent (upsert with `ignoreDuplicates: true`) in `supabase/functions/send-notification/index.ts` so a duplicate insert becomes a no-op instead of a 500.
+4. **Move the trigger out of every render path**: gate `checkReviewAlerts` in `AppLayout` so it only runs once per browser tab per day (persist last-run timestamp in `localStorage` keyed by `company_id`), instead of the in-memory 30-min throttle. This limits DB pressure even before dedup kicks in.
+5. **Backfill cleanup (optional, one-off SQL)**: delete today's duplicate `increment_due` rows for Abu Baker Abid, keeping the earliest per recipient, so the bell clears immediately.
 
-## Outcome
-Forgot Password will reset the employee's password to a temporary default, send a branded email using the new domain, and force the employee to set a new password on their next login. The invite email will also use the new domain.
+## Files touched
+
+- `src/pages/Dashboard.tsx` — remove the duplicate notification useEffect.
+- `src/lib/review-alerts.ts` — broaden recipients, tighten dedup to same-day, route through `sendNotification`.
+- `src/components/layout/AppLayout.tsx` — replace in-memory throttle with once-per-day localStorage gate.
+- `supabase/functions/send-notification/index.ts` — use `upsert({ ignoreDuplicates: true })` on the notifications insert.
+- New migration — partial unique index on `notifications` for `increment_due`.
+- One-off cleanup SQL for today's duplicates.
+
+## Verification
+
+- Query `notifications` after the fix: only one `increment_due` row per (recipient, employee) per day.
+- Manually call `checkReviewAlerts` twice back-to-back in the console → second call inserts 0 rows.
+- Log in as HR — confirm HR now receives the alert again.
