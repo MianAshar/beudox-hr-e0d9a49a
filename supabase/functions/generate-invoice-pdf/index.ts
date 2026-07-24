@@ -74,6 +74,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Verify caller's company matches the invoice's company
+    const { data: callerCompanyId } = await supabase.rpc('get_company_id_for_auth', {
+      _auth_id: authUserId,
+    });
+    if (!callerCompanyId || callerCompanyId !== invoice.company_id) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Fetch company
     const { data: company } = await supabase
       .from('companies')
