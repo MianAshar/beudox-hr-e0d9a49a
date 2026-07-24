@@ -81,12 +81,10 @@ const MyProfile = () => {
         .upload(filePath, file, { contentType: file.type, upsert: true });
       if (uploadErr) throw uploadErr;
 
-      const ONE_YEAR = 60 * 60 * 24 * 365;
-      const { data: signed, error: signedErr } = await supabase.storage
+      const { data: urlData } = supabase.storage
         .from('employee-avatars')
-        .createSignedUrl(filePath, ONE_YEAR);
-      if (signedErr || !signed?.signedUrl) throw signedErr ?? new Error('Failed to sign URL');
-      const avatarUrl = `${signed.signedUrl}${signed.signedUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+        .getPublicUrl(filePath);
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
       const { error: updErr } = await supabase
         .from('employees')
