@@ -332,26 +332,36 @@ Deno.serve(async (req) => {
       });
 
     if (uploadError) {
-      return new Response(JSON.stringify({ error: uploadError.message }), {
+      return new Response(JSON.stringify({ error: 'Failed to save PDF' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const { data: urlData } = supabase.storage.from('invoice-pdfs').getPublicUrl(path);
-    const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+    // Generate a signed URL (bucket is private)
+    const ONE_YEAR = 60 * 60 * 24 * 365;
+    const { data: signedData, error: signedError } = await supabase.storage
+      .from('invoice-pdfs')
+      .createSignedUrl(path, ONE_YEAR);
+    if (signedError || !signedData?.signedUrl) {
+      return new Response(JSON.stringify({ error: 'Failed to sign PDF URL' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const pdfUrl = signedData.signedUrl;
 
     // Update invoice pdf_url
     await supabase
       .from('invoices')
-      .update({ pdf_url: publicUrl })
+      .update({ pdf_url: pdfUrl })
       .eq('id', invoice_id);
 
-    return new Response(JSON.stringify({ pdf_url: publicUrl }), {
+    return new Response(JSON.stringify({ pdf_url: pdfUrl }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+  } catch (_err) {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
