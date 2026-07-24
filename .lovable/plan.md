@@ -1,43 +1,49 @@
-## Root cause
+# Security hardening
 
-Abu Baker Abid triggered 6 CEO notifications on 2026-07-23 (at 09:11, 10:54, 11:00, 11:10, 11:12, 11:12) — 3 recipients each. Two independent client-side code paths generate these, and both fire on ordinary user activity:
+## 1. Database migration (your SQL, minus the bucket UPDATE)
 
-1. **`src/lib/review-alerts.ts`** — called from `AppLayout` on every session that mounts the shell. Uses `first_review_date` + `review_frequency_months`. Notifies CEO only. Throttled in-memory 30 min per session (resets on every refresh / new tab / new user login).
-2. **`src/pages/Dashboard.tsx`** (lines ~170–226) — runs on Dashboard mount. Uses a *different* rule (`joining_date` anniversary). Notifies **hr_manager + ceo**. No throttle.
+Run everything in your SQL except section (4) — the migration tool rejects `UPDATE storage.buckets SET public = ...`. That flip is done via the storage tool instead (step 2).
 
-Both paths have a 7-day dedup DB check, but:
-- The check is per-session/per-mount, so concurrent users or rapid navigation race: multiple runs all read "no recent notification" before any INSERT lands, then each inserts.
-- The two paths use different date rules, so one can fire even when the other's dedup would have blocked it.
-- The 30-min in-memory throttle resets on every page refresh and per browser tab, so any active workday with a few logins/refreshes produces several bursts.
+Includes:
+- Drop `leave_balances_update_own`
+- Drop `projects_update_any_company_member`, add `projects_update_assigned_employee`
+- Add CEO-only insert/update/delete policies on `roles`
+- Rewrite `company-logos` storage policies (auth read, CEO-only writes scoped to own company folder)
+- Replace `avatar_select_authenticated` with company-folder-scoped select
+- Revoke PUBLIC/anon EXECUTE on the security-definer helpers; grant back to `authenticated` / `service_role` as listed. `get_employee_status_by_email` is intentionally left alone (called pre-login by anon on the Forgot Password / Login screen).
 
-That matches the pattern in the data exactly — bursts a few minutes apart, always the same 3 CEO recipients.
+## 2. Flip four buckets to private
 
-## Fix
+Using the storage tool (not SQL): `invoice-pdfs`, `expense-receipts`, `employee-avatars`, `company-logos` → `public = false`.
 
-Consolidate to a single code path and make dedup race-proof at the database level.
+## 3. App-side impact of private buckets — required patches
 
-1. **Delete the Dashboard salary-review notification block** (`src/pages/Dashboard.tsx` lines ~166–230, the whole `useEffect` that inserts `increment_due` notifications). Keep the visual "upcoming reviews" widget if it exists; only remove the insert side-effect.
-2. **Keep `src/lib/review-alerts.ts` as the single source** and tighten it:
-   - Broaden recipients to `['ceo', 'hr_manager']` so HR still gets alerted (matching the previous Dashboard behavior and `NotificationPreferencesTab` which lists this type for both roles).
-   - Change dedup window from "last 7 days" to "same calendar day" — good enough to stop bursts, still allows a fresh reminder next day if unresolved.
-   - Route inserts through the existing `send-notification` edge function (via `sendNotification` in `src/lib/notifications.ts`) so per-user notification preferences are respected, instead of bypassing them with a direct `notifications.insert`.
-3. **Add a database-level guard** so races can never produce same-day duplicates for the same employee/type/recipient:
-   - Migration: `CREATE UNIQUE INDEX notifications_increment_due_daily_uniq ON public.notifications (company_id, recipient_id, reference_id, (created_at::date)) WHERE type = 'increment_due';`
-   - The edge function already tolerates conflicts on insert; wrap the insert with `.onConflict(...).ignore()` equivalent (upsert with `ignoreDuplicates: true`) in `supabase/functions/send-notification/index.ts` so a duplicate insert becomes a no-op instead of a 500.
-4. **Move the trigger out of every render path**: gate `checkReviewAlerts` in `AppLayout` so it only runs once per browser tab per day (persist last-run timestamp in `localStorage` keyed by `company_id`), instead of the in-memory 30-min throttle. This limits DB pressure even before dedup kicks in.
-5. **Backfill cleanup (optional, one-off SQL)**: delete today's duplicate `increment_due` rows for Abu Baker Abid, keeping the earliest per recipient, so the bell clears immediately.
+Turning these buckets private breaks every `getPublicUrl(...)` render. To keep the app working after the flip:
 
-## Files touched
+- **`src/pages/MyProfile.tsx`, `src/pages/EmployeeForm.tsx`** — avatar upload currently stores the returned `getPublicUrl` into `employees.avatar_url`. Switch to signed URLs (`createSignedUrl`, ~1 year expiry) so `<img>` tags still resolve.
+- **`src/components/settings/CompanyTab.tsx`** — same treatment for `companies.logo_url`.
+- **Existing rows** — `employees.avatar_url` and `companies.logo_url` still hold old `/object/public/...` URLs. A one-time backfill (SQL `UPDATE`) rewrites them to `/object/sign/...` equivalents via a small script, OR we lazy-replace on next upload. I'll do the lazy path by default; call out if you want the backfill instead.
+- **Login screen logo** (unauthenticated) — currently loads `companies.logo_url` public URL. Since the bucket is now private and the visitor isn't signed in yet, the login-page logo will stop loading. Options:
+  - (a) Keep `company-logos` public after all (skip the flip for this bucket only), or
+  - (b) Fetch the logo via a small anon-callable edge function that returns a signed URL.
 
-- `src/pages/Dashboard.tsx` — remove the duplicate notification useEffect.
-- `src/lib/review-alerts.ts` — broaden recipients, tighten dedup to same-day, route through `sendNotification`.
-- `src/components/layout/AppLayout.tsx` — replace in-memory throttle with once-per-day localStorage gate.
-- `supabase/functions/send-notification/index.ts` — use `upsert({ ignoreDuplicates: true })` on the notifications insert.
-- New migration — partial unique index on `notifications` for `increment_due`.
-- One-off cleanup SQL for today's duplicates.
+  Default in this plan: **(a) keep `company-logos` public** so login isn't broken. I'll still apply the tightened write policies from your SQL (CEO-only, company-folder-scoped). Tell me if you'd rather do (b).
+- **`supabase/functions/generate-invoice-pdf/index.ts`** — currently writes `getPublicUrl` into `invoices.pdf_url`. Switch to a long-lived signed URL. This also addresses `generate_invoice_pdf_no_auth` (see step 4).
+- **`src/pages/FinanceSheet.tsx`** — expense receipts: switch upload flow to store signed URLs; existing links open via `createSignedUrl` on click.
 
-## Verification
+## 4. `generate_invoice_pdf_no_auth` (bonus, since you listed it earlier)
 
-- Query `notifications` after the fix: only one `increment_due` row per (recipient, employee) per day.
-- Manually call `checkReviewAlerts` twice back-to-back in the console → second call inserts 0 rows.
-- Log in as HR — confirm HR now receives the alert again.
+Add JWT verification + company-match + role check (`finance_manager` / `ceo`) at the top of `supabase/functions/generate-invoice-pdf/index.ts`, and replace `String(err)` in the catch with a generic message.
+
+## 5. Auth config warnings (`SUPA_auth_leaked_password_protection`, `SUPA_auth_otp_long_expiry`)
+
+These are Supabase Auth dashboard toggles, not code. I'll direct you to the two exact settings in the Supabase Auth dashboard (Enable leaked-password protection; set OTP expiry ≤ 3600s). I can't flip them from here.
+
+## 6. Mark findings
+
+After the above, call `manage_security_finding` → `mark_as_fixed` for every finding in your list, each with a one-line explanation of what changed. The two Auth-config findings will be marked once you confirm you flipped them in the dashboard.
+
+## Confirm before I proceed
+
+- **Company-logos bucket**: keep public (default in this plan, login stays working) or make private + add signed-URL edge function?
+- **Existing `avatar_url` / `logo_url` values**: lazy-migrate on next upload (default) or one-time SQL backfill now?
