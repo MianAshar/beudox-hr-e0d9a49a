@@ -399,14 +399,17 @@ const EmployeeForm = () => {
         if (uploadErr) {
           console.error('Avatar upload error:', uploadErr);
         } else {
-          const { data: urlData } = supabase.storage
+          const ONE_YEAR = 60 * 60 * 24 * 365;
+          const { data: signed, error: signedErr } = await supabase.storage
             .from('employee-avatars')
-            .getPublicUrl(filePath);
-          const avatarUrlWithCacheBust = `${urlData.publicUrl}?t=${Date.now()}`;
-          await supabase
-            .from('employees')
-            .update({ avatar_url: avatarUrlWithCacheBust })
-            .eq('id', employeeId);
+            .createSignedUrl(filePath, ONE_YEAR);
+          if (!signedErr && signed?.signedUrl) {
+            const avatarUrlWithCacheBust = `${signed.signedUrl}${signed.signedUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+            await supabase
+              .from('employees')
+              .update({ avatar_url: avatarUrlWithCacheBust })
+              .eq('id', employeeId);
+          }
         }
       } else if (removeAvatar && employeeId) {
         const filePath = `${companyId}/${employeeId}.jpg`;
