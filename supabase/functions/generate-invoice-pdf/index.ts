@@ -12,17 +12,53 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { invoice_id } = await req.json();
-    if (!invoice_id) {
-      return new Response(JSON.stringify({ error: 'invoice_id required' }), {
-        status: 400,
+    // --- AuthN / AuthZ ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+    const authedClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsErr } = await authedClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const authUserId = claimsData.claims.sub as string;
+
+    const { invoice_id } = await req.json();
+    if (!invoice_id || typeof invoice_id !== 'string') {
+      return new Response(JSON.stringify({ error: 'invoice_id required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabase = createClient(supabaseUrl, serviceKey);
+
+    // Verify caller is CEO or finance_manager
+    const { data: hasRole } = await supabase.rpc('auth_has_any_role', {
+      _auth_id: authUserId,
+      _roles: ['ceo', 'finance_manager'],
+    });
+    if (!hasRole) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Fetch invoice with client
     const { data: invoice, error: invError } = await supabase
