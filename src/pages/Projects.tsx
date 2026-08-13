@@ -587,6 +587,9 @@ const Projects = () => {
             const isCollapsed = !expandedIds.has(p.id);
             const team = teamByProject.get(p.id) ?? [];
             const tc = taskCountByProject.get(p.id);
+            const scopeUpdatedAt = p.scope_updated_at;
+            const isRecentlyUpdated = scopeUpdatedAt && (Date.now() - new Date(scopeUpdatedAt).getTime() < 24 * 60 * 60 * 1000);
+            const showScopeAlert = !!(isRecentlyUpdated && (isManager || assignedProjectIds.has(p.id)));
             return (
               <ProjectCard
                 key={p.id}
@@ -611,6 +614,7 @@ const Projects = () => {
                 employeeId={employeeId!}
                 roles={roles}
                 isCeoOrDirector={isCeoOrDirector}
+                showScopeAlert={showScopeAlert}
               />
             );
           })}
