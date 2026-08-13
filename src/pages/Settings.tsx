@@ -11,6 +11,7 @@ import LeaveTypesTab from '@/components/settings/LeaveTypesTab';
 
 import LoginLogsTab from '@/components/settings/LoginLogsTab';
 import LeaveOverwriteLogTab from '@/components/settings/LeaveOverwriteLogTab';
+import ManualAttendanceLogTab from '@/components/settings/ManualAttendanceLogTab';
 
 const Settings = () => {
   const { employee } = useAuth();
