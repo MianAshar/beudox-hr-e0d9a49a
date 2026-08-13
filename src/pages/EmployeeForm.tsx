@@ -882,11 +882,10 @@ const EmployeeForm = () => {
           {(publishedJds ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">No published job descriptions available</p>
           ) : (
-            <div className="relative">
+            <div className="relative" ref={jdContainerRef}>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  ref={jdSearchRef}
                   placeholder="Search and add job descriptions..."
                   value={jdSearch}
                   onChange={(e) => {
