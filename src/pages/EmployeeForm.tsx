@@ -283,6 +283,12 @@ const EmployeeForm = () => {
     }
   }, [existing, roles, isEdit, userRoles, id, navigate]);
 
+  useEffect(() => {
+    if (existingJdAssignments) {
+      setSelectedJdIds(existingJdAssignments.map(a => a.jd_id));
+    }
+  }, [existingJdAssignments]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
