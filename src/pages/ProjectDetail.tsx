@@ -190,34 +190,6 @@ const ProjectDetail = () => {
     onError: (e: Error) => toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' }),
   });
 
-  const fieldMutation = useMutation({
-    mutationFn: async ({ field, value, action }: { field: 'project_name' | 'location'; value: string | null; action: string }) => {
-      const previous = (project as any)?.[field] ?? null;
-      if ((previous || null) === (value || null)) return;
-      const patch: any = { [field]: value };
-      const { error } = await supabase.from('projects').update(patch).eq('id', id!);
-      if (error) throw error;
-      if (companyId && employeeId) {
-        await supabase.from('project_activity_logs').insert({
-          company_id: companyId,
-          project_id: id!,
-          employee_id: employeeId,
-          action,
-          old_value: previous,
-          new_value: value,
-        });
-      }
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['project-detail'] });
-      qc.invalidateQueries({ queryKey: ['projects'] });
-      qc.invalidateQueries({ queryKey: ['project-activity'] });
-      toast({ title: 'Updated' });
-      setEditingName(false);
-      setEditingLocation(false);
-    },
-    onError: (e: Error) => toast({ title: 'Update failed', description: e.message, variant: 'destructive' }),
-  });
 
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\bQc\b/g, 'QC');
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
