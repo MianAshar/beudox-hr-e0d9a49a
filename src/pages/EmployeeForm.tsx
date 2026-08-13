@@ -859,6 +859,99 @@ const EmployeeForm = () => {
             </p>
           </div>
         </div>
+
+        <div className="pt-2">
+          <Label className="text-[12px] text-muted-foreground mb-1.5 block">
+            Assigned Job Descriptions
+          </Label>
+          <p className="text-[10px] text-muted-foreground mb-2" style={{ fontFamily: 'var(--ff-body)' }}>
+            Employee will only see assigned JDs. Leave empty to hide all JDs from this employee.
+          </p>
+
+          {(publishedJds ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No published job descriptions available</p>
+          ) : (
+            <div className="relative">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  ref={jdSearchRef}
+                  placeholder="Search and add job descriptions..."
+                  value={jdSearch}
+                  onChange={(e) => {
+                    setJdSearch(e.target.value);
+                    setJdDropdownOpen(true);
+                  }}
+                  onFocus={() => setJdDropdownOpen(true)}
+                  className="pl-9"
+                />
+              </div>
+
+              {jdDropdownOpen && (
+                <div className="absolute z-10 mt-1 w-full bg-card border border-border rounded-md shadow-lg max-h-48 overflow-auto">
+                  {publishedJds
+                    ?.filter(
+                      (jd) =>
+                        !selectedJdIds.includes(jd.id) &&
+                        jd.title.toLowerCase().includes(jdSearch.toLowerCase())
+                    )
+                    .length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">
+                      No matching job descriptions
+                    </div>
+                  ) : (
+                    publishedJds
+                      ?.filter(
+                        (jd) =>
+                          !selectedJdIds.includes(jd.id) &&
+                          jd.title.toLowerCase().includes(jdSearch.toLowerCase())
+                      )
+                      .map((jd) => (
+                        <button
+                          key={jd.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"
+                          onClick={() => {
+                            setSelectedJdIds((prev) => [...prev, jd.id]);
+                            setJdSearch('');
+                            setJdDropdownOpen(false);
+                          }}
+                        >
+                          {jd.title}
+                        </button>
+                      ))
+                  )}
+                </div>
+              )}
+
+              {selectedJdIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {selectedJdIds.map((jdId) => {
+                    const jd = publishedJds?.find((j) => j.id === jdId);
+                    return (
+                      <div
+                        key={jdId}
+                        className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-sm px-2.5 py-1 rounded-full"
+                      >
+                        <span className="max-w-[200px] truncate">{jd?.title || jdId}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedJdIds((prev) => prev.filter((id) => id !== jdId))
+                          }
+                          className="hover:text-destructive focus:outline-none"
+                          aria-label={`Remove ${jd?.title || 'JD'}`}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Actions */}
