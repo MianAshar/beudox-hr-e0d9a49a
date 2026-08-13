@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -42,6 +42,27 @@ const JobDescriptionDetail = () => {
     },
     enabled: !!id && !!employee?.company_id,
   });
+
+  useEffect(() => {
+    if (!jd || isLoading || isManager) return;
+
+    const checkAccess = async () => {
+      const { data: assignment } = await supabase
+        .from('employee_jd_assignments')
+        .select('id')
+        .eq('employee_id', employee!.employee_id)
+        .eq('jd_id', id)
+        .eq('company_id', employee!.company_id)
+        .maybeSingle();
+
+      if (!assignment) {
+        toast.error('You do not have access to this job description');
+        navigate('/job-descriptions', { replace: true });
+      }
+    };
+
+    checkAccess();
+  }, [jd, isLoading, isManager, id, employee, navigate]);
 
   const { data: versions } = useQuery({
     queryKey: ['job-description-versions', jd?.title],
