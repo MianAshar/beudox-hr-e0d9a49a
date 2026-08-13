@@ -16,10 +16,13 @@ export interface MissingEntryTarget {
   recordId: string;
   employeeId: string | null;
   employeeName?: string | null;
+  employeeCode?: string | null;
   date: string; // YYYY-MM-DD
-  field: 'check_in' | 'check_out';
+  field: 'check_in' | 'check_out' | 'both';
   existingCheckIn: string | null;
   existingCheckOut: string | null;
+  /** 'insert' when no attendance_record exists yet for this day. */
+  mode?: 'update' | 'insert';
 }
 
 interface Props {
@@ -55,22 +58,44 @@ export default function MissingEntryModal({
 }: Props) {
   const { employee } = useAuth();
   const [time, setTime] = useState('');
+  const [checkInTime, setCheckInTime] = useState('');
+  const [checkOutTime, setCheckOutTime] = useState('');
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const isBoth = target?.field === 'both';
+  const mode = target?.mode ?? 'update';
+
+  const resetForm = () => {
+    setTime('');
+    setCheckInTime('');
+    setCheckOutTime('');
+    setReason('');
+  };
+
   const handleClose = () => {
     if (saving) return;
-    setTime('');
-    setReason('');
+    resetForm();
     onClose();
   };
 
   const handleSubmit = async () => {
     if (!target || !employee?.company_id || !employee?.employee_id) return;
-    if (!time) {
+
+    if (isBoth) {
+      if (!checkInTime || !checkOutTime) {
+        toast.error('Please select both check-in and check-out times');
+        return;
+      }
+      if (parseTimeToHours(checkOutTime) <= parseTimeToHours(checkInTime)) {
+        toast.error('Check-out must be after check-in');
+        return;
+      }
+    } else if (!time) {
       toast.error('Please select a time');
       return;
     }
+
     if (!reason.trim()) {
       toast.error('Reason is required');
       return;
@@ -78,17 +103,22 @@ export default function MissingEntryModal({
 
     setSaving(true);
     try {
-      const newIso = buildIsoForDate(target.date, time);
-      const oldVal = target.field === 'check_in' ? target.existingCheckIn : target.existingCheckOut;
+      let newCheckIn: string | null;
+      let newCheckOut: string | null;
 
-      const newCheckIn = target.field === 'check_in' ? newIso : target.existingCheckIn;
-      const newCheckOut = target.field === 'check_out' ? newIso : target.existingCheckOut;
+      if (isBoth) {
+        newCheckIn = buildIsoForDate(target.date, checkInTime);
+        newCheckOut = buildIsoForDate(target.date, checkOutTime);
+      } else {
+        const newIso = buildIsoForDate(target.date, time);
+        newCheckIn = target.field === 'check_in' ? newIso : target.existingCheckIn;
+        newCheckOut = target.field === 'check_out' ? newIso : target.existingCheckOut;
+      }
 
       // Recalculate working_hours, is_late, regular_ot_hours, status
       let workingHours: number | null = null;
       let regularOt = 0;
       let isLate = false;
-      let status = 'present';
 
       if (newCheckIn && newCheckOut) {
         const inDate = new Date(newCheckIn);
@@ -100,44 +130,135 @@ export default function MissingEntryModal({
         const shiftStartHours = parseTimeToHours(shiftStart);
         const inHours = inDate.getHours() + inDate.getMinutes() / 60;
         isLate = (inHours - shiftStartHours) * 60 > lateThresholdMin;
-      } else {
-        status = 'present';
       }
 
-      const updatePayload = {
-        [target.field]: newIso,
-        working_hours: workingHours ?? 0,
-        regular_ot_hours: regularOt,
-        is_late: isLate,
-        status,
-        notes: null as string | null,
-      } as never;
+      if (isBoth && mode === 'insert') {
+        const { data: inserted, error: insErr } = await supabase
+          .from('attendance_records')
+          .insert({
+            company_id: employee.company_id,
+            employee_id: target.employeeId,
+            employee_code: target.employeeCode ?? null,
+            date: target.date,
+            check_in: newCheckIn,
+            check_out: newCheckOut,
+            working_hours: workingHours ?? 0,
+            regular_ot_hours: regularOt,
+            holiday_ot_hours: 0,
+            is_late: isLate,
+            is_absent: false,
+            is_weekend: false,
+            is_holiday: false,
+            status: isLate ? 'late' : 'present',
+            source: 'manual_entry',
+            notes: null,
+          })
+          .select('id')
+          .single();
+        if (insErr) throw insErr;
 
-      const { error: updErr } = await supabase
-        .from('attendance_records')
-        .update(updatePayload)
-        .eq('id', target.recordId)
-        .eq('company_id', employee.company_id);
-      if (updErr) throw updErr;
+        const { error: logErr } = await supabase
+          .from('attendance_manual_logs')
+          .insert([
+            {
+              company_id: employee.company_id,
+              attendance_record_id: inserted.id,
+              employee_id: target.employeeId,
+              date: target.date,
+              field_updated: 'check_in',
+              old_value: null,
+              new_value: newCheckIn,
+              updated_by: employee.employee_id,
+              reason: reason.trim(),
+            },
+            {
+              company_id: employee.company_id,
+              attendance_record_id: inserted.id,
+              employee_id: target.employeeId,
+              date: target.date,
+              field_updated: 'check_out',
+              old_value: null,
+              new_value: newCheckOut,
+              updated_by: employee.employee_id,
+              reason: reason.trim(),
+            },
+          ]);
+        if (logErr) throw logErr;
+      } else {
+        const updatePayload = (isBoth
+          ? {
+              check_in: newCheckIn,
+              check_out: newCheckOut,
+              working_hours: workingHours ?? 0,
+              regular_ot_hours: regularOt,
+              is_late: isLate,
+              is_absent: false,
+              status: isLate ? 'late' : 'present',
+              notes: null as string | null,
+            }
+          : {
+              [target.field]: target.field === 'check_in' ? newCheckIn : newCheckOut,
+              working_hours: workingHours ?? 0,
+              regular_ot_hours: regularOt,
+              is_late: isLate,
+              status: 'present',
+              notes: null as string | null,
+            }) as never;
 
-      const { error: logErr } = await supabase
-        .from('attendance_manual_logs')
-        .insert({
-          company_id: employee.company_id,
-          attendance_record_id: target.recordId,
-          employee_id: target.employeeId,
-          date: target.date,
-          field_updated: target.field,
-          old_value: oldVal,
-          new_value: newIso,
-          updated_by: employee.employee_id,
-          reason: reason.trim(),
-        });
-      if (logErr) throw logErr;
+        const { error: updErr } = await supabase
+          .from('attendance_records')
+          .update(updatePayload)
+          .eq('id', target.recordId)
+          .eq('company_id', employee.company_id);
+        if (updErr) throw updErr;
+
+        const logRows = isBoth
+          ? [
+              {
+                company_id: employee.company_id,
+                attendance_record_id: target.recordId,
+                employee_id: target.employeeId,
+                date: target.date,
+                field_updated: 'check_in',
+                old_value: target.existingCheckIn,
+                new_value: newCheckIn,
+                updated_by: employee.employee_id,
+                reason: reason.trim(),
+              },
+              {
+                company_id: employee.company_id,
+                attendance_record_id: target.recordId,
+                employee_id: target.employeeId,
+                date: target.date,
+                field_updated: 'check_out',
+                old_value: target.existingCheckOut,
+                new_value: newCheckOut,
+                updated_by: employee.employee_id,
+                reason: reason.trim(),
+              },
+            ]
+          : [
+              {
+                company_id: employee.company_id,
+                attendance_record_id: target.recordId,
+                employee_id: target.employeeId,
+                date: target.date,
+                field_updated: target.field,
+                old_value: target.field === 'check_in' ? target.existingCheckIn : target.existingCheckOut,
+                new_value: target.field === 'check_in' ? newCheckIn : newCheckOut,
+                updated_by: employee.employee_id,
+                reason: reason.trim(),
+              },
+            ];
+
+        const { error: logErr } = await supabase
+          .from('attendance_manual_logs')
+          .insert(logRows);
+        if (logErr) throw logErr;
+      }
 
       toast.success('Entry updated successfully.');
-      setTime('');
-      setReason('');
+      resetForm();
       onSaved();
       onClose();
     } catch (err: any) {
@@ -167,21 +288,57 @@ export default function MissingEntryModal({
         )}
 
         <div className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Missing field</Label>
-            <div className="text-sm font-medium">{fieldLabel}</div>
-          </div>
+          {isBoth ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Both check-in and check-out are missing for this day.
+              </p>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs" htmlFor="missing-time">{fieldLabel} time</Label>
-            <Input
-              id="missing-time"
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              disabled={saving}
-            />
-          </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs" htmlFor="missing-check-in">
+                  Check-in time <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="missing-check-in"
+                  type="time"
+                  value={checkInTime}
+                  onChange={(e) => setCheckInTime(e.target.value)}
+                  disabled={saving}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs" htmlFor="missing-check-out">
+                  Check-out time <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="missing-check-out"
+                  type="time"
+                  value={checkOutTime}
+                  onChange={(e) => setCheckOutTime(e.target.value)}
+                  disabled={saving}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Missing field</Label>
+                <div className="text-sm font-medium">{fieldLabel}</div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs" htmlFor="missing-time">{fieldLabel} time</Label>
+                <Input
+                  id="missing-time"
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  disabled={saving}
+                />
+              </div>
+            </>
+          )}
 
           <div className="space-y-1.5">
             <Label className="text-xs" htmlFor="missing-reason">Reason <span className="text-destructive">*</span></Label>
