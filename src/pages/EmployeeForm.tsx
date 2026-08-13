@@ -289,6 +289,17 @@ const EmployeeForm = () => {
     }
   }, [existingJdAssignments]);
 
+  // Close JD dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (jdSearchRef.current && !jdSearchRef.current.contains(e.target as Node)) {
+        setJdDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
