@@ -222,33 +222,7 @@ const ProjectDetail = () => {
           </Button>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              {editingName ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    autoFocus
-                    value={nameDraft}
-                    onChange={e => setNameDraft(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && nameDraft.trim()) fieldMutation.mutate({ field: 'project_name', value: nameDraft.trim(), action: 'name_changed' });
-                      if (e.key === 'Escape') setEditingName(false);
-                    }}
-                    className="h-9 text-2xl font-semibold w-[320px]"
-                  />
-                  <Button size="icon" variant="ghost" onClick={() => nameDraft.trim() && fieldMutation.mutate({ field: 'project_name', value: nameDraft.trim(), action: 'name_changed' })} disabled={fieldMutation.isPending}>
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" onClick={() => setEditingName(false)}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setNameDraft(project.project_name); setEditingName(true); }}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                </>
-              )}
+              <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild disabled={statusMutation.isPending}>
                   <button type="button" className="inline-flex">
