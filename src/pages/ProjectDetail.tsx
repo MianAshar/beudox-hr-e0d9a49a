@@ -254,11 +254,6 @@ const ProjectDetail = () => {
               <Play className="h-4 w-4 mr-2" /> Start Project
             </Button>
           )}
-          {isTeamLead && (
-            <Button variant="outline" onClick={() => setManageTeamOpen(true)}>
-              <UserCog className="h-4 w-4 mr-2" /> Manage Team
-            </Button>
-          )}
           {canEditDetails && (
             <>
               <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
