@@ -292,7 +292,7 @@ const EmployeeForm = () => {
   // Close JD dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (jdSearchRef.current && !jdSearchRef.current.contains(e.target as Node)) {
+      if (jdContainerRef.current && !jdContainerRef.current.contains(e.target as Node)) {
         setJdDropdownOpen(false);
       }
     };
