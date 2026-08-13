@@ -287,6 +287,23 @@ const Projects = () => {
     enabled: !!companyId && !!employeeId && roles.length > 0,
   });
 
+  const { data: myAssignments } = useQuery({
+    queryKey: ['my-project-assignments', companyId, employeeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_assignments')
+        .select('project_id')
+        .eq('employee_id', employeeId!)
+        .eq('company_id', companyId!)
+        .eq('is_active', true);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!companyId && !!employeeId,
+  });
+
+  const assignedProjectIds = useMemo(() => new Set((myAssignments ?? []).map(a => a.project_id)), [myAssignments]);
+
   const { data: clients } = useQuery({
     queryKey: ['clients-filter', companyId],
     queryFn: async () => {
