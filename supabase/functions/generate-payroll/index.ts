@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     // 2. Fetch active employees (full_time + director)
     const { data: employees, error: empErr } = await supabase
       .from('employees')
-      .select('id, full_name, department, basic_salary, allowance, employment_type')
+      .select('id, full_name, department, basic_salary, allowance, employment_type, joining_date')
       .eq('company_id', company_id)
       .eq('status', 'active')
       .in('employment_type', ['full_time', 'director']);
@@ -89,6 +89,46 @@ Deno.serve(async (req) => {
       .eq('company_id', company_id)
       .gte('date', startDate)
       .lte('date', endDate);
+
+    // Fetch public holidays in this month (for proration working-day counts)
+    const { data: holidays } = await supabase
+      .from('public_holidays')
+      .select('date')
+      .eq('company_id', company_id)
+      .gte('date', startDate)
+      .lte('date', endDate);
+    const holidaySet = new Set<string>((holidays || []).map((h: any) => h.date as string));
+
+    const isWorkingDay = (dateStr: string): boolean => {
+      const d = new Date(dateStr + 'T00:00:00');
+      const dow = d.getDay();
+      return dow !== 0 && dow !== 6 && !holidaySet.has(dateStr);
+    };
+
+    const getWorkingDays = (from: string, to: string): string[] => {
+      const days: string[] = [];
+      const cur = new Date(from + 'T00:00:00');
+      const end = new Date(to + 'T00:00:00');
+      while (cur <= end) {
+        const ds = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+        if (isWorkingDay(ds)) days.push(ds);
+        cur.setDate(cur.getDate() + 1);
+      }
+      return days;
+    };
+
+    const nextWorkingDay = (dateStr: string): string => {
+      const cur = new Date(dateStr + 'T00:00:00');
+      // Safety bound: never scan more than ~40 days
+      for (let i = 0; i < 40; i++) {
+        const ds = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+        if (isWorkingDay(ds)) return ds;
+        cur.setDate(cur.getDate() + 1);
+      }
+      return dateStr;
+    };
+
+    const totalWorkingDays = getWorkingDays(startDate, endDate).length;
 
     // Fetch approved leave requests overlapping the month, then expand into a
     // per-employee set of leave dates (weekends/holidays kept inside the set are
