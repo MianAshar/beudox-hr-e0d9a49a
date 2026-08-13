@@ -164,7 +164,7 @@ const EmployeeForm = () => {
   const [selectedJdIds, setSelectedJdIds] = useState<string[]>([]);
   const [jdSearch, setJdSearch] = useState('');
   const [jdDropdownOpen, setJdDropdownOpen] = useState(false);
-  const jdSearchRef = useRef<HTMLInputElement>(null);
+  const jdContainerRef = useRef<HTMLDivElement>(null);
 
   // Fetch departments from company settings
   const { data: companyData } = useQuery({
