@@ -250,6 +250,22 @@ Deno.serve(async (req) => {
       const allowance = Number(emp.allowance || 0);
       const isDirector = emp.employment_type === 'director';
 
+      // Prorate basic + allowance for mid-month joiners
+      const joiningDate = (emp as any).joining_date as string | null;
+      let effectiveBasic = basicSalary;
+      let effectiveAllowance = allowance;
+      let proratedNote: string | null = null;
+
+      if (joiningDate && joiningDate >= startDate && joiningDate <= endDate && totalWorkingDays > 0) {
+        const effectiveStart = nextWorkingDay(joiningDate);
+        const workedWorkingDays = getWorkingDays(effectiveStart, endDate).length;
+        const ratio = workedWorkingDays / totalWorkingDays;
+        effectiveBasic = Math.round(basicSalary * ratio * 100) / 100;
+        effectiveAllowance = Math.round(allowance * ratio * 100) / 100;
+        proratedNote = `Prorated: ${workedWorkingDays}/${totalWorkingDays} working days (joined ${joiningDate})`;
+      }
+
+
       let regularOtHours = 0;
       let holidayOtHours = 0;
       let regularOtAmount = 0;
