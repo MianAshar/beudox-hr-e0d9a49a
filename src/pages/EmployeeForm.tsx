@@ -160,6 +160,12 @@ const EmployeeForm = () => {
   const [crop, setCrop] = useState<Crop>();
   const cropImgRef = useRef<HTMLImageElement | null>(null);
 
+  // JD assignment state
+  const [selectedJdIds, setSelectedJdIds] = useState<string[]>([]);
+  const [jdSearch, setJdSearch] = useState('');
+  const [jdDropdownOpen, setJdDropdownOpen] = useState(false);
+  const jdSearchRef = useRef<HTMLInputElement>(null);
+
   // Fetch departments from company settings
   const { data: companyData } = useQuery({
     queryKey: ['company-departments', companyId],
