@@ -1,0 +1,2 @@
+ALTER TABLE public.projects
+ADD COLUMN IF NOT EXISTS scope_updated_at TIMESTAMPTZ DEFAULT NULL;

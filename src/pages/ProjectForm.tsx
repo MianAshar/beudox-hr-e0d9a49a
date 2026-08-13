@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { ArrowLeft, CalendarIcon, Check, ChevronsUpDown, X, Plus } from 'lucide-react';
 import { NewClientModal } from '@/components/clients/NewClientModal';
+import { sendNotification } from '@/lib/notifications';
 
 
 const ProjectForm = () => {
@@ -188,13 +189,50 @@ const ProjectForm = () => {
       if (isEdit) {
         const { error } = await supabase.from('projects').update(payload).eq('id', id!);
         if (error) throw error;
-        // Log name/location changes
+        // Log name/location/scope changes
         const logs: any[] = [];
         if (existingProject && existingProject.project_name !== payload.project_name) {
           logs.push({ company_id: companyId!, project_id: id!, employee_id: employee?.employee_id!, action: 'name_changed', old_value: existingProject.project_name, new_value: payload.project_name });
         }
         if (existingProject && ((existingProject as any).location || null) !== payload.location) {
           logs.push({ company_id: companyId!, project_id: id!, employee_id: employee?.employee_id!, action: 'location_changed', old_value: (existingProject as any).location || null, new_value: payload.location });
+        }
+        if (existingProject && (existingProject.scope_of_work || null) !== (payload.scope_of_work || null)) {
+          logs.push({
+            company_id: companyId!,
+            project_id: id!,
+            employee_id: employee?.employee_id!,
+            action: 'scope_updated',
+            old_value: existingProject.scope_of_work || null,
+            new_value: payload.scope_of_work || null,
+          });
+
+          await supabase
+            .from('projects')
+            .update({ scope_updated_at: new Date().toISOString() })
+            .eq('id', id!);
+
+          const { data: assignees } = await supabase
+            .from('project_assignments')
+            .select('employee_id')
+            .eq('project_id', id!)
+            .eq('company_id', companyId!)
+            .eq('is_active', true)
+            .neq('employee_id', employee?.employee_id!);
+
+          const recipientIds = (assignees ?? []).map(a => a.employee_id);
+
+          if (recipientIds.length > 0) {
+            await sendNotification({
+              companyId: companyId!,
+              recipientIds,
+              type: 'scope_updated',
+              title: 'Project instructions updated',
+              message: `${existingProject.project_name} — Scope of work has been updated. Please review the updated instructions.`,
+              referenceType: 'project',
+              referenceId: id!,
+            });
+          }
         }
         if (logs.length) await supabase.from('project_activity_logs').insert(logs);
         const prev = existingAssignments ?? [];

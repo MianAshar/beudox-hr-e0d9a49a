@@ -2574,6 +2574,7 @@ export type Database = {
           project_lead_id: string | null
           project_name: string
           scope_of_work: string | null
+          scope_updated_at: string | null
           status: string
           sub_series: string | null
           updated_at: string | null
@@ -2595,6 +2596,7 @@ export type Database = {
           project_lead_id?: string | null
           project_name: string
           scope_of_work?: string | null
+          scope_updated_at?: string | null
           status?: string
           sub_series?: string | null
           updated_at?: string | null
@@ -2616,6 +2618,7 @@ export type Database = {
           project_lead_id?: string | null
           project_name?: string
           scope_of_work?: string | null
+          scope_updated_at?: string | null
           status?: string
           sub_series?: string | null
           updated_at?: string | null
