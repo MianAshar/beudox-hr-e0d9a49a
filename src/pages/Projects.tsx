@@ -773,16 +773,34 @@ const ProjectCard = ({
         <span className="font-mono text-xs text-muted-foreground w-16 lg:w-20 shrink-0 truncate">{p.project_code}</span>
 
         {/* Project Name */}
-        <div className="flex-1 min-w-0 flex items-center gap-2 order-1 lg:order-none basis-full lg:basis-auto">
-          <button
-            type="button"
-            className="font-medium text-sm text-foreground hover:underline truncate text-left min-w-0"
-            onClick={e => { e.stopPropagation(); onOpenDetail(); }}
-            title={p.project_name}
-          >
-            {p.project_name}
-          </button>
-          {!p.is_active && <Badge variant="outline" className="text-xs shrink-0">Inactive</Badge>}
+        <div className="flex-1 min-w-0 flex flex-col items-start gap-1 order-1 lg:order-none basis-full lg:basis-auto">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              className="font-medium text-sm text-foreground hover:underline truncate text-left min-w-0"
+              onClick={e => { e.stopPropagation(); onOpenDetail(); }}
+              title={p.project_name}
+            >
+              {p.project_name}
+            </button>
+            {!p.is_active && <Badge variant="outline" className="text-xs shrink-0">Inactive</Badge>}
+          </div>
+          {showScopeAlert && (
+            <div
+              className="flex items-center gap-1.5"
+              style={{
+                background: '#FEF3C7',
+                color: '#92400E',
+                borderLeft: '3px solid #F5A623',
+                fontSize: 11,
+                padding: '4px 8px',
+                borderRadius: 4,
+              }}
+            >
+              <AlertTriangle className="h-3 w-3 shrink-0" />
+              <span>Instructions updated — Review required</span>
+            </div>
+          )}
         </div>
 
         {/* Scope of Work */}
