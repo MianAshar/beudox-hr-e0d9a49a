@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Upload, X, Loader2, Search, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatRole, ROLE_ORDER } from '@/lib/format-role';
 import { z } from 'zod';

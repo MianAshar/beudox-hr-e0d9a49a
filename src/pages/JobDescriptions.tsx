@@ -19,21 +19,41 @@ const JobDescriptions = () => {
   const isManager = (employee?.roles ?? []).includes('hr_manager') || (employee?.roles ?? []).includes('ceo');
 
   const { data: jds, isLoading } = useQuery({
-    queryKey: ['job-descriptions', employee?.company_id, isManager],
+    queryKey: ['job-descriptions', employee?.company_id, isManager, employee?.employee_id],
     queryFn: async () => {
-      let query = supabase
+      if (isManager) {
+        const { data, error } = await supabase
+          .from('hr_documents')
+          .select('*')
+          .eq('company_id', employee!.company_id)
+          .eq('document_type', 'jd')
+          .eq('is_current', true)
+          .order('title', { ascending: true });
+        if (error) throw error;
+        return data;
+      }
+
+      const { data: assignments, error: assignmentError } = await supabase
+        .from('employee_jd_assignments')
+        .select('jd_id')
+        .eq('employee_id', employee!.employee_id)
+        .eq('company_id', employee!.company_id);
+
+      if (assignmentError) throw assignmentError;
+
+      const assignedIds = (assignments ?? []).map(a => a.jd_id);
+      if (assignedIds.length === 0) return [];
+
+      const { data, error } = await supabase
         .from('hr_documents')
         .select('*')
         .eq('company_id', employee!.company_id)
         .eq('document_type', 'jd')
         .eq('is_current', true)
+        .not('published_at', 'is', null)
+        .in('id', assignedIds)
         .order('title', { ascending: true });
 
-      if (!isManager) {
-        query = query.not('published_at', 'is', null);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
@@ -97,9 +117,11 @@ const JobDescriptions = () => {
       ) : !filtered?.length ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FileText className="h-12 w-12 text-muted-foreground/40 mb-4" />
-          <h3 className="text-lg font-medium text-foreground">No job descriptions found</h3>
+          <h3 className="text-lg font-medium text-foreground">
+            {isManager ? 'No job descriptions found' : 'No job descriptions assigned'}
+          </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {isManager ? 'Create your first JD to get started.' : 'No published JDs yet.'}
+            {isManager ? 'Create your first JD to get started.' : "Your HR manager hasn't assigned any job descriptions to you yet."}
           </p>
         </div>
       ) : (
