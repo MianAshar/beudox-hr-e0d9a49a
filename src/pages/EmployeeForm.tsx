@@ -462,6 +462,29 @@ const EmployeeForm = () => {
           .eq('id', employeeId);
       }
 
+      // Sync JD assignments
+      if (employeeId && companyId) {
+        await supabase
+          .from('employee_jd_assignments')
+          .delete()
+          .eq('employee_id', employeeId)
+          .eq('company_id', companyId);
+
+        if (selectedJdIds.length > 0) {
+          const { error: jdInsertErr } = await supabase
+            .from('employee_jd_assignments')
+            .insert(
+              selectedJdIds.map(jdId => ({
+                company_id: companyId,
+                employee_id: employeeId,
+                jd_id: jdId,
+                assigned_by: authEmployee?.employee_id,
+              }))
+            );
+          if (jdInsertErr) throw jdInsertErr;
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['employees-list'] });
       queryClient.invalidateQueries({ queryKey: ['employee-profile'] });
       queryClient.invalidateQueries({ queryKey: ['employee-edit'] });
