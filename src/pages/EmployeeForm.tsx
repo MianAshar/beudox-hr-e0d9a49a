@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Upload, X, Loader2, Search, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatRole, ROLE_ORDER } from '@/lib/format-role';
 import { z } from 'zod';
@@ -160,6 +160,12 @@ const EmployeeForm = () => {
   const [crop, setCrop] = useState<Crop>();
   const cropImgRef = useRef<HTMLImageElement | null>(null);
 
+  // JD assignment state
+  const [selectedJdIds, setSelectedJdIds] = useState<string[]>([]);
+  const [jdSearch, setJdSearch] = useState('');
+  const [jdDropdownOpen, setJdDropdownOpen] = useState(false);
+  const jdContainerRef = useRef<HTMLDivElement>(null);
+
   // Fetch departments from company settings
   const { data: companyData } = useQuery({
     queryKey: ['company-departments', companyId],
@@ -189,6 +195,39 @@ const EmployeeForm = () => {
       return data;
     },
     enabled: !!companyId,
+  });
+
+  // Fetch published JDs for assignment
+  const { data: publishedJds } = useQuery({
+    queryKey: ['published-jds', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('hr_documents')
+        .select('id, title')
+        .eq('company_id', companyId!)
+        .eq('document_type', 'jd')
+        .eq('is_current', true)
+        .not('published_at', 'is', null)
+        .order('title');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  // Fetch existing JD assignments if editing
+  const { data: existingJdAssignments } = useQuery({
+    queryKey: ['employee-jd-assignments', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employee_jd_assignments')
+        .select('jd_id')
+        .eq('employee_id', id!)
+        .eq('company_id', companyId!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!companyId,
   });
 
   // Fetch employee data if editing
@@ -243,6 +282,23 @@ const EmployeeForm = () => {
       setExistingAvatarUrl(existing.avatar_url);
     }
   }, [existing, roles, isEdit, userRoles, id, navigate]);
+
+  useEffect(() => {
+    if (existingJdAssignments) {
+      setSelectedJdIds(existingJdAssignments.map(a => a.jd_id));
+    }
+  }, [existingJdAssignments]);
+
+  // Close JD dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (jdContainerRef.current && !jdContainerRef.current.contains(e.target as Node)) {
+        setJdDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -415,6 +471,29 @@ const EmployeeForm = () => {
           .from('employees')
           .update({ avatar_url: null })
           .eq('id', employeeId);
+      }
+
+      // Sync JD assignments
+      if (employeeId && companyId) {
+        await supabase
+          .from('employee_jd_assignments')
+          .delete()
+          .eq('employee_id', employeeId)
+          .eq('company_id', companyId);
+
+        if (selectedJdIds.length > 0) {
+          const { error: jdInsertErr } = await supabase
+            .from('employee_jd_assignments')
+            .insert(
+              selectedJdIds.map(jdId => ({
+                company_id: companyId,
+                employee_id: employeeId,
+                jd_id: jdId,
+                assigned_by: authEmployee?.employee_id,
+              }))
+            );
+          if (jdInsertErr) throw jdInsertErr;
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['employees-list'] });
@@ -790,6 +869,98 @@ const EmployeeForm = () => {
               The employee will sign in to Beudox using the email above.
             </p>
           </div>
+        </div>
+
+        <div className="pt-2">
+          <Label className="text-[12px] text-muted-foreground mb-1.5 block">
+            Assigned Job Descriptions
+          </Label>
+          <p className="text-[10px] text-muted-foreground mb-2" style={{ fontFamily: 'var(--ff-body)' }}>
+            Employee will only see assigned JDs. Leave empty to hide all JDs from this employee.
+          </p>
+
+          {(publishedJds ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No published job descriptions available</p>
+          ) : (
+            <div className="relative" ref={jdContainerRef}>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search and add job descriptions..."
+                  value={jdSearch}
+                  onChange={(e) => {
+                    setJdSearch(e.target.value);
+                    setJdDropdownOpen(true);
+                  }}
+                  onFocus={() => setJdDropdownOpen(true)}
+                  className="pl-9"
+                />
+              </div>
+
+              {jdDropdownOpen && (
+                <div className="absolute z-10 mt-1 w-full bg-card border border-border rounded-md shadow-lg max-h-48 overflow-auto">
+                  {publishedJds
+                    ?.filter(
+                      (jd) =>
+                        !selectedJdIds.includes(jd.id) &&
+                        jd.title.toLowerCase().includes(jdSearch.toLowerCase())
+                    )
+                    .length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">
+                      No matching job descriptions
+                    </div>
+                  ) : (
+                    publishedJds
+                      ?.filter(
+                        (jd) =>
+                          !selectedJdIds.includes(jd.id) &&
+                          jd.title.toLowerCase().includes(jdSearch.toLowerCase())
+                      )
+                      .map((jd) => (
+                        <button
+                          key={jd.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"
+                          onClick={() => {
+                            setSelectedJdIds((prev) => [...prev, jd.id]);
+                            setJdSearch('');
+                            setJdDropdownOpen(false);
+                          }}
+                        >
+                          {jd.title}
+                        </button>
+                      ))
+                  )}
+                </div>
+              )}
+
+              {selectedJdIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {selectedJdIds.map((jdId) => {
+                    const jd = publishedJds?.find((j) => j.id === jdId);
+                    return (
+                      <div
+                        key={jdId}
+                        className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-sm px-2.5 py-1 rounded-full"
+                      >
+                        <span className="max-w-[200px] truncate">{jd?.title || jdId}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedJdIds((prev) => prev.filter((id) => id !== jdId))
+                          }
+                          className="hover:text-destructive focus:outline-none"
+                          aria-label={`Remove ${jd?.title || 'JD'}`}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
