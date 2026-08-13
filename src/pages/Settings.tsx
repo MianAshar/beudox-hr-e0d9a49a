@@ -11,6 +11,7 @@ import LeaveTypesTab from '@/components/settings/LeaveTypesTab';
 
 import LoginLogsTab from '@/components/settings/LoginLogsTab';
 import LeaveOverwriteLogTab from '@/components/settings/LeaveOverwriteLogTab';
+import ManualAttendanceLogTab from '@/components/settings/ManualAttendanceLogTab';
 
 const Settings = () => {
   const { employee } = useAuth();
@@ -38,6 +39,7 @@ const Settings = () => {
     ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
     ...(isCeo || isHr ? [{ value: 'login-logs', label: 'Login Logs' }] : []),
     ...(isCeo || isHr ? [{ value: 'leave-overwrites', label: 'Leave Overwrite Log' }] : []),
+    ...(isCeo || isHr ? [{ value: 'manual-attendance-logs', label: 'Manual Attendance Log' }] : []),
     ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
   ];
 
@@ -89,6 +91,9 @@ const Settings = () => {
         )}
         {(isCeo || isHr) && (
           <TabsContent value="leave-overwrites" className="mt-6"><LeaveOverwriteLogTab /></TabsContent>
+        )}
+        {(isCeo || isHr) && (
+          <TabsContent value="manual-attendance-logs" className="mt-6"><ManualAttendanceLogTab /></TabsContent>
         )}
         {isCeo && (
           <TabsContent value="danger" className="mt-6"><DangerZoneTab /></TabsContent>
