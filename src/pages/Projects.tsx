@@ -725,12 +725,13 @@ interface ProjectCardProps {
   employeeId: string;
   roles: string[];
   isCeoOrDirector: boolean;
+  showScopeAlert: boolean;
 }
 
 const ProjectCard = ({
   project: p, team, taskCount, isCollapsed, onToggle, onOpenDetail, onDelete, onManageTeam, isDueToday,
   isManager, canSeeClient, canSeeFinancial, canSeeTeam, canManageTeam, canEditStatus, canEditDeadline, canSeeActivity,
-  companyId, employeeId, roles, isCeoOrDirector,
+  companyId, employeeId, roles, isCeoOrDirector, showScopeAlert,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
   const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
