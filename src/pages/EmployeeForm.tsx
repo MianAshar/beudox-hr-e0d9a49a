@@ -197,6 +197,39 @@ const EmployeeForm = () => {
     enabled: !!companyId,
   });
 
+  // Fetch published JDs for assignment
+  const { data: publishedJds } = useQuery({
+    queryKey: ['published-jds', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('hr_documents')
+        .select('id, title')
+        .eq('company_id', companyId!)
+        .eq('document_type', 'jd')
+        .eq('is_current', true)
+        .not('published_at', 'is', null)
+        .order('title');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  // Fetch existing JD assignments if editing
+  const { data: existingJdAssignments } = useQuery({
+    queryKey: ['employee-jd-assignments', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employee_jd_assignments')
+        .select('jd_id')
+        .eq('employee_id', id!)
+        .eq('company_id', companyId!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!companyId,
+  });
+
   // Fetch employee data if editing
   const { data: existing } = useQuery({
     queryKey: ['employee-edit', id],
