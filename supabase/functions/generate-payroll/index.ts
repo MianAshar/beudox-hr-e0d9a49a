@@ -282,7 +282,7 @@ Deno.serve(async (req) => {
         regularOtHours = Math.round(regularOtTotal * 100) / 100; // net, can be negative
         holidayOtHours = att?.holidayOt || 0;
 
-        const perDaySalary = basicSalary / otDivisor;
+        const perDaySalary = effectiveBasic / otDivisor;
         const perHourSalary = perDaySalary / workingHoursPerDay;
         regularOtAmount = regularOtHours * perHourSalary * 1.0;
         holidayOtAmount = holidayOtHours * perHourSalary * 1.5;
@@ -293,15 +293,15 @@ Deno.serve(async (req) => {
       const bonus = arrears?.total || 0;
       const dinnerExpense = 0;
 
-      const totalSalary = Math.max(0, basicSalary + allowance + regularOtAmount + holidayOtAmount + bonus - loanDeduction);
+      const totalSalary = Math.max(0, effectiveBasic + effectiveAllowance + regularOtAmount + holidayOtAmount + bonus - loanDeduction);
       const finalPayment = Math.ceil(totalSalary / 50) * 50;
 
       const record: any = {
         company_id,
         employee_id: emp.id,
         month_year,
-        basic_salary: basicSalary,
-        allowance,
+        basic_salary: effectiveBasic,
+        allowance: effectiveAllowance,
         regular_ot_hours: regularOtHours,
         holiday_ot_hours: holidayOtHours,
         regular_ot_amount: regularOtAmount,
@@ -313,7 +313,10 @@ Deno.serve(async (req) => {
         final_payment: finalPayment,
         status: 'draft',
         superseded: false,
-        notes: bonus > 0 ? `Includes PKR ${bonus.toLocaleString()} arrears from approved salary increment(s).` : null,
+        notes: [
+          proratedNote,
+          bonus > 0 ? `Includes PKR ${bonus.toLocaleString()} arrears from approved salary increment(s).` : null,
+        ].filter(Boolean).join(' | ') || null,
       };
 
       if (existing) {
