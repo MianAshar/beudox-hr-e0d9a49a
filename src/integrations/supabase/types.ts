@@ -658,6 +658,62 @@ export type Database = {
           },
         ]
       }
+      employee_jd_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          company_id: string | null
+          employee_id: string | null
+          id: string
+          jd_id: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id?: string | null
+          employee_id?: string | null
+          id?: string
+          jd_id?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id?: string | null
+          employee_id?: string | null
+          id?: string
+          jd_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_jd_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_jd_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_jd_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_jd_assignments_jd_id_fkey"
+            columns: ["jd_id"]
+            isOneToOne: false
+            referencedRelation: "hr_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_roles: {
         Row: {
           created_at: string | null
