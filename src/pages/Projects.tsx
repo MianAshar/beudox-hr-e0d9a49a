@@ -18,6 +18,7 @@ import { toast } from '@/hooks/use-toast';
 import {
   Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight, Trash2,
   Pencil, FileText, Users, ListChecks, History, ChevronsDownUp, ChevronsUpDown, ArrowUpDown, Play,
+  AlertTriangle,
 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -219,7 +220,7 @@ const Projects = () => {
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', companyId, roleKey, employeeId, showInactive],
     queryFn: async () => {
-      const projectSelect = '*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)';
+    const projectSelect = '*, scope_updated_at, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)';
 
       if (isManager) {
         let query = supabase
