@@ -71,10 +71,6 @@ const ProjectDetail = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [startOpen, setStartOpen] = useState(false);
   const [manageTeamOpen, setManageTeamOpen] = useState(false);
-  const [editingName, setEditingName] = useState(false);
-  const [nameDraft, setNameDraft] = useState('');
-  const [editingLocation, setEditingLocation] = useState(false);
-  const [locationDraft, setLocationDraft] = useState('');
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project-detail', id, companyId],
