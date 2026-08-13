@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     // 2. Fetch active employees (full_time + director)
     const { data: employees, error: empErr } = await supabase
       .from('employees')
-      .select('id, full_name, department, basic_salary, allowance, employment_type')
+      .select('id, full_name, department, basic_salary, allowance, employment_type, joining_date')
       .eq('company_id', company_id)
       .eq('status', 'active')
       .in('employment_type', ['full_time', 'director']);
@@ -89,6 +89,46 @@ Deno.serve(async (req) => {
       .eq('company_id', company_id)
       .gte('date', startDate)
       .lte('date', endDate);
+
+    // Fetch public holidays in this month (for proration working-day counts)
+    const { data: holidays } = await supabase
+      .from('public_holidays')
+      .select('date')
+      .eq('company_id', company_id)
+      .gte('date', startDate)
+      .lte('date', endDate);
+    const holidaySet = new Set<string>((holidays || []).map((h: any) => h.date as string));
+
+    const isWorkingDay = (dateStr: string): boolean => {
+      const d = new Date(dateStr + 'T00:00:00');
+      const dow = d.getDay();
+      return dow !== 0 && dow !== 6 && !holidaySet.has(dateStr);
+    };
+
+    const getWorkingDays = (from: string, to: string): string[] => {
+      const days: string[] = [];
+      const cur = new Date(from + 'T00:00:00');
+      const end = new Date(to + 'T00:00:00');
+      while (cur <= end) {
+        const ds = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+        if (isWorkingDay(ds)) days.push(ds);
+        cur.setDate(cur.getDate() + 1);
+      }
+      return days;
+    };
+
+    const nextWorkingDay = (dateStr: string): string => {
+      const cur = new Date(dateStr + 'T00:00:00');
+      // Safety bound: never scan more than ~40 days
+      for (let i = 0; i < 40; i++) {
+        const ds = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+        if (isWorkingDay(ds)) return ds;
+        cur.setDate(cur.getDate() + 1);
+      }
+      return dateStr;
+    };
+
+    const totalWorkingDays = getWorkingDays(startDate, endDate).length;
 
     // Fetch approved leave requests overlapping the month, then expand into a
     // per-employee set of leave dates (weekends/holidays kept inside the set are
@@ -210,6 +250,22 @@ Deno.serve(async (req) => {
       const allowance = Number(emp.allowance || 0);
       const isDirector = emp.employment_type === 'director';
 
+      // Prorate basic + allowance for mid-month joiners
+      const joiningDate = (emp as any).joining_date as string | null;
+      let effectiveBasic = basicSalary;
+      let effectiveAllowance = allowance;
+      let proratedNote: string | null = null;
+
+      if (joiningDate && joiningDate >= startDate && joiningDate <= endDate && totalWorkingDays > 0) {
+        const effectiveStart = nextWorkingDay(joiningDate);
+        const workedWorkingDays = getWorkingDays(effectiveStart, endDate).length;
+        const ratio = workedWorkingDays / totalWorkingDays;
+        effectiveBasic = Math.round(basicSalary * ratio * 100) / 100;
+        effectiveAllowance = Math.round(allowance * ratio * 100) / 100;
+        proratedNote = `Prorated: ${workedWorkingDays}/${totalWorkingDays} working days (joined ${joiningDate})`;
+      }
+
+
       let regularOtHours = 0;
       let holidayOtHours = 0;
       let regularOtAmount = 0;
@@ -226,7 +282,7 @@ Deno.serve(async (req) => {
         regularOtHours = Math.round(regularOtTotal * 100) / 100; // net, can be negative
         holidayOtHours = att?.holidayOt || 0;
 
-        const perDaySalary = basicSalary / otDivisor;
+        const perDaySalary = effectiveBasic / otDivisor;
         const perHourSalary = perDaySalary / workingHoursPerDay;
         regularOtAmount = regularOtHours * perHourSalary * 1.0;
         holidayOtAmount = holidayOtHours * perHourSalary * 1.5;
@@ -237,15 +293,15 @@ Deno.serve(async (req) => {
       const bonus = arrears?.total || 0;
       const dinnerExpense = 0;
 
-      const totalSalary = Math.max(0, basicSalary + allowance + regularOtAmount + holidayOtAmount + bonus - loanDeduction);
+      const totalSalary = Math.max(0, effectiveBasic + effectiveAllowance + regularOtAmount + holidayOtAmount + bonus - loanDeduction);
       const finalPayment = Math.ceil(totalSalary / 50) * 50;
 
       const record: any = {
         company_id,
         employee_id: emp.id,
         month_year,
-        basic_salary: basicSalary,
-        allowance,
+        basic_salary: effectiveBasic,
+        allowance: effectiveAllowance,
         regular_ot_hours: regularOtHours,
         holiday_ot_hours: holidayOtHours,
         regular_ot_amount: regularOtAmount,
@@ -257,7 +313,10 @@ Deno.serve(async (req) => {
         final_payment: finalPayment,
         status: 'draft',
         superseded: false,
-        notes: bonus > 0 ? `Includes PKR ${bonus.toLocaleString()} arrears from approved salary increment(s).` : null,
+        notes: [
+          proratedNote,
+          bonus > 0 ? `Includes PKR ${bonus.toLocaleString()} arrears from approved salary increment(s).` : null,
+        ].filter(Boolean).join(' | ') || null,
       };
 
       if (existing) {
