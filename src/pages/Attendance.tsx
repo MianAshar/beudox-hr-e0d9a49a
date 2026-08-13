@@ -84,7 +84,7 @@ interface RecordsTableProps {
   emptyHint?: string;
   showCodeAndName?: boolean;
   canEdit: (row: AttendanceRow) => boolean;
-  onRequestEdit: (row: AttendanceRow, field: 'check_in' | 'check_out') => void;
+  onRequestEdit: (row: AttendanceRow, field: 'check_in' | 'check_out' | 'both') => void;
 }
 
 function RecordsTable({
@@ -171,6 +171,7 @@ function RecordsTable({
                 const missingField: 'check_in' | 'check_out' | null =
                   !r.check_in ? 'check_in' : !r.check_out ? 'check_out' : null;
                 const editable = !isOnLeave && !isAbsent && missingField && canEdit(r);
+                const absentEditable = isAbsent && !!r.employee_id && canEdit(r);
                 return (
                   <TableRow key={r.id}>
                     {showCodeAndName && (
@@ -285,6 +286,17 @@ function RecordsTable({
                       </div>
                     </TableCell>
                     <TableCell className="text-right hidden md:table-cell">
+                      {absentEditable && (
+                        <button
+                          type="button"
+                          onClick={() => onRequestEdit(r, 'both')}
+                          className="inline-flex items-center gap-1 px-2.5 h-7 text-[11px] font-medium rounded-md border transition-colors hover:bg-muted"
+                          style={{ borderColor: 'rgba(91, 63, 248, 0.3)', color: '#5B3FF8' }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                          Add Entry
+                        </button>
+                      )}
                       {editable && missingField && (
                         <button
                           type="button"
@@ -756,13 +768,16 @@ const Attendance = () => {
     }
   };
 
-  const handleRequestEdit = (row: AttendanceRow, field: 'check_in' | 'check_out') => {
+  const handleRequestEdit = (row: AttendanceRow, field: 'check_in' | 'check_out' | 'both') => {
+    const isSynthetic = row.status === 'absent' || row.id.startsWith('absent-');
     setMissingTarget({
       recordId: row.id,
       employeeId: row.employee_id,
       employeeName: row.employee_name ?? null,
+      employeeCode: row.employee_code ?? null,
       date: row.date,
       field,
+      mode: isSynthetic ? 'insert' : 'update',
       existingCheckIn: row.check_in,
       existingCheckOut: row.check_out,
     });
