@@ -698,10 +698,10 @@ const Projects = () => {
               Summary
             </TabsTrigger>
             <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              All Projects ({activeFiltered.length})
+              All Projects ({monthFilteredActive.length})
             </TabsTrigger>
             <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              Past Projects ({archivedFiltered.length})
+              Past Projects ({monthFilteredArchived.length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="summary" className="mt-6"><ProjectsSummary /></TabsContent>
@@ -722,10 +722,10 @@ const Projects = () => {
             style={{ borderColor: 'hsl(var(--border))' }}
           >
             <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              All Projects ({activeFiltered.length})
+              All Projects ({monthFilteredActive.length})
             </TabsTrigger>
             <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              Past Projects ({archivedFiltered.length})
+              Past Projects ({monthFilteredArchived.length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
