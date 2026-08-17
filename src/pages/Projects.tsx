@@ -522,22 +522,18 @@ const Projects = () => {
                 </SelectContent>
               </Select>
             )}
-            {!opts.past && (
-              <>
-                <Select value={listMonth} onValueChange={setListMonth}>
-                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={listYear} onValueChange={setListYear}>
-                  <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PROJ_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </>
-            )}
+            <Select value={listMonth} onValueChange={setListMonth}>
+              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={listYear} onValueChange={setListYear}>
+              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PROJ_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </>
         )}
         <div className="flex items-center gap-2 ml-auto">
