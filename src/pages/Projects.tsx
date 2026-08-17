@@ -484,6 +484,7 @@ const Projects = () => {
   const tabTriggerClass = 'rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0';
 
   const renderProjectList = (items: any[], opts: { showAdd: boolean; past?: boolean }) => {
+    const effectiveSortBy = opts.past && sortBy === 'internal_deadline' ? 'default' : sortBy;
     const allExpanded = items.length > 0 && items.every((p: any) => expandedIds.has(p.id));
     const toggleAll = () => {
       if (allExpanded) {
