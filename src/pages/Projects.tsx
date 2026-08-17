@@ -508,30 +508,6 @@ const Projects = () => {
               <SelectItem value="internal_deadline">Internal Deadline</SelectItem>
             </SelectContent>
           </Select>
-          {sortBy !== 'default' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-              aria-label={`Sort ${sortDir === 'asc' ? 'ascending' : 'descending'}`}
-              title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
-            >
-              {sortDir === 'asc' ? <ChevronsUpDown className="h-4 w-4" /> : <ChevronsDownUp className="h-4 w-4" />}
-              <span className="ml-1.5 text-xs">{sortDir === 'asc' ? 'Asc' : 'Desc'}</span>
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleAll}
-            disabled={items.length === 0}
-          >
-            {allExpanded ? (
-              <><ChevronsDownUp className="h-4 w-4 mr-2" /> Collapse All</>
-            ) : (
-              <><ChevronsUpDown className="h-4 w-4 mr-2" /> Expand All</>
-            )}
-          </Button>
         </div>
         {isManager && opts.showAdd && (
           <Button onClick={() => navigate('/projects/new')}>
