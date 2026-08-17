@@ -537,7 +537,7 @@ const Projects = () => {
           </>
         )}
         <div className="flex items-center gap-2 ml-auto">
-          <Select value={sortBy} onValueChange={setSortBy}>
+          <Select value={effectiveSortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-[180px]">
               <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
               <SelectValue placeholder="Sort by" />
@@ -547,7 +547,9 @@ const Projects = () => {
               <SelectItem value="project_code">Project Code</SelectItem>
               <SelectItem value="project_name">Project Name</SelectItem>
               <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="internal_deadline">Internal Deadline</SelectItem>
+              {!opts.past && (
+                <SelectItem value="internal_deadline">Internal Deadline</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
