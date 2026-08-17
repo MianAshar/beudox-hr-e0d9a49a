@@ -466,7 +466,11 @@ const Projects = () => {
     return d >= monthStart && d < monthEnd;
   });
 
-  const monthFilteredArchived = archivedFiltered;
+  const monthFilteredArchived = archivedFiltered.filter((p: any) => {
+    if (!p.internal_deadline) return true;
+    const d = new Date(p.internal_deadline);
+    return d >= monthStart && d < monthEnd;
+  });
 
   const toggleOne = (id: string) => {
     setExpandedIds(prev => {
@@ -480,6 +484,7 @@ const Projects = () => {
   const tabTriggerClass = 'rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0';
 
   const renderProjectList = (items: any[], opts: { showAdd: boolean; past?: boolean }) => {
+    const effectiveSortBy = opts.past && sortBy === 'internal_deadline' ? 'default' : sortBy;
     const allExpanded = items.length > 0 && items.every((p: any) => expandedIds.has(p.id));
     const toggleAll = () => {
       if (allExpanded) {
@@ -517,26 +522,22 @@ const Projects = () => {
                 </SelectContent>
               </Select>
             )}
-            {!opts.past && (
-              <>
-                <Select value={listMonth} onValueChange={setListMonth}>
-                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={listYear} onValueChange={setListYear}>
-                  <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PROJ_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </>
-            )}
+            <Select value={listMonth} onValueChange={setListMonth}>
+              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={listYear} onValueChange={setListYear}>
+              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PROJ_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </>
         )}
         <div className="flex items-center gap-2 ml-auto">
-          <Select value={sortBy} onValueChange={setSortBy}>
+          <Select value={effectiveSortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-[180px]">
               <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
               <SelectValue placeholder="Sort by" />
@@ -546,7 +547,9 @@ const Projects = () => {
               <SelectItem value="project_code">Project Code</SelectItem>
               <SelectItem value="project_name">Project Name</SelectItem>
               <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="internal_deadline">Internal Deadline</SelectItem>
+              {!opts.past && (
+                <SelectItem value="internal_deadline">Internal Deadline</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
