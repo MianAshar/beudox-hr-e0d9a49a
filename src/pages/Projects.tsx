@@ -466,7 +466,11 @@ const Projects = () => {
     return d >= monthStart && d < monthEnd;
   });
 
-  const monthFilteredArchived = archivedFiltered;
+  const monthFilteredArchived = archivedFiltered.filter((p: any) => {
+    if (!p.internal_deadline) return true;
+    const d = new Date(p.internal_deadline);
+    return d >= monthStart && d < monthEnd;
+  });
 
   const toggleOne = (id: string) => {
     setExpandedIds(prev => {
