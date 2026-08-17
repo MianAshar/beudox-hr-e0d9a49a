@@ -96,7 +96,6 @@ export const ProjectsSummary = () => {
 
   const stats = useMemo(() => {
     const list = projects ?? [];
-    const newThisMonth = list.filter((p: any) => inMonth(p.created_at));
     const completedThisMonth = list.filter((p: any) => p.status === 'completed' && inMonth(p.updated_at));
     const activeThisMonth = list.filter((p: any) =>
       p.status === 'in_progress' && (inMonth(p.created_at) || new Date(p.created_at) < monthEnd)
@@ -108,7 +107,6 @@ export const ProjectsSummary = () => {
     return {
       active: activeThisMonth.length,
       completed: completedThisMonth,
-      newThisMonth,
       totalValue,
     };
   }, [projects, month, year]);
@@ -147,11 +145,6 @@ export const ProjectsSummary = () => {
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
   }, [monthProjects]);
 
-  const newProjectsSorted = useMemo(
-    () => [...stats.newThisMonth].sort((a: any, b: any) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
-    [stats.newThisMonth]
-  );
   const completedSorted = useMemo(
     () => [...stats.completed].sort((a: any, b: any) =>
       new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
@@ -169,8 +162,8 @@ export const ProjectsSummary = () => {
     return (
       <div className="space-y-4">
         <div className="flex gap-3"><Skeleton className="h-10 w-40" /><Skeleton className="h-10 w-32" /></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          {[0, 1, 2, 3].map(i => <Skeleton key={i} className="h-24" />)}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[0, 1, 2].map(i => <Skeleton key={i} className="h-24" />)}
         </div>
         <Skeleton className="h-64" />
       </div>
@@ -206,10 +199,9 @@ export const ProjectsSummary = () => {
       </div>
 
       {/* Section 1 — Stat cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <StatCard label="Active Projects" value={stats.active} />
         <StatCard label="Completed This Month" value={stats.completed.length} />
-        <StatCard label="New Projects This Month" value={stats.newThisMonth.length} />
         <StatCard label="Total Project Value" value={fmtMoney(stats.totalValue)} accent />
       </div>
 
@@ -247,42 +239,7 @@ export const ProjectsSummary = () => {
         )}
       </Card>
 
-      {/* Section 4 — New Projects */}
-      <Card className="p-5">
-        <h3 className="text-base font-semibold mb-3">New Projects Added</h3>
-        {newProjectsSorted.length === 0 ? (
-          <EmptyState monthLabel={monthLabel} />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Lead</TableHead>
-                <TableHead>Created Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {newProjectsSorted.map((p: any) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-mono text-xs">{p.project_code}</TableCell>
-                  <TableCell>
-                    <Link to={`/projects/${p.id}`} className="text-foreground hover:underline">
-                      {p.project_name}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{p.clients?.name || '—'}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{p.lead?.full_name || '—'}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{formatDate(p.created_at)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
-
-      {/* Section 5 — Completed */}
+      {/* Section 4 — Completed */}
       <Card className="p-5">
         <h3 className="text-base font-semibold mb-3">Completed This Month</h3>
         {completedSorted.length === 0 ? (
