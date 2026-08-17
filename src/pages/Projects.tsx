@@ -29,6 +29,16 @@ import { ManageTeamModal } from '@/components/projects/ManageTeamModal';
 import { ProjectsSummary } from '@/components/projects/ProjectsSummary';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
+const MONTHS = [
+  { value: '01', label: 'January' }, { value: '02', label: 'February' },
+  { value: '03', label: 'March' }, { value: '04', label: 'April' },
+  { value: '05', label: 'May' }, { value: '06', label: 'June' },
+  { value: '07', label: 'July' }, { value: '08', label: 'August' },
+  { value: '09', label: 'September' }, { value: '10', label: 'October' },
+  { value: '11', label: 'November' }, { value: '12', label: 'December' },
+];
+const PROJ_YEARS = Array.from({ length: 6 }, (_, i) => String(new Date().getFullYear() - 3 + i));
+
 const getInitials = (name: string) =>
   name
     .split(' ')
@@ -210,7 +220,9 @@ const Projects = () => {
   const [manageTeamProject, setManageTeamProject] = useState<any>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<string>('internal_deadline');
-  
+  const [listMonth, setListMonth] = useState(() => String(new Date().getMonth() + 1).padStart(2, '0'));
+  const [listYear, setListYear] = useState(() => String(new Date().getFullYear()));
+
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get('tab');
@@ -444,6 +456,22 @@ const Projects = () => {
   const activeFiltered = sortedFiltered.filter((p: any) => !isArchived(p));
   const archivedFiltered = sortedFiltered.filter((p: any) => isArchived(p));
 
+  const monthStart = new Date(`${listYear}-${listMonth}-01T00:00:00`);
+  const monthEnd = new Date(monthStart);
+  monthEnd.setMonth(monthEnd.getMonth() + 1);
+
+  const monthFilteredActive = activeFiltered.filter((p: any) => {
+    if (!p.internal_deadline) return true;
+    const d = new Date(p.internal_deadline);
+    return d >= monthStart && d < monthEnd;
+  });
+
+  const monthFilteredArchived = archivedFiltered.filter((p: any) => {
+    if (!p.internal_deadline) return true;
+    const d = new Date(p.internal_deadline);
+    return d >= monthStart && d < monthEnd;
+  });
+
   const toggleOne = (id: string) => {
     setExpandedIds(prev => {
       const next = new Set(prev);
@@ -466,6 +494,22 @@ const Projects = () => {
     };
     return (
     <>
+      {/* Month filter */}
+      <div className="flex gap-3 items-center">
+        <Select value={listMonth} onValueChange={setListMonth}>
+          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={listYear} onValueChange={setListYear}>
+          <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {PROJ_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative w-full sm:max-w-xs sm:flex-1 sm:min-w-[200px]">
@@ -589,8 +633,8 @@ const Projects = () => {
     );
   };
 
-  const listContent = renderProjectList(activeFiltered, { showAdd: true });
-  const pastContent = renderProjectList(archivedFiltered, { showAdd: false, past: true });
+  const listContent = renderProjectList(monthFilteredActive, { showAdd: true });
+  const pastContent = renderProjectList(monthFilteredArchived, { showAdd: false, past: true });
 
   const sharedDialogs = (
     <>
@@ -654,10 +698,10 @@ const Projects = () => {
               Summary
             </TabsTrigger>
             <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              All Projects ({activeFiltered.length})
+              All Projects ({monthFilteredActive.length})
             </TabsTrigger>
             <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              Past Projects ({archivedFiltered.length})
+              Past Projects ({monthFilteredArchived.length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="summary" className="mt-6"><ProjectsSummary /></TabsContent>
@@ -678,10 +722,10 @@ const Projects = () => {
             style={{ borderColor: 'hsl(var(--border))' }}
           >
             <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              All Projects ({activeFiltered.length})
+              All Projects ({monthFilteredActive.length})
             </TabsTrigger>
             <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              Past Projects ({archivedFiltered.length})
+              Past Projects ({monthFilteredArchived.length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
