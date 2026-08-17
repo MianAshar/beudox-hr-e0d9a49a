@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Pencil, FileText, Users, Trash2, XCircle, Play, UserCog, ChevronDown, MapPin } from 'lucide-react';
+import { ArrowLeft, Pencil, FileText, Users, Trash2, Play, UserCog, ChevronDown, MapPin, AlertTriangle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
@@ -41,7 +41,6 @@ const ProjectDetail = () => {
   const isCeo = roles.includes('ceo');
   const isTeamLead = roles.includes('team_lead');
   const canEditDetails = isManager;
-  const canDeactivate = isManager;
   const canSeeClient = ['hr_manager', 'ceo', 'finance_manager'].some(r => roles.includes(r));
   const canSeeFinancial = isManager;
   const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
@@ -60,12 +59,13 @@ const ProjectDetail = () => {
     enabled: !!employeeId,
   });
   const isCeoOrDirector = isCeo || currentEmpMeta?.employment_type === 'director';
+  const isArchived = project ? (project.status === 'submitted' || project.status === 'cancelled') : false;
 
-  const [deactivateOpen, setDeactivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [startOpen, setStartOpen] = useState(false);
   const [manageTeamOpen, setManageTeamOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project-detail', id, companyId],
@@ -105,19 +105,6 @@ const ProjectDetail = () => {
       return data;
     },
     enabled: !!id,
-  });
-
-  const deactivateMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('projects').update({ is_active: false, status: 'cancelled' }).eq('id', id!);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['projects'] });
-      toast({ title: 'Project deactivated' });
-      navigate('/projects');
-    },
-    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
   const deleteMutation = useMutation({
@@ -245,7 +232,15 @@ const ProjectDetail = () => {
               {STATUS_OPTIONS.map(s => (
                 <DropdownMenuItem
                   key={s}
-                  onSelect={() => { if (s !== project.status) statusMutation.mutate(s); }}
+                  onSelect={() => {
+                    if (s === project.status) return;
+                    const newIsArchived = s === 'submitted' || s === 'cancelled';
+                    if (isArchived && !newIsArchived) {
+                      setPendingStatus(s);
+                    } else {
+                      statusMutation.mutate(s);
+                    }
+                  }}
                   className="flex items-center gap-2"
                 >
                   <Badge className={cn(statusColors[s] || '', 'pointer-events-none')}>{fmt(s)}</Badge>
@@ -253,19 +248,14 @@ const ProjectDetail = () => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          {project.status === 'pending' && canStartProject && (
+          {project.status === 'pending' && canStartProject && !isArchived && (
             <Button onClick={() => setStartOpen(true)}>
               <Play className="h-4 w-4 mr-2" /> Start Project
             </Button>
           )}
-          {canEditDetails && (
+          {canEditDetails && !isArchived && (
             <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
               <Pencil className="h-4 w-4 mr-2" /> Edit
-            </Button>
-          )}
-          {canEditDetails && (
-            <Button variant="outline" onClick={() => setDeactivateOpen(true)}>
-              <XCircle className="h-4 w-4 mr-2" /> Deactivate
             </Button>
           )}
           {isCeo && (
@@ -275,6 +265,16 @@ const ProjectDetail = () => {
           )}
         </div>
       </div>
+
+      {isArchived && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm"
+          style={{ background: '#FEF3C7', border: '1px solid #F5A623', color: '#92400E' }}>
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>
+            This project is archived. Update the status to move it back to All Projects.
+          </span>
+        </div>
+      )}
 
       {/* Project Info */}
       <div className="rounded-lg border bg-card p-5">
@@ -353,7 +353,7 @@ const ProjectDetail = () => {
           <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
             <Users className="h-4 w-4" /> Team Members ({teamMembers?.length || 0})
           </h2>
-          {canManageTeam && (
+          {canManageTeam && !isArchived && (
             <Button variant="outline" size="sm" onClick={() => setManageTeamOpen(true)}>
               <UserCog className="h-4 w-4 mr-2" /> Manage Team
             </Button>
@@ -401,7 +401,7 @@ const ProjectDetail = () => {
               avatar_url: a.employees?.avatar_url,
               designation: a.employees?.designation,
             })).filter(m => m.id)}
-            canManage={canManageTasks}
+            canManage={isArchived ? false : canManageTasks}
           />
         </div>
       )}
@@ -411,19 +411,22 @@ const ProjectDetail = () => {
         <ProjectActivityLog projectId={id!} companyId={companyId} />
       )}
 
-      {/* Deactivate Dialog */}
-      <Dialog open={deactivateOpen} onOpenChange={setDeactivateOpen}>
+      {/* Activate Project Confirmation Dialog */}
+      <Dialog open={!!pendingStatus} onOpenChange={v => { if (!v) setPendingStatus(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Deactivate Project</DialogTitle>
+            <DialogTitle>Move to Active Projects?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to deactivate "{project.project_name}"? The project will be marked as cancelled and hidden from views.
+              Changing the status to {pendingStatus ? fmt(pendingStatus) : ''} will move this project from Past Projects back to All Projects. Continue?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeactivateOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => deactivateMutation.mutate()} disabled={deactivateMutation.isPending}>
-              {deactivateMutation.isPending ? 'Deactivating…' : 'Deactivate'}
+            <Button variant="outline" onClick={() => setPendingStatus(null)}>Cancel</Button>
+            <Button onClick={() => {
+              if (pendingStatus) statusMutation.mutate(pendingStatus);
+              setPendingStatus(null);
+            }}>
+              Confirm
             </Button>
           </DialogFooter>
         </DialogContent>
