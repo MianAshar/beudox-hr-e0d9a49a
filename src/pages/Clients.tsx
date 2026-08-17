@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { SortableHeader } from '@/components/ui/sortable-header';
@@ -63,7 +62,6 @@ const Clients = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showInactive, setShowInactive] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<Client | null>(null);
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityCategory>('all');
 
@@ -72,17 +70,14 @@ const Clients = () => {
   const showActivity = ['ceo', 'hr_manager'].some(r => roles.includes(r));
 
   const { data: clients, isLoading } = useQuery({
-    queryKey: ['clients', companyId, showInactive],
+    queryKey: ['clients', companyId],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('clients')
         .select('*')
         .eq('company_id', companyId!)
+        .eq('is_active', true)
         .order('name');
-      if (!showInactive) {
-        query = query.eq('is_active', true);
-      }
-      const { data, error } = await query;
       if (error) throw error;
       return data as Client[];
     },
@@ -332,10 +327,6 @@ const Clients = () => {
             </SelectContent>
           </Select>
         )}
-        <div className="flex items-center gap-2">
-          <Switch id="show-inactive" checked={showInactive} onCheckedChange={setShowInactive} />
-          <Label htmlFor="show-inactive" className="text-sm text-muted-foreground cursor-pointer">Show inactive</Label>
-        </div>
       </div>
 
       {/* Table */}
