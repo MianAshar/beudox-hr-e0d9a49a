@@ -41,6 +41,13 @@ import { toast } from 'sonner';
 
 const DEPARTMENTS = ['GC Team', 'MEP Team', 'Admin', 'Director'];
 const STATUS_OPTIONS = ['active', 'inactive'];
+const ROLE_OPTIONS = [
+  { value: 'ceo', label: 'CEO' },
+  { value: 'hr_manager', label: 'HR Manager' },
+  { value: 'finance_manager', label: 'Finance Manager' },
+  { value: 'team_lead', label: 'Team Lead' },
+  { value: 'employee', label: 'Employee' },
+];
 
 const getInitials = (name: string) => {
   return name
@@ -71,6 +78,7 @@ const Employees = () => {
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('active');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
 
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
@@ -129,7 +137,8 @@ const Employees = () => {
       (emp.employee_code || '').toLowerCase().includes(search.toLowerCase());
     const matchesDept = deptFilter === 'all' || emp.department === deptFilter;
     const matchesStatus = statusFilter === 'all' || emp.status === statusFilter;
-    return matchesSearch && matchesDept && matchesStatus;
+    const matchesRole = roleFilter === 'all' || getRoleName(emp) === roleFilter;
+    return matchesSearch && matchesDept && matchesStatus && matchesRole;
   });
 
   const getRoleName = (emp: any) => {
@@ -210,6 +219,17 @@ const Employees = () => {
             ))}
           </SelectContent>
         </Select>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="flex-1 sm:w-[160px]">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Roles</SelectItem>
+            {ROLE_OPTIONS.map(r => (
+              <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         </div>
       </div>
 
@@ -247,7 +267,7 @@ const Employees = () => {
               className="text-muted-foreground text-[13px] mt-1 max-w-sm"
               style={{ fontFamily: 'var(--ff-body)' }}
             >
-              {search || deptFilter !== 'all' || statusFilter !== 'all'
+              {search || deptFilter !== 'all' || statusFilter !== 'all' || roleFilter !== 'all'
                 ? 'Try adjusting your search or filters.'
                 : 'Add your first employee to get started.'}
             </p>
