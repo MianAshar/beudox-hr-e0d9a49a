@@ -602,7 +602,8 @@ const Projects = () => {
               (scopeUpdatedAt && (Date.now() - new Date(scopeUpdatedAt).getTime() < 24 * 60 * 60 * 1000)) ||
               (notesUpdatedAt && (Date.now() - new Date(notesUpdatedAt).getTime() < 24 * 60 * 60 * 1000))
             );
-            const showScopeAlert = !!(isRecentlyUpdated && (isManager || assignedProjectIds.has(p.id)));
+            const isProjectLead = p.project_lead_id === employeeId;
+            const showScopeAlert = !!(isRecentlyUpdated && (isManager || assignedProjectIds.has(p.id) || isProjectLead));
             return (
               <ProjectCard
                 key={p.id}
