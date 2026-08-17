@@ -201,9 +201,6 @@ const ClientDetail = () => {
                   <TableCell className="font-medium">{p.project_name}</TableCell>
                   <TableCell>{p.project_categories?.name || '—'}</TableCell>
                   <TableCell>
-                    {p.priority && <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>}
-                  </TableCell>
-                  <TableCell>
                     <Badge className={statusColors[p.status] || ''}>{fmt(p.status)}</Badge>
                   </TableCell>
                   <TableCell>{formatDate(p.internal_deadline)}</TableCell>
