@@ -802,11 +802,11 @@ const ProjectCard = ({
         <div onClick={e => e.stopPropagation()} className="w-[180px] shrink-0 text-sm order-3 lg:order-none">
           {isCeoOrDirector ? (
             <div className="flex flex-col leading-tight">
-              <span style={{ fontFamily: 'DM Sans', fontWeight: 400, fontSize: 12, color: '#4B4468' }}>
-                Client: {formatDate(p.client_deadline) || '—'}
-              </span>
               <span style={{ fontFamily: 'DM Sans', fontWeight: 700, fontSize: 12, color: '#4B4468' }}>
                 Internal: {formatDate(p.internal_deadline) || '—'}
+              </span>
+              <span style={{ fontFamily: 'DM Sans', fontWeight: 400, fontSize: 12, color: '#9490B4' }}>
+                Client: {formatDate(p.client_deadline) || '—'}
               </span>
             </div>
           ) : (
@@ -899,12 +899,12 @@ const ProjectCard = ({
                   {p.fee != null && p.fee > 0 ? Number(p.fee).toLocaleString() : '—'}
                 </MetaRow>
               )}
-              {isCeoOrDirector && (
-                <MetaRow label="Client Deadline">{formatDate(p.client_deadline) || '—'}</MetaRow>
-              )}
               <MetaRow label="Internal Deadline">
                 <span className="font-bold">{formatDate(p.internal_deadline) || '—'}</span>
               </MetaRow>
+              {isCeoOrDirector && (
+                <MetaRow label="Client Deadline">{formatDate(p.client_deadline) || '—'}</MetaRow>
+              )}
               {p.project_categories?.name && (
                 <MetaRow label="Category">{p.project_categories.name}</MetaRow>
               )}
