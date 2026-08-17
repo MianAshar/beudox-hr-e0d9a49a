@@ -486,15 +486,6 @@ const Projects = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Priority" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
-                {['high', 'medium', 'low'].map(p => (
-                  <SelectItem key={p} value={p}>{fmt(p)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             {clients && clients.length > 0 && (
               <Select value={clientFilter} onValueChange={setClientFilter}>
                 <SelectTrigger className="w-[160px]"><SelectValue placeholder="Client" /></SelectTrigger>
