@@ -1082,6 +1082,7 @@ const StatusCell = ({ project, canEdit, companyId, employeeId }: StatusCellProps
   const [optimistic, setOptimistic] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
   const [open, setOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: async (newStatus: string) => {
