@@ -386,7 +386,6 @@ const Projects = () => {
   const filtered = (projects ?? []).filter((p: any) => {
     if (search && !p.project_code.toLowerCase().includes(search.toLowerCase()) && !p.project_name.toLowerCase().includes(search.toLowerCase())) return false;
     if (statusFilter !== 'all' && p.status !== statusFilter) return false;
-    if (priorityFilter !== 'all' && p.priority !== priorityFilter) return false;
     if (clientFilter !== 'all' && p.client_id !== clientFilter) return false;
     return true;
   });
