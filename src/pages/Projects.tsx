@@ -233,7 +233,7 @@ const Projects = () => {
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', companyId, roleKey, employeeId],
     queryFn: async () => {
-    const projectSelect = '*, scope_updated_at, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)';
+    const projectSelect = '*, scope_updated_at, notes_updated_at, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)';
 
       if (isManager) {
         const query = supabase
@@ -597,7 +597,11 @@ const Projects = () => {
             const team = teamByProject.get(p.id) ?? [];
             const tc = taskCountByProject.get(p.id);
             const scopeUpdatedAt = p.scope_updated_at;
-            const isRecentlyUpdated = scopeUpdatedAt && (Date.now() - new Date(scopeUpdatedAt).getTime() < 24 * 60 * 60 * 1000);
+            const notesUpdatedAt = p.notes_updated_at;
+            const isRecentlyUpdated = (
+              (scopeUpdatedAt && (Date.now() - new Date(scopeUpdatedAt).getTime() < 24 * 60 * 60 * 1000)) ||
+              (notesUpdatedAt && (Date.now() - new Date(notesUpdatedAt).getTime() < 24 * 60 * 60 * 1000))
+            );
             const showScopeAlert = !!(isRecentlyUpdated && (isManager || assignedProjectIds.has(p.id)));
             return (
               <ProjectCard

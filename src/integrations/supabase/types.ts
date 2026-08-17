@@ -2569,6 +2569,7 @@ export type Database = {
           is_active: boolean
           location: string | null
           notes: string | null
+          notes_updated_at: string | null
           priority: string | null
           project_code: string
           project_lead_id: string | null
@@ -2591,6 +2592,7 @@ export type Database = {
           is_active?: boolean
           location?: string | null
           notes?: string | null
+          notes_updated_at?: string | null
           priority?: string | null
           project_code: string
           project_lead_id?: string | null
@@ -2613,6 +2615,7 @@ export type Database = {
           is_active?: boolean
           location?: string | null
           notes?: string | null
+          notes_updated_at?: string | null
           priority?: string | null
           project_code?: string
           project_lead_id?: string | null

@@ -30,6 +30,8 @@ const ProjectForm = () => {
   const { employee } = useAuth();
   const qc = useQueryClient();
   const companyId = employee?.company_id;
+  const roles = employee?.roles ?? [];
+  const isTeamLead = roles.includes('team_lead') && !roles.includes('ceo') && !roles.includes('hr_manager');
 
   const [form, setForm] = useState({
     project_code: '',
@@ -172,6 +174,55 @@ const ProjectForm = () => {
       if (!isEdit) payload.status = 'pending';
 
       if (isEdit) {
+        // Team leads can only update notes and internal_deadline
+        if (isTeamLead) {
+          const restrictedPayload: any = {
+            notes: payload.notes,
+            internal_deadline: payload.internal_deadline,
+          };
+          const { error } = await supabase.from('projects').update(restrictedPayload).eq('id', id!);
+          if (error) throw error;
+          const prevTl = existingAssignments ?? [];
+          const removedTl = prevTl.filter(e => !teamMembers.includes(e));
+          const addedTl = teamMembers.filter(e => !prevTl.includes(e));
+          if (removedTl.length > 0) {
+            await supabase.from('project_assignments')
+              .update({ is_active: false, removed_at: new Date().toISOString() })
+              .eq('project_id', id!)
+              .in('employee_id', removedTl);
+          }
+          if (addedTl.length > 0) {
+            await supabase.from('project_assignments').insert(
+              addedTl.map(empId => ({
+                project_id: id!,
+                employee_id: empId,
+                company_id: companyId!,
+                assigned_by: employee?.employee_id!,
+                is_active: true,
+              }))
+            );
+          }
+          if (existingProject && (existingProject.notes || null) !== (payload.notes || null)) {
+            await supabase.from('projects').update({ notes_updated_at: new Date().toISOString() } as any).eq('id', id!);
+            const { data: assignees } = await supabase
+              .from('project_assignments').select('employee_id')
+              .eq('project_id', id!).eq('company_id', companyId!).eq('is_active', true)
+              .neq('employee_id', employee?.employee_id!);
+            const recipientIds = (assignees ?? []).map(a => a.employee_id);
+            if (recipientIds.length > 0) {
+              await sendNotification({
+                companyId: companyId!,
+                recipientIds,
+                type: 'notes_updated',
+                title: 'Project instructions updated',
+                message: `${existingProject.project_name} — Instructions have been updated. Please review the updated instructions.`,
+                referenceType: 'project',
+                referenceId: id!,
+              });
+            }
+          }
+          return;
+        }
         const { error } = await supabase.from('projects').update(payload).eq('id', id!);
         if (error) throw error;
         // Log name/location/scope changes
@@ -214,6 +265,34 @@ const ProjectForm = () => {
               type: 'scope_updated',
               title: 'Project instructions updated',
               message: `${existingProject.project_name} — Scope of work has been updated. Please review the updated instructions.`,
+              referenceType: 'project',
+              referenceId: id!,
+            });
+          }
+        }
+        if (existingProject && (existingProject.notes || null) !== (payload.notes || null)) {
+          await supabase
+            .from('projects')
+            .update({ notes_updated_at: new Date().toISOString() } as any)
+            .eq('id', id!);
+
+          const { data: assignees } = await supabase
+            .from('project_assignments')
+            .select('employee_id')
+            .eq('project_id', id!)
+            .eq('company_id', companyId!)
+            .eq('is_active', true)
+            .neq('employee_id', employee?.employee_id!);
+
+          const recipientIds = (assignees ?? []).map(a => a.employee_id);
+
+          if (recipientIds.length > 0) {
+            await sendNotification({
+              companyId: companyId!,
+              recipientIds,
+              type: 'notes_updated',
+              title: 'Project instructions updated',
+              message: `${existingProject.project_name} — Instructions have been updated. Please review the updated instructions.`,
               referenceType: 'project',
               referenceId: id!,
             });
@@ -281,9 +360,11 @@ const ProjectForm = () => {
 
   const handleSave = () => {
     const errs: Record<string, string> = {};
-    if (!form.project_code.trim()) errs.project_code = 'Required';
-    if (!form.project_name.trim()) errs.project_name = 'Required';
-    if (!form.client_id) errs.client_id = 'Required';
+    if (!isTeamLead) {
+      if (!form.project_code.trim()) errs.project_code = 'Required';
+      if (!form.project_name.trim()) errs.project_name = 'Required';
+      if (!form.client_id) errs.client_id = 'Required';
+    }
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
     saveMutation.mutate();
@@ -329,6 +410,7 @@ const ProjectForm = () => {
 
       <div className="rounded-lg border bg-card p-6 space-y-5">
         {/* Row 1 */}
+        {!isTeamLead && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label>Project Code *</Label>
@@ -341,8 +423,10 @@ const ProjectForm = () => {
             {errors.project_name && <p className="text-sm text-destructive mt-1">{errors.project_name}</p>}
           </div>
         </div>
+        )}
 
         {/* Row 2: Client combobox */}
+        {!isTeamLead && (
         <div>
           <Label>Client *</Label>
           <Popover open={clientOpen} onOpenChange={setClientOpen}>
@@ -378,10 +462,11 @@ const ProjectForm = () => {
           </Popover>
           {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
         </div>
+        )}
 
 
         {/* Sub-Series - shown when a client is selected */}
-        {form.client_id && (
+        {!isTeamLead && form.client_id && (
           <div>
             <Label>Sub-Series</Label>
             <Select
@@ -437,18 +522,23 @@ const ProjectForm = () => {
         )}
 
         {/* Location */}
+        {!isTeamLead && (
         <div>
           <Label>Location</Label>
           <Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. New York, NY" />
         </div>
+        )}
 
         {/* Scope */}
+        {!isTeamLead && (
         <div>
           <Label>Scope of Work</Label>
           <Textarea value={form.scope_of_work} onChange={e => setForm({ ...form, scope_of_work: e.target.value })} rows={3} />
         </div>
+        )}
 
         {/* Fee + Deadlines */}
+        {!isTeamLead && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <Label>Fee {selectedClient ? `(${selectedClient.billing_currency})` : ''}</Label>
@@ -483,8 +573,27 @@ const ProjectForm = () => {
             </Popover>
           </div>
         </div>
+        )}
+
+        {isTeamLead && isEdit && (
+          <div>
+            <Label>Internal Deadline</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !form.internal_deadline && 'text-muted-foreground')}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {form.internal_deadline ? formatDate(form.internal_deadline) : 'Pick date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={form.internal_deadline} onSelect={d => setForm({ ...form, internal_deadline: d })} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
 
         {/* Lead combobox */}
+        {!isTeamLead && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <Label>Project Lead</Label>
@@ -514,6 +623,7 @@ const ProjectForm = () => {
             </Popover>
           </div>
         </div>
+        )}
 
         {/* Team Members - searchable multi-select */}
         <div>
@@ -613,7 +723,7 @@ const ProjectForm = () => {
 
         {/* Notes */}
         <div>
-          <Label>Notes / Progress</Label>
+          <Label>Instructions</Label>
           <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
         </div>
 
