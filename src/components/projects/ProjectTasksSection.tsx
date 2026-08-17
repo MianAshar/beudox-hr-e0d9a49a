@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO, isBefore, startOfDay } from 'date-fns';
-import { CalendarIcon, Plus, Trash2, Loader2 } from 'lucide-react';
+import { CalendarIcon, Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,6 +65,10 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
   const [newAssignee, setNewAssignee] = useState('');
   const [newDeadline, setNewDeadline] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [editingTask, setEditingTask] = useState<any>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editAssignee, setEditAssignee] = useState('');
+  const [editDeadline, setEditDeadline] = useState<string | null>(null);
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['project-tasks', projectId],
@@ -160,6 +164,45 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
+  const editMutation = useMutation({
+    mutationFn: async () => {
+      const title = editTitle.trim();
+      if (!title) throw new Error('Task title is required');
+      const { error } = await supabase.from('project_tasks').update({
+        title,
+        assigned_to: editAssignee || null,
+        deadline: editDeadline || null,
+      }).eq('id', editingTask.id);
+      if (error) throw error;
+      // Log what changed
+      const changes: string[] = [];
+      if (editingTask.title !== title) changes.push(`title: "${editingTask.title}" → "${title}"`);
+      if ((editingTask.assigned_to || '') !== (editAssignee || '')) changes.push('assignee changed');
+      if ((editingTask.deadline || '') !== (editDeadline || '')) changes.push('deadline changed');
+      if (changes.length > 0) {
+        await logProjectActivity({
+          companyId, projectId, employeeId,
+          action: 'task_edited',
+          oldValue: editingTask.title,
+          newValue: changes.join(', '),
+        });
+      }
+    },
+    onSuccess: () => {
+      setEditingTask(null);
+      invalidate();
+      toast({ title: 'Task updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+
+  const openEdit = (t: any) => {
+    setEditingTask(t);
+    setEditTitle(t.title);
+    setEditAssignee(t.assigned_to || '');
+    setEditDeadline(t.deadline || null);
+  };
+
   const today = startOfDay(new Date());
 
   const renderTask = (t: any) => {
@@ -196,6 +239,17 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             {format(parseISO(t.deadline), 'MMM d')}
           </span>
         )}
+        {canManage && !t.is_completed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={e => { e.stopPropagation(); openEdit(t); }}
+            aria-label="Edit task"
+          >
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          </Button>
+        )}
         {canManage && (
           <Button
             variant="ghost"
@@ -222,6 +276,64 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
           {incomplete.map(renderTask)}
           {complete.map(renderTask)}
         </ul>
+      )}
+
+      {editingTask && (
+        <div className="border border-primary/30 rounded-md p-3 bg-card space-y-3">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Editing task</p>
+          <Input
+            autoFocus
+            placeholder="Task title"
+            value={editTitle}
+            onChange={e => setEditTitle(e.target.value)}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <SearchableEmployeeSelect
+              employees={teamMembers}
+              value={editAssignee}
+              onValueChange={setEditAssignee}
+              placeholder="Assign to (optional)"
+            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn('justify-start font-normal', !editDeadline && 'text-muted-foreground')}
+                >
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  {editDeadline ? format(parseISO(editDeadline), 'PPP') : 'Deadline (optional)'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={editDeadline ? parseISO(editDeadline) : undefined}
+                  onSelect={d => setEditDeadline(d ? toIso(d) : null)}
+                  initialFocus
+                  className={cn('p-3 pointer-events-auto')}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingTask(null)}
+              disabled={editMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => editMutation.mutate()}
+              disabled={!editTitle.trim() || editMutation.isPending}
+            >
+              {editMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
+            </Button>
+          </div>
+        </div>
       )}
 
       {canManage && !adding && (
