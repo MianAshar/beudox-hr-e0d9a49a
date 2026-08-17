@@ -40,7 +40,7 @@ const ProjectDetail = () => {
   const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const isCeo = roles.includes('ceo');
   const isTeamLead = roles.includes('team_lead');
-  const canEditDetails = isManager;
+  const canEditDetails = isManager || isTeamLead;
   const canSeeClient = ['hr_manager', 'ceo', 'finance_manager'].some(r => roles.includes(r));
   const canSeeFinancial = isManager;
   const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
@@ -345,7 +345,7 @@ const ProjectDetail = () => {
       {/* Notes */}
       {project.notes && (
         <div className="rounded-lg border bg-card p-5 space-y-2">
-          <h2 className="text-base font-semibold text-foreground">Notes / Progress</h2>
+          <h2 className="text-base font-semibold text-foreground">Instructions</h2>
           <p className="text-sm text-foreground whitespace-pre-wrap">{project.notes}</p>
         </div>
       )}
