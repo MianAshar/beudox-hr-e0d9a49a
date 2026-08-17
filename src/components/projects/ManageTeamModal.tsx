@@ -67,14 +67,32 @@ export const ManageTeamModal = ({
 
   const addMutation = useMutation({
     mutationFn: async (employeeId: string) => {
-      const { error } = await supabase.from('project_assignments').insert({
-        project_id: projectId,
-        employee_id: employeeId,
-        company_id: companyId,
-        assigned_by: currentUserId,
-        is_active: true,
-      });
-      if (error) throw error;
+      // Check if a row already exists (previously removed)
+      const { data: existing } = await supabase
+        .from('project_assignments')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('employee_id', employeeId)
+        .maybeSingle();
+
+      if (existing) {
+        // Reactivate the existing row
+        const { error } = await supabase
+          .from('project_assignments')
+          .update({ is_active: true, removed_at: null })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        // Fresh insert
+        const { error } = await supabase.from('project_assignments').insert({
+          project_id: projectId,
+          employee_id: employeeId,
+          company_id: companyId,
+          assigned_by: currentUserId,
+          is_active: true,
+        });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['manage-team-assignments', projectId] });
