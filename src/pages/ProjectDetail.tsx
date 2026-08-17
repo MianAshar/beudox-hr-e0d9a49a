@@ -176,6 +176,34 @@ const ProjectDetail = () => {
     onError: (e: Error) => toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' }),
   });
 
+  const deadlineMutation = useMutation({
+    mutationFn: async (newDate: string) => {
+      const previous = project?.internal_deadline as string | null;
+      const { error } = await supabase
+        .from('projects')
+        .update({ internal_deadline: newDate })
+        .eq('id', id!);
+      if (error) throw error;
+      if (companyId && employeeId) {
+        await supabase.from('project_activity_logs').insert({
+          company_id: companyId,
+          project_id: id!,
+          employee_id: employeeId,
+          action: 'deadline_changed',
+          old_value: previous ?? null,
+          new_value: newDate,
+        });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-detail'] });
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
+      toast({ title: 'Deadline updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Failed to update deadline', description: e.message, variant: 'destructive' }),
+  });
+
 
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\bQc\b/g, 'QC');
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
