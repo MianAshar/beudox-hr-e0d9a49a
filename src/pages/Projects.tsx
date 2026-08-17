@@ -165,11 +165,6 @@ const statusColors: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-700',
 };
 
-const priorityColors: Record<string, string> = {
-  high: 'bg-red-100 text-red-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-green-100 text-green-700',
-};
 
 const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\bQc\b/g, 'QC');
 
@@ -207,7 +202,6 @@ const Projects = () => {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
@@ -392,7 +386,6 @@ const Projects = () => {
   const filtered = (projects ?? []).filter((p: any) => {
     if (search && !p.project_code.toLowerCase().includes(search.toLowerCase()) && !p.project_name.toLowerCase().includes(search.toLowerCase())) return false;
     if (statusFilter !== 'all' && p.status !== statusFilter) return false;
-    if (priorityFilter !== 'all' && p.priority !== priorityFilter) return false;
     if (clientFilter !== 'all' && p.client_id !== clientFilter) return false;
     return true;
   });
@@ -490,15 +483,6 @@ const Projects = () => {
                 <SelectItem value="all">All Status</SelectItem>
                 {STATUS_OPTIONS.map(s => (
                   <SelectItem key={s} value={s}>{fmt(s)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Priority" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
-                {['high', 'medium', 'low'].map(p => (
-                  <SelectItem key={p} value={p}>{fmt(p)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -913,11 +897,6 @@ const ProjectCard = ({
                 <MetaRow label="Client Deadline">{formatDate(p.client_deadline) || '—'}</MetaRow>
               )}
               <MetaRow label="Internal Deadline">{formatDate(p.internal_deadline) || '—'}</MetaRow>
-              {p.priority && (
-                <MetaRow label="Priority">
-                  <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>
-                </MetaRow>
-              )}
               {p.project_categories?.name && (
                 <MetaRow label="Category">{p.project_categories.name}</MetaRow>
               )}
