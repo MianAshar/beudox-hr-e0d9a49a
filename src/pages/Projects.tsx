@@ -466,11 +466,7 @@ const Projects = () => {
     return d >= monthStart && d < monthEnd;
   });
 
-  const monthFilteredArchived = archivedFiltered.filter((p: any) => {
-    if (!p.internal_deadline) return true;
-    const d = new Date(p.internal_deadline);
-    return d >= monthStart && d < monthEnd;
-  });
+  const monthFilteredArchived = archivedFiltered;
 
   const toggleOne = (id: string) => {
     setExpandedIds(prev => {
@@ -494,21 +490,6 @@ const Projects = () => {
     };
     return (
     <>
-      {/* Month filter */}
-      <div className="flex gap-3 items-center">
-        <Select value={listMonth} onValueChange={setListMonth}>
-          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={listYear} onValueChange={setListYear}>
-          <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {PROJ_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
@@ -535,6 +516,22 @@ const Projects = () => {
                   {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
+            )}
+            {!opts.past && (
+              <>
+                <Select value={listMonth} onValueChange={setListMonth}>
+                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={listYear} onValueChange={setListYear}>
+                  <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PROJ_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </>
             )}
           </>
         )}
