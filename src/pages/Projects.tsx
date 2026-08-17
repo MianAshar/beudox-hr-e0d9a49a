@@ -200,10 +200,11 @@ const Projects = () => {
   // Pure employees also see only their assigned projects in this list, so allow status edits.
   const canEditStatus = isManager || roles.includes('team_lead') || isCeoOrDirector || isEstimationTeam || isPureEmployee;
 
+  const isArchived = (p: any) => p.status === 'submitted' || p.status === 'cancelled';
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
-  const [showInactive, setShowInactive] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [manageTeamProject, setManageTeamProject] = useState<any>(null);
@@ -213,7 +214,7 @@ const Projects = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get('tab');
-    const validTabs = ['summary', 'list'];
+    const validTabs = ['summary', 'list', 'past'];
     return (tab && validTabs.includes(tab)) ? tab : 'summary';
   });
 
