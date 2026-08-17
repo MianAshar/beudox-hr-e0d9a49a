@@ -212,7 +212,7 @@ const Clients = () => {
     saveMutation.mutate();
   };
 
-  const filtered = (clients ?? []).filter(c => {
+  const filtered = activeClients.filter(c => {
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (showActivity && activityFilter !== 'all') {
       if (activityByClient.get(c.id) !== activityFilter) return false;
