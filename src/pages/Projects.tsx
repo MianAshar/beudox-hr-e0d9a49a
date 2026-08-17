@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -210,6 +210,8 @@ const Projects = () => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<string>('default');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'summary');
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', companyId, roleKey, employeeId, showInactive],
@@ -657,7 +659,7 @@ const Projects = () => {
   if (isCEO) {
     return (
       <div className="p-4 lg:p-6 space-y-6">
-        <Tabs defaultValue="summary" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList
             className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
             style={{ borderColor: 'hsl(var(--border))' }}
