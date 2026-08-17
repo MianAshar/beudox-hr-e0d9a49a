@@ -18,6 +18,7 @@ import { toast } from '@/hooks/use-toast';
 import { Plus, Search, Pencil, XCircle, Building2, RotateCcw } from 'lucide-react';
 import { SubSeriesTagInput } from '@/components/clients/SubSeriesTagInput';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   ActivityCategory,
   ACTIVITY_LABELS,
