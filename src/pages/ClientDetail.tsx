@@ -190,7 +190,6 @@ const ClientDetail = () => {
                 <TableHead>Code</TableHead>
                 <TableHead>Project Name</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Internal Deadline</TableHead>
               </TableRow>
