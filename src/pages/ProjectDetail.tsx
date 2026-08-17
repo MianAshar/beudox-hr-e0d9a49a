@@ -221,34 +221,44 @@ const ProjectDetail = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild disabled={statusMutation.isPending}>
-                  <button type="button" className="inline-flex">
-                    <Badge className={cn(statusColors[project.status] || '', 'cursor-pointer hover:opacity-90 inline-flex items-center gap-1')}>
-                      {fmt(project.status)}
-                      <ChevronDown className="h-3 w-3 opacity-70" />
-                    </Badge>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-popover">
-                  {STATUS_OPTIONS.map(s => (
-                    <DropdownMenuItem
-                      key={s}
-                      onSelect={() => { if (s !== project.status) statusMutation.mutate(s); }}
-                    >
-                      <Badge className={cn(statusColors[s] || '', 'pointer-events-none')}>{fmt(s)}</Badge>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {project.priority && <Badge className={priorityColors[project.priority] || ''}>{fmt(project.priority)}</Badge>}
+            <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>
+              {project.priority && <Badge className={cn(priorityColors[project.priority] || '', 'text-xs')}>{fmt(project.priority)}</Badge>}
             </div>
-            <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Status selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild disabled={statusMutation.isPending}>
+              <button
+                type="button"
+                className={cn(
+                  'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50',
+                  statusColors[project.status] || ''
+                )}
+                style={{
+                  border: `2px solid currentColor`,
+                  opacity: statusMutation.isPending ? 0.6 : 1,
+                }}
+              >
+                {fmt(project.status)}
+                <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-popover">
+              {STATUS_OPTIONS.map(s => (
+                <DropdownMenuItem
+                  key={s}
+                  onSelect={() => { if (s !== project.status) statusMutation.mutate(s); }}
+                  className="flex items-center gap-2"
+                >
+                  <Badge className={cn(statusColors[s] || '', 'pointer-events-none')}>{fmt(s)}</Badge>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {project.status === 'pending' && canStartProject && (
             <Button onClick={() => setStartOpen(true)}>
               <Play className="h-4 w-4 mr-2" /> Start Project
