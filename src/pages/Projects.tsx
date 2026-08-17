@@ -1137,26 +1137,59 @@ const StatusCell = ({ project, canEdit, companyId, employeeId }: StatusCellProps
   if (!canEdit) return badge;
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild disabled={isPending}>
-        <button type="button" className="inline-flex">{badge}</button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="bg-popover">
-        {STATUS_OPTIONS.map(s => (
-          <DropdownMenuItem
-            key={s}
-            onSelect={() => {
-              if (s === status) return;
-              setOptimistic(s);
-              setOpen(false);
-              mutation.mutate(s);
-            }}
-          >
-            <Badge className={cn(statusColors[s] || '', 'pointer-events-none')}>{fmt(s)}</Badge>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild disabled={isPending}>
+          <button type="button" className="inline-flex">{badge}</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="bg-popover">
+          {STATUS_OPTIONS.map(s => (
+            <DropdownMenuItem
+              key={s}
+              onSelect={() => {
+                if (s === status) return;
+                const currentIsArchived = project.status === 'submitted' || project.status === 'cancelled';
+                const newIsArchived = s === 'submitted' || s === 'cancelled';
+                if (currentIsArchived && !newIsArchived) {
+                  setOpen(false);
+                  setPendingStatus(s);
+                  return;
+                }
+                setOptimistic(s);
+                setOpen(false);
+                mutation.mutate(s);
+              }}
+            >
+              <Badge className={cn(statusColors[s] || '', 'pointer-events-none')}>{fmt(s)}</Badge>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={!!pendingStatus} onOpenChange={v => { if (!v) setPendingStatus(null); }}>
+        <DialogContent onClick={e => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Move to Active Projects?</DialogTitle>
+            <DialogDescription>
+              Changing the status to {pendingStatus ? fmt(pendingStatus) : ''} will move this project from Past Projects to All Projects. Continue?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingStatus(null)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                const s = pendingStatus!;
+                setPendingStatus(null);
+                setOptimistic(s);
+                mutation.mutate(s);
+              }}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
