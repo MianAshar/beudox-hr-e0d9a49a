@@ -219,18 +219,15 @@ const Projects = () => {
   });
 
   const { data: projects, isLoading } = useQuery({
-    queryKey: ['projects', companyId, roleKey, employeeId, showInactive],
+    queryKey: ['projects', companyId, roleKey, employeeId],
     queryFn: async () => {
     const projectSelect = '*, scope_updated_at, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)';
 
       if (isManager) {
-        let query = supabase
+        const query = supabase
           .from('projects')
           .select(projectSelect)
           .eq('company_id', companyId!);
-        if (!showInactive) {
-          query = query.eq('is_active', true);
-        }
         const { data, error } = await query.order('created_at', { ascending: false });
         if (error) throw error;
         return data;
