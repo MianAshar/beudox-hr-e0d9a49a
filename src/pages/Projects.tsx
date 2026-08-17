@@ -805,7 +805,7 @@ const ProjectCard = ({
               <span style={{ fontFamily: 'DM Sans', fontWeight: 400, fontSize: 12, color: '#4B4468' }}>
                 Client: {formatDate(p.client_deadline) || '—'}
               </span>
-              <span style={{ fontFamily: 'DM Sans', fontWeight: 400, fontSize: 12, color: '#9490B4' }}>
+              <span style={{ fontFamily: 'DM Sans', fontWeight: 700, fontSize: 12, color: '#4B4468' }}>
                 Internal: {formatDate(p.internal_deadline) || '—'}
               </span>
             </div>
@@ -902,7 +902,9 @@ const ProjectCard = ({
               {isCeoOrDirector && (
                 <MetaRow label="Client Deadline">{formatDate(p.client_deadline) || '—'}</MetaRow>
               )}
-              <MetaRow label="Internal Deadline">{formatDate(p.internal_deadline) || '—'}</MetaRow>
+              <MetaRow label="Internal Deadline">
+                <span className="font-bold">{formatDate(p.internal_deadline) || '—'}</span>
+              </MetaRow>
               {p.project_categories?.name && (
                 <MetaRow label="Category">{p.project_categories.name}</MetaRow>
               )}
