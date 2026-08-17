@@ -70,13 +70,14 @@ const Clients = () => {
   const showActivity = ['ceo', 'hr_manager'].some(r => roles.includes(r));
 
   const { data: clients, isLoading } = useQuery({
-    queryKey: ['clients', companyId],
+    queryKey: ['clients', companyId, 'active-only'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clients')
         .select('*')
         .eq('company_id', companyId!)
         .eq('is_active', true)
+        .neq('is_active', false)
         .order('name');
       if (error) throw error;
       return data as Client[];
