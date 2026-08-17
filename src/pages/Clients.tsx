@@ -65,6 +65,7 @@ const Clients = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deactivateTarget, setDeactivateTarget] = useState<Client | null>(null);
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityCategory>('all');
+  const [clientTab, setClientTab] = useState<'active' | 'past'>('active');
 
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
