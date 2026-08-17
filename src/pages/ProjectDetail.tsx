@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Pencil, Calendar, FileText, Users, Trash2, XCircle, Play, UserCog, ChevronDown, MapPin } from 'lucide-react';
+import { ArrowLeft, Pencil, FileText, Users, Trash2, XCircle, Play, UserCog, ChevronDown, MapPin } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
@@ -213,22 +213,27 @@ const ProjectDetail = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        {/* Left: back + title */}
         <div className="flex items-start gap-3 min-w-0">
-          <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate('/projects')}>
+          <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" onClick={() => navigate('/projects')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
+            <h1 className="text-2xl font-semibold text-foreground break-words leading-tight">{project.project_name}</h1>
+            <div className="flex items-center gap-2 mt-1">
               <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>
-              {project.priority && <Badge className={cn(priorityColors[project.priority] || '', 'text-xs')}>{fmt(project.priority)}</Badge>}
+              {project.priority && (
+                <Badge className={cn(priorityColors[project.priority] || '', 'text-xs')}>{fmt(project.priority)}</Badge>
+              )}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+
+        {/* Right: actions */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0 pl-10 sm:pl-0">
           {/* Status selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild disabled={statusMutation.isPending}>
@@ -238,10 +243,7 @@ const ProjectDetail = () => {
                   'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50',
                   statusColors[project.status] || ''
                 )}
-                style={{
-                  border: `2px solid currentColor`,
-                  opacity: statusMutation.isPending ? 0.6 : 1,
-                }}
+                style={{ border: '2px solid currentColor', opacity: statusMutation.isPending ? 0.6 : 1 }}
               >
                 {fmt(project.status)}
                 <ChevronDown className="h-3.5 w-3.5 opacity-70" />
@@ -265,14 +267,14 @@ const ProjectDetail = () => {
             </Button>
           )}
           {canEditDetails && (
-            <>
-              <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
-                <Pencil className="h-4 w-4 mr-2" /> Edit
-              </Button>
-              <Button variant="outline" onClick={() => setDeactivateOpen(true)}>
-                <XCircle className="h-4 w-4 mr-2" /> Deactivate
-              </Button>
-            </>
+            <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
+              <Pencil className="h-4 w-4 mr-2" /> Edit
+            </Button>
+          )}
+          {canEditDetails && (
+            <Button variant="outline" onClick={() => setDeactivateOpen(true)}>
+              <XCircle className="h-4 w-4 mr-2" /> Deactivate
+            </Button>
           )}
           {isCeo && (
             <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
@@ -282,62 +284,55 @@ const ProjectDetail = () => {
         </div>
       </div>
 
-      {/* Details Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-lg border bg-card p-5 space-y-4">
-          <h2 className="text-base font-semibold text-foreground">Project Information</h2>
-          <div className="space-y-3 text-sm">
-            {canSeeClient && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Client</span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
-                    {(project.clients as any)?.name || '—'}
-                  </Link>
-                  {(project as any).sub_series && (
-                    <span className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '2px 8px' }}>
-                      {(project as any).sub_series}
-                    </span>
-                  )}
-                </span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Category</span>
-              <span className="text-foreground">{(project.project_categories as any)?.name || '—'}</span>
+      {/* Project Info */}
+      <div className="rounded-lg border bg-card p-5">
+        <h2 className="text-base font-semibold text-foreground mb-4">Project Details</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 text-sm">
+          {canSeeClient && (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Client</span>
+              <span className="inline-flex items-center gap-1.5 flex-wrap">
+                <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
+                  {(project.clients as any)?.name || '—'}
+                </Link>
+                {(project as any).sub_series && (
+                  <span className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '2px 8px' }}>
+                    {(project as any).sub_series}
+                  </span>
+                )}
+              </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Project Lead</span>
-              <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
-            </div>
-            <div className="flex justify-between items-center gap-3">
-              <span className="text-muted-foreground shrink-0 flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> Location</span>
-              <span className="text-foreground">{(project as any).location || <span className="text-muted-foreground">—</span>}</span>
-            </div>
-            {isManager && project.fee != null && project.fee > 0 && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Fee</span>
-                <span className="text-foreground font-medium">{Number(project.fee).toLocaleString()}</span>
-              </div>
-            )}
+          )}
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">Project Lead</span>
+            <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
           </div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-5 space-y-4">
-          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Calendar className="h-4 w-4" /> Deadlines
-          </h2>
-          <div className="space-y-3 text-sm">
-            {isCeoOrDirector && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Client Deadline</span>
-                <span className="text-foreground">{formatDate(project.client_deadline)}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Internal Deadline</span>
-              <span className="text-foreground">{formatDate(project.internal_deadline)}</span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">Location</span>
+            <span className="text-foreground flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              {(project as any).location || <span className="text-muted-foreground">—</span>}
+            </span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">Internal Deadline</span>
+            <span className="text-foreground">{formatDate(project.internal_deadline) || '—'}</span>
+          </div>
+          {isCeoOrDirector && (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Client Deadline</span>
+              <span className="text-foreground">{formatDate(project.client_deadline) || '—'}</span>
             </div>
+          )}
+          {isManager && project.fee != null && project.fee > 0 && (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Fee</span>
+              <span className="text-foreground font-medium">{Number(project.fee).toLocaleString()}</span>
+            </div>
+          )}
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">Category</span>
+            <span className="text-foreground">{(project.project_categories as any)?.name || '—'}</span>
           </div>
         </div>
       </div>
@@ -373,7 +368,7 @@ const ProjectDetail = () => {
           )}
         </div>
         {teamMembers && teamMembers.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {teamMembers.map((a: any) => {
               const emp = a.employees;
               if (!emp) return null;
