@@ -208,7 +208,7 @@ const Projects = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [manageTeamProject, setManageTeamProject] = useState<any>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [sortBy, setSortBy] = useState<string>('default');
+  const [sortBy, setSortBy] = useState<string>('internal_deadline');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
