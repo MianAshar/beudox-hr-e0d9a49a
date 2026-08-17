@@ -237,8 +237,7 @@ const Projects = () => {
         .from('project_assignments')
         .select('project_id')
         .eq('company_id', companyId!)
-        .eq('employee_id', employeeId!)
-        .eq('is_active', true);
+        .eq('employee_id', employeeId!);
       if (assignmentError) throw assignmentError;
 
       const assignedIds = assignments?.map((assignment) => assignment.project_id) ?? [];
@@ -289,8 +288,7 @@ const Projects = () => {
         .from('project_assignments')
         .select('project_id')
         .eq('employee_id', employeeId!)
-        .eq('company_id', companyId!)
-        .eq('is_active', true);
+        .eq('company_id', companyId!);
       if (error) throw error;
       return data ?? [];
     },
