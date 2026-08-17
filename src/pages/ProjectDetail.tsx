@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Pencil, FileText, Users, Trash2, Play, UserCog, ChevronDown, MapPin, AlertTriangle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
@@ -45,6 +47,7 @@ const ProjectDetail = () => {
   const canSeeFinancial = isManager;
   const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
   const canManageTeam = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
+  const canEditDeadline = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
   const canSeeActivity = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const canStartProject = true;
   const canEditStatus = true;
@@ -65,6 +68,7 @@ const ProjectDetail = () => {
   const [startOpen, setStartOpen] = useState(false);
   const [manageTeamOpen, setManageTeamOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [deadlineOpen, setDeadlineOpen] = useState(false);
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project-detail', id, companyId],
@@ -172,9 +176,43 @@ const ProjectDetail = () => {
     onError: (e: Error) => toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' }),
   });
 
+  const deadlineMutation = useMutation({
+    mutationFn: async (newDate: string) => {
+      const previous = project?.internal_deadline as string | null;
+      const { error } = await supabase
+        .from('projects')
+        .update({ internal_deadline: newDate })
+        .eq('id', id!);
+      if (error) throw error;
+      if (companyId && employeeId) {
+        await supabase.from('project_activity_logs').insert({
+          company_id: companyId,
+          project_id: id!,
+          employee_id: employeeId,
+          action: 'deadline_changed',
+          old_value: previous ?? null,
+          new_value: newDate,
+        });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-detail'] });
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      qc.invalidateQueries({ queryKey: ['project-activity'] });
+      toast({ title: 'Deadline updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Failed to update deadline', description: e.message, variant: 'destructive' }),
+  });
+
 
   const fmt = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\bQc\b/g, 'QC');
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const toIsoDate = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
 
   if (isLoading) {
     return (
@@ -308,7 +346,36 @@ const ProjectDetail = () => {
           </div>
           <div className="flex flex-col gap-0.5">
             <span className="text-xs text-muted-foreground uppercase tracking-wide">Internal Deadline</span>
-            <span className="text-foreground">{formatDate(project.internal_deadline) || '—'}</span>
+            {canEditDeadline && !isArchived ? (
+              <Popover open={deadlineOpen} onOpenChange={setDeadlineOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-foreground text-sm text-left hover:underline inline-flex items-center gap-1.5 group"
+                  >
+                    <span className="font-bold">{formatDate(project.internal_deadline) || '—'}</span>
+                    <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={project.internal_deadline ? new Date(project.internal_deadline) : undefined}
+                    onSelect={d => {
+                      if (!d) return;
+                      const iso = toIsoDate(d);
+                      if (iso === project.internal_deadline) { setDeadlineOpen(false); return; }
+                      setDeadlineOpen(false);
+                      deadlineMutation.mutate(iso);
+                    }}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <span className="text-foreground font-bold">{formatDate(project.internal_deadline) || '—'}</span>
+            )}
           </div>
           {isCeoOrDirector && (
             <div className="flex flex-col gap-0.5">
