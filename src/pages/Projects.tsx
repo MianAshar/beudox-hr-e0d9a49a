@@ -202,7 +202,6 @@ const Projects = () => {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
