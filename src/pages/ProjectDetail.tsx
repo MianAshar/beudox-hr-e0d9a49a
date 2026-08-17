@@ -59,7 +59,6 @@ const ProjectDetail = () => {
     enabled: !!employeeId,
   });
   const isCeoOrDirector = isCeo || currentEmpMeta?.employment_type === 'director';
-  const isArchived = project ? (project.status === 'submitted' || project.status === 'cancelled') : false;
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
