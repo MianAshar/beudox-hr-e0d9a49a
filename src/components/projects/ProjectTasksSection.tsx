@@ -239,6 +239,17 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             {format(parseISO(t.deadline), 'MMM d')}
           </span>
         )}
+        {canManage && !t.is_completed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={e => { e.stopPropagation(); openEdit(t); }}
+            aria-label="Edit task"
+          >
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          </Button>
+        )}
         {canManage && (
           <Button
             variant="ghost"
