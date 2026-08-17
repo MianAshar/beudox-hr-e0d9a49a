@@ -221,31 +221,11 @@ const ProjectDetail = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild disabled={statusMutation.isPending}>
-                  <button type="button" className="inline-flex">
-                    <Badge className={cn(statusColors[project.status] || '', 'cursor-pointer hover:opacity-90 inline-flex items-center gap-1')}>
-                      {fmt(project.status)}
-                      <ChevronDown className="h-3 w-3 opacity-70" />
-                    </Badge>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-popover">
-                  {STATUS_OPTIONS.map(s => (
-                    <DropdownMenuItem
-                      key={s}
-                      onSelect={() => { if (s !== project.status) statusMutation.mutate(s); }}
-                    >
-                      <Badge className={cn(statusColors[s] || '', 'pointer-events-none')}>{fmt(s)}</Badge>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {project.priority && <Badge className={priorityColors[project.priority] || ''}>{fmt(project.priority)}</Badge>}
+            <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>
+              {project.priority && <Badge className={cn(priorityColors[project.priority] || '', 'text-xs')}>{fmt(project.priority)}</Badge>}
             </div>
-            <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
