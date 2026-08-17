@@ -468,19 +468,6 @@ const Projects = () => {
 
   const listContent = (
     <>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            {projects ? `${projects.length} project${projects.length !== 1 ? 's' : ''}` : 'Loading…'}
-          </p>
-        </div>
-        {isManager && (
-          <Button onClick={() => navigate('/projects/new')} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" /> Add Project
-          </Button>
-        )}
-      </div>
-
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative w-full sm:max-w-xs sm:flex-1 sm:min-w-[200px]">
@@ -686,7 +673,7 @@ const Projects = () => {
               className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
               style={{ fontFamily: 'var(--ff-body)' }}
             >
-              All Projects
+              All Projects ({sortedFiltered.length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="summary" className="mt-6"><ProjectsSummary /></TabsContent>
