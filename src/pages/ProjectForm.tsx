@@ -98,17 +98,11 @@ const ProjectForm = () => {
   // exclude Admin/Director departments.
   const eligibleEmployees = useMemo(() => {
     if (!employees) return [];
-    const excludedRoles = new Set(['ceo', 'hr_manager', 'finance_manager']);
-    const excludedDepts = new Set(['admin', 'director']);
     return employees.filter((e: any) => {
-      if (e.employment_type === 'director') return false;
-      const dept = (e.department || '').trim().toLowerCase();
-      if (excludedDepts.has(dept)) return false;
       const roleNames: string[] = (e.employee_roles ?? [])
         .map((er: any) => er?.roles?.name)
         .filter(Boolean);
-      if (roleNames.some(r => excludedRoles.has(r))) return false;
-      return true;
+      return roleNames.includes('team_lead');
     });
   }, [employees]);
 
