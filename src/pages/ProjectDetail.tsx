@@ -47,6 +47,7 @@ const ProjectDetail = () => {
   const canSeeFinancial = isManager;
   const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
   const canManageTeam = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
+  const canEditDeadline = ['hr_manager', 'ceo', 'team_lead'].some(r => roles.includes(r));
   const canSeeActivity = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const canStartProject = true;
   const canEditStatus = true;
