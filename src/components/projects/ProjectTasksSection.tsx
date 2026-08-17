@@ -164,6 +164,45 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
+  const editMutation = useMutation({
+    mutationFn: async () => {
+      const title = editTitle.trim();
+      if (!title) throw new Error('Task title is required');
+      const { error } = await supabase.from('project_tasks').update({
+        title,
+        assigned_to: editAssignee || null,
+        deadline: editDeadline || null,
+      }).eq('id', editingTask.id);
+      if (error) throw error;
+      // Log what changed
+      const changes: string[] = [];
+      if (editingTask.title !== title) changes.push(`title: "${editingTask.title}" → "${title}"`);
+      if ((editingTask.assigned_to || '') !== (editAssignee || '')) changes.push('assignee changed');
+      if ((editingTask.deadline || '') !== (editDeadline || '')) changes.push('deadline changed');
+      if (changes.length > 0) {
+        await logProjectActivity({
+          companyId, projectId, employeeId,
+          action: 'task_edited',
+          oldValue: editingTask.title,
+          newValue: changes.join(', '),
+        });
+      }
+    },
+    onSuccess: () => {
+      setEditingTask(null);
+      invalidate();
+      toast({ title: 'Task updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+
+  const openEdit = (t: any) => {
+    setEditingTask(t);
+    setEditTitle(t.title);
+    setEditAssignee(t.assigned_to || '');
+    setEditDeadline(t.deadline || null);
+  };
+
   const today = startOfDay(new Date());
 
   const renderTask = (t: any) => {
