@@ -400,16 +400,16 @@ const ProjectForm = () => {
   }, [clients, clientSearch]);
 
   const filteredLeadEmployees = useMemo(() => {
-    if (!leadSearch) return eligibleEmployees;
+    if (!leadSearch) return eligibleLeads;
     const q = leadSearch.toLowerCase();
-    return eligibleEmployees.filter((e: any) => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
-  }, [eligibleEmployees, leadSearch]);
+    return eligibleLeads.filter((e: any) => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
+  }, [eligibleLeads, leadSearch]);
 
   const filteredTeamEmployees = useMemo(() => {
-    if (!teamSearch) return eligibleEmployees;
+    if (!teamSearch) return eligibleTeamMembers;
     const q = teamSearch.toLowerCase();
-    return eligibleEmployees.filter((e: any) => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
-  }, [eligibleEmployees, teamSearch]);
+    return eligibleTeamMembers.filter((e: any) => e.full_name.toLowerCase().includes(q) || (e.employee_code?.toLowerCase().includes(q)));
+  }, [eligibleTeamMembers, teamSearch]);
 
   return (
     <div className="p-6 space-y-6">
