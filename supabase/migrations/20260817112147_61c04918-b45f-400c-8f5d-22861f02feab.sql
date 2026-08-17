@@ -1,0 +1,1 @@
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS notes_updated_at TIMESTAMPTZ DEFAULT NULL;
