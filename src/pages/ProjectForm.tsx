@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -149,15 +149,6 @@ const ProjectForm = () => {
     if (existingAssignments) setTeamMembers(existingAssignments);
   }, [existingAssignments]);
 
-  // On NEW project, pre-select all eligible (estimation-team) employees.
-  const didPrefillRef = useRef(false);
-  useEffect(() => {
-    if (isEdit) return;
-    if (!eligibleEmployees || eligibleEmployees.length === 0) return;
-    if (didPrefillRef.current) return;
-    setTeamMembers(eligibleEmployees.map((e: any) => e.id));
-    didPrefillRef.current = true;
-  }, [eligibleEmployees, isEdit]);
 
   const selectedClient = clients?.find(c => c.id === form.client_id);
 
@@ -262,6 +253,19 @@ const ProjectForm = () => {
               is_active: true,
             }))
           );
+        }
+
+        // Send in-app + email notification to the project lead
+        if (form.project_lead_id) {
+          await sendNotification({
+            companyId: companyId!,
+            recipientIds: [form.project_lead_id],
+            type: 'project_assigned',
+            title: 'New project assigned to you',
+            message: `You have been assigned as Project Lead for ${payload.project_name} (${payload.project_code}). Please review the project and assign team members.`,
+            referenceType: 'project',
+            referenceId: newProj.id,
+          });
         }
       }
     },
@@ -513,7 +517,7 @@ const ProjectForm = () => {
 
         {/* Team Members - searchable multi-select */}
         <div>
-          <Label>Team Members / Resources</Label>
+          <Label>Team Members / Resources <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
           <Popover open={teamOpen} onOpenChange={setTeamOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-2">
