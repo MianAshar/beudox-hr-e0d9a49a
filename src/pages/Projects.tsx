@@ -897,11 +897,6 @@ const ProjectCard = ({
                 <MetaRow label="Client Deadline">{formatDate(p.client_deadline) || '—'}</MetaRow>
               )}
               <MetaRow label="Internal Deadline">{formatDate(p.internal_deadline) || '—'}</MetaRow>
-              {p.priority && (
-                <MetaRow label="Priority">
-                  <Badge className={priorityColors[p.priority] || ''}>{fmt(p.priority)}</Badge>
-                </MetaRow>
-              )}
               {p.project_categories?.name && (
                 <MetaRow label="Category">{p.project_categories.name}</MetaRow>
               )}
