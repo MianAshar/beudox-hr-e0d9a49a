@@ -211,7 +211,11 @@ const Projects = () => {
   const [sortBy, setSortBy] = useState<string>('default');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'summary');
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get('tab');
+    const validTabs = ['summary', 'list'];
+    return (tab && validTabs.includes(tab)) ? tab : 'summary';
+  });
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', companyId, roleKey, employeeId, showInactive],

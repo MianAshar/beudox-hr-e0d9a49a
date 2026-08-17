@@ -213,7 +213,7 @@ const ProjectDetail = () => {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         {/* Left: back + title */}
         <div className="flex items-start gap-3 min-w-0">
-          <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" onClick={() => navigate('/projects?tab=all')}>
+          <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" onClick={() => navigate('/projects?tab=list')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0">
