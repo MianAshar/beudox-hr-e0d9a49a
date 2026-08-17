@@ -284,62 +284,55 @@ const ProjectDetail = () => {
         </div>
       </div>
 
-      {/* Details Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-lg border bg-card p-5 space-y-4">
-          <h2 className="text-base font-semibold text-foreground">Project Information</h2>
-          <div className="space-y-3 text-sm">
-            {canSeeClient && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Client</span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
-                    {(project.clients as any)?.name || '—'}
-                  </Link>
-                  {(project as any).sub_series && (
-                    <span className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '2px 8px' }}>
-                      {(project as any).sub_series}
-                    </span>
-                  )}
-                </span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Category</span>
-              <span className="text-foreground">{(project.project_categories as any)?.name || '—'}</span>
+      {/* Project Info */}
+      <div className="rounded-lg border bg-card p-5">
+        <h2 className="text-base font-semibold text-foreground mb-4">Project Details</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 text-sm">
+          {canSeeClient && (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Client</span>
+              <span className="inline-flex items-center gap-1.5 flex-wrap">
+                <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
+                  {(project.clients as any)?.name || '—'}
+                </Link>
+                {(project as any).sub_series && (
+                  <span className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '2px 8px' }}>
+                    {(project as any).sub_series}
+                  </span>
+                )}
+              </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Project Lead</span>
-              <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
-            </div>
-            <div className="flex justify-between items-center gap-3">
-              <span className="text-muted-foreground shrink-0 flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> Location</span>
-              <span className="text-foreground">{(project as any).location || <span className="text-muted-foreground">—</span>}</span>
-            </div>
-            {isManager && project.fee != null && project.fee > 0 && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Fee</span>
-                <span className="text-foreground font-medium">{Number(project.fee).toLocaleString()}</span>
-              </div>
-            )}
+          )}
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">Project Lead</span>
+            <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
           </div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-5 space-y-4">
-          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Calendar className="h-4 w-4" /> Deadlines
-          </h2>
-          <div className="space-y-3 text-sm">
-            {isCeoOrDirector && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Client Deadline</span>
-                <span className="text-foreground">{formatDate(project.client_deadline)}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Internal Deadline</span>
-              <span className="text-foreground">{formatDate(project.internal_deadline)}</span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">Location</span>
+            <span className="text-foreground flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              {(project as any).location || <span className="text-muted-foreground">—</span>}
+            </span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">Internal Deadline</span>
+            <span className="text-foreground">{formatDate(project.internal_deadline) || '—'}</span>
+          </div>
+          {isCeoOrDirector && (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Client Deadline</span>
+              <span className="text-foreground">{formatDate(project.client_deadline) || '—'}</span>
             </div>
+          )}
+          {isManager && project.fee != null && project.fee > 0 && (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Fee</span>
+              <span className="text-foreground font-medium">{Number(project.fee).toLocaleString()}</span>
+            </div>
+          )}
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">Category</span>
+            <span className="text-foreground">{(project.project_categories as any)?.name || '—'}</span>
           </div>
         </div>
       </div>
