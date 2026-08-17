@@ -130,6 +130,14 @@ const Employees = () => {
     }
   };
 
+  const getRoleName = (emp: any) => {
+    const er = emp.employee_roles;
+    if (er && er.length > 0 && er[0].roles) {
+      return er[0].roles.name;
+    }
+    return null;
+  };
+
   const filtered = (employees || []).filter((emp) => {
     const matchesSearch =
       !search ||
@@ -140,14 +148,6 @@ const Employees = () => {
     const matchesRole = roleFilter === 'all' || getRoleName(emp) === roleFilter;
     return matchesSearch && matchesDept && matchesStatus && matchesRole;
   });
-
-  const getRoleName = (emp: any) => {
-    const er = emp.employee_roles;
-    if (er && er.length > 0 && er[0].roles) {
-      return er[0].roles.name;
-    }
-    return null;
-  };
 
   const { sorted, sort, toggleSort } = useSort(filtered, {
     name: (r: any) => r.full_name,
