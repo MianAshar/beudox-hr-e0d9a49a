@@ -208,7 +208,7 @@ const Projects = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [manageTeamProject, setManageTeamProject] = useState<any>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [sortBy, setSortBy] = useState<string>('default');
+  const [sortBy, setSortBy] = useState<string>('internal_deadline');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
@@ -421,11 +421,17 @@ const Projects = () => {
         return String(da).localeCompare(String(db));
       });
     }
+    if (sortBy === 'internal_deadline') {
+      return [...filtered].sort((a, b) => {
+        if (!a.internal_deadline) return 1;
+        if (!b.internal_deadline) return -1;
+        return new Date(a.internal_deadline).getTime() - new Date(b.internal_deadline).getTime();
+      });
+    }
     const accessors: Record<string, (p: any) => any> = {
       project_code: (p) => p.project_code || '',
       project_name: (p) => p.project_name || '',
       status: (p) => p.status || '',
-      internal_deadline: (p) => p.internal_deadline,
     };
     const acc = accessors[sortBy];
     if (!acc) return filtered;
