@@ -9,17 +9,17 @@ export interface ProjectActivityInfo {
 }
 
 export const ACTIVITY_LABELS: Record<ActivityCategory, string> = {
-  active: 'Active',
-  inactive_2m: 'Inactive 2M',
-  inactive_4m: 'Inactive 4M',
-  inactive_6m: 'Inactive 6M+',
+  active: 'Recent',
+  inactive_2m: 'Idle 2M',
+  inactive_4m: 'Idle 4M',
+  inactive_6m: 'Dormant',
 };
 
 export const ACTIVITY_DESCRIPTIONS: Record<ActivityCategory, string> = {
-  active: 'Clients with at least one project currently in progress',
-  inactive_2m: 'Clients with no active projects and whose last project was updated 1 to 2 months ago',
-  inactive_4m: 'Clients with no active projects and whose last project was updated 2 to 4 months ago',
-  inactive_6m: 'Clients with no active projects and whose last project was updated more than 6 months ago, or clients with no projects at all',
+  active: 'This client has at least one project currently in progress.',
+  inactive_2m: 'No active projects. Last project activity was 1 to 2 months ago.',
+  inactive_4m: 'No active projects. Last project activity was 2 to 4 months ago.',
+  inactive_6m: 'No active projects for 6 months or more, or no projects have been added yet.',
 };
 
 export const ACTIVITY_STYLES: Record<ActivityCategory, { bg: string; text: string }> = {
