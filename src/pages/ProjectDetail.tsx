@@ -346,7 +346,36 @@ const ProjectDetail = () => {
           </div>
           <div className="flex flex-col gap-0.5">
             <span className="text-xs text-muted-foreground uppercase tracking-wide">Internal Deadline</span>
-            <span className="text-foreground">{formatDate(project.internal_deadline) || '—'}</span>
+            {canEditDeadline && !isArchived ? (
+              <Popover open={deadlineOpen} onOpenChange={setDeadlineOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-foreground text-sm text-left hover:underline inline-flex items-center gap-1.5 group"
+                  >
+                    <span className="font-bold">{formatDate(project.internal_deadline) || '—'}</span>
+                    <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={project.internal_deadline ? new Date(project.internal_deadline) : undefined}
+                    onSelect={d => {
+                      if (!d) return;
+                      const iso = toIsoDate(d);
+                      if (iso === project.internal_deadline) { setDeadlineOpen(false); return; }
+                      setDeadlineOpen(false);
+                      deadlineMutation.mutate(iso);
+                    }}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <span className="text-foreground font-bold">{formatDate(project.internal_deadline) || '—'}</span>
+            )}
           </div>
           {isCeoOrDirector && (
             <div className="flex flex-col gap-0.5">
