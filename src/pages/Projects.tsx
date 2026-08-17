@@ -249,14 +249,12 @@ const Projects = () => {
             .from('projects')
             .select(projectSelect)
             .eq('company_id', companyId!)
-            .eq('is_active', true)
             .eq('project_lead_id', employeeId!),
           assignedIds.length > 0
             ? supabase
                 .from('projects')
                 .select(projectSelect)
                 .eq('company_id', companyId!)
-                .eq('is_active', true)
                 .in('id', assignedIds)
             : Promise.resolve({ data: [], error: null }),
         ]);
@@ -275,7 +273,6 @@ const Projects = () => {
         .from('projects')
         .select(projectSelect)
         .eq('company_id', companyId!)
-        .eq('is_active', true)
         .in('id', assignedIds)
         .order('created_at', { ascending: false });
 
