@@ -408,342 +408,355 @@ const ProjectForm = () => {
         <h1 className="text-2xl font-semibold text-foreground">{isEdit ? 'Edit Project' : 'New Project'}</h1>
       </div>
 
-      <div className="rounded-lg border bg-card p-6 space-y-5">
-        {/* Row 1 */}
-        {!isTeamLead && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <Label>Project Code *</Label>
-            <Input value={form.project_code} onChange={e => setForm({ ...form, project_code: e.target.value })} placeholder="e.g. 915NY" />
-            {errors.project_code && <p className="text-sm text-destructive mt-1">{errors.project_code}</p>}
-          </div>
-          <div>
-            <Label>Project Name *</Label>
-            <Input value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} />
-            {errors.project_name && <p className="text-sm text-destructive mt-1">{errors.project_name}</p>}
-          </div>
-        </div>
-        )}
+      <div className="rounded-lg border bg-card p-6 space-y-6">
 
-        {/* Row 2: Client combobox */}
-        {!isTeamLead && (
-        <div>
-          <Label>Client *</Label>
-          <Popover open={clientOpen} onOpenChange={setClientOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" role="combobox" aria-expanded={clientOpen} className="w-full justify-between font-normal">
-                {selectedClient?.name || 'Select client…'}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-              <Command shouldFilter={false}>
-                <CommandInput placeholder="Search clients…" value={clientSearch} onValueChange={setClientSearch} />
-                <CommandList>
-                  <CommandEmpty>No clients found.</CommandEmpty>
-                  <CommandGroup>
-                    {filteredClients.map(c => (
-                      <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id, sub_series: '' }); setClientOpen(false); setClientSearch(''); }}>
-                        <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
-                        {c.name}
-                      </CommandItem>
-                    ))}
-                    <CommandItem
-                      value="__add_new_client__"
-                      onSelect={() => { setClientOpen(false); setClientSearch(''); setNewClientOpen(true); }}
-                      className="border-t mt-1 text-[#5B3FF8] font-medium"
-                    >
-                      <Plus className="mr-2 h-4 w-4" /> Add New Client
-                    </CommandItem>
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
-        </div>
-        )}
-
-
-        {/* Sub-Series - shown when a client is selected */}
-        {!isTeamLead && form.client_id && (
-          <div>
-            <Label>Sub-Series</Label>
-            <Select
-              value={form.sub_series || '__none__'}
-              onValueChange={v => {
-                if (v === '__add_new__') { setAddingSubSeries(true); setNewSubSeries(''); return; }
-                setForm({ ...form, sub_series: v === '__none__' ? '' : v });
-              }}
-            >
-              <SelectTrigger><SelectValue placeholder="Select sub-series" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">— None —</SelectItem>
-                {(selectedClient?.sub_series ?? []).map((s: string) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
-                <SelectItem value="__add_new__" className="text-[#5B3FF8] font-medium">+ Add New Sub-Series</SelectItem>
-              </SelectContent>
-            </Select>
-            {addingSubSeries && (
-              <div className="mt-2 flex gap-2">
-                <Input
-                  autoFocus
-                  value={newSubSeries}
-                  onChange={e => setNewSubSeries(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('add-sub-series-btn')?.click(); } }}
-                  placeholder="New sub-series name"
-                />
-                <Button
-                  id="add-sub-series-btn"
-                  type="button"
-                  onClick={async () => {
-                    const v = newSubSeries.trim();
-                    if (!v || !form.client_id) return;
-                    const current = selectedClient?.sub_series ?? [];
-                    if (current.includes(v)) {
-                      setForm({ ...form, sub_series: v });
-                      setAddingSubSeries(false);
-                      return;
-                    }
-                    const next = [...current, v];
-                    const { error } = await supabase.from('clients').update({ sub_series: next }).eq('id', form.client_id);
-                    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
-                    await qc.invalidateQueries({ queryKey: ['clients-lookup'] });
-                    setForm({ ...form, sub_series: v });
-                    setAddingSubSeries(false);
-                    setNewSubSeries('');
-                  }}
-                >Add</Button>
-                <Button type="button" variant="outline" onClick={() => { setAddingSubSeries(false); setNewSubSeries(''); }}>Cancel</Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Location */}
-        {!isTeamLead && (
-        <div>
-          <Label>Location</Label>
-          <Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. New York, NY" />
-        </div>
-        )}
-
-        {/* Scope */}
-        {!isTeamLead && (
-        <div>
-          <Label>Scope of Work</Label>
-          <Textarea value={form.scope_of_work} onChange={e => setForm({ ...form, scope_of_work: e.target.value })} rows={3} />
-        </div>
-        )}
-
-        {/* Fee + Deadlines */}
-        {!isTeamLead && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <Label>Fee {selectedClient ? `(${selectedClient.billing_currency})` : ''}</Label>
-            <Input type="number" value={form.fee} onChange={e => setForm({ ...form, fee: e.target.value })} />
-          </div>
-          <div>
-            <Label>Client Deadline</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !form.client_deadline && 'text-muted-foreground')}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {form.client_deadline ? formatDate(form.client_deadline) : 'Pick date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={form.client_deadline} onSelect={d => setForm({ ...form, client_deadline: d })} className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div>
-            <Label>Internal Deadline</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !form.internal_deadline && 'text-muted-foreground')}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {form.internal_deadline ? formatDate(form.internal_deadline) : 'Pick date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={form.internal_deadline} onSelect={d => setForm({ ...form, internal_deadline: d })} className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-        )}
-
+        {/* Team lead edit view — minimal fields */}
         {isTeamLead && isEdit && (
-          <div>
-            <Label>Internal Deadline</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !form.internal_deadline && 'text-muted-foreground')}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {form.internal_deadline ? formatDate(form.internal_deadline) : 'Pick date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={form.internal_deadline} onSelect={d => setForm({ ...form, internal_deadline: d })} className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
-
-        {/* Lead combobox */}
-        {!isTeamLead && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <Label>Project Lead</Label>
-            <Popover open={leadOpen} onOpenChange={setLeadOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={leadOpen} className="w-full justify-between font-normal">
-                  {employees?.find(e => e.id === form.project_lead_id)?.full_name || 'Select lead…'}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                <Command shouldFilter={false}>
-                  <CommandInput placeholder="Search by name or code…" value={leadSearch} onValueChange={setLeadSearch} />
-                  <CommandList>
-                    <CommandEmpty>No employees found.</CommandEmpty>
-                    <CommandGroup>
-                      {filteredLeadEmployees.map(e => (
-                        <CommandItem key={e.id} value={e.id} onSelect={() => { setForm({ ...form, project_lead_id: e.id }); setLeadOpen(false); setLeadSearch(''); }}>
-                          <Check className={cn('mr-2 h-4 w-4', form.project_lead_id === e.id ? 'opacity-100' : 'opacity-0')} />
-                          {e.full_name} {e.employee_code ? `(${e.employee_code})` : ''}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-        )}
-
-        {/* Team Members - searchable multi-select */}
-        <div>
-          <Label>Team Members / Resources <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
-          <Popover open={teamOpen} onOpenChange={setTeamOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-2">
-                Search and select team members…
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom" avoidCollisions={false}>
-              <Command shouldFilter={false}>
-                <CommandInput placeholder="Search by name or code…" value={teamSearch} onValueChange={setTeamSearch} />
-                <CommandList>
-                  <CommandEmpty>No employees found.</CommandEmpty>
-                  <CommandGroup>
-                    {filteredTeamEmployees.map(e => (
-                      <CommandItem key={e.id} value={e.id} onSelect={() => toggleTeamMember(e.id)}>
-                        <Check className={cn('mr-2 h-4 w-4', teamMembers.includes(e.id) ? 'opacity-100' : 'opacity-0')} />
-                        {e.full_name} {e.employee_code ? `(${e.employee_code})` : ''}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          {/* Selected members - collapsed summary + expandable list */}
-          {teamMembers.length > 0 && (() => {
-            const members = teamMembers.map(id => {
-              const emp = employees?.find(e => e.id === id);
-              const name = emp?.full_name || 'Unknown';
-              const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-              return { id, emp, name, initials };
-            });
-            const visible = members.slice(0, 8);
-            const extra = members.length - visible.length;
-            return (
-              <div className="mt-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-dm-sans font-medium text-[13px] text-[#120E36]">
-                    {members.length} team member{members.length === 1 ? '' : 's'} selected
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setTeamExpanded(v => !v)}
-                    className="font-dm-sans font-medium text-[12px] text-[#5B3FF8] hover:underline"
-                  >
-                    {teamExpanded ? 'Hide' : 'Show all'}
-                  </button>
-                </div>
-
-                {!teamExpanded ? (
-                  <div className="flex items-center h-9 mt-1.5">
-                    {visible.map(m => (
-                      <div
-                        key={m.id}
-                        title={m.name}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary border-[1.5px] border-white -ml-[10px] first:ml-0"
-                      >
-                        {m.initials}
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <Label>Internal Deadline</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !form.internal_deadline && 'text-muted-foreground')}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {form.internal_deadline ? formatDate(form.internal_deadline) : 'Pick date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={form.internal_deadline} onSelect={d => setForm({ ...form, internal_deadline: d })} className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Team Members / Resources <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+                <Popover open={teamOpen} onOpenChange={setTeamOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-0">
+                      Search and select team members…
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom" avoidCollisions={false}>
+                    <Command shouldFilter={false}>
+                      <CommandInput placeholder="Search by name or code…" value={teamSearch} onValueChange={setTeamSearch} />
+                      <CommandList>
+                        <CommandEmpty>No employees found.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredTeamEmployees.map(e => (
+                            <CommandItem key={e.id} value={e.id} onSelect={() => toggleTeamMember(e.id)}>
+                              <Check className={cn('mr-2 h-4 w-4', teamMembers.includes(e.id) ? 'opacity-100' : 'opacity-0')} />
+                              {e.full_name} {e.employee_code ? `(${e.employee_code})` : ''}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {teamMembers.length > 0 && (() => {
+                  const members = teamMembers.map(id => {
+                    const emp = employees?.find(e => e.id === id);
+                    const name = emp?.full_name || 'Unknown';
+                    const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                    return { id, emp, name, initials };
+                  });
+                  const visible = members.slice(0, 8);
+                  const extra = members.length - visible.length;
+                  return (
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-dm-sans font-medium text-[13px] text-[#120E36]">{members.length} team member{members.length === 1 ? '' : 's'} selected</span>
+                        <button type="button" onClick={() => setTeamExpanded(v => !v)} className="font-dm-sans font-medium text-[12px] text-[#5B3FF8] hover:underline">{teamExpanded ? 'Hide' : 'Show all'}</button>
                       </div>
-                    ))}
-                    {extra > 0 && (
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F6F5FF] text-[10px] font-medium text-[#4B4468] border-[1.5px] border-white -ml-[10px]">
-                        +{extra}
+                      {!teamExpanded ? (
+                        <div className="flex items-center h-9 mt-1.5">
+                          {visible.map(m => (<div key={m.id} title={m.name} className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary border-[1.5px] border-white -ml-[10px] first:ml-0">{m.initials}</div>))}
+                          {extra > 0 && <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F6F5FF] text-[10px] font-medium text-[#4B4468] border-[1.5px] border-white -ml-[10px]">+{extra}</div>}
+                        </div>
+                      ) : (
+                        <div className="mt-2 space-y-1.5">
+                          {members.map(m => (
+                            <div key={m.id} className="flex items-center justify-between rounded-md border bg-muted/50 px-3 py-2">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">{m.initials}</div>
+                                <div><p className="text-sm font-medium text-foreground">{m.name}</p>{m.emp?.employee_code && <p className="text-xs text-muted-foreground">{m.emp.employee_code}</p>}</div>
+                              </div>
+                              <button type="button" onClick={() => removeTeamMember(m.id)} className="rounded-full p-1 hover:bg-muted"><X className="h-4 w-4 text-muted-foreground" /></button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+            <div>
+              <Label>Instructions</Label>
+              <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={4} />
+            </div>
+          </div>
+        )}
+
+        {/* Manager/CEO full form */}
+        {!isTeamLead && (
+          <div className="space-y-6">
+            {/* Row 1: Code + Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <Label>Project Code *</Label>
+                <Input value={form.project_code} onChange={e => setForm({ ...form, project_code: e.target.value })} placeholder="e.g. 915NY" />
+                {errors.project_code && <p className="text-sm text-destructive mt-1">{errors.project_code}</p>}
+              </div>
+              <div>
+                <Label>Project Name *</Label>
+                <Input value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} />
+                {errors.project_name && <p className="text-sm text-destructive mt-1">{errors.project_name}</p>}
+              </div>
+            </div>
+
+            {/* Row 2: Client + Sub-Series */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <Label>Client *</Label>
+                <Popover open={clientOpen} onOpenChange={setClientOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={clientOpen} className="w-full justify-between font-normal">
+                      {selectedClient?.name || 'Select client…'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command shouldFilter={false}>
+                      <CommandInput placeholder="Search clients…" value={clientSearch} onValueChange={setClientSearch} />
+                      <CommandList>
+                        <CommandEmpty>No clients found.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredClients.map(c => (
+                            <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id, sub_series: '' }); setClientOpen(false); setClientSearch(''); }}>
+                              <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
+                              {c.name}
+                            </CommandItem>
+                          ))}
+                          <CommandItem value="__add_new_client__" onSelect={() => { setClientOpen(false); setClientSearch(''); setNewClientOpen(true); }} className="border-t mt-1 text-[#5B3FF8] font-medium">
+                            <Plus className="mr-2 h-4 w-4" /> Add New Client
+                          </CommandItem>
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
+              </div>
+              <div>
+                <Label>Sub-Series</Label>
+                {form.client_id ? (
+                  <>
+                    <Select value={form.sub_series || '__none__'} onValueChange={v => { if (v === '__add_new__') { setAddingSubSeries(true); setNewSubSeries(''); return; } setForm({ ...form, sub_series: v === '__none__' ? '' : v }); }}>
+                      <SelectTrigger><SelectValue placeholder="Select sub-series" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">— None —</SelectItem>
+                        {(selectedClient?.sub_series ?? []).map((s: string) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+                        <SelectItem value="__add_new__" className="text-[#5B3FF8] font-medium">+ Add New Sub-Series</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {addingSubSeries && (
+                      <div className="mt-2 flex gap-2">
+                        <Input autoFocus value={newSubSeries} onChange={e => setNewSubSeries(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('add-sub-series-btn')?.click(); } }} placeholder="New sub-series name" />
+                        <Button id="add-sub-series-btn" type="button" onClick={async () => {
+                          const v = newSubSeries.trim();
+                          if (!v || !form.client_id) return;
+                          const current = selectedClient?.sub_series ?? [];
+                          if (current.includes(v)) { setForm({ ...form, sub_series: v }); setAddingSubSeries(false); return; }
+                          const next = [...current, v];
+                          const { error } = await supabase.from('clients').update({ sub_series: next }).eq('id', form.client_id);
+                          if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+                          await qc.invalidateQueries({ queryKey: ['clients-lookup'] });
+                          setForm({ ...form, sub_series: v });
+                          setAddingSubSeries(false);
+                          setNewSubSeries('');
+                        }}>Add</Button>
+                        <Button type="button" variant="outline" onClick={() => { setAddingSubSeries(false); setNewSubSeries(''); }}>Cancel</Button>
                       </div>
                     )}
-                  </div>
+                  </>
                 ) : (
-                  <div className="mt-2 space-y-1.5">
-                    {members.map(m => (
-                      <div key={m.id} className="flex items-center justify-between rounded-md border bg-muted/50 px-3 py-2">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                            {m.initials}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{m.name}</p>
-                            {m.emp?.employee_code && (
-                              <p className="text-xs text-muted-foreground">{m.emp.employee_code}</p>
-                            )}
-                          </div>
-                        </div>
-                        <button type="button" onClick={() => removeTeamMember(m.id)} className="rounded-full p-1 hover:bg-muted">
-                          <X className="h-4 w-4 text-muted-foreground" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  <Input disabled placeholder="Select a client first" className="text-muted-foreground" />
                 )}
               </div>
-            );
-          })()}
-        </div>
+            </div>
 
-        {/* Notes */}
-        <div>
-          <Label>Instructions</Label>
-          <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
-        </div>
+            {/* Row 3: Location + Category */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <Label>Location</Label>
+                <Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. New York, NY" />
+              </div>
+              <div>
+                <Label>Category</Label>
+                <Select value={form.category_id || '__none__'} onValueChange={v => setForm({ ...form, category_id: v === '__none__' ? '' : v })}>
+                  <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— None —</SelectItem>
+                    {(categories ?? []).map((c: any) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Row 4: Fee + Client Deadline + Internal Deadline */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div>
+                <Label>Fee {selectedClient ? `(${selectedClient.billing_currency})` : ''}</Label>
+                <Input type="number" value={form.fee} onChange={e => setForm({ ...form, fee: e.target.value })} />
+              </div>
+              <div>
+                <Label>Client Deadline</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !form.client_deadline && 'text-muted-foreground')}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {form.client_deadline ? formatDate(form.client_deadline) : 'Pick date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={form.client_deadline} onSelect={d => setForm({ ...form, client_deadline: d })} className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Internal Deadline</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !form.internal_deadline && 'text-muted-foreground')}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {form.internal_deadline ? formatDate(form.internal_deadline) : 'Pick date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={form.internal_deadline} onSelect={d => setForm({ ...form, internal_deadline: d })} className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {/* Row 5: Project Lead + Team Members */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <Label>Project Lead</Label>
+                <Popover open={leadOpen} onOpenChange={setLeadOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={leadOpen} className="w-full justify-between font-normal">
+                      {employees?.find(e => e.id === form.project_lead_id)?.full_name || 'Select lead…'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command shouldFilter={false}>
+                      <CommandInput placeholder="Search by name or code…" value={leadSearch} onValueChange={setLeadSearch} />
+                      <CommandList>
+                        <CommandEmpty>No employees found.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredLeadEmployees.map(e => (
+                            <CommandItem key={e.id} value={e.id} onSelect={() => { setForm({ ...form, project_lead_id: e.id }); setLeadOpen(false); setLeadSearch(''); }}>
+                              <Check className={cn('mr-2 h-4 w-4', form.project_lead_id === e.id ? 'opacity-100' : 'opacity-0')} />
+                              {e.full_name} {e.employee_code ? `(${e.employee_code})` : ''}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Team Members / Resources <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+                <Popover open={teamOpen} onOpenChange={setTeamOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                      Search and select team members…
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom" avoidCollisions={false}>
+                    <Command shouldFilter={false}>
+                      <CommandInput placeholder="Search by name or code…" value={teamSearch} onValueChange={setTeamSearch} />
+                      <CommandList>
+                        <CommandEmpty>No employees found.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredTeamEmployees.map(e => (
+                            <CommandItem key={e.id} value={e.id} onSelect={() => toggleTeamMember(e.id)}>
+                              <Check className={cn('mr-2 h-4 w-4', teamMembers.includes(e.id) ? 'opacity-100' : 'opacity-0')} />
+                              {e.full_name} {e.employee_code ? `(${e.employee_code})` : ''}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {teamMembers.length > 0 && (() => {
+                  const members = teamMembers.map(mid => {
+                    const emp = employees?.find(e => e.id === mid);
+                    const name = emp?.full_name || 'Unknown';
+                    const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                    return { id: mid, emp, name, initials };
+                  });
+                  const visible = members.slice(0, 8);
+                  const extra = members.length - visible.length;
+                  return (
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-dm-sans font-medium text-[13px] text-[#120E36]">{members.length} team member{members.length === 1 ? '' : 's'} selected</span>
+                        <button type="button" onClick={() => setTeamExpanded(v => !v)} className="font-dm-sans font-medium text-[12px] text-[#5B3FF8] hover:underline">{teamExpanded ? 'Hide' : 'Show all'}</button>
+                      </div>
+                      {!teamExpanded ? (
+                        <div className="flex items-center h-9 mt-1.5">
+                          {visible.map(m => (<div key={m.id} title={m.name} className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary border-[1.5px] border-white -ml-[10px] first:ml-0">{m.initials}</div>))}
+                          {extra > 0 && <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F6F5FF] text-[10px] font-medium text-[#4B4468] border-[1.5px] border-white -ml-[10px]">+{extra}</div>}
+                        </div>
+                      ) : (
+                        <div className="mt-2 space-y-1.5">
+                          {members.map(m => (
+                            <div key={m.id} className="flex items-center justify-between rounded-md border bg-muted/50 px-3 py-2">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">{m.initials}</div>
+                                <div><p className="text-sm font-medium text-foreground">{m.name}</p>{m.emp?.employee_code && <p className="text-xs text-muted-foreground">{m.emp.employee_code}</p>}</div>
+                              </div>
+                              <button type="button" onClick={() => removeTeamMember(m.id)} className="rounded-full p-1 hover:bg-muted"><X className="h-4 w-4 text-muted-foreground" /></button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Row 6: Scope + Instructions side by side */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <Label>Scope of Work</Label>
+                <Textarea value={form.scope_of_work} onChange={e => setForm({ ...form, scope_of_work: e.target.value })} rows={4} />
+              </div>
+              <div>
+                <Label>Instructions</Label>
+                <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={4} />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex justify-end gap-3 pt-2 border-t">
           <Button variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
           <Button onClick={handleSave} disabled={saveMutation.isPending}>
             {saveMutation.isPending ? 'Saving…' : isEdit ? 'Update Project' : 'Create Project'}
           </Button>
         </div>
       </div>
-
-      {companyId && (
-        <NewClientModal
-          open={newClientOpen}
-          onOpenChange={setNewClientOpen}
-          companyId={companyId}
-          onCreated={(id) => setForm(f => ({ ...f, client_id: id, sub_series: '' }))}
-        />
-      )}
     </div>
   );
 };
