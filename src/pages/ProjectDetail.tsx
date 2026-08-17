@@ -215,20 +215,25 @@ const ProjectDetail = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        {/* Left: back + title */}
         <div className="flex items-start gap-3 min-w-0">
-          <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate('/projects')}>
+          <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" onClick={() => navigate('/projects')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold text-foreground break-words">{project.project_name}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
+            <h1 className="text-2xl font-semibold text-foreground break-words leading-tight">{project.project_name}</h1>
+            <div className="flex items-center gap-2 mt-1">
               <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>
-              {project.priority && <Badge className={cn(priorityColors[project.priority] || '', 'text-xs')}>{fmt(project.priority)}</Badge>}
+              {project.priority && (
+                <Badge className={cn(priorityColors[project.priority] || '', 'text-xs')}>{fmt(project.priority)}</Badge>
+              )}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+
+        {/* Right: actions */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0 pl-10 sm:pl-0">
           {/* Status selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild disabled={statusMutation.isPending}>
@@ -238,10 +243,7 @@ const ProjectDetail = () => {
                   'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50',
                   statusColors[project.status] || ''
                 )}
-                style={{
-                  border: `2px solid currentColor`,
-                  opacity: statusMutation.isPending ? 0.6 : 1,
-                }}
+                style={{ border: '2px solid currentColor', opacity: statusMutation.isPending ? 0.6 : 1 }}
               >
                 {fmt(project.status)}
                 <ChevronDown className="h-3.5 w-3.5 opacity-70" />
@@ -265,14 +267,14 @@ const ProjectDetail = () => {
             </Button>
           )}
           {canEditDetails && (
-            <>
-              <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
-                <Pencil className="h-4 w-4 mr-2" /> Edit
-              </Button>
-              <Button variant="outline" onClick={() => setDeactivateOpen(true)}>
-                <XCircle className="h-4 w-4 mr-2" /> Deactivate
-              </Button>
-            </>
+            <Button variant="outline" onClick={() => navigate(`/projects/${id}/edit`)}>
+              <Pencil className="h-4 w-4 mr-2" /> Edit
+            </Button>
+          )}
+          {canEditDetails && (
+            <Button variant="outline" onClick={() => setDeactivateOpen(true)}>
+              <XCircle className="h-4 w-4 mr-2" /> Deactivate
+            </Button>
           )}
           {isCeo && (
             <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
