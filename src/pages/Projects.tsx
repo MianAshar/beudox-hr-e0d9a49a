@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import {
   Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight, Trash2,
-  Pencil, FileText, Users, ListChecks, History, ChevronsDownUp, ChevronsUpDown, ArrowUpDown, Play,
+  Pencil, FileText, Users, ListChecks, History, ArrowUpDown, Play,
   AlertTriangle,
 } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
@@ -210,7 +210,7 @@ const Projects = () => {
   const [manageTeamProject, setManageTeamProject] = useState<any>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<string>('internal_deadline');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get('tab');
@@ -428,7 +428,7 @@ const Projects = () => {
     };
     const acc = accessors[sortBy];
     if (!acc) return filtered;
-    const mul = sortDir === 'asc' ? 1 : -1;
+    const mul = 1;
     return [...filtered].sort((a, b) => {
       const va = acc(a); const vb = acc(b);
       const aNil = va === null || va === undefined || va === '';
@@ -439,7 +439,7 @@ const Projects = () => {
       if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * mul;
       return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * mul;
     });
-  }, [filtered, sortBy, sortDir, isPureEmployee]);
+  }, [filtered, sortBy, isPureEmployee]);
 
   const activeFiltered = sortedFiltered.filter((p: any) => !isArchived(p));
   const archivedFiltered = sortedFiltered.filter((p: any) => isArchived(p));
@@ -508,30 +508,6 @@ const Projects = () => {
               <SelectItem value="internal_deadline">Internal Deadline</SelectItem>
             </SelectContent>
           </Select>
-          {sortBy !== 'default' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-              aria-label={`Sort ${sortDir === 'asc' ? 'ascending' : 'descending'}`}
-              title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
-            >
-              {sortDir === 'asc' ? <ChevronsUpDown className="h-4 w-4" /> : <ChevronsDownUp className="h-4 w-4" />}
-              <span className="ml-1.5 text-xs">{sortDir === 'asc' ? 'Asc' : 'Desc'}</span>
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleAll}
-            disabled={items.length === 0}
-          >
-            {allExpanded ? (
-              <><ChevronsDownUp className="h-4 w-4 mr-2" /> Collapse All</>
-            ) : (
-              <><ChevronsUpDown className="h-4 w-4 mr-2" /> Expand All</>
-            )}
-          </Button>
         </div>
         {isManager && opts.showAdd && (
           <Button onClick={() => navigate('/projects/new')}>
