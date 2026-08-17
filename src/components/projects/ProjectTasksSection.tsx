@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO, isBefore, startOfDay } from 'date-fns';
-import { CalendarIcon, Plus, Trash2, Loader2 } from 'lucide-react';
+import { CalendarIcon, Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,6 +65,10 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
   const [newAssignee, setNewAssignee] = useState('');
   const [newDeadline, setNewDeadline] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [editingTask, setEditingTask] = useState<any>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editAssignee, setEditAssignee] = useState('');
+  const [editDeadline, setEditDeadline] = useState<string | null>(null);
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['project-tasks', projectId],
