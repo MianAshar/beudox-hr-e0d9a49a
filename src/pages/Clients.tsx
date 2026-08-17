@@ -114,6 +114,9 @@ const Clients = () => {
     return map;
   }, [clients, projects, showActivity]);
 
+  const activeClients = (clients ?? []).filter(c => c.is_active !== false);
+  const pastClients = (clients ?? []).filter(c => c.is_active === false);
+
   // Activity counts for summary cards (only active clients counted)
   const activityCounts = useMemo(() => {
     const counts: Record<ActivityCategory, number> = {
