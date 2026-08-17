@@ -80,6 +80,7 @@ const ProjectDetail = () => {
     },
     enabled: !!id && !!companyId,
   });
+  const isArchived = project ? (project.status === 'submitted' || project.status === 'cancelled') : false;
 
   const { data: teamMembers } = useQuery({
     queryKey: ['project-team', id],
