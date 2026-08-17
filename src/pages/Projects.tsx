@@ -443,14 +443,9 @@ const Projects = () => {
     });
   }, [filtered, sortBy, sortDir, isPureEmployee]);
 
-  const allExpanded = filtered.length > 0 && filtered.every((p: any) => expandedIds.has(p.id));
-  const toggleAll = () => {
-    if (allExpanded) {
-      setExpandedIds(new Set());
-    } else {
-      setExpandedIds(new Set(filtered.map((p: any) => p.id)));
-    }
-  };
+  const activeFiltered = sortedFiltered.filter((p: any) => !isArchived(p));
+  const archivedFiltered = sortedFiltered.filter((p: any) => isArchived(p));
+
   const toggleOne = (id: string) => {
     setExpandedIds(prev => {
       const next = new Set(prev);
@@ -460,8 +455,18 @@ const Projects = () => {
   };
 
   const isCEO = roles.includes('ceo');
+  const tabTriggerClass = 'rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0';
 
-  const listContent = (
+  const renderProjectList = (items: any[], opts: { showAdd: boolean; past?: boolean }) => {
+    const allExpanded = items.length > 0 && items.every((p: any) => expandedIds.has(p.id));
+    const toggleAll = () => {
+      if (allExpanded) {
+        setExpandedIds(new Set());
+      } else {
+        setExpandedIds(new Set(items.map((p: any) => p.id)));
+      }
+    };
+    return (
     <>
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
@@ -475,7 +480,7 @@ const Projects = () => {
               <SelectTrigger className="w-[140px] sm:w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                {STATUS_OPTIONS.map(s => (
+                {(opts.past ? ['submitted', 'cancelled'] : STATUS_OPTIONS).map(s => (
                   <SelectItem key={s} value={s}>{fmt(s)}</SelectItem>
                 ))}
               </SelectContent>
@@ -489,10 +494,6 @@ const Projects = () => {
                 </SelectContent>
               </Select>
             )}
-            <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
-              <Switch id="show-inactive-projects" checked={showInactive} onCheckedChange={setShowInactive} />
-              <Label htmlFor="show-inactive-projects" className="text-sm text-muted-foreground cursor-pointer">Show inactive</Label>
-            </div>
           </>
         )}
         <div className="flex items-center gap-2 ml-auto">
@@ -525,7 +526,7 @@ const Projects = () => {
             variant="outline"
             size="sm"
             onClick={toggleAll}
-            disabled={filtered.length === 0}
+            disabled={items.length === 0}
           >
             {allExpanded ? (
               <><ChevronsDownUp className="h-4 w-4 mr-2" /> Collapse All</>
@@ -534,7 +535,7 @@ const Projects = () => {
             )}
           </Button>
         </div>
-        {isManager && (
+        {isManager && opts.showAdd && (
           <Button onClick={() => navigate('/projects/new')}>
             <Plus className="h-4 w-4 mr-2" /> Add Project
           </Button>
@@ -546,10 +547,17 @@ const Projects = () => {
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <FolderKanban className="h-12 w-12 mb-4 opacity-40" />
-          <p className="text-lg font-medium">{search || statusFilter !== 'all' ? 'No matching projects' : 'No projects yet'}</p>
+          {opts.past ? (
+            <>
+              <p className="text-lg font-medium">No past projects</p>
+              <p className="text-sm mt-1">Projects with Submitted or Cancelled status will appear here.</p>
+            </>
+          ) : (
+            <p className="text-lg font-medium">{search || statusFilter !== 'all' ? 'No matching projects' : 'No projects yet'}</p>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
@@ -565,7 +573,7 @@ const Projects = () => {
             <div className="w-10 shrink-0" />
           </div>
 
-          {sortedFiltered.map((p: any) => {
+          {items.map((p: any) => {
             const isDueToday = p.internal_deadline === todayIso;
             const isCollapsed = !expandedIds.has(p.id);
             const team = teamByProject.get(p.id) ?? [];
@@ -603,7 +611,15 @@ const Projects = () => {
           })}
         </div>
       )}
+    </>
+    );
+  };
 
+  const listContent = renderProjectList(activeFiltered, { showAdd: true });
+  const pastContent = renderProjectList(archivedFiltered, { showAdd: false, past: true });
+
+  const sharedDialogs = (
+    <>
       {/* Delete Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={v => { if (!v) { setDeleteTarget(null); setDeleteConfirmText(''); } }}>
         <DialogContent>
@@ -638,7 +654,6 @@ const Projects = () => {
         </DialogContent>
       </Dialog>
 
-
       {/* Manage Team Modal */}
       {manageTeamProject && companyId && employeeId && (
         <ManageTeamModal
@@ -661,29 +676,49 @@ const Projects = () => {
             className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
             style={{ borderColor: 'hsl(var(--border))' }}
           >
-            <TabsTrigger
-              value="summary"
-              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
-              style={{ fontFamily: 'var(--ff-body)' }}
-            >
+            <TabsTrigger value="summary" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
               Summary
             </TabsTrigger>
-            <TabsTrigger
-              value="list"
-              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
-              style={{ fontFamily: 'var(--ff-body)' }}
-            >
-              All Projects ({sortedFiltered.length})
+            <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+              All Projects ({activeFiltered.length})
+            </TabsTrigger>
+            <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+              Past Projects ({archivedFiltered.length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="summary" className="mt-6"><ProjectsSummary /></TabsContent>
           <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
+          <TabsContent value="past" className="space-y-6 mt-6">{pastContent}</TabsContent>
         </Tabs>
+        {sharedDialogs}
       </div>
     );
   }
 
-  return <div className="p-4 lg:p-6 space-y-6">{listContent}</div>;
+  if (isManager) {
+    return (
+      <div className="p-4 lg:p-6 space-y-6">
+        <Tabs value={activeTab === 'past' ? 'past' : 'list'} onValueChange={setActiveTab} className="w-full">
+          <TabsList
+            className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
+            style={{ borderColor: 'hsl(var(--border))' }}
+          >
+            <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+              All Projects ({activeFiltered.length})
+            </TabsTrigger>
+            <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+              Past Projects ({archivedFiltered.length})
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
+          <TabsContent value="past" className="space-y-6 mt-6">{pastContent}</TabsContent>
+        </Tabs>
+        {sharedDialogs}
+      </div>
+    );
+  }
+
+  return <div className="p-4 lg:p-6 space-y-6">{listContent}{sharedDialogs}</div>;
 };
 
 interface ProjectCardProps {
