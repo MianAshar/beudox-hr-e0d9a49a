@@ -278,6 +278,64 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
         </ul>
       )}
 
+      {editingTask && (
+        <div className="border border-primary/30 rounded-md p-3 bg-card space-y-3">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Editing task</p>
+          <Input
+            autoFocus
+            placeholder="Task title"
+            value={editTitle}
+            onChange={e => setEditTitle(e.target.value)}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <SearchableEmployeeSelect
+              employees={teamMembers}
+              value={editAssignee}
+              onValueChange={setEditAssignee}
+              placeholder="Assign to (optional)"
+            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn('justify-start font-normal', !editDeadline && 'text-muted-foreground')}
+                >
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  {editDeadline ? format(parseISO(editDeadline), 'PPP') : 'Deadline (optional)'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={editDeadline ? parseISO(editDeadline) : undefined}
+                  onSelect={d => setEditDeadline(d ? toIso(d) : null)}
+                  initialFocus
+                  className={cn('p-3 pointer-events-auto')}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingTask(null)}
+              disabled={editMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => editMutation.mutate()}
+              disabled={!editTitle.trim() || editMutation.isPending}
+            >
+              {editMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {canManage && !adding && (
         <Button
           variant="ghost"
