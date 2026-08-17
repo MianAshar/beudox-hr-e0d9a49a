@@ -98,13 +98,25 @@ const ProjectForm = () => {
   // Eligible employees for Lead/Resources: estimation team only.
   // Exclude roles ceo/hr_manager/finance_manager, exclude director employment_type,
   // exclude Admin/Director departments.
-  const eligibleEmployees = useMemo(() => {
+  // Project Lead: active team_leads only
+  const eligibleLeads = useMemo(() => {
     if (!employees) return [];
     return employees.filter((e: any) => {
       const roleNames: string[] = (e.employee_roles ?? [])
         .map((er: any) => er?.roles?.name)
         .filter(Boolean);
       return roleNames.includes('team_lead');
+    });
+  }, [employees]);
+
+  // Team Members: active employees with employee role
+  const eligibleTeamMembers = useMemo(() => {
+    if (!employees) return [];
+    return employees.filter((e: any) => {
+      const roleNames: string[] = (e.employee_roles ?? [])
+        .map((er: any) => er?.roles?.name)
+        .filter(Boolean);
+      return roleNames.includes('employee');
     });
   }, [employees]);
 
