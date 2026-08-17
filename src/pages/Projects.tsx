@@ -215,7 +215,7 @@ const Projects = () => {
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get('tab');
     const validTabs = ['summary', 'list', 'past'];
-    return (tab && validTabs.includes(tab)) ? tab : 'summary';
+    return (tab && validTabs.includes(tab)) ? tab : 'list';
   });
 
   const { data: projects, isLoading } = useQuery({
