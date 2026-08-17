@@ -220,9 +220,6 @@ const ProjectDetail = () => {
             <h1 className="text-2xl font-semibold text-foreground break-words leading-tight">{project.project_name}</h1>
             <div className="flex items-center gap-2 mt-1">
               <p className="text-sm text-muted-foreground font-mono">{project.project_code}</p>
-              {project.priority && (
-                <Badge className={cn(priorityColors[project.priority] || '', 'text-xs')}>{fmt(project.priority)}</Badge>
-              )}
             </div>
           </div>
         </div>
