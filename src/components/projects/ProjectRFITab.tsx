@@ -469,7 +469,7 @@ export const ProjectRFITab = ({
           {resolvedRFIs.map(rfi => {
             const isExpanded = expandedRFIs.has(rfi.id);
             return (
-              <div key={rfi.id} className="rounded-lg border bg-muted/30 overflow-hidden">
+              <div key={rfi.id} className="rounded-lg border bg-card overflow-hidden">
                 <button
                   type="button"
                   className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
