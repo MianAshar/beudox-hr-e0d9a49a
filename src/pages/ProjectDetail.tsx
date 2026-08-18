@@ -114,6 +114,23 @@ const ProjectDetail = () => {
     enabled: !!id,
   });
 
+  const { data: managerEmployees } = useQuery({
+    queryKey: ['manager-ids', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('employees')
+        .select('id, employee_roles(roles(name))')
+        .eq('company_id', companyId!)
+        .eq('status', 'active');
+      return (data ?? []).filter((e: any) =>
+        (e.employee_roles ?? []).some((er: any) =>
+          ['ceo', 'hr_manager'].includes(er?.roles?.name)
+        )
+      ).map((e: any) => e.id) as string[];
+    },
+    enabled: !!companyId,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       // Delete assignments first, then project
