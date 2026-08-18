@@ -68,6 +68,8 @@ const ProjectDetail = () => {
   const [startOpen, setStartOpen] = useState(false);
   const [manageTeamOpen, setManageTeamOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  
   
 
   const { data: project, isLoading } = useQuery({
