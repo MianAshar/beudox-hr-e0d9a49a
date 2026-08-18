@@ -16,7 +16,9 @@ import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
+import { ProjectRFITab } from '@/components/projects/ProjectRFITab';
 import { ManageTeamModal } from '@/components/projects/ManageTeamModal';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ListChecks } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
@@ -45,7 +47,8 @@ const ProjectDetail = () => {
   const canSeeFinancial = isManager;
   const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
   const canManageTeam = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
-  
+  const canManageRFI = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
+
   const canSeeActivity = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const canStartProject = true;
   const canEditStatus = true;
@@ -66,6 +69,8 @@ const ProjectDetail = () => {
   const [startOpen, setStartOpen] = useState(false);
   const [manageTeamOpen, setManageTeamOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  
   
 
   const { data: project, isLoading } = useQuery({
@@ -107,6 +112,23 @@ const ProjectDetail = () => {
       return data;
     },
     enabled: !!id,
+  });
+
+  const { data: managerEmployees } = useQuery({
+    queryKey: ['manager-ids', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('employees')
+        .select('id, employee_roles(roles(name))')
+        .eq('company_id', companyId!)
+        .eq('status', 'active');
+      return (data ?? []).filter((e: any) =>
+        (e.employee_roles ?? []).some((er: any) =>
+          ['ceo', 'hr_manager'].includes(er?.roles?.name)
+        )
+      ).map((e: any) => e.id) as string[];
+    },
+    enabled: !!companyId,
   });
 
   const deleteMutation = useMutation({
@@ -279,140 +301,199 @@ const ProjectDetail = () => {
         </div>
       )}
 
-      {/* Project Info */}
-      <div className="rounded-lg border bg-card p-5">
-        <h2 className="text-base font-semibold text-foreground mb-4">Project Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 text-sm">
-          {canSeeClient && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">Client</span>
-              <span className="inline-flex items-center gap-1.5 flex-wrap">
-                <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
-                  {(project.clients as any)?.name || '—'}
-                </Link>
-                {(project as any).sub_series && (
-                  <span className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '2px 8px' }}>
-                    {(project as any).sub_series}
-                  </span>
-                )}
-              </span>
-            </div>
+      {/* Tab navigation */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="border-b bg-transparent h-auto p-0 w-full justify-start rounded-none gap-0">
+          <TabsTrigger
+            value="overview"
+            className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="tasks"
+            className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+          >
+            Tasks
+          </TabsTrigger>
+          {canManageRFI && (
+            <TabsTrigger
+              value="rfi"
+              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+            >
+              RFI
+            </TabsTrigger>
           )}
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Project Lead</span>
-            <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Location</span>
-            <span className="text-foreground flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              {(project as any).location || <span className="text-muted-foreground">—</span>}
-            </span>
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Internal Deadline</span>
-            <span className="text-foreground font-bold">{formatDate(project.internal_deadline) || '—'}</span>
-          </div>
-          {isCeoOrDirector && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">Client Deadline</span>
-              <span className="text-foreground">{formatDate(project.client_deadline) || '—'}</span>
-            </div>
+          {canSeeActivity && (
+            <TabsTrigger
+              value="activity"
+              className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+            >
+              Activity
+            </TabsTrigger>
           )}
-          {isManager && project.fee != null && project.fee > 0 && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">Fee</span>
-              <span className="text-foreground font-medium">{Number(project.fee).toLocaleString()}</span>
-            </div>
-          )}
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Category</span>
-            <span className="text-foreground">{(project.project_categories as any)?.name || '—'}</span>
-          </div>
-        </div>
-      </div>
+        </TabsList>
 
-      {/* Scope */}
-      {project.scope_of_work && (
-        <div className="rounded-lg border bg-card p-5 space-y-2">
-          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <FileText className="h-4 w-4" /> Scope of Work
-          </h2>
-          <p className="text-sm text-foreground whitespace-pre-wrap">{project.scope_of_work}</p>
-        </div>
-      )}
-
-      {/* Notes */}
-      {project.notes && (
-        <div className="rounded-lg border bg-card p-5 space-y-2">
-          <h2 className="text-base font-semibold text-foreground">Instructions</h2>
-          <p className="text-sm text-foreground whitespace-pre-wrap">{project.notes}</p>
-        </div>
-      )}
-
-      {/* Team */}
-      <div className="rounded-lg border bg-card p-5 space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Users className="h-4 w-4" /> Team Members ({teamMembers?.length || 0})
-          </h2>
-          {canManageTeam && !isArchived && (
-            <Button variant="outline" size="sm" onClick={() => setManageTeamOpen(true)}>
-              <UserCog className="h-4 w-4 mr-2" /> Manage Team
-            </Button>
-          )}
-        </div>
-        {teamMembers && teamMembers.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {teamMembers.map((a: any) => {
-              const emp = a.employees;
-              if (!emp) return null;
-              return (
-                <div key={a.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={emp.avatar_url} />
-                    <AvatarFallback className="text-xs">{initials(emp.full_name || '?')}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{emp.full_name}</p>
-                    {emp.designation && (
-                      <p className="text-xs text-muted-foreground">{emp.designation}</p>
+        {/* Overview tab */}
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          {/* Project Info */}
+          <div className="rounded-lg border bg-card p-5">
+            <h2 className="text-base font-semibold text-foreground mb-4">Project Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 text-sm">
+              {canSeeClient && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Client</span>
+                  <span className="inline-flex items-center gap-1.5 flex-wrap">
+                    <Link to={`/clients/${project.clients?.id}`} className="text-primary hover:underline font-medium">
+                      {(project.clients as any)?.name || '—'}
+                    </Link>
+                    {(project as any).sub_series && (
+                      <span className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '2px 8px' }}>
+                        {(project as any).sub_series}
+                      </span>
                     )}
-                  </div>
+                  </span>
                 </div>
-              );
-            })}
+              )}
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Project Lead</span>
+                <span className="text-foreground">{(project.lead as any)?.full_name || '—'}</span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Location</span>
+                <span className="text-foreground flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  {(project as any).location || <span className="text-muted-foreground">—</span>}
+                </span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Internal Deadline</span>
+                <span className="text-foreground font-bold">{formatDate(project.internal_deadline) || '—'}</span>
+              </div>
+              {isCeoOrDirector && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Client Deadline</span>
+                  <span className="text-foreground">{formatDate(project.client_deadline) || '—'}</span>
+                </div>
+              )}
+              {isManager && project.fee != null && project.fee > 0 && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Fee</span>
+                  <span className="text-foreground font-medium">{Number(project.fee).toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Category</span>
+                <span className="text-foreground">{(project.project_categories as any)?.name || '—'}</span>
+              </div>
+            </div>
           </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">No team members assigned</p>
+
+          {/* Scope */}
+          {project.scope_of_work && (
+            <div className="rounded-lg border bg-card p-5 space-y-2">
+              <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4" /> Scope of Work
+              </h2>
+              <p className="text-sm text-foreground whitespace-pre-wrap">{project.scope_of_work}</p>
+            </div>
+          )}
+
+          {/* Notes */}
+          {project.notes && (
+            <div className="rounded-lg border bg-card p-5 space-y-2">
+              <h2 className="text-base font-semibold text-foreground">Instructions</h2>
+              <p className="text-sm text-foreground whitespace-pre-wrap">{project.notes}</p>
+            </div>
+          )}
+
+          {/* Team */}
+          <div className="rounded-lg border bg-card p-5 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                <Users className="h-4 w-4" /> Team Members ({teamMembers?.length || 0})
+              </h2>
+              {canManageTeam && !isArchived && (
+                <Button variant="outline" size="sm" onClick={() => setManageTeamOpen(true)}>
+                  <UserCog className="h-4 w-4 mr-2" /> Manage Team
+                </Button>
+              )}
+            </div>
+            {teamMembers && teamMembers.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {teamMembers.map((a: any) => {
+                  const emp = a.employees;
+                  if (!emp) return null;
+                  return (
+                    <div key={a.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={emp.avatar_url} />
+                        <AvatarFallback className="text-xs">{initials(emp.full_name || '?')}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{emp.full_name}</p>
+                        {emp.designation && (
+                          <p className="text-xs text-muted-foreground">{emp.designation}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No team members assigned</p>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Tasks tab */}
+        <TabsContent value="tasks" className="mt-6">
+          {companyId && employeeId && (
+            <div className="rounded-lg border bg-card p-5 space-y-3">
+              <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                <ListChecks className="h-4 w-4" /> Tasks
+              </h2>
+              <ProjectTasksSection
+                projectId={id!}
+                companyId={companyId}
+                employeeId={employeeId}
+                teamMembers={(teamMembers ?? []).map((a: any) => ({
+                  id: a.employees?.id,
+                  full_name: a.employees?.full_name,
+                  avatar_url: a.employees?.avatar_url,
+                  designation: a.employees?.designation,
+                })).filter(m => m.id)}
+                canManage={isArchived ? false : canManageTasks}
+              />
+            </div>
+          )}
+        </TabsContent>
+
+        {/* RFI tab */}
+        {canManageRFI && (
+          <TabsContent value="rfi" className="mt-6">
+            {companyId && employeeId && (
+              <ProjectRFITab
+                projectId={id!}
+                companyId={companyId}
+                employeeId={employeeId}
+                canManage={canManageRFI}
+                managerIds={managerEmployees ?? []}
+                projectName={project.project_name}
+              />
+            )}
+          </TabsContent>
         )}
-      </div>
 
-      {/* Tasks */}
-      {companyId && employeeId && (
-        <div className="rounded-lg border bg-card p-5 space-y-3">
-          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <ListChecks className="h-4 w-4" /> Tasks
-          </h2>
-          <ProjectTasksSection
-            projectId={id!}
-            companyId={companyId}
-            employeeId={employeeId}
-            teamMembers={(teamMembers ?? []).map((a: any) => ({
-              id: a.employees?.id,
-              full_name: a.employees?.full_name,
-              avatar_url: a.employees?.avatar_url,
-              designation: a.employees?.designation,
-            })).filter(m => m.id)}
-            canManage={isArchived ? false : canManageTasks}
-          />
-        </div>
-      )}
-
-      {/* Activity Log — managers only */}
-      {canSeeActivity && companyId && (
-        <ProjectActivityLog projectId={id!} companyId={companyId} />
-      )}
+        {/* Activity tab */}
+        {canSeeActivity && (
+          <TabsContent value="activity" className="mt-6">
+            {companyId && (
+              <ProjectActivityLog projectId={id!} companyId={companyId} />
+            )}
+          </TabsContent>
+        )}
+      </Tabs>
 
       {/* Activate Project Confirmation Dialog */}
       <Dialog open={!!pendingStatus} onOpenChange={v => { if (!v) setPendingStatus(null); }}>
