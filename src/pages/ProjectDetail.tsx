@@ -16,7 +16,9 @@ import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
 import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog';
 import { ProjectTasksSection } from '@/components/projects/ProjectTasksSection';
+import { ProjectRFITab } from '@/components/projects/ProjectRFITab';
 import { ManageTeamModal } from '@/components/projects/ManageTeamModal';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ListChecks } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
