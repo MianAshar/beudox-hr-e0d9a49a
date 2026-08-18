@@ -2472,6 +2472,132 @@ export type Database = {
           },
         ]
       }
+      project_rfi_questions: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by: string | null
+          asked_by: string | null
+          company_id: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          question: string
+          rfi_id: string | null
+          status: string
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          asked_by?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          question: string
+          rfi_id?: string | null
+          status?: string
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          asked_by?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          question?: string
+          rfi_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_rfi_questions_answered_by_fkey"
+            columns: ["answered_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_rfi_questions_asked_by_fkey"
+            columns: ["asked_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_rfi_questions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_rfi_questions_rfi_id_fkey"
+            columns: ["rfi_id"]
+            isOneToOne: false
+            referencedRelation: "project_rfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_rfis: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          project_id: string | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          project_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          project_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_rfis_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_rfis_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_rfis_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_tasks: {
         Row: {
           assigned_to: string | null
