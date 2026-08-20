@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -119,6 +119,15 @@ const ProjectForm = () => {
       return roleNames.includes('employee');
     });
   }, [employees]);
+
+  const didPrefillRef = useRef(false);
+  useEffect(() => {
+    if (isEdit) return;
+    if (!eligibleTeamMembers || eligibleTeamMembers.length === 0) return;
+    if (didPrefillRef.current) return;
+    setTeamMembers(eligibleTeamMembers.map((e: any) => e.id));
+    didPrefillRef.current = true;
+  }, [eligibleTeamMembers, isEdit]);
 
   // Fetch existing project for edit
   const { data: existingProject } = useQuery({
@@ -353,7 +362,7 @@ const ProjectForm = () => {
             recipientIds: [form.project_lead_id],
             type: 'project_assigned',
             title: 'New project assigned to you',
-            message: `You have been assigned as Project Lead for ${payload.project_name} (${payload.project_code}). Please review the project and assign team members.`,
+            message: `You have been assigned as Project Lead for ${payload.project_name} (${payload.project_code}). Please review the project and your assigned team.`,
             referenceType: 'project',
             referenceId: newProj.id,
           });
