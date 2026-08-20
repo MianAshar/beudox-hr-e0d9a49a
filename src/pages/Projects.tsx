@@ -598,12 +598,11 @@ const Projects = () => {
             const tc = taskCountByProject.get(p.id);
             const scopeUpdatedAt = p.scope_updated_at;
             const notesUpdatedAt = p.notes_updated_at;
-            const isRecentlyUpdated = (
-              (scopeUpdatedAt && (Date.now() - new Date(scopeUpdatedAt).getTime() < 24 * 60 * 60 * 1000)) ||
-              (notesUpdatedAt && (Date.now() - new Date(notesUpdatedAt).getTime() < 24 * 60 * 60 * 1000))
-            );
+            const scopeRecentlyUpdated = !!(scopeUpdatedAt && (Date.now() - new Date(scopeUpdatedAt).getTime() < 24 * 60 * 60 * 1000));
+            const notesRecentlyUpdated = !!(notesUpdatedAt && (Date.now() - new Date(notesUpdatedAt).getTime() < 24 * 60 * 60 * 1000));
+            const isRecentlyUpdated = scopeRecentlyUpdated || notesRecentlyUpdated;
             const isProjectLead = p.project_lead_id === employeeId;
-            const showScopeAlert = !!(isRecentlyUpdated && (isManager || assignedProjectIds.has(p.id) || isProjectLead));
+            const showScopeAlert = isManager || assignedProjectIds.has(p.id) || isProjectLead;
             return (
               <ProjectCard
                 key={p.id}
@@ -775,6 +774,10 @@ const ProjectCard = ({
   companyId, employeeId, roles, isCeoOrDirector, showScopeAlert,
 }: ProjectCardProps) => {
   const isExpanded = !isCollapsed;
+  const scopeUpdatedAt = p.scope_updated_at;
+  const notesUpdatedAt = p.notes_updated_at;
+  const scopeRecentlyUpdated = !!(scopeUpdatedAt && (Date.now() - new Date(scopeUpdatedAt).getTime() < 24 * 60 * 60 * 1000));
+  const notesRecentlyUpdated = !!(notesUpdatedAt && (Date.now() - new Date(notesUpdatedAt).getTime() < 24 * 60 * 60 * 1000));
   const canManageTasks = ['ceo', 'hr_manager', 'team_lead'].some(r => roles.includes(r));
   return (
     <div
@@ -826,7 +829,7 @@ const ProjectCard = ({
             </button>
             {!p.is_active && <Badge variant="outline" className="text-xs shrink-0">Inactive</Badge>}
           </div>
-          {showScopeAlert && (
+          {scopeRecentlyUpdated && showScopeAlert && (
             <div
               className="flex items-center gap-1.5"
               style={{
@@ -839,7 +842,23 @@ const ProjectCard = ({
               }}
             >
               <AlertTriangle className="h-3 w-3 shrink-0" />
-              <span>Instructions updated — Review required</span>
+              <span>Scope of Work updated</span>
+            </div>
+          )}
+          {notesRecentlyUpdated && showScopeAlert && (
+            <div
+              className="flex items-center gap-1.5"
+              style={{
+                background: '#FEF3C7',
+                color: '#92400E',
+                borderLeft: '3px solid #F5A623',
+                fontSize: 11,
+                padding: '4px 8px',
+                borderRadius: 4,
+              }}
+            >
+              <AlertTriangle className="h-3 w-3 shrink-0" />
+              <span>Instructions updated</span>
             </div>
           )}
         </div>

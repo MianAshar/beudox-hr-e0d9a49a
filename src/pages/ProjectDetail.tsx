@@ -389,23 +389,27 @@ const ProjectDetail = () => {
             </div>
           </div>
 
-          {/* Scope */}
-          {project.scope_of_work && (
+          {/* Scope & Instructions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-lg border bg-card p-5 space-y-2">
               <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
                 <FileText className="h-4 w-4" /> Scope of Work
               </h2>
-              <p className="text-sm text-foreground whitespace-pre-wrap">{project.scope_of_work}</p>
+              {project.scope_of_work
+                ? <p className="text-sm text-foreground whitespace-pre-wrap">{project.scope_of_work}</p>
+                : <p className="text-sm text-muted-foreground">No scope of work added yet.</p>
+              }
             </div>
-          )}
-
-          {/* Notes */}
-          {project.notes && (
             <div className="rounded-lg border bg-card p-5 space-y-2">
-              <h2 className="text-base font-semibold text-foreground">Instructions</h2>
-              <p className="text-sm text-foreground whitespace-pre-wrap">{project.notes}</p>
+              <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4" /> Instructions
+              </h2>
+              {project.notes
+                ? <p className="text-sm text-foreground whitespace-pre-wrap">{project.notes}</p>
+                : <p className="text-sm text-muted-foreground">No instructions added yet.</p>
+              }
             </div>
-          )}
+          </div>
 
           {/* Team */}
           <div className="rounded-lg border bg-card p-5 space-y-4">
