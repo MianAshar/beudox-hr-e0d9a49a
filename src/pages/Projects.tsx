@@ -598,12 +598,11 @@ const Projects = () => {
             const tc = taskCountByProject.get(p.id);
             const scopeUpdatedAt = p.scope_updated_at;
             const notesUpdatedAt = p.notes_updated_at;
-            const isRecentlyUpdated = (
-              (scopeUpdatedAt && (Date.now() - new Date(scopeUpdatedAt).getTime() < 24 * 60 * 60 * 1000)) ||
-              (notesUpdatedAt && (Date.now() - new Date(notesUpdatedAt).getTime() < 24 * 60 * 60 * 1000))
-            );
+            const scopeRecentlyUpdated = !!(scopeUpdatedAt && (Date.now() - new Date(scopeUpdatedAt).getTime() < 24 * 60 * 60 * 1000));
+            const notesRecentlyUpdated = !!(notesUpdatedAt && (Date.now() - new Date(notesUpdatedAt).getTime() < 24 * 60 * 60 * 1000));
+            const isRecentlyUpdated = scopeRecentlyUpdated || notesRecentlyUpdated;
             const isProjectLead = p.project_lead_id === employeeId;
-            const showScopeAlert = !!(isRecentlyUpdated && (isManager || assignedProjectIds.has(p.id) || isProjectLead));
+            const showScopeAlert = isManager || assignedProjectIds.has(p.id) || isProjectLead;
             return (
               <ProjectCard
                 key={p.id}
