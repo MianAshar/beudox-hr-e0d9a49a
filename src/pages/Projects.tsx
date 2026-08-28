@@ -460,11 +460,16 @@ const Projects = () => {
   const monthEnd = new Date(monthStart);
   monthEnd.setMonth(monthEnd.getMonth() + 1);
 
-  const monthFilteredActive = activeFiltered.filter((p: any) => {
-    if (!p.internal_deadline) return true;
-    const d = new Date(p.internal_deadline);
-    return d >= monthStart && d < monthEnd;
-  });
+  const now = new Date();
+  const isPastMonth = new Date(`${listYear}-${listMonth}-01`) < new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const monthFilteredActive = isPastMonth
+    ? activeFiltered.filter((p: any) => {
+        if (!p.internal_deadline) return true;
+        const d = new Date(p.internal_deadline);
+        return d >= monthStart && d < monthEnd;
+      })
+    : activeFiltered;
 
   const monthFilteredArchived = archivedFiltered.filter((p: any) => {
     if (!p.internal_deadline) return true;
@@ -559,6 +564,11 @@ const Projects = () => {
           </Button>
         )}
       </div>
+      {!opts.past && !isPastMonth && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Showing all active projects. Select a past month to filter by internal deadline.
+        </p>
+      )}
 
       {/* Project list */}
       {isLoading ? (
@@ -574,7 +584,11 @@ const Projects = () => {
               <p className="text-sm mt-1">Projects with Submitted or Cancelled status will appear here.</p>
             </>
           ) : (
-            <p className="text-lg font-medium">{search || statusFilter !== 'all' ? 'No matching projects' : 'No projects yet'}</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {isPastMonth
+                ? `No projects with an internal deadline in ${MONTHS.find(m => m.value === listMonth)?.label} ${listYear}.`
+                : 'No active projects found matching your filters.'}
+            </p>
           )}
         </div>
       ) : (
