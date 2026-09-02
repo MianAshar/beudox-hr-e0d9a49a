@@ -835,7 +835,7 @@ const ProjectCard = ({
           <div className="flex items-center gap-2 min-w-0">
             <button
               type="button"
-              className="font-medium text-sm text-foreground hover:underline truncate text-left min-w-0"
+              className="font-medium text-sm text-foreground hover:underline text-left break-words min-w-0"
               onClick={e => { e.stopPropagation(); onOpenDetail(); }}
               title={p.project_name}
             >
