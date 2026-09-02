@@ -679,16 +679,8 @@ const ProjectForm = () => {
                       <CommandList>
                         <CommandEmpty>No employees found.</CommandEmpty>
                         <CommandGroup>
-                          <CommandItem
-                            value="__clear__"
-                            onSelect={() => { setForm({ ...form, project_lead_id: '' }); setLeadOpen(false); setLeadSearch(''); }}
-                            className="text-muted-foreground"
-                          >
-                            <X className="mr-2 h-4 w-4 opacity-50" />
-                            No lead
-                          </CommandItem>
                           {filteredLeadEmployees.map(e => (
-                            <CommandItem key={e.id} value={e.id} onSelect={() => { setForm({ ...form, project_lead_id: e.id }); setLeadOpen(false); setLeadSearch(''); }}>
+                            <CommandItem key={e.id} value={e.id} onSelect={() => { setForm({ ...form, project_lead_id: form.project_lead_id === e.id ? '' : e.id }); setLeadOpen(false); setLeadSearch(''); }}>
                               <Check className={cn('mr-2 h-4 w-4', form.project_lead_id === e.id ? 'opacity-100' : 'opacity-0')} />
                               {e.full_name} {e.employee_code ? `(${e.employee_code})` : ''}
                             </CommandItem>
