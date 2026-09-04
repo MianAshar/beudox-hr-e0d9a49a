@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -69,13 +70,15 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
   const [editTitle, setEditTitle] = useState('');
   const [editAssignee, setEditAssignee] = useState('');
   const [editDeadline, setEditDeadline] = useState<string | null>(null);
+  const [newComplexity, setNewComplexity] = useState<string>('');
+  const [editComplexity, setEditComplexity] = useState<string>('');
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['project-tasks', projectId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_tasks')
-        .select('id, title, deadline, is_completed, completed_at, assigned_to, created_at, assignee:employees!project_tasks_assigned_to_fkey(id, full_name, avatar_url)')
+        .select('id, title, deadline, complexity, is_completed, completed_at, assigned_to, created_at, assignee:employees!project_tasks_assigned_to_fkey(id, full_name, avatar_url)')
         .eq('project_id', projectId)
         .eq('company_id', companyId)
         .order('is_completed', { ascending: true })
@@ -105,12 +108,16 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
     mutationFn: async () => {
       const title = newTitle.trim();
       if (!title) throw new Error('Task title is required');
+      if (!newAssignee) throw new Error('Assignee is required');
+      if (!newDeadline) throw new Error('Deadline is required');
+      if (!newComplexity) throw new Error('Complexity is required');
       const { error } = await supabase.from('project_tasks').insert({
         company_id: companyId,
         project_id: projectId,
         title,
         assigned_to: newAssignee || null,
         deadline: newDeadline || null,
+        complexity: newComplexity,
         created_by: employeeId,
       });
       if (error) throw error;
@@ -120,7 +127,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
       });
     },
     onSuccess: () => {
-      setNewTitle(''); setNewAssignee(''); setNewDeadline(null); setAdding(false);
+      setNewTitle(''); setNewAssignee(''); setNewDeadline(null); setNewComplexity(''); setAdding(false);
       invalidate();
       toast({ title: 'Task added' });
     },
@@ -168,10 +175,14 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
     mutationFn: async () => {
       const title = editTitle.trim();
       if (!title) throw new Error('Task title is required');
+      if (!editAssignee) throw new Error('Assignee is required');
+      if (!editDeadline) throw new Error('Deadline is required');
+      if (!editComplexity) throw new Error('Complexity is required');
       const { error } = await supabase.from('project_tasks').update({
         title,
         assigned_to: editAssignee || null,
         deadline: editDeadline || null,
+        complexity: editComplexity,
       }).eq('id', editingTask.id);
       if (error) throw error;
       // Log what changed
@@ -179,6 +190,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
       if (editingTask.title !== title) changes.push(`title: "${editingTask.title}" → "${title}"`);
       if ((editingTask.assigned_to || '') !== (editAssignee || '')) changes.push('assignee changed');
       if ((editingTask.deadline || '') !== (editDeadline || '')) changes.push('deadline changed');
+      if ((editingTask.complexity || '') !== (editComplexity || '')) changes.push(`complexity: ${editingTask.complexity} → ${editComplexity}`);
       if (changes.length > 0) {
         await logProjectActivity({
           companyId, projectId, employeeId,
@@ -201,6 +213,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
     setEditTitle(t.title);
     setEditAssignee(t.assigned_to || '');
     setEditDeadline(t.deadline || null);
+    setEditComplexity(t.complexity || '');
   };
 
   const today = startOfDay(new Date());
@@ -237,6 +250,16 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
         {t.deadline && (
           <span className={cn('text-xs shrink-0', overdue ? 'text-destructive font-medium' : 'text-muted-foreground')}>
             {format(parseISO(t.deadline), 'MMM d')}
+          </span>
+        )}
+        {t.complexity && (
+          <span className={cn(
+            'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
+            t.complexity === 'easy' && 'bg-green-100 text-green-700',
+            t.complexity === 'medium' && 'bg-amber-100 text-amber-700',
+            t.complexity === 'hard' && 'bg-red-100 text-red-700',
+          )}>
+            {t.complexity.charAt(0).toUpperCase() + t.complexity.slice(1)}
           </span>
         )}
         {canManage && !t.is_completed && (
@@ -287,12 +310,12 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             value={editTitle}
             onChange={e => setEditTitle(e.target.value)}
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <SearchableEmployeeSelect
               employees={teamMembers}
               value={editAssignee}
               onValueChange={setEditAssignee}
-              placeholder="Assign to (optional)"
+              placeholder="Assignee *"
             />
             <Popover>
               <PopoverTrigger asChild>
@@ -302,7 +325,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
                   className={cn('justify-start font-normal', !editDeadline && 'text-muted-foreground')}
                 >
                   <CalendarIcon className="h-4 w-4 mr-2" />
-                  {editDeadline ? format(parseISO(editDeadline), 'PPP') : 'Deadline (optional)'}
+                  {editDeadline ? format(parseISO(editDeadline), 'PPP') : 'Deadline *'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -315,6 +338,16 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
                 />
               </PopoverContent>
             </Popover>
+            <Select value={editComplexity} onValueChange={setEditComplexity}>
+              <SelectTrigger className={cn(!editComplexity && 'text-muted-foreground')}>
+                <SelectValue placeholder="Complexity *" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button
@@ -328,7 +361,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             <Button
               size="sm"
               onClick={() => editMutation.mutate()}
-              disabled={!editTitle.trim() || editMutation.isPending}
+              disabled={!editTitle.trim() || !editAssignee || !editDeadline || !editComplexity || editMutation.isPending}
             >
               {editMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
             </Button>
@@ -355,12 +388,12 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             value={newTitle}
             onChange={e => setNewTitle(e.target.value)}
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <SearchableEmployeeSelect
               employees={teamMembers}
               value={newAssignee}
               onValueChange={setNewAssignee}
-              placeholder="Assign to (optional)"
+              placeholder="Assignee *"
             />
             <Popover>
               <PopoverTrigger asChild>
@@ -370,7 +403,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
                   className={cn('justify-start font-normal', !newDeadline && 'text-muted-foreground')}
                 >
                   <CalendarIcon className="h-4 w-4 mr-2" />
-                  {newDeadline ? format(parseISO(newDeadline), 'PPP') : 'Deadline (optional)'}
+                  {newDeadline ? format(parseISO(newDeadline), 'PPP') : 'Deadline *'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -383,12 +416,22 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
                 />
               </PopoverContent>
             </Popover>
+            <Select value={newComplexity} onValueChange={setNewComplexity}>
+              <SelectTrigger className={cn(!newComplexity && 'text-muted-foreground')}>
+                <SelectValue placeholder="Complexity *" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => { setAdding(false); setNewTitle(''); setNewAssignee(''); setNewDeadline(null); }}
+              onClick={() => { setAdding(false); setNewTitle(''); setNewAssignee(''); setNewDeadline(null); setNewComplexity(''); }}
               disabled={addMutation.isPending}
             >
               Cancel
@@ -396,7 +439,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             <Button
               size="sm"
               onClick={() => addMutation.mutate()}
-              disabled={!newTitle.trim() || addMutation.isPending}
+              disabled={!newTitle.trim() || !newAssignee || !newDeadline || !newComplexity || addMutation.isPending}
             >
               {addMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
             </Button>
