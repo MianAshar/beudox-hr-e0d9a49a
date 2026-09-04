@@ -756,6 +756,7 @@ const InvoiceForm = () => {
                 <thead>
                   <tr className="bg-muted/30">
                     <th className="text-left p-3 font-medium text-muted-foreground">Description</th>
+                    <th className="text-center p-3 font-medium text-muted-foreground w-16">Hrs</th>
                     <th className="text-center p-3 font-medium text-muted-foreground w-16">Qty</th>
                     <th className="text-right p-3 font-medium text-muted-foreground w-28">Unit Price</th>
                     <th className="text-right p-3 font-medium text-muted-foreground w-28">Amount</th>
