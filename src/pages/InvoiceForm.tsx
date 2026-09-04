@@ -21,6 +21,7 @@ interface CustomLineItem {
   description: string;
   quantity: number;
   unit_price: number;
+  hours: number | null;
   project_id: string | null;
 }
 
@@ -40,6 +41,7 @@ const InvoiceForm = () => {
   const [discount, setDiscount] = useState(0);
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [projectFees, setProjectFees] = useState<Record<string, number>>({});
+  const [projectHours, setProjectHours] = useState<Record<string, string>>({});
   const [customItems, setCustomItems] = useState<CustomLineItem[]>([]);
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -230,6 +232,7 @@ const InvoiceForm = () => {
       description: '',
       quantity: 1,
       unit_price: 0,
+      hours: null,
       project_id: null,
     }]);
   };
