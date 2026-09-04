@@ -780,6 +780,7 @@ const InvoiceForm = () => {
                   {customItems.map(item => (
                     <tr key={item.id} className="border-t" style={{ borderColor: 'hsl(var(--border))' }}>
                       <td className="p-3">{item.description}</td>
+                      <td className="p-3 text-center text-muted-foreground">{item.hours ?? '—'}</td>
                       <td className="p-3 text-center">{item.quantity}</td>
                       <td className="p-3 text-right font-mono-bx">{item.unit_price.toLocaleString()}</td>
                       <td className="p-3 text-right font-mono-bx">{(item.quantity * item.unit_price).toLocaleString()}</td>
