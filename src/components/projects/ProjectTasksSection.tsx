@@ -108,12 +108,16 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
     mutationFn: async () => {
       const title = newTitle.trim();
       if (!title) throw new Error('Task title is required');
+      if (!newAssignee) throw new Error('Assignee is required');
+      if (!newDeadline) throw new Error('Deadline is required');
+      if (!newComplexity) throw new Error('Complexity is required');
       const { error } = await supabase.from('project_tasks').insert({
         company_id: companyId,
         project_id: projectId,
         title,
         assigned_to: newAssignee || null,
         deadline: newDeadline || null,
+        complexity: newComplexity,
         created_by: employeeId,
       });
       if (error) throw error;
@@ -123,7 +127,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
       });
     },
     onSuccess: () => {
-      setNewTitle(''); setNewAssignee(''); setNewDeadline(null); setAdding(false);
+      setNewTitle(''); setNewAssignee(''); setNewDeadline(null); setNewComplexity(''); setAdding(false);
       invalidate();
       toast({ title: 'Task added' });
     },
