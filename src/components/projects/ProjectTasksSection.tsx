@@ -213,6 +213,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
     setEditTitle(t.title);
     setEditAssignee(t.assigned_to || '');
     setEditDeadline(t.deadline || null);
+    setEditComplexity(t.complexity || '');
   };
 
   const today = startOfDay(new Date());
