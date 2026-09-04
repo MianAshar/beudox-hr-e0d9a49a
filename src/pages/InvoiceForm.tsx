@@ -344,6 +344,7 @@ const InvoiceForm = () => {
           quantity: 1,
           unit_price: fee,
           amount: fee,
+          hours: projectHours[pid] ? Number(projectHours[pid]) : null,
           display_order: order++,
         });
       }
@@ -357,6 +358,7 @@ const InvoiceForm = () => {
           quantity: item.quantity,
           unit_price: item.unit_price,
           amount: item.quantity * item.unit_price,
+          hours: item.hours ?? null,
           display_order: order++,
         });
       }
