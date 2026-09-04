@@ -2604,6 +2604,7 @@ export type Database = {
           company_id: string
           completed_at: string | null
           completed_by: string | null
+          complexity: string | null
           created_at: string | null
           created_by: string | null
           deadline: string | null
@@ -2619,6 +2620,7 @@ export type Database = {
           company_id: string
           completed_at?: string | null
           completed_by?: string | null
+          complexity?: string | null
           created_at?: string | null
           created_by?: string | null
           deadline?: string | null
@@ -2634,6 +2636,7 @@ export type Database = {
           company_id?: string
           completed_at?: string | null
           completed_by?: string | null
+          complexity?: string | null
           created_at?: string | null
           created_by?: string | null
           deadline?: string | null
