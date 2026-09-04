@@ -169,8 +169,8 @@ Deno.serve(async (req) => {
 
     // Line items table
     y -= 20;
-    const colX = [margin, margin + 250, margin + 310, margin + 390, width - margin];
-    const headers = ['Description', 'Qty', 'Unit Price', 'Amount'];
+    const colX = [margin, margin + 230, margin + 275, margin + 325, margin + 405, width - margin];
+    const headers = ['Description', 'Hrs', 'Qty', 'Unit Price', 'Amount'];
 
     // Table header
     page.drawRectangle({
