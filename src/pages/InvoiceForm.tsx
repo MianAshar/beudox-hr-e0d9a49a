@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Plus, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
+import { cn } from '@/lib/utils';
 
 interface CustomLineItem {
   id: string;
