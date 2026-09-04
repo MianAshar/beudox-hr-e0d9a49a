@@ -770,6 +770,7 @@ const InvoiceForm = () => {
                     return (
                       <tr key={pid} className="border-t" style={{ borderColor: 'hsl(var(--border))' }}>
                         <td className="p-3">{project.project_code} — {project.project_name}</td>
+                        <td className="p-3 text-center text-muted-foreground">{projectHours[pid] || '—'}</td>
                         <td className="p-3 text-center">1</td>
                         <td className="p-3 text-right font-mono-bx">{fee.toLocaleString()}</td>
                         <td className="p-3 text-right font-mono-bx">{fee.toLocaleString()}</td>
