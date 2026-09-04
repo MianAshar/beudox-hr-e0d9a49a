@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Plus, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
+import { cn } from '@/lib/utils';
 
 interface CustomLineItem {
   id: string;
@@ -42,6 +43,10 @@ const InvoiceForm = () => {
   const [customItems, setCustomItems] = useState<CustomLineItem[]>([]);
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [senderType, setSenderType] = useState<'company' | 'personal'>('company');
+  const [senderName, setSenderName] = useState('');
+  const [senderEmail, setSenderEmail] = useState('');
+  const [paymentDetails, setPaymentDetails] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch company for invoice prefix
@@ -166,6 +171,10 @@ const InvoiceForm = () => {
       setDueDate(existingInvoice.due_date || '');
       setNotes(existingInvoice.notes || '');
       setDiscount(Number(existingInvoice.discount_amount) || 0);
+      setSenderType((existingInvoice as any).sender_type || 'company');
+      setSenderName((existingInvoice as any).sender_name || '');
+      setSenderEmail((existingInvoice as any).sender_email || '');
+      setPaymentDetails((existingInvoice as any).payment_details || '');
     }
   }, [existingInvoice]);
 
@@ -240,6 +249,7 @@ const InvoiceForm = () => {
     if (!clientId) errs.clientId = 'Client is required';
     if (!invoiceNumber.trim()) errs.invoiceNumber = 'Invoice number is required';
     if (!title.trim()) errs.title = 'Title is required';
+    if (senderType === 'personal' && !senderName.trim()) errs.senderName = 'Sender name is required for personal invoices';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -274,6 +284,10 @@ const InvoiceForm = () => {
         amount_paid: isEdit ? Number(existingInvoice?.amount_paid || 0) : 0,
         due_date: dueDate || null,
         notes: notes.trim() || null,
+        sender_type: senderType,
+        sender_name: senderType === 'personal' ? senderName.trim() : null,
+        sender_email: senderType === 'personal' ? senderEmail.trim() : null,
+        payment_details: paymentDetails.trim() || null,
         status: 'draft' as const,
         generated_by: employee?.employee_id || null,
       };
@@ -460,6 +474,72 @@ const InvoiceForm = () => {
             />
           </div>
 
+          {/* Sender */}
+          <div>
+            <Label>Send From *</Label>
+            <div className="flex gap-2 mt-1.5">
+              <button
+                type="button"
+                onClick={() => setSenderType('company')}
+                className={cn(
+                  'flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors',
+                  senderType === 'company'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background text-muted-foreground border-border hover:border-primary/50'
+                )}
+              >
+                Company
+              </button>
+              <button
+                type="button"
+                onClick={() => setSenderType('personal')}
+                className={cn(
+                  'flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors',
+                  senderType === 'personal'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background text-muted-foreground border-border hover:border-primary/50'
+                )}
+              >
+                Personal
+              </button>
+            </div>
+          </div>
+
+          {senderType === 'personal' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Sender Name *</Label>
+                <Input
+                  placeholder="e.g. Usman Tahir"
+                  value={senderName}
+                  onChange={e => setSenderName(e.target.value)}
+                />
+                {errors.senderName && <p className="text-sm text-destructive mt-1">{errors.senderName}</p>}
+              </div>
+              <div>
+                <Label>Sender Email</Label>
+                <Input
+                  type="email"
+                  placeholder="e.g. usman@forte.com"
+                  value={senderEmail}
+                  onChange={e => setSenderEmail(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Payment Details */}
+          <div>
+            <Label>Payment Details</Label>
+            <Textarea
+              value={paymentDetails}
+              onChange={e => setPaymentDetails(e.target.value)}
+              rows={3}
+              placeholder="e.g. Payoneer link, US bank account details, wire transfer instructions..."
+            />
+            <p className="text-xs text-muted-foreground mt-1">This will appear on the PDF invoice.</p>
+          </div>
+
           <div className="flex justify-end">
             <Button
               onClick={() => {
@@ -626,6 +706,18 @@ const InvoiceForm = () => {
               <span className="text-muted-foreground">Due Date</span>
               <p className="font-medium">{dueDate ? formatDate(dueDate) : '—'}</p>
             </div>
+            <div>
+              <span className="text-muted-foreground">Send From</span>
+              <p className="font-medium">
+                {senderType === 'company' ? company?.name || 'Company' : senderName || 'Personal'}
+              </p>
+            </div>
+            {paymentDetails && (
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Payment Details</span>
+                <p className="font-medium whitespace-pre-wrap text-sm">{paymentDetails}</p>
+              </div>
+            )}
           </div>
 
           {/* Line items summary */}
