@@ -593,6 +593,16 @@ const InvoiceForm = () => {
                           {project.project_code} — {project.project_name}
                         </p>
                       </div>
+                      <div className="w-24">
+                        <Input
+                          type="number"
+                          placeholder="Hrs"
+                          value={projectHours[project.id] ?? ''}
+                          onChange={e => setProjectHours(prev => ({ ...prev, [project.id]: e.target.value }))}
+                          className="h-8 text-right text-sm"
+                          disabled={!checked}
+                        />
+                      </div>
                       <div className="w-32">
                         <Input
                           type="number"
