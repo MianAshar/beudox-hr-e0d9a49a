@@ -169,8 +169,8 @@ Deno.serve(async (req) => {
 
     // Line items table
     y -= 20;
-    const colX = [margin, margin + 250, margin + 310, margin + 390, width - margin];
-    const headers = ['Description', 'Qty', 'Unit Price', 'Amount'];
+    const colX = [margin, margin + 230, margin + 275, margin + 325, margin + 405, width - margin];
+    const headers = ['Description', 'Hrs', 'Qty', 'Unit Price', 'Amount'];
 
     // Table header
     page.drawRectangle({
@@ -208,14 +208,22 @@ Deno.serve(async (req) => {
       }
 
       page.drawText(desc, { x: colX[0] + 8, y, size: 9, font, color: textColor });
-      page.drawText(String(Number(item.quantity)), { x: colX[1], y, size: 9, font, color: textColor });
 
+      // Hrs (optional)
+      const hrsText = (item as any).hours != null ? String(Number((item as any).hours)) : '—';
+      page.drawText(hrsText, { x: colX[1], y, size: 9, font, color: hrsText === '—' ? mutedColor : textColor });
+
+      // Qty
+      page.drawText(String(Number(item.quantity)), { x: colX[2], y, size: 9, font, color: textColor });
+
+      // Unit Price
       const upText = Number(item.unit_price).toLocaleString();
-      page.drawText(upText, { x: colX[2], y, size: 9, font, color: textColor });
+      page.drawText(upText, { x: colX[3], y, size: 9, font, color: textColor });
 
+      // Amount (right-aligned)
       const amtText = Number(item.amount).toLocaleString();
       const amtW = font.widthOfTextAtSize(amtText, 9);
-      page.drawText(amtText, { x: colX[4] - amtW, y, size: 9, font, color: textColor });
+      page.drawText(amtText, { x: colX[5] - amtW, y, size: 9, font, color: textColor });
 
       y -= 18;
     }
