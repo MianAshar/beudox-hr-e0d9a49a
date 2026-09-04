@@ -277,13 +277,16 @@ const InvoiceDetail = () => {
         .eq('company_id', companyId!);
       if (payError) throw payError;
 
-      // Delete invoice
-      const { error: invError } = await supabase
-        .from('invoices')
-        .delete()
-        .eq('id', id!)
-        .eq('company_id', companyId!);
-      if (invError) throw invError;
+    // Delete PDF from storage (silently ignore if not found)
+    await supabase.storage.from('invoice-pdfs').remove([`${companyId}/${id}.pdf`]).catch(() => {});
+
+    // Delete invoice
+    const { error: invError } = await supabase
+      .from('invoices')
+      .delete()
+      .eq('id', id!)
+      .eq('company_id', companyId!);
+    if (invError) throw invError;
     },
     onSuccess: () => {
       toast.success('Invoice deleted');

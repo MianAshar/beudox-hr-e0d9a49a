@@ -200,9 +200,11 @@ const Invoices = () => {
     setDeleting(true);
     try {
       await supabase.from('invoice_line_items').delete().eq('invoice_id', deleteInvoice.id).eq('company_id', companyId!);
-      await supabase.from('invoice_payments').delete().eq('invoice_id', deleteInvoice.id).eq('company_id', companyId!);
-      const { error } = await supabase.from('invoices').delete().eq('id', deleteInvoice.id).eq('company_id', companyId!);
-      if (error) throw error;
+    await supabase.from('invoice_payments').delete().eq('invoice_id', deleteInvoice.id).eq('company_id', companyId!);
+    // Delete PDF from storage (silently ignore if not found)
+    await supabase.storage.from('invoice-pdfs').remove([`${companyId}/${deleteInvoice.id}.pdf`]).catch(() => {});
+    const { error } = await supabase.from('invoices').delete().eq('id', deleteInvoice.id).eq('company_id', companyId!);
+    if (error) throw error;
       toast.success('Invoice deleted');
       setDeleteOpen(false);
       qc.invalidateQueries({ queryKey: ['invoices'] });
