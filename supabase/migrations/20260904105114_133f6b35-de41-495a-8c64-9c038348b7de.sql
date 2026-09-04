@@ -1,0 +1,5 @@
+ALTER TABLE invoices
+ADD COLUMN IF NOT EXISTS sender_type TEXT DEFAULT 'company',
+ADD COLUMN IF NOT EXISTS sender_name TEXT,
+ADD COLUMN IF NOT EXISTS sender_email TEXT,
+ADD COLUMN IF NOT EXISTS payment_details TEXT;

@@ -1312,7 +1312,11 @@ export type Database = {
           id: string
           invoice_number: string
           notes: string | null
+          payment_details: string | null
           pdf_url: string | null
+          sender_email: string | null
+          sender_name: string | null
+          sender_type: string | null
           sent_at: string | null
           status: string
           subtotal: number
@@ -1333,7 +1337,11 @@ export type Database = {
           id?: string
           invoice_number: string
           notes?: string | null
+          payment_details?: string | null
           pdf_url?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
+          sender_type?: string | null
           sent_at?: string | null
           status?: string
           subtotal?: number
@@ -1354,7 +1362,11 @@ export type Database = {
           id?: string
           invoice_number?: string
           notes?: string | null
+          payment_details?: string | null
           pdf_url?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
+          sender_type?: string | null
           sent_at?: string | null
           status?: string
           subtotal?: number
