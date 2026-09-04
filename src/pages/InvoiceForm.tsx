@@ -632,13 +632,20 @@ const InvoiceForm = () => {
                 {customItems.map(item => (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[1fr_80px_100px_100px_32px] gap-2 items-center"
+                    className="grid grid-cols-[1fr_70px_80px_100px_100px_32px] gap-2 items-center"
                   >
                     <Input
                       placeholder="Description"
                       value={item.description}
                       onChange={e => updateCustomItem(item.id, 'description', e.target.value)}
                       className="h-9 text-sm"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Hrs"
+                      value={item.hours ?? ''}
+                      onChange={e => updateCustomItem(item.id, 'hours', e.target.value === '' ? null : Number(e.target.value))}
+                      className="h-9 text-sm text-center"
                     />
                     <Input
                       type="number"
