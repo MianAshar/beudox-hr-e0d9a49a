@@ -1180,6 +1180,7 @@ export type Database = {
           created_at: string | null
           description: string
           display_order: number
+          hours: number | null
           id: string
           invoice_id: string
           project_id: string | null
@@ -1193,6 +1194,7 @@ export type Database = {
           created_at?: string | null
           description: string
           display_order?: number
+          hours?: number | null
           id?: string
           invoice_id: string
           project_id?: string | null
@@ -1206,6 +1208,7 @@ export type Database = {
           created_at?: string | null
           description?: string
           display_order?: number
+          hours?: number | null
           id?: string
           invoice_id?: string
           project_id?: string | null

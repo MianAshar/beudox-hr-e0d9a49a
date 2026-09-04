@@ -21,6 +21,7 @@ interface CustomLineItem {
   description: string;
   quantity: number;
   unit_price: number;
+  hours: number | null;
   project_id: string | null;
 }
 
@@ -40,6 +41,7 @@ const InvoiceForm = () => {
   const [discount, setDiscount] = useState(0);
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [projectFees, setProjectFees] = useState<Record<string, number>>({});
+  const [projectHours, setProjectHours] = useState<Record<string, string>>({});
   const [customItems, setCustomItems] = useState<CustomLineItem[]>([]);
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -182,18 +184,23 @@ const InvoiceForm = () => {
     if (existingLineItems) {
       const projectItems: string[] = [];
       const fees: Record<string, number> = {};
+      const hoursTemp: Record<string, string> = {};
       const custom: CustomLineItem[] = [];
 
       existingLineItems.forEach(item => {
         if (item.project_id) {
           projectItems.push(item.project_id);
           fees[item.project_id] = Number(item.amount);
+          if ((item as any).hours != null) {
+            hoursTemp[item.project_id] = String((item as any).hours);
+          }
         } else {
           custom.push({
             id: item.id,
             description: item.description,
             quantity: Number(item.quantity),
             unit_price: Number(item.unit_price),
+            hours: (item as any).hours ?? null,
             project_id: null,
           });
         }
@@ -201,6 +208,7 @@ const InvoiceForm = () => {
 
       setSelectedProjectIds(projectItems);
       setProjectFees(fees);
+      setProjectHours(hoursTemp);
       setCustomItems(custom);
     }
   }, [existingLineItems]);
@@ -230,11 +238,12 @@ const InvoiceForm = () => {
       description: '',
       quantity: 1,
       unit_price: 0,
+      hours: null,
       project_id: null,
     }]);
   };
 
-  const updateCustomItem = (itemId: string, field: string, value: string | number) => {
+  const updateCustomItem = (itemId: string, field: string, value: string | number | null) => {
     setCustomItems(prev => prev.map(item =>
       item.id === itemId ? { ...item, [field]: value } : item
     ));
@@ -335,6 +344,7 @@ const InvoiceForm = () => {
           quantity: 1,
           unit_price: fee,
           amount: fee,
+          hours: projectHours[pid] ? Number(projectHours[pid]) : null,
           display_order: order++,
         });
       }
@@ -348,6 +358,7 @@ const InvoiceForm = () => {
           quantity: item.quantity,
           unit_price: item.unit_price,
           amount: item.quantity * item.unit_price,
+          hours: item.hours ?? null,
           display_order: order++,
         });
       }
@@ -582,6 +593,16 @@ const InvoiceForm = () => {
                           {project.project_code} — {project.project_name}
                         </p>
                       </div>
+                      <div className="w-24">
+                        <Input
+                          type="number"
+                          placeholder="Hrs"
+                          value={projectHours[project.id] ?? ''}
+                          onChange={e => setProjectHours(prev => ({ ...prev, [project.id]: e.target.value }))}
+                          className="h-8 text-right text-sm"
+                          disabled={!checked}
+                        />
+                      </div>
                       <div className="w-32">
                         <Input
                           type="number"
@@ -611,13 +632,20 @@ const InvoiceForm = () => {
                 {customItems.map(item => (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[1fr_80px_100px_100px_32px] gap-2 items-center"
+                    className="grid grid-cols-[1fr_70px_80px_100px_100px_32px] gap-2 items-center"
                   >
                     <Input
                       placeholder="Description"
                       value={item.description}
                       onChange={e => updateCustomItem(item.id, 'description', e.target.value)}
                       className="h-9 text-sm"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Hrs"
+                      value={item.hours ?? ''}
+                      onChange={e => updateCustomItem(item.id, 'hours', e.target.value === '' ? null : Number(e.target.value))}
+                      className="h-9 text-sm text-center"
                     />
                     <Input
                       type="number"
@@ -728,6 +756,7 @@ const InvoiceForm = () => {
                 <thead>
                   <tr className="bg-muted/30">
                     <th className="text-left p-3 font-medium text-muted-foreground">Description</th>
+                    <th className="text-center p-3 font-medium text-muted-foreground w-16">Hrs</th>
                     <th className="text-center p-3 font-medium text-muted-foreground w-16">Qty</th>
                     <th className="text-right p-3 font-medium text-muted-foreground w-28">Unit Price</th>
                     <th className="text-right p-3 font-medium text-muted-foreground w-28">Amount</th>
@@ -741,6 +770,7 @@ const InvoiceForm = () => {
                     return (
                       <tr key={pid} className="border-t" style={{ borderColor: 'hsl(var(--border))' }}>
                         <td className="p-3">{project.project_code} — {project.project_name}</td>
+                        <td className="p-3 text-center text-muted-foreground">{projectHours[pid] || '—'}</td>
                         <td className="p-3 text-center">1</td>
                         <td className="p-3 text-right font-mono-bx">{fee.toLocaleString()}</td>
                         <td className="p-3 text-right font-mono-bx">{fee.toLocaleString()}</td>
@@ -750,6 +780,7 @@ const InvoiceForm = () => {
                   {customItems.map(item => (
                     <tr key={item.id} className="border-t" style={{ borderColor: 'hsl(var(--border))' }}>
                       <td className="p-3">{item.description}</td>
+                      <td className="p-3 text-center text-muted-foreground">{item.hours ?? '—'}</td>
                       <td className="p-3 text-center">{item.quantity}</td>
                       <td className="p-3 text-right font-mono-bx">{item.unit_price.toLocaleString()}</td>
                       <td className="p-3 text-right font-mono-bx">{(item.quantity * item.unit_price).toLocaleString()}</td>
