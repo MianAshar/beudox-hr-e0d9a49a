@@ -378,12 +378,12 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             value={newTitle}
             onChange={e => setNewTitle(e.target.value)}
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <SearchableEmployeeSelect
               employees={teamMembers}
               value={newAssignee}
               onValueChange={setNewAssignee}
-              placeholder="Assign to (optional)"
+              placeholder="Assignee *"
             />
             <Popover>
               <PopoverTrigger asChild>
@@ -393,7 +393,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
                   className={cn('justify-start font-normal', !newDeadline && 'text-muted-foreground')}
                 >
                   <CalendarIcon className="h-4 w-4 mr-2" />
-                  {newDeadline ? format(parseISO(newDeadline), 'PPP') : 'Deadline (optional)'}
+                  {newDeadline ? format(parseISO(newDeadline), 'PPP') : 'Deadline *'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -406,12 +406,22 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
                 />
               </PopoverContent>
             </Popover>
+            <Select value={newComplexity} onValueChange={setNewComplexity}>
+              <SelectTrigger className={cn(!newComplexity && 'text-muted-foreground')}>
+                <SelectValue placeholder="Complexity *" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => { setAdding(false); setNewTitle(''); setNewAssignee(''); setNewDeadline(null); }}
+              onClick={() => { setAdding(false); setNewTitle(''); setNewAssignee(''); setNewDeadline(null); setNewComplexity(''); }}
               disabled={addMutation.isPending}
             >
               Cancel
@@ -419,7 +429,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             <Button
               size="sm"
               onClick={() => addMutation.mutate()}
-              disabled={!newTitle.trim() || addMutation.isPending}
+              disabled={!newTitle.trim() || !newAssignee || !newDeadline || !newComplexity || addMutation.isPending}
             >
               {addMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
             </Button>
