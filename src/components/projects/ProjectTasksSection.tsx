@@ -70,6 +70,8 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
   const [editTitle, setEditTitle] = useState('');
   const [editAssignee, setEditAssignee] = useState('');
   const [editDeadline, setEditDeadline] = useState<string | null>(null);
+  const [newComplexity, setNewComplexity] = useState<string>('');
+  const [editComplexity, setEditComplexity] = useState<string>('');
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['project-tasks', projectId],
