@@ -175,10 +175,14 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
     mutationFn: async () => {
       const title = editTitle.trim();
       if (!title) throw new Error('Task title is required');
+      if (!editAssignee) throw new Error('Assignee is required');
+      if (!editDeadline) throw new Error('Deadline is required');
+      if (!editComplexity) throw new Error('Complexity is required');
       const { error } = await supabase.from('project_tasks').update({
         title,
         assigned_to: editAssignee || null,
         deadline: editDeadline || null,
+        complexity: editComplexity,
       }).eq('id', editingTask.id);
       if (error) throw error;
       // Log what changed
@@ -186,6 +190,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
       if (editingTask.title !== title) changes.push(`title: "${editingTask.title}" → "${title}"`);
       if ((editingTask.assigned_to || '') !== (editAssignee || '')) changes.push('assignee changed');
       if ((editingTask.deadline || '') !== (editDeadline || '')) changes.push('deadline changed');
+      if ((editingTask.complexity || '') !== (editComplexity || '')) changes.push(`complexity: ${editingTask.complexity} → ${editComplexity}`);
       if (changes.length > 0) {
         await logProjectActivity({
           companyId, projectId, employeeId,
