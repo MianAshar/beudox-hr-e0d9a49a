@@ -184,18 +184,23 @@ const InvoiceForm = () => {
     if (existingLineItems) {
       const projectItems: string[] = [];
       const fees: Record<string, number> = {};
+      const hoursTemp: Record<string, string> = {};
       const custom: CustomLineItem[] = [];
 
       existingLineItems.forEach(item => {
         if (item.project_id) {
           projectItems.push(item.project_id);
           fees[item.project_id] = Number(item.amount);
+          if ((item as any).hours != null) {
+            hoursTemp[item.project_id] = String((item as any).hours);
+          }
         } else {
           custom.push({
             id: item.id,
             description: item.description,
             quantity: Number(item.quantity),
             unit_price: Number(item.unit_price),
+            hours: (item as any).hours ?? null,
             project_id: null,
           });
         }
@@ -203,6 +208,7 @@ const InvoiceForm = () => {
 
       setSelectedProjectIds(projectItems);
       setProjectFees(fees);
+      setProjectHours(hoursTemp);
       setCustomItems(custom);
     }
   }, [existingLineItems]);
