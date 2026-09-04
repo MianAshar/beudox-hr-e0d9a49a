@@ -310,12 +310,12 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             value={editTitle}
             onChange={e => setEditTitle(e.target.value)}
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <SearchableEmployeeSelect
               employees={teamMembers}
               value={editAssignee}
               onValueChange={setEditAssignee}
-              placeholder="Assign to (optional)"
+              placeholder="Assignee *"
             />
             <Popover>
               <PopoverTrigger asChild>
@@ -325,7 +325,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
                   className={cn('justify-start font-normal', !editDeadline && 'text-muted-foreground')}
                 >
                   <CalendarIcon className="h-4 w-4 mr-2" />
-                  {editDeadline ? format(parseISO(editDeadline), 'PPP') : 'Deadline (optional)'}
+                  {editDeadline ? format(parseISO(editDeadline), 'PPP') : 'Deadline *'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -338,6 +338,16 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
                 />
               </PopoverContent>
             </Popover>
+            <Select value={editComplexity} onValueChange={setEditComplexity}>
+              <SelectTrigger className={cn(!editComplexity && 'text-muted-foreground')}>
+                <SelectValue placeholder="Complexity *" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button
@@ -351,7 +361,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             <Button
               size="sm"
               onClick={() => editMutation.mutate()}
-              disabled={!editTitle.trim() || editMutation.isPending}
+              disabled={!editTitle.trim() || !editAssignee || !editDeadline || !editComplexity || editMutation.isPending}
             >
               {editMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
             </Button>
