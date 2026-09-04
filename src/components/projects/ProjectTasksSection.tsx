@@ -252,6 +252,16 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
             {format(parseISO(t.deadline), 'MMM d')}
           </span>
         )}
+        {t.complexity && (
+          <span className={cn(
+            'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
+            t.complexity === 'easy' && 'bg-green-100 text-green-700',
+            t.complexity === 'medium' && 'bg-amber-100 text-amber-700',
+            t.complexity === 'hard' && 'bg-red-100 text-red-700',
+          )}>
+            {t.complexity.charAt(0).toUpperCase() + t.complexity.slice(1)}
+          </span>
+        )}
         {canManage && !t.is_completed && (
           <Button
             variant="ghost"
