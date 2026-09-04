@@ -78,7 +78,7 @@ export const ProjectTasksSection = ({ projectId, companyId, employeeId, teamMemb
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_tasks')
-        .select('id, title, deadline, is_completed, completed_at, assigned_to, created_at, assignee:employees!project_tasks_assigned_to_fkey(id, full_name, avatar_url)')
+        .select('id, title, deadline, complexity, is_completed, completed_at, assigned_to, created_at, assignee:employees!project_tasks_assigned_to_fkey(id, full_name, avatar_url)')
         .eq('project_id', projectId)
         .eq('company_id', companyId)
         .order('is_completed', { ascending: true })
