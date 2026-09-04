@@ -93,8 +93,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (company) {
-      page.drawText(company.name || '', {
+    // Sender details — company or personal based on invoice.sender_type
+    const senderType = (invoice as any).sender_type || 'company';
+    const isPersonal = senderType === 'personal';
+    const senderName = isPersonal ? (invoice as any).sender_name : (company?.name || '');
+    const senderEmail = isPersonal ? (invoice as any).sender_email : null;
+
+    if (senderName) {
+      page.drawText(senderName, {
         x: margin,
         y,
         size: 16,
@@ -102,15 +108,15 @@ Deno.serve(async (req) => {
         color: textColor,
       });
       y -= 18;
-      if (company.address) {
-        page.drawText(company.address, { x: margin, y, size: 9, font, color: mutedColor });
-        y -= 13;
-      }
-      const cityCountry = [company.city, company.country].filter(Boolean).join(', ');
-      if (cityCountry) {
-        page.drawText(cityCountry, { x: margin, y, size: 9, font, color: mutedColor });
-        y -= 13;
-      }
+    }
+
+    if (!isPersonal && company) {
+      // Company: no address per design decision
+    }
+
+    if (isPersonal && senderEmail) {
+      page.drawText(senderEmail, { x: margin, y, size: 9, font, color: mutedColor });
+      y -= 13;
     }
 
     // INVOICE heading top-right
@@ -243,23 +249,28 @@ Deno.serve(async (req) => {
       drawTotal('Amount Due', `${invoice.currency} ${Number(invoice.amount_due).toLocaleString()}`, true);
     }
 
-    // Bank details
-    if (company && (company.bank_name || company.bank_iban)) {
+    // Payment details — free text from invoice
+    const paymentDetails = (invoice as any).payment_details;
+    if (paymentDetails) {
       y -= 10;
-      page.drawText('BANK DETAILS', { x: margin, y, size: 9, font: fontBold, color: mutedColor });
+      page.drawText('PAYMENT DETAILS', { x: margin, y, size: 9, font: fontBold, color: mutedColor });
       y -= 14;
-
-      const bankInfo = [
-        company.bank_name && `Bank: ${company.bank_name}`,
-        company.bank_account_title && `Account: ${company.bank_account_title}`,
-        company.bank_account_number && `A/C #: ${company.bank_account_number}`,
-        company.bank_iban && `IBAN: ${company.bank_iban}`,
-        company.bank_swift && `SWIFT: ${company.bank_swift}`,
-      ].filter(Boolean);
-
-      for (const line of bankInfo) {
-        page.drawText(line!, { x: margin, y, size: 8, font, color: mutedColor });
-        y -= 12;
+      // Split by newlines to handle multi-line payment details
+      const paymentLines = String(paymentDetails).split('\n');
+      for (const line of paymentLines) {
+        if (!line.trim()) { y -= 6; continue; }
+        // Wrap long lines at ~80 chars
+        const maxWidth = width - 2 * margin;
+        let remaining = line.trim();
+        while (remaining.length > 0) {
+          let chunk = remaining;
+          while (font.widthOfTextAtSize(chunk, 8) > maxWidth && chunk.length > 1) {
+            chunk = chunk.slice(0, -1);
+          }
+          page.drawText(chunk, { x: margin, y, size: 8, font, color: mutedColor });
+          y -= 12;
+          remaining = remaining.slice(chunk.length).trim();
+        }
       }
     }
 
