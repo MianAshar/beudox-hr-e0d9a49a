@@ -277,6 +277,10 @@ Deno.serve(async (req) => {
 
     // Upload to storage
     const path = `${invoice.company_id}/${invoice_id}.pdf`;
+    console.log('Supabase URL:', supabaseUrl);
+    console.log('Uploading to bucket: invoice-pdfs, path:', path);
+    console.log('PDF size bytes:', pdfBytes.length);
+
     const { error: uploadError } = await supabase.storage
       .from('invoice-pdfs')
       .upload(path, pdfBytes, {
