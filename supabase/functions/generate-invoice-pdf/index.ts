@@ -277,9 +277,6 @@ Deno.serve(async (req) => {
 
     // Upload to storage
     const path = `${invoice.company_id}/${invoice_id}.pdf`;
-    console.log('Supabase URL:', supabaseUrl);
-    console.log('Uploading to bucket: invoice-pdfs, path:', path);
-    console.log('PDF size bytes:', pdfBytes.length);
 
     const { error: uploadError } = await supabase.storage
       .from('invoice-pdfs')
@@ -295,8 +292,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: urlData } = supabase.storage.from('invoice-pdfs').getPublicUrl(path);
-    const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+    const { data: urlData, error: signedUrlError } = await supabase.storage
+      .from('invoice-pdfs')
+      .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 year expiry
+
+    if (signedUrlError || !urlData?.signedUrl) {
+      return new Response(JSON.stringify({ error: 'Failed to generate signed URL' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const publicUrl = urlData.signedUrl;
 
     // Update invoice pdf_url
     await supabase
