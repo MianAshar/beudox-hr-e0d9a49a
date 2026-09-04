@@ -243,7 +243,7 @@ const InvoiceForm = () => {
     }]);
   };
 
-  const updateCustomItem = (itemId: string, field: string, value: string | number) => {
+  const updateCustomItem = (itemId: string, field: string, value: string | number | null) => {
     setCustomItems(prev => prev.map(item =>
       item.id === itemId ? { ...item, [field]: value } : item
     ));
