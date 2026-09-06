@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { GripVertical, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ParamSectionProps {
@@ -21,6 +22,7 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
   const [newName, setNewName] = useState('');
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const queryKey = ['eval-params-settings', companyId, evaluationType, direction || 'none'];
 
@@ -75,6 +77,23 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('evaluation_parameters')
+        .delete()
+        .eq('id', id)
+        .eq('company_id', companyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      setDeleteId(null);
+      toast.success('Parameter deleted');
+    },
+    onError: () => toast.error('Failed to delete parameter'),
+  });
+
   const sorted = [...(parameters || [])].sort((a: any, b: any) => a.display_order - b.display_order);
 
   const handleDragStart = (e: DragEvent, id: string) => {
@@ -124,7 +143,7 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
         {sorted.map((p: any) => (
           <div
             key={p.id}
-            className={`flex items-center justify-between gap-3 py-2 px-3 bg-muted/50 rounded-lg transition-colors ${dragOverId === p.id && dragId !== p.id ? 'ring-1 ring-primary/30 bg-primary/5' : ''} ${dragId === p.id ? 'opacity-50' : ''}`}
+            className={`group flex items-center justify-between gap-3 py-2 px-3 bg-muted/50 rounded-lg transition-colors ${dragOverId === p.id && dragId !== p.id ? 'ring-1 ring-primary/30 bg-primary/5' : ''} ${dragId === p.id ? 'opacity-50' : ''}`}
             draggable
             onDragStart={(e) => handleDragStart(e, p.id)}
             onDragOver={(e) => handleDragOver(e, p.id)}
@@ -140,6 +159,14 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
               </span>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => setDeleteId(p.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
               <Label htmlFor={`toggle-${p.id}`} className="text-xs text-muted-foreground">
                 {p.is_active ? 'Active' : 'Inactive'}
               </Label>
@@ -152,6 +179,26 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
           </div>
         ))}
       </div>
+      <Dialog open={!!deleteId} onOpenChange={v => { if (!v) setDeleteId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Parameter</DialogTitle>
+            <DialogDescription>
+              This will permanently delete the parameter. Any existing evaluation scores for this parameter will remain in the database but will no longer display. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="flex gap-2">
         <Input
           placeholder="New parameter name"
