@@ -92,6 +92,7 @@ const InvoiceForm = () => {
         .eq('company_id', companyId!)
         .eq('client_id', clientId)
         .neq('status', 'cancelled')
+        .neq('status', 'invoiced')
         .eq('is_active', true)
         .order('project_code');
       if (error) throw error;
