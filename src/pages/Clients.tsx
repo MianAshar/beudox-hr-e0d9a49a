@@ -91,8 +91,9 @@ const Clients = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('client_id, status, updated_at, created_at')
-        .eq('company_id', companyId!);
+        .select('client_id, status, client_deadline, internal_deadline, created_at')
+        .eq('company_id', companyId!)
+        .eq('is_active', true);
       if (error) throw error;
       return data as Array<ProjectActivityInfo & { client_id: string }>;
     },
