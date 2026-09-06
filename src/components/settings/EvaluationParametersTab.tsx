@@ -166,7 +166,7 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
                 className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={() => setDeleteId(p.id)}
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Archive className="h-3.5 w-3.5" />
               </Button>
               <Label htmlFor={`toggle-${p.id}`} className="text-xs text-muted-foreground">
                 {p.is_active ? 'Active' : 'Inactive'}
@@ -183,19 +183,19 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
       <Dialog open={!!deleteId} onOpenChange={v => { if (!v) setDeleteId(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Parameter</DialogTitle>
+            <DialogTitle>Archive Parameter</DialogTitle>
             <DialogDescription>
-              This will permanently delete the parameter. Any existing evaluation scores for this parameter will remain in the database but will no longer display. This cannot be undone.
+              This will archive the parameter. It will no longer appear in new evaluations, but all existing evaluation scores for this parameter will be preserved and will continue to display correctly.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
             <Button
               variant="destructive"
-              disabled={deleteMutation.isPending}
-              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+              disabled={archiveMutation.isPending}
+              onClick={() => deleteId && archiveMutation.mutate(deleteId)}
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {archiveMutation.isPending ? 'Archiving...' : 'Archive'}
             </Button>
           </DialogFooter>
         </DialogContent>
