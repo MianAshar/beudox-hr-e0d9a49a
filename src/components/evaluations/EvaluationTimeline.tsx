@@ -41,7 +41,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
     enabled: !!employeeId && !!companyId,
   });
 
-  // Daily evaluations (about this employee + by this employee)
+  // Project evaluations (about this employee + by this employee)
   const { data: daily, isLoading: dLoading } = useQuery({
     queryKey: ['eval-timeline-daily', employeeId, companyId],
     queryFn: async () => {
@@ -139,7 +139,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
       direction: ev.direction,
       dailyDirection: 'received',
       person: ev.reviewer ? { name: ev.reviewer.full_name, avatar: ev.reviewer.avatar_url } : null,
-      linkTo: `/evaluations/daily/${ev.id}`,
+      linkTo: `/evaluations/project/${ev.id}`,
     });
   });
 
@@ -153,7 +153,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
       direction: ev.direction,
       dailyDirection: 'given',
       person: ev.reviewee ? { name: ev.reviewee.full_name, avatar: ev.reviewee.avatar_url } : null,
-      linkTo: `/evaluations/daily/${ev.id}`,
+      linkTo: `/evaluations/project/${ev.id}`,
     });
   });
 
@@ -199,7 +199,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
                       ? 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border-0 text-[10px]'
                       : 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border-0 text-[10px]'
                   }>
-                    {item.type === 'quarterly' ? 'Bi-Annual' : 'Daily'}
+                    {item.type === 'quarterly' ? 'Bi-Annual' : 'Project'}
                   </Badge>
                   {item.type === 'daily' && item.dailyDirection && (
                     <Badge variant="outline" className={
@@ -232,7 +232,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
 
           {items.length > 20 && (
             <Link
-              to={`/evaluations/daily`}
+              to={`/evaluations/project`}
               className="text-sm text-primary hover:underline block text-center pt-2"
             >
               View all evaluations →

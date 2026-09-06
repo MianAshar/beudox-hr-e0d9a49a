@@ -58,7 +58,7 @@ const DailyEvaluationDetail = () => {
     onSuccess: () => {
       toast.success('Evaluation deleted');
       queryClient.invalidateQueries({ queryKey: ['daily-evaluations'] });
-      navigate('/evaluations/daily');
+      navigate('/evaluations/project');
     },
     onError: () => toast.error('Failed to delete evaluation'),
   });
@@ -77,7 +77,7 @@ const DailyEvaluationDetail = () => {
     return (
       <div className="text-center py-16">
         <p className="text-muted-foreground">Evaluation not found.</p>
-        <Button variant="link" onClick={() => navigate('/evaluations/daily')}>Back to Daily Evaluations</Button>
+        <Button variant="link" onClick={() => navigate('/evaluations/project')}>Back to Project Evaluations</Button>
       </div>
     );
   }
@@ -92,10 +92,10 @@ const DailyEvaluationDetail = () => {
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/evaluations/daily')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/evaluations/project')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-semibold tracking-tight">Daily Evaluation Detail</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Project Evaluation Detail</h1>
         </div>
         {canDelete && (
           <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
