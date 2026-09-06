@@ -182,10 +182,10 @@ const EvaluationParametersTab = () => {
 
   return (
     <div className="space-y-8">
-      {/* Bi-Annual Parameters */}
+      {/* Employee Review Parameters */}
       <div className="bg-card rounded-[14px] border p-6">
         <h3 className="font-semibold text-[15px] text-foreground mb-4" style={{ fontFamily: 'var(--ff-display)' }}>
-          Bi-Annual Evaluation Parameters
+          Employee Review Parameters
         </h3>
         <ParamSection
           title="Standard Parameters"

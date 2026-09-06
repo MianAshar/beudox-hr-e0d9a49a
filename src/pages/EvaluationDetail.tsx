@@ -57,11 +57,11 @@ const EvaluationDetail = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Evaluation deleted');
+      toast.success('Employee review deleted');
       queryClient.invalidateQueries({ queryKey: ['evaluations'] });
-      navigate('/evaluations');
+      navigate('/employee-reviews');
     },
-    onError: () => toast.error('Failed to delete evaluation'),
+    onError: () => toast.error('Failed to delete employee review'),
   });
 
   if (isLoading) {
@@ -76,10 +76,10 @@ const EvaluationDetail = () => {
 
   if (!evaluation) {
     return (
-      <div className="text-center py-16">
-        <p className="text-muted-foreground">Evaluation not found.</p>
-        <Button variant="link" onClick={() => navigate('/evaluations')}>Back to Evaluations</Button>
-      </div>
+    <div className="text-center py-16">
+      <p className="text-muted-foreground">Employee review not found.</p>
+      <Button variant="link" onClick={() => navigate('/employee-reviews')}>Back to Employee Reviews</Button>
+    </div>
     );
   }
 
@@ -92,14 +92,14 @@ const EvaluationDetail = () => {
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/evaluations')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/employee-reviews')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-semibold tracking-tight">Evaluation Detail</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Employee Review Detail</h1>
         </div>
         {isManager && (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate(`/evaluations/${id}/edit`)}>
+            <Button variant="outline" onClick={() => navigate(`/employee-reviews/${id}/edit`)}>
               <Pencil className="h-4 w-4 mr-2" /> Edit
             </Button>
             <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
@@ -181,8 +181,8 @@ const EvaluationDetail = () => {
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Evaluation</DialogTitle>
-            <DialogDescription>Delete this evaluation? This cannot be undone.</DialogDescription>
+            <DialogTitle>Delete Employee Review</DialogTitle>
+            <DialogDescription>Delete this employee review? This cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>

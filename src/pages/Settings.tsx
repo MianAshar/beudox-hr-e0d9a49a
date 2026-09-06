@@ -33,7 +33,7 @@ const Settings = () => {
     ...(isCeo ? [{ value: 'company', label: 'Company' }] : []),
     ...(isCeo || isHr ? [{ value: 'attendance', label: 'Attendance & Payroll' }] : []),
     ...(isCeo ? [{ value: 'departments', label: 'Departments' }] : []),
-    ...(isCeo || isHr ? [{ value: 'eval-params', label: 'Evaluation Parameters' }] : []),
+    ...(isCeo || isHr ? [{ value: 'eval-params', label: 'Employee Review Parameters' }] : []),
     ...(isCeo ? [{ value: 'roles', label: 'Roles' }] : []),
     ...(isCeo || isFinance ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
     ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),

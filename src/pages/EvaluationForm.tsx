@@ -336,7 +336,7 @@ const EvaluationForm = () => {
       }
     },
     onSuccess: async (evalId) => {
-      // Send evaluation_submitted notification (only for new evaluations)
+      // Send evaluation_submitted notification (only for new reviews)
       if (!isEdit && companyId && employeeId) {
         const finalPeriod = period === 'Custom' ? customPeriod : period;
         const mgrs = await getEmployeeIdsByRole(companyId, ['hr_manager', 'ceo']);
@@ -345,17 +345,17 @@ const EvaluationForm = () => {
           companyId,
           recipientIds: recipients,
           type: 'evaluation_submitted',
-          title: 'New Evaluation',
-          message: `Your ${finalPeriod} evaluation has been submitted.`,
+          title: 'New Employee Review',
+          message: `Your ${finalPeriod} employee review has been submitted.`,
           referenceType: 'evaluation',
           referenceId: evalId,
         });
       }
-      toast.success('Evaluation saved successfully');
+      toast.success('Employee review saved successfully');
       queryClient.invalidateQueries({ queryKey: ['evaluations'] });
-      navigate(`/evaluations/${evalId}`);
+      navigate(`/employee-reviews/${evalId}`);
     },
-    onError: () => toast.error('Failed to save evaluation'),
+    onError: () => toast.error('Failed to save employee review'),
   });
 
   // Manage parameters mutations
@@ -417,10 +417,10 @@ const EvaluationForm = () => {
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/evaluations')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/employee-reviews')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-semibold tracking-tight">{isEdit ? 'Edit Evaluation' : 'Create Evaluation'}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{isEdit ? 'Edit Employee Review' : 'Create Employee Review'}</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -456,7 +456,7 @@ const EvaluationForm = () => {
           {/* Parameter Scores */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Evaluation Parameters</CardTitle>
+              <CardTitle className="text-base">Employee Review Parameters</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               {paramsLoading ? (
@@ -502,7 +502,7 @@ const EvaluationForm = () => {
           </Card>
 
           <Button onClick={() => saveMutation.mutate()} disabled={!canSave || saveMutation.isPending} className="w-full sm:w-auto">
-            {saveMutation.isPending ? 'Saving...' : isEdit ? 'Update Evaluation' : 'Save Evaluation'}
+            {saveMutation.isPending ? 'Saving...' : isEdit ? 'Update Review' : 'Save Review'}
           </Button>
         </div>
 
@@ -540,7 +540,7 @@ const EvaluationForm = () => {
       <Dialog open={manageOpen} onOpenChange={setManageOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Manage Evaluation Parameters</DialogTitle>
+            <DialogTitle>Manage Employee Review Parameters</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 max-h-[400px] overflow-y-auto">
             {(parameters || []).sort((a: any, b: any) => a.display_order - b.display_order).map((p: any, idx: number) => (

@@ -231,7 +231,7 @@ const EmployeeProfile = () => {
     ...(isHrOrCeo ? [{ value: 'attendance', label: 'Attendance' }] : []),
     ...(isHrOrCeo ? [{ value: 'leave', label: 'Leave' }] : []),
     ...(isFinanceOrCeo && canSeeCompensation ? [{ value: 'payroll', label: 'Payroll' }] : []),
-    ...(isHrOrCeo ? [{ value: 'evaluations', label: 'Evaluations' }] : []),
+    ...(isHrOrCeo ? [{ value: 'evaluations', label: 'Employee Reviews' }] : []),
     ...(isCeo && canSeeCompensation ? [{ value: 'salary-review', label: 'Salary Review' }] : []),
     ...(isHrOrCeo ? [{ value: 'documents', label: 'Documents' }] : []),
     ...(canManage ? [{ value: 'danger', label: 'Danger Zone' }] : []),

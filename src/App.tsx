@@ -130,10 +130,10 @@ const App = () => (
               <Route path="/job-descriptions/new" element={<JobDescriptionForm />} />
               <Route path="/job-descriptions/:id" element={<JobDescriptionDetail />} />
               <Route path="/job-descriptions/:id/edit" element={<JobDescriptionForm />} />
-              <Route path="/evaluations" element={<Evaluations />} />
-              <Route path="/evaluations/new" element={<EvaluationForm />} />
-              <Route path="/evaluations/:id" element={<EvaluationDetail />} />
-              <Route path="/evaluations/:id/edit" element={<EvaluationForm />} />
+              <Route path="/employee-reviews" element={<Evaluations />} />
+              <Route path="/employee-reviews/new" element={<EvaluationForm />} />
+              <Route path="/employee-reviews/:id" element={<EvaluationDetail />} />
+              <Route path="/employee-reviews/:id/edit" element={<EvaluationForm />} />
               <Route path="/evaluations/project" element={<DailyEvaluations />} />
               <Route path="/evaluations/project/new" element={<DailyEvaluationForm />} />
               <Route path="/evaluations/project/:id" element={<DailyEvaluationDetail />} />

@@ -49,7 +49,7 @@ const navSections = [
       { title: 'Projects', icon: FolderKanban, path: '/projects' },
       { title: 'My Tasks', icon: ListChecks, path: '/my-tasks' },
       { title: 'Clients', icon: Briefcase, path: '/clients' },
-      { title: 'Evaluations', icon: ClipboardCheck, path: '/evaluations' },
+      { title: 'Employee Reviews', icon: ClipboardCheck, path: '/employee-reviews' },
       { title: 'Project Evaluations', icon: ClipboardList, path: '/evaluations/project' },
       { title: 'HR Policies', icon: FileText, path: '/hr-policies' },
       { title: 'Job Descriptions', icon: FileText, path: '/job-descriptions' },
@@ -76,7 +76,7 @@ const SidebarBody = ({ collapsed, onToggleCollapse, onNavigate, showCollapseTogg
   const { employee } = useAuth();
 
   const isActive = (path: string) => {
-    if (path === '/evaluations') return location.pathname === '/evaluations' || (location.pathname.startsWith('/evaluations/') && !location.pathname.startsWith('/evaluations/project'));
+    if (path === '/employee-reviews') return location.pathname === '/employee-reviews' || location.pathname.startsWith('/employee-reviews/');
     if (path === '/evaluations/project') return location.pathname.startsWith('/evaluations/project');
     if (path === '/projects') return location.pathname === '/projects' || location.pathname.startsWith('/projects/');
     return location.pathname === path || location.pathname.startsWith(path + '/');
