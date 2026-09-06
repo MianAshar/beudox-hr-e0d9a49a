@@ -101,6 +101,23 @@ const InvoiceForm = () => {
     enabled: !!companyId && !!clientId,
   });
 
+  // Fetch project IDs already invoiced for this client (non-cancelled invoices)
+  const { data: invoicedProjectIds } = useQuery({
+    queryKey: ['invoiced-project-ids', companyId, clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoice_line_items')
+        .select('project_id, invoices!inner(client_id, status)')
+        .eq('company_id', companyId!)
+        .not('project_id', 'is', null)
+        .filter('invoices.client_id', 'eq', clientId)
+        .filter('invoices.status', 'neq', 'cancelled');
+      if (error) throw error;
+      return (data ?? []).map((r: any) => r.project_id as string);
+    },
+    enabled: !!companyId && !!clientId,
+  });
+
   // Fetch existing invoice count for auto-numbering
   const { data: invoiceCount } = useQuery({
     queryKey: ['invoice-count', companyId],
