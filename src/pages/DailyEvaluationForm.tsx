@@ -203,7 +203,7 @@ const DailyEvaluationForm = () => {
     onSuccess: () => {
       toast.success('Evaluation submitted');
       queryClient.invalidateQueries({ queryKey: ['daily-evaluations'] });
-      navigate('/evaluations/daily');
+      navigate('/evaluations/project');
     },
     onError: () => toast.error('Failed to submit evaluation'),
   });
@@ -214,10 +214,10 @@ const DailyEvaluationForm = () => {
   return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/evaluations/daily')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/evaluations/project')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-semibold tracking-tight">Submit Daily Evaluation</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Submit Project Evaluation</h1>
       </div>
 
       <Card>
@@ -264,7 +264,7 @@ const DailyEvaluationForm = () => {
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             You have already submitted an evaluation for this person on this date.{' '}
-            <Link to={`/evaluations/daily/${duplicate.id}`} className="underline font-medium">View it here →</Link>
+            <Link to={`/evaluations/project/${duplicate.id}`} className="underline font-medium">View it here →</Link>
           </AlertDescription>
         </Alert>
       )}
@@ -278,7 +278,7 @@ const DailyEvaluationForm = () => {
         </CardHeader>
         <CardContent className="space-y-5">
           {(parameters || []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">No parameters configured. Ask your admin to set up daily evaluation parameters.</p>
+            <p className="text-sm text-muted-foreground">No parameters configured. Ask your admin to set up project evaluation parameters.</p>
           ) : (
             (parameters || []).map((p: any) => (
               <div key={p.id} className="space-y-1">

@@ -89,7 +89,7 @@ const DailyEvaluations = () => {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <ClipboardCheck className="h-12 w-12 text-muted-foreground/40 mb-4" />
           <h3 className="text-lg font-medium">No evaluations found</h3>
-          <p className="text-sm text-muted-foreground mt-1">No daily evaluations match your filters.</p>
+          <p className="text-sm text-muted-foreground mt-1">No project evaluations match your filters.</p>
         </div>
       );
     }
@@ -151,7 +151,7 @@ const DailyEvaluations = () => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => navigate(`/evaluations/daily/${ev.id}`)}>
+                  <Button variant="ghost" size="icon" onClick={() => navigate(`/evaluations/project/${ev.id}`)}>
                     <Eye className="h-4 w-4" />
                   </Button>
                   {canDelete(ev) && (
@@ -175,7 +175,7 @@ const DailyEvaluations = () => {
         <div>
           <p className="text-sm text-muted-foreground">Two-way evaluations between Team Leads and Employees</p>
         </div>
-        <Button onClick={() => navigate('/evaluations/daily/new')} className="w-full sm:w-auto">
+        <Button onClick={() => navigate('/evaluations/project/new')} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" /> Submit Evaluation
         </Button>
       </div>
