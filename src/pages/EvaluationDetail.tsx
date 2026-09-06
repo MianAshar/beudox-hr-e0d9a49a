@@ -57,11 +57,11 @@ const EvaluationDetail = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Evaluation deleted');
+      toast.success('Employee review deleted');
       queryClient.invalidateQueries({ queryKey: ['evaluations'] });
-      navigate('/evaluations');
+      navigate('/employee-reviews');
     },
-    onError: () => toast.error('Failed to delete evaluation'),
+    onError: () => toast.error('Failed to delete employee review'),
   });
 
   if (isLoading) {

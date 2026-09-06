@@ -456,7 +456,7 @@ const EvaluationForm = () => {
           {/* Parameter Scores */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Evaluation Parameters</CardTitle>
+              <CardTitle className="text-base">Employee Review Parameters</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               {paramsLoading ? (
