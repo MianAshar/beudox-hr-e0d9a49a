@@ -179,6 +179,26 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
           </div>
         ))}
       </div>
+      <Dialog open={!!deleteId} onOpenChange={v => { if (!v) setDeleteId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Parameter</DialogTitle>
+            <DialogDescription>
+              This will permanently delete the parameter. Any existing evaluation scores for this parameter will remain in the database but will no longer display. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="flex gap-2">
         <Input
           placeholder="New parameter name"
