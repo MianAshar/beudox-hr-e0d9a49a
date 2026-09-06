@@ -105,7 +105,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
       preview: ev.comments,
       person: ev.evaluator ? { name: ev.evaluator.full_name, avatar: ev.evaluator.avatar_url } : null,
       recommendation: isManager ? ev.recommendation : null,
-      linkTo: `/evaluations/${ev.id}`,
+      linkTo: `/employee-reviews/${ev.id}`,
     });
   });
 
@@ -173,11 +173,11 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
   return (
     <div className="bg-card rounded-[14px] border p-6">
       <h3 className="font-semibold text-[15px] text-foreground mb-4" style={{ fontFamily: 'var(--ff-display)' }}>
-        Evaluation Timeline
+        Review Timeline
       </h3>
 
       {limited.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No evaluations yet</p>
+        <p className="text-sm text-muted-foreground">No reviews yet</p>
       ) : (
         <div className="space-y-3">
           {limited.map(item => (
@@ -199,7 +199,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
                       ? 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border-0 text-[10px]'
                       : 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border-0 text-[10px]'
                   }>
-                    {item.type === 'quarterly' ? 'Bi-Annual' : 'Project'}
+                    {item.type === 'quarterly' ? 'Employee Review' : 'Project'}
                   </Badge>
                   {item.type === 'daily' && item.dailyDirection && (
                     <Badge variant="outline" className={
