@@ -450,7 +450,18 @@ const ProjectForm = () => {
                 </Popover>
               </div>
               <div>
-                <Label>Team Members / Resources <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+                <div className="flex items-center justify-between">
+                  <Label>Team Members / Resources <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+                  {teamMembers.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setTeamMembers([])}
+                      className="text-xs text-destructive hover:underline"
+                    >
+                      Remove All
+                    </button>
+                  )}
+                </div>
                 <Popover open={teamOpen} onOpenChange={setTeamOpen}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-0">
@@ -692,7 +703,18 @@ const ProjectForm = () => {
                 </Popover>
               </div>
               <div>
-                <Label>Team Members / Resources <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+                <div className="flex items-center justify-between">
+                  <Label>Team Members / Resources <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+                  {teamMembers.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setTeamMembers([])}
+                      className="text-xs text-destructive hover:underline"
+                    >
+                      Remove All
+                    </button>
+                  )}
+                </div>
                 <Popover open={teamOpen} onOpenChange={setTeamOpen}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
