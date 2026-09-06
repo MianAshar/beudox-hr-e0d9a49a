@@ -39,13 +39,19 @@ export function getActivityCategory(projects: ProjectActivityInfo[]): ActivityCa
   // Check for actively worked or upcoming projects:
   // in_progress or pending with a future or recent deadline (within last 60 days)
   const hasActiveWork = relevant.some(p => {
-    if (p.status !== 'in_progress' && p.status !== 'pending') return false;
-    // No deadline = treat as active (ongoing work)
-    if (!p.client_deadline && !p.internal_deadline) return true;
-    const deadline = new Date(p.client_deadline || p.internal_deadline!).getTime();
-    const daysFromNow = (deadline - Date.now()) / (1000 * 60 * 60 * 24);
-    // Active if deadline is in the future OR within the last 60 days
-    return daysFromNow > -60;
+    const dateStr = p.client_deadline || p.internal_deadline || p.created_at;
+    if (!dateStr) return false;
+    const date = new Date(dateStr).getTime();
+    const daysFromNow = (date - Date.now()) / (1000 * 60 * 60 * 24);
+    if (p.status === 'in_progress' || p.status === 'pending') {
+      // Active/upcoming work: future deadline OR deadline within last 60 days
+      return daysFromNow > -60;
+    }
+    if (p.status === 'submitted' || p.status === 'completed') {
+      // Recently finished: deadline or created within last 60 days
+      return daysFromNow > -60;
+    }
+    return false;
   });
 
   if (hasActiveWork) return 'active';
