@@ -101,6 +101,23 @@ const InvoiceForm = () => {
     enabled: !!companyId && !!clientId,
   });
 
+  // Fetch project IDs already invoiced for this client (non-cancelled invoices)
+  const { data: invoicedProjectIds } = useQuery({
+    queryKey: ['invoiced-project-ids', companyId, clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoice_line_items')
+        .select('project_id, invoices!inner(client_id, status)')
+        .eq('company_id', companyId!)
+        .not('project_id', 'is', null)
+        .filter('invoices.client_id', 'eq', clientId)
+        .filter('invoices.status', 'neq', 'cancelled');
+      if (error) throw error;
+      return (data ?? []).map((r: any) => r.project_id as string);
+    },
+    enabled: !!companyId && !!clientId,
+  });
+
   // Fetch existing invoice count for auto-numbering
   const { data: invoiceCount } = useQuery({
     queryKey: ['invoice-count', companyId],
@@ -230,10 +247,18 @@ const InvoiceForm = () => {
   // Group projects by client_deadline month
   const projectsByMonth = useMemo(() => {
     if (!clientProjects) return [];
+    const alreadyInvoiced = new Set(invoicedProjectIds ?? []);
+    // In edit mode, don't exclude projects already on THIS invoice
+    const currentInvoiceProjects = isEdit
+      ? (existingLineItems ?? []).map((li: any) => li.project_id).filter(Boolean)
+      : [];
+    const availableProjects = clientProjects.filter(p =>
+      !alreadyInvoiced.has(p.id) || currentInvoiceProjects.includes(p.id)
+    );
     const groups: { label: string; monthKey: string; projects: typeof clientProjects }[] = [];
     const groupMap: Record<string, typeof clientProjects> = {};
 
-    clientProjects.forEach(p => {
+    availableProjects.forEach(p => {
       let key: string;
       let label: string;
       if (p.client_deadline) {
