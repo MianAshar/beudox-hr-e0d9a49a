@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { GripVertical, Plus, Trash2 } from 'lucide-react';
+import { GripVertical, Plus, Archive } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ParamSectionProps {
@@ -34,6 +34,7 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
         .select('*')
         .eq('company_id', companyId)
         .eq('evaluation_type', evaluationType)
+        .eq('is_archived', false)
         .order('display_order');
       if (direction) q = q.eq('direction', direction);
       else q = q.is('direction', null);
@@ -77,11 +78,11 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
-  const deleteMutation = useMutation({
+  const archiveMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('evaluation_parameters')
-        .delete()
+        .update({ is_archived: true })
         .eq('id', id)
         .eq('company_id', companyId);
       if (error) throw error;
@@ -89,9 +90,9 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       setDeleteId(null);
-      toast.success('Parameter deleted');
+      toast.success('Parameter archived');
     },
-    onError: () => toast.error('Failed to delete parameter'),
+    onError: () => toast.error('Failed to archive parameter'),
   });
 
   const sorted = [...(parameters || [])].sort((a: any, b: any) => a.display_order - b.display_order);
@@ -165,7 +166,7 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
                 className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={() => setDeleteId(p.id)}
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Archive className="h-3.5 w-3.5" />
               </Button>
               <Label htmlFor={`toggle-${p.id}`} className="text-xs text-muted-foreground">
                 {p.is_active ? 'Active' : 'Inactive'}
@@ -182,19 +183,19 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
       <Dialog open={!!deleteId} onOpenChange={v => { if (!v) setDeleteId(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Parameter</DialogTitle>
+            <DialogTitle>Archive Parameter</DialogTitle>
             <DialogDescription>
-              This will permanently delete the parameter. Any existing evaluation scores for this parameter will remain in the database but will no longer display. This cannot be undone.
+              This will archive the parameter. It will no longer appear in new evaluations, but all existing evaluation scores for this parameter will be preserved and will continue to display correctly.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
             <Button
               variant="destructive"
-              disabled={deleteMutation.isPending}
-              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+              disabled={archiveMutation.isPending}
+              onClick={() => deleteId && archiveMutation.mutate(deleteId)}
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {archiveMutation.isPending ? 'Archiving...' : 'Archive'}
             </Button>
           </DialogFooter>
         </DialogContent>

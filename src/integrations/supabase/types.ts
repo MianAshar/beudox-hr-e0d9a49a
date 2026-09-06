@@ -853,6 +853,7 @@ export type Database = {
           evaluation_type: string
           id: string
           is_active: boolean
+          is_archived: boolean | null
           max_score: number
           min_score: number
           name: string
@@ -866,6 +867,7 @@ export type Database = {
           evaluation_type: string
           id?: string
           is_active?: boolean
+          is_archived?: boolean | null
           max_score?: number
           min_score?: number
           name: string
@@ -879,6 +881,7 @@ export type Database = {
           evaluation_type?: string
           id?: string
           is_active?: boolean
+          is_archived?: boolean | null
           max_score?: number
           min_score?: number
           name?: string
