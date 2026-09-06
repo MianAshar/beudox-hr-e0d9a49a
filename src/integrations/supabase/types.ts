@@ -594,6 +594,116 @@ export type Database = {
           },
         ]
       }
+      employee_review_scores: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          employee_review_id: string
+          id: string
+          parameter_id: string
+          score: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          employee_review_id: string
+          id?: string
+          parameter_id: string
+          score: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          employee_review_id?: string
+          id?: string
+          parameter_id?: string
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_scores_evaluation_id_fkey"
+            columns: ["employee_review_id"]
+            isOneToOne: false
+            referencedRelation: "employee_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_scores_parameter_id_fkey"
+            columns: ["parameter_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_parameters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_reviews: {
+        Row: {
+          comments: string | null
+          company_id: string
+          created_at: string | null
+          employee_id: string
+          evaluated_by: string
+          id: string
+          overall_score: number | null
+          period: string
+          recommendation: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          comments?: string | null
+          company_id: string
+          created_at?: string | null
+          employee_id: string
+          evaluated_by: string
+          id?: string
+          overall_score?: number | null
+          period: string
+          recommendation?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          comments?: string | null
+          company_id?: string
+          created_at?: string | null
+          employee_id?: string
+          evaluated_by?: string
+          id?: string
+          overall_score?: number | null
+          period?: string
+          recommendation?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_evaluated_by_fkey"
+            columns: ["evaluated_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_roles: {
         Row: {
           created_at: string | null
@@ -780,116 +890,6 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      evaluation_scores: {
-        Row: {
-          company_id: string
-          created_at: string | null
-          evaluation_id: string
-          id: string
-          parameter_id: string
-          score: number
-        }
-        Insert: {
-          company_id: string
-          created_at?: string | null
-          evaluation_id: string
-          id?: string
-          parameter_id: string
-          score: number
-        }
-        Update: {
-          company_id?: string
-          created_at?: string | null
-          evaluation_id?: string
-          id?: string
-          parameter_id?: string
-          score?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "evaluation_scores_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "evaluation_scores_evaluation_id_fkey"
-            columns: ["evaluation_id"]
-            isOneToOne: false
-            referencedRelation: "evaluations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "evaluation_scores_parameter_id_fkey"
-            columns: ["parameter_id"]
-            isOneToOne: false
-            referencedRelation: "evaluation_parameters"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      evaluations: {
-        Row: {
-          comments: string | null
-          company_id: string
-          created_at: string | null
-          employee_id: string
-          evaluated_by: string
-          id: string
-          overall_score: number | null
-          period: string
-          recommendation: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          comments?: string | null
-          company_id: string
-          created_at?: string | null
-          employee_id: string
-          evaluated_by: string
-          id?: string
-          overall_score?: number | null
-          period: string
-          recommendation?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          comments?: string | null
-          company_id?: string
-          created_at?: string | null
-          employee_id?: string
-          evaluated_by?: string
-          id?: string
-          overall_score?: number | null
-          period?: string
-          recommendation?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "evaluations_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "evaluations_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "evaluations_evaluated_by_fkey"
-            columns: ["evaluated_by"]
-            isOneToOne: false
-            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
