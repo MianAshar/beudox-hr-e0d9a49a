@@ -34,12 +34,12 @@ const EvaluationDetail = () => {
     queryKey: ['evaluation-detail', id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('evaluations')
+        .from('employee_reviews')
         .select(`
           *,
           employee:employees!evaluations_employee_id_fkey(id, full_name, avatar_url, designation, department),
           evaluator:employees!evaluations_evaluated_by_fkey(id, full_name),
-          evaluation_scores(id, parameter_id, score, evaluation_parameters(id, name, max_score))
+          employee_review_scores(id, parameter_id, score, evaluation_parameters(id, name, max_score))
         `)
         .eq('id', id!)
         .eq('company_id', companyId!)
@@ -52,8 +52,8 @@ const EvaluationDetail = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await supabase.from('evaluation_scores').delete().eq('evaluation_id', id!).eq('company_id', companyId!);
-      const { error } = await supabase.from('evaluations').delete().eq('id', id!).eq('company_id', companyId!);
+      await supabase.from('employee_review_scores').delete().eq('employee_review_id', id!).eq('company_id', companyId!);
+      const { error } = await supabase.from('employee_reviews').delete().eq('id', id!).eq('company_id', companyId!);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -84,7 +84,7 @@ const EvaluationDetail = () => {
   }
 
   const ev = evaluation as any;
-  const scoresList = (ev.evaluation_scores || []).sort((a: any, b: any) =>
+  const scoresList = (ev.employee_review_scores || []).sort((a: any, b: any) =>
     (a.evaluation_parameters?.name || '').localeCompare(b.evaluation_parameters?.name || '')
   );
 

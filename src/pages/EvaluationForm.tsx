@@ -123,8 +123,8 @@ const EvaluationForm = () => {
     queryKey: ['evaluation-edit', id],
     queryFn: async () => {
       const { data } = await supabase
-        .from('evaluations')
-        .select('*, evaluation_scores(*)')
+        .from('employee_reviews')
+        .select('*, employee_review_scores(*)')
         .eq('id', id!)
         .eq('company_id', companyId!)
         .single();

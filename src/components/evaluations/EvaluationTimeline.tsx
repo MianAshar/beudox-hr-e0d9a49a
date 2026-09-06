@@ -27,7 +27,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
     queryKey: ['eval-timeline-quarterly', employeeId, companyId],
     queryFn: async () => {
       const { data } = await supabase
-        .from('evaluations')
+        .from('employee_reviews')
         .select(`
           id, period, overall_score, comments, recommendation, created_at,
           evaluator:employees!evaluations_evaluated_by_fkey(id, full_name, avatar_url)
