@@ -31,27 +31,27 @@ export const ACTIVITY_STYLES: Record<ActivityCategory, { bg: string; text: strin
 };
 
 export function getActivityCategory(projects: ProjectActivityInfo[]): ActivityCategory {
-  // Exclude cancelled projects
+  // Exclude cancelled and submitted projects from activity signal
   const relevant = projects.filter(p => p.status !== 'cancelled');
 
   if (relevant.length === 0) return 'inactive_6m';
 
-  // In-progress projects: check if their client_deadline (or internal_deadline) is within 60 days
-  // from today in either direction — i.e. currently active work
-  const hasActiveInProgress = relevant.some(p => {
-    if (p.status !== 'in_progress') return false;
-    // If no deadline set, treat as active (work is ongoing, no deadline yet)
+  // Check for actively worked or upcoming projects:
+  // in_progress or pending with a future or recent deadline (within last 60 days)
+  const hasActiveWork = relevant.some(p => {
+    if (p.status !== 'in_progress' && p.status !== 'pending') return false;
+    // No deadline = treat as active (ongoing work)
     if (!p.client_deadline && !p.internal_deadline) return true;
     const deadline = new Date(p.client_deadline || p.internal_deadline!).getTime();
     const daysFromNow = (deadline - Date.now()) / (1000 * 60 * 60 * 24);
-    // Active if deadline is in the future OR was within the last 60 days
+    // Active if deadline is in the future OR within the last 60 days
     return daysFromNow > -60;
   });
 
-  if (hasActiveInProgress) return 'active';
+  if (hasActiveWork) return 'active';
 
-  // Find most recent deadline across all non-cancelled projects
-  // Use client_deadline first, fall back to internal_deadline, then created_at
+  // No active/pending work — find most recent deadline across all non-cancelled projects
+  // to determine how long ago this client was last active
   const mostRecentMs = relevant
     .map(p => {
       const dateStr = p.client_deadline || p.internal_deadline || p.created_at;
@@ -61,9 +61,12 @@ export function getActivityCategory(projects: ProjectActivityInfo[]): ActivityCa
 
   if (mostRecentMs === 0) return 'inactive_6m';
 
+  // Only use positive daysAgo (past deadlines) for idle classification
   const daysAgo = (Date.now() - mostRecentMs) / (1000 * 60 * 60 * 24);
 
-  if (daysAgo <= 60)  return 'inactive_2m';  // within 2 months
-  if (daysAgo <= 120) return 'inactive_4m';  // within 4 months
-  return 'inactive_6m';                       // 4+ months
+  // If most recent deadline is still in the future but no active/pending work, treat as recent
+  if (daysAgo < 0) return 'inactive_2m';
+  if (daysAgo <= 60)  return 'inactive_2m';
+  if (daysAgo <= 120) return 'inactive_4m';
+  return 'inactive_6m';
 }
