@@ -108,21 +108,21 @@ Deno.serve(async (req) => {
 
     // Cascade delete in order — use service role to bypass RLS
     const tables: { table: string; column: string }[] = [
-      { table: "daily_evaluation_scores", column: "daily_evaluation_id" },
+      { table: "project_evaluation_scores", column: "project_evaluation_id" },
     ];
 
-    // Delete daily_evaluation_scores via daily_evaluations
+    // Delete project_evaluation_scores via project_evaluations
     const { data: dailyEvals } = await adminClient
-      .from("daily_evaluations")
+      .from("project_evaluations")
       .select("id")
       .eq("reviewee_id", employeeId);
 
     if (dailyEvals && dailyEvals.length > 0) {
       const evalIds = dailyEvals.map((e) => e.id);
       await adminClient
-        .from("daily_evaluation_scores")
+        .from("project_evaluation_scores")
         .delete()
-        .in("daily_evaluation_id", evalIds);
+        .in("project_evaluation_id", evalIds);
     }
 
     // Delete evaluation_scores via evaluations
@@ -168,18 +168,18 @@ Deno.serve(async (req) => {
         .in("leave_balance_id", balanceIds);
     }
 
-    // Delete daily_evaluation_scores tied to evaluations where this employee was the reviewer
+    // Delete project_evaluation_scores tied to evaluations where this employee was the reviewer
     const { data: reviewerEvals } = await adminClient
-      .from("daily_evaluations")
+      .from("project_evaluations")
       .select("id")
       .eq("reviewer_id", employeeId);
 
     if (reviewerEvals && reviewerEvals.length > 0) {
       const ids = reviewerEvals.map((e) => e.id);
       await adminClient
-        .from("daily_evaluation_scores")
+        .from("project_evaluation_scores")
         .delete()
-        .in("daily_evaluation_id", ids);
+        .in("project_evaluation_id", ids);
     }
 
     // Direct deletes (rows owned by this employee)
@@ -189,8 +189,8 @@ Deno.serve(async (req) => {
       { table: "payroll_records", column: "employee_id" },
       { table: "leave_requests", column: "employee_id" },
       { table: "leave_balances", column: "employee_id" },
-      { table: "daily_evaluations", column: "reviewee_id" },
-      { table: "daily_evaluations", column: "reviewer_id" },
+      { table: "project_evaluations", column: "reviewee_id" },
+      { table: "project_evaluations", column: "reviewer_id" },
       { table: "evaluations", column: "employee_id" },
       { table: "project_assignments", column: "employee_id" },
       { table: "loans", column: "employee_id" },
