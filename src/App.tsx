@@ -134,9 +134,9 @@ const App = () => (
               <Route path="/evaluations/new" element={<EvaluationForm />} />
               <Route path="/evaluations/:id" element={<EvaluationDetail />} />
               <Route path="/evaluations/:id/edit" element={<EvaluationForm />} />
-              <Route path="/evaluations/daily" element={<DailyEvaluations />} />
-              <Route path="/evaluations/daily/new" element={<DailyEvaluationForm />} />
-              <Route path="/evaluations/daily/:id" element={<DailyEvaluationDetail />} />
+              <Route path="/evaluations/project" element={<DailyEvaluations />} />
+              <Route path="/evaluations/project/new" element={<DailyEvaluationForm />} />
+              <Route path="/evaluations/project/:id" element={<DailyEvaluationDetail />} />
               <Route path="/loans" element={<Loans />} />
               <Route path="/payroll" element={<Payroll />} />
               <Route path="/my-payslip" element={<MyPayslip />} />

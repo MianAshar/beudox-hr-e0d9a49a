@@ -194,10 +194,10 @@ const EvaluationParametersTab = () => {
         />
       </div>
 
-      {/* Daily Parameters */}
+      {/* Project Parameters */}
       <div className="bg-card rounded-[14px] border p-6 space-y-6">
         <h3 className="font-semibold text-[15px] text-foreground mb-2" style={{ fontFamily: 'var(--ff-display)' }}>
-          Daily Evaluation Parameters
+          Project Evaluation Parameters
         </h3>
         <ParamSection
           title="Team Lead → Employee (Senior to Junior)"
