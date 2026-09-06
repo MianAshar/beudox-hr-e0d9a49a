@@ -88,7 +88,7 @@ const InvoiceForm = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, project_code, project_name, fee, status')
+        .select('id, project_code, project_name, fee, status, client_deadline')
         .eq('company_id', companyId!)
         .eq('client_id', clientId)
         .neq('status', 'cancelled')
@@ -225,6 +225,38 @@ const InvoiceForm = () => {
   }, [selectedProjectIds, projectFees, clientProjects, customItems]);
 
   const total = Math.max(0, subtotal - discount);
+
+  // Group projects by client_deadline month
+  const projectsByMonth = useMemo(() => {
+    if (!clientProjects) return [];
+    const groups: { label: string; monthKey: string; projects: typeof clientProjects }[] = [];
+    const groupMap: Record<string, typeof clientProjects> = {};
+
+    clientProjects.forEach(p => {
+      let key: string;
+      let label: string;
+      if (p.client_deadline) {
+        const d = new Date(p.client_deadline);
+        key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+      } else {
+        key = 'no-deadline';
+        label = 'No Client Deadline';
+      }
+      if (!groupMap[key]) {
+        groupMap[key] = [];
+        groups.push({ label, monthKey: key, projects: groupMap[key] });
+      }
+      groupMap[key].push(p);
+    });
+
+    // Sort groups by monthKey ascending, 'no-deadline' at end
+    return groups.sort((a, b) => {
+      if (a.monthKey === 'no-deadline') return 1;
+      if (b.monthKey === 'no-deadline') return -1;
+      return a.monthKey.localeCompare(b.monthKey);
+    });
+  }, [clientProjects]);
 
   const toggleProject = (projectId: string) => {
     setSelectedProjectIds(prev =>
@@ -572,50 +604,59 @@ const InvoiceForm = () => {
 
           {/* Projects checklist */}
           {clientProjects && clientProjects.length > 0 && (
-            <div>
-              <Label className="mb-3 block">Projects for {selectedClient?.name}</Label>
-              <div className="space-y-2">
-                {clientProjects.map(project => {
-                  const checked = selectedProjectIds.includes(project.id);
-                  const fee = projectFees[project.id] ?? Number(project.fee) ?? 0;
-                  return (
-                    <div
-                      key={project.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/30 transition-colors"
-                      style={{ borderColor: 'hsl(var(--border))' }}
-                    >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={() => toggleProject(project.id)}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {project.project_code} — {project.project_name}
-                        </p>
-                      </div>
-                      <div className="w-24">
-                        <Input
-                          type="number"
-                          placeholder="Hrs"
-                          value={projectHours[project.id] ?? ''}
-                          onChange={e => setProjectHours(prev => ({ ...prev, [project.id]: e.target.value }))}
-                          className="h-8 text-right text-sm"
-                          disabled={!checked}
-                        />
-                      </div>
-                      <div className="w-32">
-                        <Input
-                          type="number"
-                          value={fee}
-                          onChange={e => setProjectFees(prev => ({ ...prev, [project.id]: Number(e.target.value) }))}
-                          className="h-8 text-right font-mono-bx text-sm"
-                          disabled={!checked}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="space-y-4">
+              <Label className="block">Projects for {selectedClient?.name}</Label>
+              {projectsByMonth.map(group => (
+                <div key={group.monthKey}>
+                  {/* Month header */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{group.label}</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                  <div className="space-y-2">
+                    {group.projects.map(project => {
+                      const checked = selectedProjectIds.includes(project.id);
+                      const fee = projectFees[project.id] ?? Number(project.fee) ?? 0;
+                      return (
+                        <div
+                          key={project.id}
+                          className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/30 transition-colors"
+                          style={{ borderColor: 'hsl(var(--border))' }}
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleProject(project.id)}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium break-words">
+                              {project.project_code} — {project.project_name}
+                            </p>
+                          </div>
+                          <div className="w-24">
+                            <Input
+                              type="number"
+                              placeholder="Hrs"
+                              value={projectHours[project.id] ?? ''}
+                              onChange={e => setProjectHours(prev => ({ ...prev, [project.id]: e.target.value }))}
+                              className="h-8 text-right text-sm"
+                              disabled={!checked}
+                            />
+                          </div>
+                          <div className="w-32">
+                            <Input
+                              type="number"
+                              value={fee}
+                              onChange={e => setProjectFees(prev => ({ ...prev, [project.id]: Number(e.target.value) }))}
+                              className="h-8 text-right font-mono-bx text-sm"
+                              disabled={!checked}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
