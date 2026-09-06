@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { GripVertical, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ParamSectionProps {
@@ -21,6 +22,7 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
   const [newName, setNewName] = useState('');
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const queryKey = ['eval-params-settings', companyId, evaluationType, direction || 'none'];
 
@@ -73,6 +75,23 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('evaluation_parameters')
+        .delete()
+        .eq('id', id)
+        .eq('company_id', companyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      setDeleteId(null);
+      toast.success('Parameter deleted');
+    },
+    onError: () => toast.error('Failed to delete parameter'),
   });
 
   const sorted = [...(parameters || [])].sort((a: any, b: any) => a.display_order - b.display_order);
