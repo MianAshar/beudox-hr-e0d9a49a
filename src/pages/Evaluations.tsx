@@ -108,12 +108,12 @@ const Evaluations = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">
-            {isManager ? 'Manage employee performance evaluations' : 'View your performance evaluations'}
+            {isManager ? 'Manage employee performance reviews' : 'View your performance reviews'}
           </p>
         </div>
         {isManager && (
-          <Button onClick={() => navigate('/evaluations/new')} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" /> Create Evaluation
+          <Button onClick={() => navigate('/employee-reviews/new')} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" /> Create Review
           </Button>
         )}
       </div>
@@ -157,9 +157,9 @@ const Evaluations = () => {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <ClipboardCheck className="h-12 w-12 text-muted-foreground/40 mb-4" />
-          <h3 className="text-lg font-medium">No evaluations found</h3>
+          <h3 className="text-lg font-medium">No employee reviews found</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {isManager ? 'Create a new evaluation to get started.' : 'No evaluations have been recorded yet.'}
+            {isManager ? 'Create a new review to get started.' : 'No employee reviews have been recorded yet.'}
           </p>
         </div>
       ) : (
@@ -213,7 +213,7 @@ const Evaluations = () => {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/evaluations/${ev.id}`)}>
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/employee-reviews/${ev.id}`)}>
                       <Eye className="h-4 w-4" />
                     </Button>
                     {isManager && (
@@ -234,8 +234,8 @@ const Evaluations = () => {
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Evaluation</DialogTitle>
-            <DialogDescription>Delete this evaluation? This cannot be undone.</DialogDescription>
+            <DialogTitle>Delete Employee Review</DialogTitle>
+            <DialogDescription>Delete this employee review? This cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
