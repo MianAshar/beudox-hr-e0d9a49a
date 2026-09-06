@@ -247,10 +247,18 @@ const InvoiceForm = () => {
   // Group projects by client_deadline month
   const projectsByMonth = useMemo(() => {
     if (!clientProjects) return [];
+    const alreadyInvoiced = new Set(invoicedProjectIds ?? []);
+    // In edit mode, don't exclude projects already on THIS invoice
+    const currentInvoiceProjects = isEdit
+      ? (existingLineItems ?? []).map((li: any) => li.project_id).filter(Boolean)
+      : [];
+    const availableProjects = clientProjects.filter(p =>
+      !alreadyInvoiced.has(p.id) || currentInvoiceProjects.includes(p.id)
+    );
     const groups: { label: string; monthKey: string; projects: typeof clientProjects }[] = [];
     const groupMap: Record<string, typeof clientProjects> = {};
 
-    clientProjects.forEach(p => {
+    availableProjects.forEach(p => {
       let key: string;
       let label: string;
       if (p.client_deadline) {
