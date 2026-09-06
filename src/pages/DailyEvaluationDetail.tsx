@@ -32,13 +32,13 @@ const DailyEvaluationDetail = () => {
     queryKey: ['daily-eval-detail', id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('daily_evaluations')
+        .from('project_evaluations')
         .select(`
           *,
           reviewer:employees!daily_evaluations_reviewer_id_fkey(id, full_name, avatar_url, designation),
           reviewee:employees!daily_evaluations_reviewee_id_fkey(id, full_name, avatar_url, designation),
           project:projects!daily_evaluations_project_id_fkey(id, project_name),
-          daily_evaluation_scores(id, parameter_id, score, evaluation_parameters(id, name, max_score))
+          project_evaluation_scores(id, parameter_id, score, evaluation_parameters(id, name, max_score))
         `)
         .eq('id', id!)
         .eq('company_id', companyId!)
@@ -51,8 +51,8 @@ const DailyEvaluationDetail = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await supabase.from('daily_evaluation_scores').delete().eq('daily_evaluation_id', id!).eq('company_id', companyId!);
-      const { error } = await supabase.from('daily_evaluations').delete().eq('id', id!).eq('company_id', companyId!);
+      await supabase.from('project_evaluation_scores').delete().eq('project_evaluation_id', id!).eq('company_id', companyId!);
+      const { error } = await supabase.from('project_evaluations').delete().eq('id', id!).eq('company_id', companyId!);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -84,7 +84,7 @@ const DailyEvaluationDetail = () => {
 
   const ev = evaluation as any;
   const canDelete = isManager || ev.reviewer_id === myId;
-  const scoresList = (ev.daily_evaluation_scores || []).sort((a: any, b: any) =>
+  const scoresList = (ev.project_evaluation_scores || []).sort((a: any, b: any) =>
     (a.evaluation_parameters?.name || '').localeCompare(b.evaluation_parameters?.name || '')
   );
 

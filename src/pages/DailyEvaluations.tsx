@@ -39,7 +39,7 @@ const DailyEvaluations = () => {
     queryKey: ['daily-evaluations', companyId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('daily_evaluations')
+        .from('project_evaluations')
         .select(`
           id, direction, date, overall_score, remarks, reviewer_id, reviewee_id, created_at,
           reviewer:employees!daily_evaluations_reviewer_id_fkey(id, full_name, avatar_url),
@@ -56,8 +56,8 @@ const DailyEvaluations = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('daily_evaluation_scores').delete().eq('daily_evaluation_id', id).eq('company_id', companyId!);
-      const { error } = await supabase.from('daily_evaluations').delete().eq('id', id).eq('company_id', companyId!);
+      await supabase.from('project_evaluation_scores').delete().eq('project_evaluation_id', id).eq('company_id', companyId!);
+      const { error } = await supabase.from('project_evaluations').delete().eq('id', id).eq('company_id', companyId!);
       if (error) throw error;
     },
     onSuccess: () => {
