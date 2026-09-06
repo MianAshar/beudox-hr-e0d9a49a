@@ -147,7 +147,7 @@ const DailyEvaluationForm = () => {
     queryKey: ['daily-eval-dup', myId, revieweeId, date ? format(date, 'yyyy-MM-dd') : ''],
     queryFn: async () => {
       const { data } = await supabase
-        .from('daily_evaluations')
+        .from('project_evaluations')
         .select('id')
         .eq('company_id', companyId!)
         .eq('reviewer_id', myId!)
@@ -177,7 +177,7 @@ const DailyEvaluationForm = () => {
 
       const projectId = projectAssignment?.[0]?.project_id || null;
 
-      const { data, error } = await supabase.from('daily_evaluations').insert({
+      const { data, error } = await supabase.from('project_evaluations').insert({
         company_id: companyId!,
         reviewer_id: myId!,
         reviewee_id: revieweeId,
@@ -190,13 +190,13 @@ const DailyEvaluationForm = () => {
       if (error) throw error;
 
       const scoreRows = activeParams.map((p: any) => ({
-        daily_evaluation_id: data.id,
+        project_evaluation_id: data.id,
         company_id: companyId!,
         parameter_id: p.id,
         score: scores[p.id] || 0,
       }));
       if (scoreRows.length > 0) {
-        const { error: sErr } = await supabase.from('daily_evaluation_scores').insert(scoreRows);
+        const { error: sErr } = await supabase.from('project_evaluation_scores').insert(scoreRows);
         if (sErr) throw sErr;
       }
     },

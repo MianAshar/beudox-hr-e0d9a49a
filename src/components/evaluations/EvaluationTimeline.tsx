@@ -47,7 +47,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
     queryFn: async () => {
       // Get evals where this employee is reviewer or reviewee
       const { data: asReviewee } = await supabase
-        .from('daily_evaluations')
+        .from('project_evaluations')
         .select(`
           id, direction, date, overall_score, remarks, reviewer_id, reviewee_id,
           reviewer:employees!daily_evaluations_reviewer_id_fkey(id, full_name, avatar_url),
@@ -59,7 +59,7 @@ const EvaluationTimeline = ({ employeeId, companyId }: Props) => {
         .limit(20);
 
       const { data: asReviewer } = await supabase
-        .from('daily_evaluations')
+        .from('project_evaluations')
         .select(`
           id, direction, date, overall_score, remarks, reviewer_id, reviewee_id,
           reviewer:employees!daily_evaluations_reviewer_id_fkey(id, full_name, avatar_url),

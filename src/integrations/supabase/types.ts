@@ -538,126 +538,6 @@ export type Database = {
           },
         ]
       }
-      daily_evaluation_scores: {
-        Row: {
-          company_id: string
-          created_at: string | null
-          daily_evaluation_id: string
-          id: string
-          parameter_id: string
-          score: number
-        }
-        Insert: {
-          company_id: string
-          created_at?: string | null
-          daily_evaluation_id: string
-          id?: string
-          parameter_id: string
-          score: number
-        }
-        Update: {
-          company_id?: string
-          created_at?: string | null
-          daily_evaluation_id?: string
-          id?: string
-          parameter_id?: string
-          score?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_evaluation_scores_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_evaluation_scores_daily_evaluation_id_fkey"
-            columns: ["daily_evaluation_id"]
-            isOneToOne: false
-            referencedRelation: "daily_evaluations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_evaluation_scores_parameter_id_fkey"
-            columns: ["parameter_id"]
-            isOneToOne: false
-            referencedRelation: "evaluation_parameters"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      daily_evaluations: {
-        Row: {
-          company_id: string
-          created_at: string | null
-          date: string
-          direction: string
-          id: string
-          overall_score: number | null
-          project_id: string
-          remarks: string | null
-          reviewee_id: string
-          reviewer_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          company_id: string
-          created_at?: string | null
-          date: string
-          direction: string
-          id?: string
-          overall_score?: number | null
-          project_id: string
-          remarks?: string | null
-          reviewee_id: string
-          reviewer_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          company_id?: string
-          created_at?: string | null
-          date?: string
-          direction?: string
-          id?: string
-          overall_score?: number | null
-          project_id?: string
-          remarks?: string | null
-          reviewee_id?: string
-          reviewer_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_evaluations_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_evaluations_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_evaluations_reviewee_id_fkey"
-            columns: ["reviewee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_evaluations_reviewer_id_fkey"
-            columns: ["reviewer_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       employee_jd_assignments: {
         Row: {
           assigned_at: string | null
@@ -2483,6 +2363,126 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_evaluation_scores: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          parameter_id: string
+          project_evaluation_id: string
+          score: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          parameter_id: string
+          project_evaluation_id: string
+          score: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          parameter_id?: string
+          project_evaluation_id?: string
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_evaluation_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_evaluation_scores_daily_evaluation_id_fkey"
+            columns: ["project_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "project_evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_evaluation_scores_parameter_id_fkey"
+            columns: ["parameter_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_parameters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_evaluations: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          date: string
+          direction: string
+          id: string
+          overall_score: number | null
+          project_id: string
+          remarks: string | null
+          reviewee_id: string
+          reviewer_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          date: string
+          direction: string
+          id?: string
+          overall_score?: number | null
+          project_id: string
+          remarks?: string | null
+          reviewee_id: string
+          reviewer_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          date?: string
+          direction?: string
+          id?: string
+          overall_score?: number | null
+          project_id?: string
+          remarks?: string | null
+          reviewee_id?: string
+          reviewer_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_evaluations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_evaluations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_evaluations_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_evaluations_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
