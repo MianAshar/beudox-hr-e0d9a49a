@@ -39,7 +39,7 @@ const REFERENCE_ROUTES: Record<string, string> = {
   payroll: '/payroll',
   employee: '/employees',
   loan: '/loans',
-  evaluation: '/evaluations',
+  evaluation: '/employee-reviews',
   invoice: '/invoices',
   leave: '/leave',
 };

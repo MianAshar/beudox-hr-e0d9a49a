@@ -8,6 +8,9 @@ const getPageTitle = (pathname: string): string => {
   if (pathname === '/employees/new') return 'Add Employee';
   if (pathname.match(/^\/employees\/[^/]+\/edit$/)) return 'Edit Employee';
   if (pathname.match(/^\/employees\/[^/]+$/)) return 'Employee Profile';
+  if (pathname === '/employee-reviews/new') return 'New Employee Review';
+  if (pathname.match(/^\/employee-reviews\/[^/]+\/edit$/)) return 'Edit Employee Review';
+  if (pathname.match(/^\/employee-reviews\/[^/]+$/)) return 'Employee Review Detail';
   return pageTitles[pathname] || 'Dashboard';
 };
 
@@ -26,7 +29,7 @@ const pageTitles: Record<string, string> = {
   '/projects': 'Projects',
   
   '/clients': 'Clients',
-  '/evaluations': 'Evaluations',
+  '/employee-reviews': 'Employee Reviews',
   '/evaluations/project': 'Project Evaluations',
   '/invoices': 'Invoices',
   '/hr-policies': 'HR Policies',
