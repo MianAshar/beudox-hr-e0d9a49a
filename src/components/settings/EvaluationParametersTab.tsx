@@ -143,7 +143,7 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
         {sorted.map((p: any) => (
           <div
             key={p.id}
-            className={`flex items-center justify-between gap-3 py-2 px-3 bg-muted/50 rounded-lg transition-colors ${dragOverId === p.id && dragId !== p.id ? 'ring-1 ring-primary/30 bg-primary/5' : ''} ${dragId === p.id ? 'opacity-50' : ''}`}
+            className={`group flex items-center justify-between gap-3 py-2 px-3 bg-muted/50 rounded-lg transition-colors ${dragOverId === p.id && dragId !== p.id ? 'ring-1 ring-primary/30 bg-primary/5' : ''} ${dragId === p.id ? 'opacity-50' : ''}`}
             draggable
             onDragStart={(e) => handleDragStart(e, p.id)}
             onDragOver={(e) => handleDragOver(e, p.id)}
@@ -159,6 +159,14 @@ const ParamSection = ({ title, evaluationType, direction, companyId }: ParamSect
               </span>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => setDeleteId(p.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
               <Label htmlFor={`toggle-${p.id}`} className="text-xs text-muted-foreground">
                 {p.is_active ? 'Active' : 'Inactive'}
               </Label>
