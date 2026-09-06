@@ -123,8 +123,8 @@ const EvaluationForm = () => {
     queryKey: ['evaluation-edit', id],
     queryFn: async () => {
       const { data } = await supabase
-        .from('evaluations')
-        .select('*, evaluation_scores(*)')
+        .from('employee_reviews')
+        .select('*, employee_review_scores(*)')
         .eq('id', id!)
         .eq('company_id', companyId!)
         .single();
@@ -264,7 +264,7 @@ const EvaluationForm = () => {
       if (existing.recommendation && !RECOMMENDATIONS.includes(existing.recommendation)) setCustomRecommendation(existing.recommendation);
       setComments(existing.comments || '');
       const scoreMap: Record<string, number> = {};
-      ((existing as any).evaluation_scores || []).forEach((s: any) => { scoreMap[s.parameter_id] = s.score; });
+      ((existing as any).employee_review_scores || []).forEach((s: any) => { scoreMap[s.parameter_id] = s.score; });
       setScores(scoreMap);
     }
   }, [existing]);
@@ -288,7 +288,7 @@ const EvaluationForm = () => {
       const avg = paramScores.length > 0 ? paramScores.reduce((a: number, b: number) => a + b, 0) / paramScores.length : 0;
 
       if (isEdit) {
-        const { error } = await supabase.from('evaluations').update({
+        const { error } = await supabase.from('employee_reviews').update({
           employee_id: employeeId,
           period: finalPeriod,
           overall_score: Math.round(avg * 100) / 100,
@@ -298,20 +298,20 @@ const EvaluationForm = () => {
         if (error) throw error;
 
         // Delete old scores and re-insert
-        await supabase.from('evaluation_scores').delete().eq('evaluation_id', id!).eq('company_id', companyId!);
+        await supabase.from('employee_review_scores').delete().eq('employee_review_id', id!).eq('company_id', companyId!);
         const scoreRows = activeParams.map((p: any) => ({
-          evaluation_id: id!,
+          employee_review_id: id!,
           company_id: companyId!,
           parameter_id: p.id,
           score: scores[p.id] || 0,
         }));
         if (scoreRows.length > 0) {
-          const { error: sErr } = await supabase.from('evaluation_scores').insert(scoreRows);
+          const { error: sErr } = await supabase.from('employee_review_scores').insert(scoreRows);
           if (sErr) throw sErr;
         }
         return id;
       } else {
-        const { data, error } = await supabase.from('evaluations').insert({
+        const { data, error } = await supabase.from('employee_reviews').insert({
           company_id: companyId!,
           employee_id: employeeId,
           evaluated_by: employee!.employee_id,
@@ -323,13 +323,13 @@ const EvaluationForm = () => {
         if (error) throw error;
 
         const scoreRows = activeParams.map((p: any) => ({
-          evaluation_id: data.id,
+          employee_review_id: data.id,
           company_id: companyId!,
           parameter_id: p.id,
           score: scores[p.id] || 0,
         }));
         if (scoreRows.length > 0) {
-          const { error: sErr } = await supabase.from('evaluation_scores').insert(scoreRows);
+          const { error: sErr } = await supabase.from('employee_review_scores').insert(scoreRows);
           if (sErr) throw sErr;
         }
         return data.id;

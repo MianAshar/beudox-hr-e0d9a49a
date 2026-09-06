@@ -125,18 +125,18 @@ Deno.serve(async (req) => {
         .in("project_evaluation_id", evalIds);
     }
 
-    // Delete evaluation_scores via evaluations
-    const { data: evals } = await adminClient
-      .from("evaluations")
+    // Delete employee_review_scores via employee_reviews
+    const { data: reviews } = await adminClient
+      .from("employee_reviews")
       .select("id")
       .eq("employee_id", employeeId);
 
-    if (evals && evals.length > 0) {
-      const evalIds = evals.map((e) => e.id);
+    if (reviews && reviews.length > 0) {
+      const reviewIds = reviews.map((e) => e.id);
       await adminClient
-        .from("evaluation_scores")
+        .from("employee_review_scores")
         .delete()
-        .in("evaluation_id", evalIds);
+        .in("employee_review_id", reviewIds);
     }
 
     // Delete loan_monthly_overrides via loans
@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
       { table: "leave_balances", column: "employee_id" },
       { table: "project_evaluations", column: "reviewee_id" },
       { table: "project_evaluations", column: "reviewer_id" },
-      { table: "evaluations", column: "employee_id" },
+      { table: "employee_reviews", column: "employee_id" },
       { table: "project_assignments", column: "employee_id" },
       { table: "loans", column: "employee_id" },
       { table: "salary_history", column: "employee_id" },
@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
       { table: "office_expenses", column: "approved_by" },
       { table: "office_expenses", column: "added_by" },
       { table: "outsourcing_records", column: "added_by" },
-      { table: "evaluations", column: "evaluated_by" },
+      { table: "employee_reviews", column: "evaluated_by" },
       { table: "salary_history", column: "approved_by" },
       { table: "salary_history", column: "rejected_by" },
       { table: "salary_history", column: "proposed_by" },
