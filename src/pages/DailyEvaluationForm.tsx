@@ -171,13 +171,14 @@ const DailyEvaluationForm = () => {
         .from('project_assignments')
         .select(`
           project_id,
-          projects!project_assignments_project_id_fkey(
+          projects(
             id, project_name, project_code, status
           )
         `)
         .eq('employee_id', revieweeId)
         .eq('company_id', companyId!)
         .eq('is_active', true);
+      console.log('revieweeProjects raw data:', data);
       return (data || [])
         .map((a: any) => a.projects)
         .filter(Boolean)
