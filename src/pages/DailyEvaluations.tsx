@@ -565,6 +565,75 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Rating dialog */}
+      <Dialog open={!!ratingProject} onOpenChange={v => { if (!v) setRatingProject(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Rating</DialogTitle>
+            <DialogDescription>
+              Rating {emp.full_name} on {ratingProject?.project_code} — {ratingProject?.project_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* Date */}
+            <div className="space-y-1.5">
+              <Label>Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal text-sm">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(ratingDate, 'dd MMM yyyy')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={ratingDate}
+                    onSelect={d => d && setRatingDate(d)}
+                    disabled={d => d > new Date()}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            {/* Parameters */}
+            {(evalParams || []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">No evaluation parameters configured.</p>
+            ) : (
+              (evalParams || []).map((p: any) => (
+                <div key={p.id} className="space-y-1">
+                  <Label className="text-sm">{p.name}</Label>
+                  <StarRating
+                    value={ratingScores[p.id] || 0}
+                    onChange={v => setRatingScores(prev => ({ ...prev, [p.id]: v }))}
+                    max={p.max_score}
+                  />
+                </div>
+              ))
+            )}
+            {/* Remarks */}
+            <div className="space-y-1.5">
+              <Label>Remarks <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+              <Textarea
+                placeholder="Optional notes..."
+                value={ratingRemarks}
+                onChange={e => setRatingRemarks(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRatingProject(null)}>Cancel</Button>
+            <Button
+              onClick={() => submitRatingMutation.mutate()}
+              disabled={submitRatingMutation.isPending || (evalParams || []).some((p: any) => !ratingScores[p.id])}
+            >
+              {submitRatingMutation.isPending ? 'Submitting...' : 'Submit Rating'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
