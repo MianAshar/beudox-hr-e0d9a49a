@@ -85,6 +85,7 @@ const Employees = () => {
   const canAdd = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const isCeo = roles.includes('ceo');
   const isManager = isCeo || roles.includes('hr_manager');
+  const canViewCompensation = ['ceo', 'finance_manager', 'hr_manager'].some(role => roles.includes(role));
   const queryClient = useQueryClient();
 
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
@@ -99,6 +100,7 @@ const Employees = () => {
         .select(`
           id, full_name, designation, department, employee_code,
           joining_date, status, avatar_url, employment_type,
+          basic_salary, allowance,
           employee_roles (
             roles ( name )
           )
@@ -106,6 +108,19 @@ const Employees = () => {
         .eq('company_id', companyId!)
         .order('full_name');
       if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  const { data: companySettings } = useQuery({
+    queryKey: ['company-settings', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('company_settings')
+        .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours')
+        .eq('company_id', companyId!)
+        .maybeSingle();
       return data;
     },
     enabled: !!companyId,
@@ -138,6 +153,17 @@ const Employees = () => {
     return null;
   };
 
+  const computeSalary = (basicSalary: number | null) => {
+    if (!basicSalary || !companySettings) return null;
+    const parseTime = (t: string) => { const [h, m] = t.split(':').map(Number); return h + m / 60; };
+    const shiftHours = parseTime(companySettings.shift_end_time ?? '18:00:00') - parseTime(companySettings.shift_start_time ?? '09:00:00');
+    const workingHoursPerDay = Math.max(1, shiftHours - Number(companySettings.lunch_break_hours ?? 1));
+    const otDivisor = companySettings.ot_divisor || 30;
+    const perDay = Math.ceil(basicSalary / otDivisor);
+    const perHour = Math.floor(basicSalary / otDivisor / workingHoursPerDay);
+    return { perDay, perHour };
+  };
+
   const filtered = (employees || []).filter((emp) => {
     const matchesSearch =
       !search ||
@@ -156,6 +182,7 @@ const Employees = () => {
     joining_date: (r: any) => r.joining_date,
     role: (r: any) => getRoleName(r),
     status: (r: any) => r.status,
+    salary: (r: any) => Number(r.basic_salary || 0),
   });
 
   return (
@@ -282,6 +309,9 @@ const Employees = () => {
                 <SortableHeader column="department" sort={sort} onSort={toggleSort} className="hidden md:table-cell">Department</SortableHeader>
                 <SortableHeader column="joining_date" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Joining Date</SortableHeader>
                 <SortableHeader column="role" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Role</SortableHeader>
+                {canViewCompensation && (
+                  <SortableHeader column="salary" sort={sort} onSort={toggleSort} className="hidden lg:table-cell text-right">Salary</SortableHeader>
+                )}
                 <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
                 {isManager && <TableHead className="w-[80px] text-right">Actions</TableHead>}
               </TableRow>
@@ -357,6 +387,25 @@ const Employees = () => {
                         {formatRole(roleName)}
                       </span>
                     </TableCell>
+                    {canViewCompensation && (
+                      <TableCell className="hidden lg:table-cell text-right">
+                        {emp.basic_salary != null ? (
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span className="text-sm font-semibold font-mono text-foreground">
+                              PKR {Number(emp.basic_salary + (emp.allowance || 0)).toLocaleString()}
+                            </span>
+                            {(() => {
+                              const s = computeSalary(emp.basic_salary);
+                              return s ? (
+                                <span className="text-[11px] text-muted-foreground font-mono">
+                                  {s.perDay.toLocaleString()}/day · {s.perHour.toLocaleString()}/hr
+                                </span>
+                              ) : null;
+                            })()}
+                          </div>
+                        ) : '—'}
+                      </TableCell>
+                    )}
                     <TableCell>
                       <Badge
                         variant="outline"
