@@ -788,7 +788,7 @@ const Clients = () => {
                 {modalPortalUsers && modalPortalUsers.length > 0 && (
                   <div className="space-y-2">
                     {modalPortalUsers.map((u: any) => (
-                      <div key={u.id} className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
+                      <div key={u.id} className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2 gap-2">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="text-sm font-medium truncate">{u.email}</span>
                           {u.full_name && <span className="text-xs text-muted-foreground truncate">({u.full_name})</span>}
@@ -796,19 +796,29 @@ const Clients = () => {
                             {u.status === 'active' ? 'Active' : 'Invited'}
                           </Badge>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="shrink-0 text-xs"
-                          onClick={async () => {
-                            const client = clients?.find(c => c.id === editingId);
-                            if (!client) return;
-                            await inviteClientUser(supabase, companyId!, editingId, client.name, u.email, u.full_name || null);
-                            toast({ title: `Invite resent to ${u.email}` });
-                          }}
-                        >
-                          Resend
-                        </Button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="shrink-0 text-xs"
+                            onClick={async () => {
+                              const client = clients?.find(c => c.id === editingId);
+                              if (!client) return;
+                              await inviteClientUser(supabase, companyId!, editingId, client.name, u.email, u.full_name || null);
+                              toast({ title: `Invite resent to ${u.email}` });
+                            }}
+                          >
+                            Resend
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="shrink-0 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteUserId({ id: u.id, authUserId: u.auth_user_id ?? null, email: u.email })}
+                          >
+                            Remove
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
