@@ -35,6 +35,22 @@ const inviteClientUser = async (
   }
 };
 
+const deleteClientUserHelper = async (
+  supabase: any,
+  clientUserId: string,
+  authUserId: string | null,
+  companyId: string
+) => {
+  await supabase.from('client_users').delete().eq('id', clientUserId).eq('company_id', companyId);
+  if (authUserId) {
+    try {
+      await supabase.functions.invoke('delete-client-user', { body: { authUserId } });
+    } catch (e) {
+      console.error('Failed to delete auth user:', e);
+    }
+  }
+};
+
 const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
 
 const statusColors: Record<string, string> = {
@@ -168,6 +184,16 @@ const ClientDetail = () => {
     setInvitingUser(false);
     refetchPortalUsers();
     toast({ title: `Invite sent to ${newUserEmail.trim()}` });
+  };
+
+  const handleDeletePortalUser = async () => {
+    if (!deletePortalUser || !companyId) return;
+    setDeletingPortalUser(true);
+    await deleteClientUserHelper(supabase, deletePortalUser.id, deletePortalUser.authUserId, companyId);
+    setDeletingPortalUser(false);
+    setDeletePortalUser(null);
+    refetchPortalUsers();
+    toast({ title: `Portal user ${deletePortalUser.email} removed` });
   };
 
   if (clientLoading) {
