@@ -434,6 +434,20 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">{group.tasks.length} task{group.tasks.length !== 1 ? 's' : ''}</p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 gap-1.5 text-xs text-primary hover:text-primary"
+                  onClick={() => {
+                    setRatingProject(group.project);
+                    setRatingScores({});
+                    setRatingRemarks('');
+                    setRatingDate(new Date());
+                  }}
+                >
+                  <Star className="h-3.5 w-3.5" />
+                  Add Rating
+                </Button>
               </div>
               {/* Task rows */}
               <div className="divide-y">
