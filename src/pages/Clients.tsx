@@ -266,21 +266,6 @@ const Clients = () => {
   };
 
 
-  const openEdit = (c: Client) => {
-    setEditingId(c.id);
-    setForm({
-      name: c.name,
-      contact_name: c.contact_name || '',
-      contact_email: c.contact_email || '',
-      contact_phone: c.contact_phone || '',
-      country: c.country || '',
-      billing_currency: c.billing_currency,
-      notes: c.notes || '',
-      sub_series: c.sub_series || [],
-    });
-    setModalOpen(true);
-  };
-
   const handleSave = () => {
     const errs: Record<string, string> = {};
     if (!form.name.trim()) errs.name = 'Company name is required';
