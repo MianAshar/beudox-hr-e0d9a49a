@@ -126,6 +126,21 @@ const Clients = () => {
     enabled: !!companyId && showActivity,
   });
 
+  // Client portal users for expanded client row
+  const { data: clientPortalUsers } = useQuery({
+    queryKey: ['client-users', expandedClientId, companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_users')
+        .select('id, email, full_name, status, invited_at')
+        .eq('client_id', expandedClientId)
+        .eq('company_id', companyId!);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!expandedClientId && !!companyId,
+  });
+
   // Per-client activity map
   const activityByClient = useMemo(() => {
     const map = new Map<string, ActivityCategory>();
