@@ -652,11 +652,11 @@ const Clients = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add/Edit Modal */}
+      {/* Add Client Modal */}
       <Dialog open={modalOpen} onOpenChange={v => { if (!v) closeModal(); }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Edit Client' : 'Add Client'}</DialogTitle>
+            <DialogTitle>Add Client</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
