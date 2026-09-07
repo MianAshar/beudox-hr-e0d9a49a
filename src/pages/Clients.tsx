@@ -91,6 +91,7 @@ const Clients = () => {
   const [deactivateTarget, setDeactivateTarget] = useState<Client | null>(null);
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityCategory>('all');
   const [clientTab, setClientTab] = useState<'active' | 'past'>('active');
+  const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
 
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
