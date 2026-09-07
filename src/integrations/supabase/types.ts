@@ -310,6 +310,57 @@ export type Database = {
           },
         ]
       }
+      client_users: {
+        Row: {
+          auth_user_id: string | null
+          client_id: string | null
+          company_id: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          invited_at: string | null
+          status: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          client_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          invited_at?: string | null
+          status?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          client_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          invited_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_users_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           billing_currency: string
@@ -3033,6 +3084,7 @@ export type Database = {
         Args: { _auth_id: string; _role: string }
         Returns: boolean
       }
+      get_client_id_for_auth: { Args: { user_id: string }; Returns: string }
       get_company_id_for_auth: { Args: { _auth_id: string }; Returns: string }
       get_employee_by_auth_id: {
         Args: { _auth_id: string }
@@ -3076,6 +3128,7 @@ export type Database = {
         Returns: number
       }
       is_admin_user: { Args: { _auth_id: string }; Returns: boolean }
+      is_client_user: { Args: { user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
