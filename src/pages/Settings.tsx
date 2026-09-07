@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import CompanyTab from '@/components/settings/CompanyTab';
 import AttendanceTab from '@/components/settings/AttendanceTab';
 import DepartmentsTab from '@/components/settings/DepartmentsTab';
