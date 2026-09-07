@@ -121,7 +121,8 @@ const Clients = () => {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [invitingUser, setInvitingUser] = useState(false);
-
+  const [deleteUserId, setDeleteUserId] = useState<{ id: string; authUserId: string | null; email: string } | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
