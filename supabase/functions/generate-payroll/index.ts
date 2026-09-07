@@ -276,13 +276,22 @@ Deno.serve(async (req) => {
 
       if (!isDirector && enableOtAdjustment) {
         const att = attendanceMap[emp.id];
-        const shortTime = att?.shortTime || 0; // negative
-        const overtime = att?.overtime || 0;   // positive
+        const shortTime = att?.shortTime || 0; // negative — sum of all under-hours days
+        const overtime = att?.overtime || 0;   // positive — sum of all over-hours days
 
-        // Short-time relaxation is informational only — never modify shortTime/overtime here.
-        const regularOtTotal = shortTime + overtime;
+        // Net OT before relaxation
+        const rawNet = shortTime + overtime;
 
-        regularOtHours = Math.round(regularOtTotal * 100) / 100; // net, can be negative
+        // Apply short-time relaxation: the buffer absorbs deficit but CANNOT create phantom OT.
+        // If rawNet >= 0 the employee already has net overtime — relaxation does nothing.
+        // If rawNet < 0 the employee is in deficit — relax up to 0 but never above.
+        // e.g. rawNet = -1, relaxation = 3 → min(0, -1 + 3) = min(0, 2) = 0 ✓ (not 2)
+        // e.g. rawNet = -5, relaxation = 3 → min(0, -5 + 3) = min(0, -2) = -2 ✓
+        const regularOtTotal = rawNet < 0
+          ? Math.min(0, rawNet + shortTimeRelaxation)
+          : rawNet;
+
+        regularOtHours = Math.round(regularOtTotal * 100) / 100;
         holidayOtHours = att?.holidayOt || 0;
 
         const perDaySalary = effectiveBasic / otDivisor;
