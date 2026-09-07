@@ -192,18 +192,6 @@ const DailyEvaluationForm = () => {
       const paramScores = activeParams.map((p: any) => scores[p.id] || 0);
       const avg = paramScores.length > 0 ? paramScores.reduce((a: number, b: number) => a + b, 0) / paramScores.length : 0;
 
-      // Get most recent active project for reviewee
-      const { data: projectAssignment } = await supabase
-        .from('project_assignments')
-        .select('project_id')
-        .eq('employee_id', revieweeId)
-        .eq('company_id', companyId!)
-        .eq('is_active', true)
-        .order('assigned_at', { ascending: false })
-        .limit(1);
-
-      const projectId = projectAssignment?.[0]?.project_id || null;
-
       const { data, error } = await supabase.from('project_evaluations').insert({
         company_id: companyId!,
         reviewer_id: myId!,
@@ -212,7 +200,7 @@ const DailyEvaluationForm = () => {
         date: format(date, 'yyyy-MM-dd'),
         overall_score: Math.round(avg * 100) / 100,
         remarks: remarks || null,
-        project_id: projectId,
+        project_id: projectId || null,
       }).select('id').single();
       if (error) throw error;
 
