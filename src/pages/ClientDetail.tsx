@@ -35,6 +35,22 @@ const inviteClientUser = async (
   }
 };
 
+const deleteClientUserHelper = async (
+  supabase: any,
+  clientUserId: string,
+  authUserId: string | null,
+  companyId: string
+) => {
+  await supabase.from('client_users').delete().eq('id', clientUserId).eq('company_id', companyId);
+  if (authUserId) {
+    try {
+      await supabase.functions.invoke('delete-client-user', { body: { authUserId } });
+    } catch (e) {
+      console.error('Failed to delete auth user:', e);
+    }
+  }
+};
+
 const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
 
 const statusColors: Record<string, string> = {
@@ -63,6 +79,8 @@ const ClientDetail = () => {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [invitingUser, setInvitingUser] = useState(false);
+  const [deletePortalUser, setDeletePortalUser] = useState<{ id: string; authUserId: string | null; email: string } | null>(null);
+  const [deletingPortalUser, setDeletingPortalUser] = useState(false);
 
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ['client', id],
@@ -94,7 +112,7 @@ const ClientDetail = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('client_users')
-        .select('id, email, full_name, status, invited_at')
+        .select('id, email, full_name, status, invited_at, auth_user_id')
         .eq('client_id', id!)
         .eq('company_id', companyId!);
       return data || [];
@@ -166,6 +184,16 @@ const ClientDetail = () => {
     setInvitingUser(false);
     refetchPortalUsers();
     toast({ title: `Invite sent to ${newUserEmail.trim()}` });
+  };
+
+  const handleDeletePortalUser = async () => {
+    if (!deletePortalUser || !companyId) return;
+    setDeletingPortalUser(true);
+    await deleteClientUserHelper(supabase, deletePortalUser.id, deletePortalUser.authUserId, companyId);
+    setDeletingPortalUser(false);
+    setDeletePortalUser(null);
+    refetchPortalUsers();
+    toast({ title: `Portal user ${deletePortalUser.email} removed` });
   };
 
   if (clientLoading) {
@@ -282,17 +310,27 @@ const ClientDetail = () => {
                       {u.status === 'active' ? 'Active' : 'Invited'}
                     </Badge>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0 text-xs"
-                    onClick={async () => {
-                      await inviteClientUser(supabase, companyId!, id!, client.name, u.email, u.full_name || null);
-                      toast({ title: `Invite resent to ${u.email}` });
-                    }}
-                  >
-                    Resend
-                  </Button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs"
+                      onClick={async () => {
+                        await inviteClientUser(supabase, companyId!, id!, client.name, u.email, u.full_name || null);
+                        toast({ title: `Invite resent to ${u.email}` });
+                      }}
+                    >
+                      Resend
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setDeletePortalUser({ id: u.id, authUserId: u.auth_user_id ?? null, email: u.email })}
+                    >
+                      Remove
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -458,6 +496,24 @@ const ClientDetail = () => {
             <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
             <Button onClick={() => updateMutation.mutate()} disabled={!editForm?.name?.trim() || updateMutation.isPending}>
               {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove Portal User Dialog */}
+      <Dialog open={!!deletePortalUser} onOpenChange={v => { if (!v) setDeletePortalUser(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Portal User</DialogTitle>
+            <DialogDescription>
+              Remove <strong>{deletePortalUser?.email}</strong> from the client portal? They will lose access immediately and their account will be deleted. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletePortalUser(null)}>Cancel</Button>
+            <Button variant="destructive" disabled={deletingPortalUser} onClick={handleDeletePortalUser}>
+              {deletingPortalUser ? 'Removing…' : 'Remove User'}
             </Button>
           </DialogFooter>
         </DialogContent>
