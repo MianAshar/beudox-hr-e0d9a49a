@@ -85,6 +85,7 @@ const Employees = () => {
   const canAdd = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const isCeo = roles.includes('ceo');
   const isManager = isCeo || roles.includes('hr_manager');
+  const canViewCompensation = ['ceo', 'finance_manager', 'hr_manager'].some(role => roles.includes(role));
   const queryClient = useQueryClient();
 
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
