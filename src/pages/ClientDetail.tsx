@@ -500,6 +500,24 @@ const ClientDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Remove Portal User Dialog */}
+      <Dialog open={!!deletePortalUser} onOpenChange={v => { if (!v) setDeletePortalUser(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Portal User</DialogTitle>
+            <DialogDescription>
+              Remove <strong>{deletePortalUser?.email}</strong> from the client portal? They will lose access immediately and their account will be deleted. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletePortalUser(null)}>Cancel</Button>
+            <Button variant="destructive" disabled={deletingPortalUser} onClick={handleDeletePortalUser}>
+              {deletingPortalUser ? 'Removing…' : 'Remove User'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
