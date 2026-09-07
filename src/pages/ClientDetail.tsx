@@ -89,6 +89,19 @@ const ClientDetail = () => {
     enabled: !!id && !!companyId,
   });
 
+  const { data: portalUsers, refetch: refetchPortalUsers } = useQuery({
+    queryKey: ['client-users-detail', id, companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('client_users')
+        .select('id, email, full_name, status, invited_at')
+        .eq('client_id', id!)
+        .eq('company_id', companyId!);
+      return data || [];
+    },
+    enabled: !!id && !!companyId && isManager,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       // 1. Get all project IDs for this client
