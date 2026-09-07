@@ -111,7 +111,6 @@ const Clients = () => {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deactivateTarget, setDeactivateTarget] = useState<Client | null>(null);
