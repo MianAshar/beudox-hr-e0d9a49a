@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Search, Pencil, XCircle, Building2, RotateCcw, Users } from 'lucide-react';
+import { Plus, Search, XCircle, Building2, RotateCcw, Users } from 'lucide-react';
 import { SubSeriesTagInput } from '@/components/clients/SubSeriesTagInput';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -111,16 +111,12 @@ const Clients = () => {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deactivateTarget, setDeactivateTarget] = useState<Client | null>(null);
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityCategory>('all');
   const [clientTab, setClientTab] = useState<'active' | 'past'>('active');
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
-  const [newUserEmail, setNewUserEmail] = useState('');
-  const [newUserName, setNewUserName] = useState('');
-  const [invitingUser, setInvitingUser] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<{ id: string; authUserId: string | null; email: string } | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
 
@@ -172,20 +168,6 @@ const Clients = () => {
     enabled: !!expandedClientId && !!companyId,
   });
 
-  // Portal users inside the edit modal
-  const { data: modalPortalUsers, refetch: refetchModalUsers } = useQuery({
-    queryKey: ['client-users-modal', editingId, companyId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('client_users')
-        .select('id, email, full_name, status, invited_at, auth_user_id')
-        .eq('client_id', editingId!)
-        .eq('company_id', companyId!);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!editingId && !!companyId && modalOpen,
-  });
 
   // Per-client activity map
 
@@ -233,38 +215,22 @@ const Clients = () => {
         sub_series: form.sub_series,
         company_id: companyId!,
       };
-      if (editingId) {
-        const existingClient = clients?.find(c => c.id === editingId);
-        const { error } = await supabase.from('clients').update(payload).eq('id', editingId);
-        if (error) throw error;
-        if (form.contact_email && form.contact_email !== existingClient?.contact_email) {
-          await inviteClientUser(
-            supabase,
-            companyId!,
-            editingId,
-            form.name,
-            form.contact_email,
-            form.contact_name || null
-          );
-        }
-      } else {
-        const { data: newClient, error } = await supabase.from('clients').insert(payload).select().single();
-        if (error) throw error;
-        if (newClient && form.contact_email) {
-          await inviteClientUser(
-            supabase,
-            companyId!,
-            newClient.id,
-            form.name,
-            form.contact_email,
-            form.contact_name || null
-          );
-        }
+      const { data: newClient, error } = await supabase.from('clients').insert(payload).select().single();
+      if (error) throw error;
+      if (newClient && form.contact_email) {
+        await inviteClientUser(
+          supabase,
+          companyId!,
+          newClient.id,
+          form.name,
+          form.contact_email,
+          form.contact_name || null
+        );
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['clients'] });
-      toast({ title: editingId ? 'Client updated' : 'Client added' });
+      toast({ title: 'Client added' });
       closeModal();
     },
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
@@ -295,28 +261,10 @@ const Clients = () => {
 
   const closeModal = () => {
     setModalOpen(false);
-    setEditingId(null);
     setForm(emptyForm);
     setErrors({});
-    setNewUserEmail('');
-    setNewUserName('');
   };
 
-
-  const openEdit = (c: Client) => {
-    setEditingId(c.id);
-    setForm({
-      name: c.name,
-      contact_name: c.contact_name || '',
-      contact_email: c.contact_email || '',
-      contact_phone: c.contact_phone || '',
-      country: c.country || '',
-      billing_currency: c.billing_currency,
-      notes: c.notes || '',
-      sub_series: c.sub_series || [],
-    });
-    setModalOpen(true);
-  };
 
   const handleSave = () => {
     const errs: Record<string, string> = {};
@@ -325,34 +273,12 @@ const Clients = () => {
     saveMutation.mutate();
   };
 
-  const handleInviteUser = async () => {
-    if (!newUserEmail.trim() || !editingId) return;
-    const client = clients?.find(c => c.id === editingId);
-    if (!client) return;
-    setInvitingUser(true);
-    await inviteClientUser(
-      supabase,
-      companyId!,
-      editingId,
-      client.name,
-      newUserEmail.trim(),
-      newUserName.trim() || null
-    );
-    setNewUserEmail('');
-    setNewUserName('');
-    setInvitingUser(false);
-    refetchModalUsers();
-    qc.invalidateQueries({ queryKey: ['client-users', editingId, companyId] });
-    toast({ title: `Invite sent to ${newUserEmail.trim()}` });
-  };
-
   const handleDeleteUser = async () => {
     if (!deleteUserId || !companyId) return;
     setDeletingUser(true);
     await deleteClientUser(supabase, deleteUserId.id, deleteUserId.authUserId, companyId);
     setDeletingUser(false);
     setDeleteUserId(null);
-    refetchModalUsers();
     qc.invalidateQueries({ queryKey: ['client-users', expandedClientId, companyId] });
     toast({ title: `Portal user ${deleteUserId.email} removed` });
   };
@@ -568,9 +494,6 @@ const Clients = () => {
                         >
                           <Users className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => setDeactivateTarget(c)}>
                           <XCircle className="h-4 w-4 text-destructive" />
                         </Button>
@@ -692,7 +615,7 @@ const Clients = () => {
             {clients ? `${activeClients.length} client${activeClients.length !== 1 ? 's' : ''}` : 'Loading…'}
           </p>
         </div>
-        <Button onClick={() => { setForm(emptyForm); setEditingId(null); setModalOpen(true); }} className="w-full sm:w-auto">
+        <Button onClick={() => { setForm(emptyForm); setModalOpen(true); }} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" /> Add Client
         </Button>
       </div>
@@ -729,11 +652,11 @@ const Clients = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add/Edit Modal */}
+      {/* Add Client Modal */}
       <Dialog open={modalOpen} onOpenChange={v => { if (!v) closeModal(); }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Edit Client' : 'Add Client'}</DialogTitle>
+            <DialogTitle>Add Client</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
@@ -779,80 +702,6 @@ const Clients = () => {
               <Label>Notes</Label>
               <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
             </div>
-            {editingId && (
-              <div className="space-y-3 pt-2 border-t">
-                <Label className="text-sm font-semibold">Portal Users</Label>
-                <p className="text-xs text-muted-foreground">Users who can log in to the Forte Client Portal to view this client's projects.</p>
-
-                {/* Existing users list */}
-                {modalPortalUsers && modalPortalUsers.length > 0 && (
-                  <div className="space-y-2">
-                    {modalPortalUsers.map((u: any) => (
-                      <div key={u.id} className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2 gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-sm font-medium truncate">{u.email}</span>
-                          {u.full_name && <span className="text-xs text-muted-foreground truncate">({u.full_name})</span>}
-                          <Badge className={u.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100 shrink-0' : 'bg-amber-100 text-amber-700 hover:bg-amber-100 shrink-0'}>
-                            {u.status === 'active' ? 'Active' : 'Invited'}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="shrink-0 text-xs"
-                            onClick={async () => {
-                              const client = clients?.find(c => c.id === editingId);
-                              if (!client) return;
-                              await inviteClientUser(supabase, companyId!, editingId, client.name, u.email, u.full_name || null);
-                              toast({ title: `Invite resent to ${u.email}` });
-                            }}
-                          >
-                            Resend
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="shrink-0 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteUserId({ id: u.id, authUserId: u.auth_user_id ?? null, email: u.email })}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Add new user */}
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      placeholder="Email address *"
-                      type="email"
-                      value={newUserEmail}
-                      onChange={e => setNewUserEmail(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleInviteUser(); } }}
-                    />
-                    <Input
-                      placeholder="Full name (optional)"
-                      value={newUserName}
-                      onChange={e => setNewUserName(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleInviteUser(); } }}
-                    />
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!newUserEmail.trim() || invitingUser}
-                    onClick={handleInviteUser}
-                    className="w-full"
-                  >
-                    {invitingUser ? 'Sending invite…' : '+ Add & Invite User'}
-                  </Button>
-                </div>
-              </div>
-            )}
 
           </div>
           <DialogFooter>
