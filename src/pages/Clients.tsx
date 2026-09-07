@@ -295,7 +295,29 @@ const Clients = () => {
     saveMutation.mutate();
   };
 
+  const handleInviteUser = async () => {
+    if (!newUserEmail.trim() || !editingId) return;
+    const client = clients?.find(c => c.id === editingId);
+    if (!client) return;
+    setInvitingUser(true);
+    await inviteClientUser(
+      supabase,
+      companyId!,
+      editingId,
+      client.name,
+      newUserEmail.trim(),
+      newUserName.trim() || null
+    );
+    setNewUserEmail('');
+    setNewUserName('');
+    setInvitingUser(false);
+    refetchModalUsers();
+    qc.invalidateQueries({ queryKey: ['client-users', editingId, companyId] });
+    toast({ title: `Invite sent to ${newUserEmail.trim()}` });
+  };
+
   const filtered = activeClients.filter(c => {
+
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (showActivity && activityFilter !== 'all') {
       if (activityByClient.get(c.id) !== activityFilter) return false;
