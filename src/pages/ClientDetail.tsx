@@ -133,6 +133,41 @@ const ClientDetail = () => {
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        name: editForm.name.trim(),
+        contact_name: editForm.contact_name?.trim() || null,
+        contact_email: editForm.contact_email?.trim() || null,
+        contact_phone: editForm.contact_phone?.trim() || null,
+        country: editForm.country?.trim() || null,
+        billing_currency: editForm.billing_currency,
+        notes: editForm.notes?.trim() || null,
+        sub_series: editForm.sub_series || [],
+      };
+      const { error } = await supabase.from('clients').update(payload).eq('id', id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client', id] });
+      qc.invalidateQueries({ queryKey: ['clients'] });
+      setEditOpen(false);
+      toast({ title: 'Client updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+
+  const handleInviteUser = async () => {
+    if (!newUserEmail.trim() || !id || !client) return;
+    setInvitingUser(true);
+    await inviteClientUser(supabase, companyId!, id, client.name, newUserEmail.trim(), newUserName.trim() || null);
+    setNewUserEmail('');
+    setNewUserName('');
+    setInvitingUser(false);
+    refetchPortalUsers();
+    toast({ title: `Invite sent to ${newUserEmail.trim()}` });
+  };
+
   if (clientLoading) {
     return (
       <div className="p-6 space-y-4">
