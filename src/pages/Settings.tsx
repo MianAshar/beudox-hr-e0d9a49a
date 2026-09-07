@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSidebarCollapsed } from '@/contexts/SidebarContext';
 import { cn } from '@/lib/utils';
 import CompanyTab from '@/components/settings/CompanyTab';
 import AttendanceTab from '@/components/settings/AttendanceTab';
@@ -16,6 +17,7 @@ import ManualAttendanceLogTab from '@/components/settings/ManualAttendanceLogTab
 
 const Settings = () => {
   const { employee } = useAuth();
+  const { collapsed } = useSidebarCollapsed();
   const roles = employee?.roles ?? [];
   const isCeo = roles.includes('ceo');
   const isFinance = roles.includes('finance_manager');
@@ -76,11 +78,11 @@ const Settings = () => {
   return (
     <div className="flex gap-8 min-h-screen">
       {/* Left nav panel */}
-      <div className="w-52 shrink-0">
+      <div className={`shrink-0 transition-all duration-250 ${collapsed ? 'w-44' : 'w-52'}`}>
         <nav className="sticky top-6 space-y-1">
           {navGroups.map(group => (
             <div key={group.label} className="mb-4">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 mb-1">
+              <p className="text-[11px] font-semibold text-foreground/50 uppercase tracking-wider px-3 mb-2 mt-1 border-b pb-1" style={{ borderColor: 'hsl(var(--border))', fontFamily: 'var(--ff-display)' }}>
                 {group.label}
               </p>
               {group.items.map(item => (
