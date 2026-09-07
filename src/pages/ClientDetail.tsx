@@ -262,6 +262,72 @@ const ClientDetail = () => {
         )}
       </div>
 
+      {isManager && (
+        <div className="rounded-lg border bg-card p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-base font-semibold text-foreground">Portal Users</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">Users who can log in to the Forte Client Portal to view this client's projects.</p>
+
+          {/* Existing users */}
+          {portalUsers && portalUsers.length > 0 && (
+            <div className="space-y-2">
+              {portalUsers.map((u: any) => (
+                <div key={u.id} className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-sm font-medium truncate">{u.email}</span>
+                    {u.full_name && <span className="text-xs text-muted-foreground">({u.full_name})</span>}
+                    <Badge className={u.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-amber-100 text-amber-700 hover:bg-amber-100'}>
+                      {u.status === 'active' ? 'Active' : 'Invited'}
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 text-xs"
+                    onClick={async () => {
+                      await inviteClientUser(supabase, companyId!, id!, client.name, u.email, u.full_name || null);
+                      toast({ title: `Invite resent to ${u.email}` });
+                    }}
+                  >
+                    Resend
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add new user */}
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="Email address *"
+                type="email"
+                value={newUserEmail}
+                onChange={e => setNewUserEmail(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleInviteUser(); } }}
+              />
+              <Input
+                placeholder="Full name (optional)"
+                value={newUserName}
+                onChange={e => setNewUserName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleInviteUser(); } }}
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              disabled={!newUserEmail.trim() || invitingUser}
+              onClick={handleInviteUser}
+            >
+              {invitingUser ? 'Sending invite…' : '+ Add & Invite User'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Projects Section */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Projects</h2>
