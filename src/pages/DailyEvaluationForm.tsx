@@ -160,6 +160,32 @@ const DailyEvaluationForm = () => {
     enabled: !!revieweeId && !!myId && !!companyId && !!date,
   });
 
+  useEffect(() => {
+    setProjectId('');
+  }, [revieweeId]);
+
+  const { data: revieweeProjects } = useQuery({
+    queryKey: ['reviewee-projects', revieweeId, companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_assignments')
+        .select(`
+          project_id,
+          projects!project_assignments_project_id_fkey(
+            id, project_name, project_code, status
+          )
+        `)
+        .eq('employee_id', revieweeId)
+        .eq('company_id', companyId!)
+        .eq('is_active', true);
+      return (data || [])
+        .map((a: any) => a.projects)
+        .filter(Boolean)
+        .filter((p: any) => p.status !== 'cancelled');
+    },
+    enabled: !!revieweeId && !!companyId,
+  });
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const activeParams = parameters || [];
