@@ -220,6 +220,10 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
   const companyId = employee?.company_id;
   const [expandedRatings, setExpandedRatings] = useState<Set<string>>(new Set());
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [ratingProject, setRatingProject] = useState<any>(null); // project to rate on
+  const [ratingScores, setRatingScores] = useState<Record<string, number>>({});
+  const [ratingRemarks, setRatingRemarks] = useState('');
+  const [ratingDate, setRatingDate] = useState<Date>(new Date());
   const roles = employee?.roles ?? [];
   const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const myId = employee?.employee_id;
