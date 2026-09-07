@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Search, Pencil, XCircle, Building2, RotateCcw } from 'lucide-react';
+import { Plus, Search, Pencil, XCircle, Building2, RotateCcw, Users } from 'lucide-react';
 import { SubSeriesTagInput } from '@/components/clients/SubSeriesTagInput';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,6 +27,31 @@ import {
   getActivityCategory,
   ProjectActivityInfo,
 } from '@/lib/client-activity';
+
+const inviteClientUser = async (
+  supabase: any,
+  companyId: string,
+  clientId: string,
+  clientName: string,
+  email: string,
+  contactName: string | null
+) => {
+  if (!email || !email.trim()) return;
+  try {
+    await supabase.functions.invoke('invite-client', {
+      body: {
+        clientId,
+        clientName,
+        email: email.trim(),
+        fullName: contactName || '',
+        companyId,
+      },
+    });
+  } catch (e) {
+    console.error('Failed to send client invite:', e);
+    // Non-blocking — don't throw
+  }
+};
 
 interface Client {
   id: string;
