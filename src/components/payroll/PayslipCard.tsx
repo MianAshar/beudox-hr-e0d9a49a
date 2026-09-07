@@ -293,6 +293,13 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       if ((r as any).date) attendedDates.add(String((r as any).date));
     }
 
+    // Floor accumulated OT values to whole hours (matches generate-payroll edge function).
+    shortTime = -Math.floor(Math.abs(shortTime));
+    overtime = Math.floor(overtime);
+    holOt = Math.floor(holOt);
+    otSum = shortTime + overtime;
+
+
     const [y, m] = monthYear.split('-').map(Number);
     const startDate = `${monthYear}-01`;
     const lastDay = new Date(y, m, 0).getDate();
