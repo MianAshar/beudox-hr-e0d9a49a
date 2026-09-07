@@ -449,7 +449,15 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
                         </span>
                       )}
                       <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {t.deadline ? formatDate(t.deadline) : 'No deadline'}
+                        {t.deadline ? (
+                          <>
+                            <span>Due: {formatDate(t.deadline)}</span>
+                            {t.is_completed && t.completed_at && new Date(t.completed_at) > new Date(t.deadline) && (() => {
+                              const daysLate = Math.ceil((new Date(t.completed_at).getTime() - new Date(t.deadline).getTime()) / (1000 * 60 * 60 * 24));
+                              return <span className="text-red-500 ml-1">({daysLate} day{daysLate !== 1 ? 's' : ''} late)</span>;
+                            })()}
+                          </>
+                        ) : 'No deadline'}
                       </span>
                       <div className={cn('flex items-center gap-1 text-xs font-medium whitespace-nowrap', status.color)}>
                         {status.icon}
