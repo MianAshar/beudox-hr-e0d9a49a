@@ -41,6 +41,17 @@ const statusColors: Record<string, string> = {
   cancelled: 'bg-[#FEE2E2] text-[#991B1B]',
 };
 
+const StarRating = ({ value, onChange, max = 5 }: { value: number; onChange: (v: number) => void; max?: number }) => (
+  <div className="flex items-center gap-1">
+    {Array.from({ length: max }, (_, i) => (
+      <button key={i} type="button" onClick={() => onChange(i + 1)} className="focus:outline-none">
+        <Star className={`h-5 w-5 transition-colors ${i < value ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`} />
+      </button>
+    ))}
+    <span className="ml-1.5 text-xs font-medium text-muted-foreground">{value}/{max}</span>
+  </div>
+);
+
 // ─── Employee List View ───────────────────────────────────────────────
 
 const EmployeeListView = ({ onSelect }: { onSelect: (emp: any) => void }) => {
