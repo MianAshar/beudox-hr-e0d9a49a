@@ -53,9 +53,16 @@ const ClientDetail = () => {
   const qc = useQueryClient();
   const companyId = employee?.company_id;
   const isCeo = (employee?.roles ?? []).includes('ceo');
+  const roles = employee?.roles ?? [];
+  const isManager = ['ceo', 'hr_manager'].some(r => roles.includes(r));
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState<any>(null);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserName, setNewUserName] = useState('');
+  const [invitingUser, setInvitingUser] = useState(false);
 
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ['client', id],
