@@ -6,7 +6,7 @@ import { checkReviewAlerts } from '@/lib/review-alerts';
 import { MobileSidebarProvider } from './MobileSidebarContext';
 import { SidebarProvider, useSidebarCollapsed } from '@/contexts/SidebarContext';
 
-const AppLayout = ({ children }: { children: ReactNode }) => {
+const AppLayoutInner = ({ children }: { children: ReactNode }) => {
   const { employee } = useAuth();
   const { collapsed } = useSidebarCollapsed();
 
@@ -21,20 +21,26 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   }, [employee?.company_id]);
 
   return (
-    <SidebarProvider>
-      <MobileSidebarProvider>
-        <div className="min-h-screen flex">
-          <AppSidebar />
-          <div className={`flex-1 flex flex-col min-w-0 transition-all duration-250 ${collapsed ? 'lg:ml-[64px]' : 'lg:ml-[240px]'}`}>
-            <TopBar />
-            <main className="flex-1 bg-background p-4 lg:p-6">
-              <div className="max-w-[1280px] mx-auto">
-                {children}
-              </div>
-            </main>
-          </div>
+    <MobileSidebarProvider>
+      <div className="min-h-screen flex">
+        <AppSidebar />
+        <div className={`flex-1 flex flex-col min-w-0 transition-all duration-[250ms] ${collapsed ? 'lg:ml-[64px]' : 'lg:ml-[240px]'}`}>
+          <TopBar />
+          <main className="flex-1 bg-background p-4 lg:p-6">
+            <div className="max-w-[1280px] mx-auto">
+              {children}
+            </div>
+          </main>
         </div>
-      </MobileSidebarProvider>
+      </div>
+    </MobileSidebarProvider>
+  );
+};
+
+const AppLayout = ({ children }: { children: ReactNode }) => {
+  return (
+    <SidebarProvider>
+      <AppLayoutInner>{children}</AppLayoutInner>
     </SidebarProvider>
   );
 };
