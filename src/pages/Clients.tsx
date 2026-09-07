@@ -92,6 +92,10 @@ const Clients = () => {
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityCategory>('all');
   const [clientTab, setClientTab] = useState<'active' | 'past'>('active');
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserName, setNewUserName] = useState('');
+  const [invitingUser, setInvitingUser] = useState(false);
+
 
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
