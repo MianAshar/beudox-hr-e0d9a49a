@@ -416,73 +416,123 @@ const Clients = () => {
               {sorted.map(c => {
                 const cat = activityByClient.get(c.id);
                 const styles = cat ? ACTIVITY_STYLES[cat] : null;
+                const isExpanded = expandedClientId === c.id;
+                const colSpan = showActivity ? 6 : 5;
                 return (
-                  <TableRow key={c.id}>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => navigate(`/clients/${c.id}`)}
-                            className="text-primary hover:underline font-medium"
-                          >
-                            {c.name}
-                          </button>
-                        </div>
-                        {c.sub_series && c.sub_series.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {c.sub_series.map(s => (
-                              <span key={s} className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '3px 10px' }}>{s}</span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    {showActivity && (
+                  <>
+                    <TableRow key={c.id}>
                       <TableCell>
-                        {cat && styles && (
-                          <TooltipProvider delayDuration={150}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span
-                                  className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium cursor-default"
-                                  style={{ backgroundColor: styles.bg, color: styles.text }}
-                                >
-                                  {ACTIVITY_LABELS[cat]}
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent
-                                side="bottom"
-                                sideOffset={8}
-                                className="border-0 text-white"
-                                style={{
-                                  backgroundColor: '#1A1240',
-                                  fontFamily: 'DM Sans, sans-serif',
-                                  fontSize: 12,
-                                  lineHeight: 1.4,
-                                  padding: 8,
-                                  borderRadius: 8,
-                                  maxWidth: 240,
-                                }}
-                              >
-                                {ACTIVITY_DESCRIPTIONS[cat]}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => navigate(`/clients/${c.id}`)}
+                              className="text-primary hover:underline font-medium"
+                            >
+                              {c.name}
+                            </button>
+                          </div>
+                          {c.sub_series && c.sub_series.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {c.sub_series.map(s => (
+                                <span key={s} className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '3px 10px' }}>{s}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
+                      {showActivity && (
+                        <TableCell>
+                          {cat && styles && (
+                            <TooltipProvider delayDuration={150}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span
+                                    className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium cursor-default"
+                                    style={{ backgroundColor: styles.bg, color: styles.text }}
+                                  >
+                                    {ACTIVITY_LABELS[cat]}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  side="bottom"
+                                  sideOffset={8}
+                                  className="border-0 text-white"
+                                  style={{
+                                    backgroundColor: '#1A1240',
+                                    fontFamily: 'DM Sans, sans-serif',
+                                    fontSize: 12,
+                                    lineHeight: 1.4,
+                                    padding: 8,
+                                    borderRadius: 8,
+                                    maxWidth: 240,
+                                  }}
+                                >
+                                  {ACTIVITY_DESCRIPTIONS[cat]}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </TableCell>
+                      )}
+                      <TableCell>{c.contact_name || '—'}</TableCell>
+                      <TableCell>{c.contact_email || '—'}</TableCell>
+                      <TableCell>{c.country || '—'}</TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setExpandedClientId(isExpanded ? null : c.id)}
+                        >
+                          <Users className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setDeactivateTarget(c)}>
+                          <XCircle className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {isExpanded && (
+                      <TableRow className="bg-muted/30">
+                        <TableCell colSpan={colSpan}>
+                          <div className="py-3 px-1">
+                            <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                              <Users className="h-4 w-4 text-muted-foreground" />
+                              Client Portal Users
+                            </h4>
+                            {clientPortalUsers && clientPortalUsers.length > 0 ? (
+                              <div className="space-y-2">
+                                {clientPortalUsers.map((u: any) => (
+                                  <div key={u.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2">
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-sm font-medium">{u.email}</span>
+                                      {u.full_name && <span className="text-xs text-muted-foreground">{u.full_name}</span>}
+                                      <Badge className={u.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-amber-100 text-amber-700 hover:bg-amber-100'}>
+                                        {u.status === 'active' ? 'Active' : 'Invited'}
+                                      </Badge>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={async () => {
+                                        await inviteClientUser(supabase, companyId!, c.id, c.name, u.email, u.full_name || null);
+                                        toast({ title: `Invite resent to ${u.email}` });
+                                      }}
+                                    >
+                                      Resend Invite
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">No portal users invited yet.</p>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     )}
-                    <TableCell>{c.contact_name || '—'}</TableCell>
-                    <TableCell>{c.contact_email || '—'}</TableCell>
-                    <TableCell>{c.country || '—'}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeactivateTarget(c)}>
-                        <XCircle className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  </>
                 );
               })}
             </TableBody>
