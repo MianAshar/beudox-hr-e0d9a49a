@@ -309,6 +309,9 @@ const Employees = () => {
                 <SortableHeader column="department" sort={sort} onSort={toggleSort} className="hidden md:table-cell">Department</SortableHeader>
                 <SortableHeader column="joining_date" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Joining Date</SortableHeader>
                 <SortableHeader column="role" sort={sort} onSort={toggleSort} className="hidden lg:table-cell">Role</SortableHeader>
+                {canViewCompensation && (
+                  <SortableHeader column="salary" sort={sort} onSort={toggleSort} className="hidden lg:table-cell text-right">Salary</SortableHeader>
+                )}
                 <SortableHeader column="status" sort={sort} onSort={toggleSort}>Status</SortableHeader>
                 {isManager && <TableHead className="w-[80px] text-right">Actions</TableHead>}
               </TableRow>
