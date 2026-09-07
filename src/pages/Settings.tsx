@@ -30,21 +30,48 @@ const Settings = () => {
     );
   }
 
-  const tabs = [
-    ...(isCeo ? [{ value: 'company', label: 'Company' }] : []),
-    ...(isCeo || isHr ? [{ value: 'attendance', label: 'Attendance & Payroll' }] : []),
-    ...(isCeo ? [{ value: 'departments', label: 'Departments' }] : []),
-    ...(isCeo || isHr ? [{ value: 'eval-params', label: 'Employee Review Parameters' }] : []),
-    ...(isCeo ? [{ value: 'roles', label: 'Roles' }] : []),
-    ...(isCeo || isFinance ? [{ value: 'expense-categories', label: 'Expense Categories' }] : []),
-    ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
-    ...(isCeo || isHr ? [{ value: 'login-logs', label: 'Login Logs' }] : []),
-    ...(isCeo || isHr ? [{ value: 'leave-overwrites', label: 'Leave Overwrite Log' }] : []),
-    ...(isCeo || isHr ? [{ value: 'manual-attendance-logs', label: 'Manual Attendance Log' }] : []),
-    ...(isCeo ? [{ value: 'danger', label: 'Danger Zone' }] : []),
-  ];
+  const [activeTab, setActiveTab] = useState(
+    isCeo ? 'company' : isHr ? 'attendance' : 'expense-categories'
+  );
 
-  const defaultTab = isCeo ? 'company' : isHr ? 'attendance' : 'expense-categories';
+  const navGroups = [
+    ...(isCeo || isHr ? [{
+      label: 'General',
+      items: [
+        ...(isCeo ? [{ value: 'company', label: 'Company' }] : []),
+        ...(isCeo ? [{ value: 'departments', label: 'Departments' }] : []),
+        ...(isCeo ? [{ value: 'roles', label: 'Roles' }] : []),
+      ],
+    }] : []),
+    {
+      label: 'HR',
+      items: [
+        ...(isCeo || isHr ? [{ value: 'attendance', label: 'Attendance & Payroll' }] : []),
+        ...(isCeo || isHr ? [{ value: 'leave-types', label: 'Leave Types' }] : []),
+        ...(isCeo || isHr ? [{ value: 'eval-params', label: 'Employee Review Parameters' }] : []),
+      ],
+    },
+    ...(isCeo || isFinance ? [{
+      label: 'Finance',
+      items: [
+        { value: 'expense-categories', label: 'Expense Categories' },
+      ],
+    }] : []),
+    ...(isCeo || isHr ? [{
+      label: 'Logs',
+      items: [
+        { value: 'login-logs', label: 'Login Logs' },
+        { value: 'leave-overwrites', label: 'Leave Overwrite Log' },
+        { value: 'manual-attendance-logs', label: 'Manual Attendance Log' },
+      ],
+    }] : []),
+    ...(isCeo ? [{
+      label: 'System',
+      items: [
+        { value: 'danger', label: 'Danger Zone' },
+      ],
+    }] : []),
+  ].filter(g => g.items.length > 0);
 
   return (
     <div className="space-y-6">
