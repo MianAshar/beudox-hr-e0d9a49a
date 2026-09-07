@@ -92,6 +92,10 @@ const Clients = () => {
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityCategory>('all');
   const [clientTab, setClientTab] = useState<'active' | 'past'>('active');
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserName, setNewUserName] = useState('');
+  const [invitingUser, setInvitingUser] = useState(false);
+
 
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
@@ -141,7 +145,23 @@ const Clients = () => {
     enabled: !!expandedClientId && !!companyId,
   });
 
+  // Portal users inside the edit modal
+  const { data: modalPortalUsers, refetch: refetchModalUsers } = useQuery({
+    queryKey: ['client-users-modal', editingId, companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_users')
+        .select('id, email, full_name, status, invited_at')
+        .eq('client_id', editingId!)
+        .eq('company_id', companyId!);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!editingId && !!companyId && modalOpen,
+  });
+
   // Per-client activity map
+
   const activityByClient = useMemo(() => {
     const map = new Map<string, ActivityCategory>();
     if (!showActivity || !clients) return map;
@@ -251,7 +271,10 @@ const Clients = () => {
     setEditingId(null);
     setForm(emptyForm);
     setErrors({});
+    setNewUserEmail('');
+    setNewUserName('');
   };
+
 
   const openEdit = (c: Client) => {
     setEditingId(c.id);
@@ -275,7 +298,29 @@ const Clients = () => {
     saveMutation.mutate();
   };
 
+  const handleInviteUser = async () => {
+    if (!newUserEmail.trim() || !editingId) return;
+    const client = clients?.find(c => c.id === editingId);
+    if (!client) return;
+    setInvitingUser(true);
+    await inviteClientUser(
+      supabase,
+      companyId!,
+      editingId,
+      client.name,
+      newUserEmail.trim(),
+      newUserName.trim() || null
+    );
+    setNewUserEmail('');
+    setNewUserName('');
+    setInvitingUser(false);
+    refetchModalUsers();
+    qc.invalidateQueries({ queryKey: ['client-users', editingId, companyId] });
+    toast({ title: `Invite sent to ${newUserEmail.trim()}` });
+  };
+
   const filtered = activeClients.filter(c => {
+
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (showActivity && activityFilter !== 'all') {
       if (activityByClient.get(c.id) !== activityFilter) return false;
@@ -686,6 +731,71 @@ const Clients = () => {
               <Label>Notes</Label>
               <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
             </div>
+            {editingId && (
+              <div className="space-y-3 pt-2 border-t">
+                <Label className="text-sm font-semibold">Portal Users</Label>
+                <p className="text-xs text-muted-foreground">Users who can log in to the Forte Client Portal to view this client's projects.</p>
+
+                {/* Existing users list */}
+                {modalPortalUsers && modalPortalUsers.length > 0 && (
+                  <div className="space-y-2">
+                    {modalPortalUsers.map((u: any) => (
+                      <div key={u.id} className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-sm font-medium truncate">{u.email}</span>
+                          {u.full_name && <span className="text-xs text-muted-foreground truncate">({u.full_name})</span>}
+                          <Badge className={u.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100 shrink-0' : 'bg-amber-100 text-amber-700 hover:bg-amber-100 shrink-0'}>
+                            {u.status === 'active' ? 'Active' : 'Invited'}
+                          </Badge>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="shrink-0 text-xs"
+                          onClick={async () => {
+                            const client = clients?.find(c => c.id === editingId);
+                            if (!client) return;
+                            await inviteClientUser(supabase, companyId!, editingId, client.name, u.email, u.full_name || null);
+                            toast({ title: `Invite resent to ${u.email}` });
+                          }}
+                        >
+                          Resend
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add new user */}
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder="Email address *"
+                      type="email"
+                      value={newUserEmail}
+                      onChange={e => setNewUserEmail(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleInviteUser(); } }}
+                    />
+                    <Input
+                      placeholder="Full name (optional)"
+                      value={newUserName}
+                      onChange={e => setNewUserName(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleInviteUser(); } }}
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!newUserEmail.trim() || invitingUser}
+                    onClick={handleInviteUser}
+                    className="w-full"
+                  >
+                    {invitingUser ? 'Sending invite…' : '+ Add & Invite User'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeModal}>Cancel</Button>
