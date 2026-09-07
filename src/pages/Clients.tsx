@@ -145,7 +145,23 @@ const Clients = () => {
     enabled: !!expandedClientId && !!companyId,
   });
 
+  // Portal users inside the edit modal
+  const { data: modalPortalUsers, refetch: refetchModalUsers } = useQuery({
+    queryKey: ['client-users-modal', editingId, companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_users')
+        .select('id, email, full_name, status, invited_at')
+        .eq('client_id', editingId!)
+        .eq('company_id', companyId!);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!editingId && !!companyId && modalOpen,
+  });
+
   // Per-client activity map
+
   const activityByClient = useMemo(() => {
     const map = new Map<string, ActivityCategory>();
     if (!showActivity || !clients) return map;
