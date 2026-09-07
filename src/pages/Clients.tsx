@@ -568,9 +568,6 @@ const Clients = () => {
                         >
                           <Users className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => setDeactivateTarget(c)}>
                           <XCircle className="h-4 w-4 text-destructive" />
                         </Button>
