@@ -7,11 +7,35 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import { SubSeriesTagInput } from '@/components/clients/SubSeriesTagInput';
+
+const inviteClientUser = async (
+  supabase: any,
+  companyId: string,
+  clientId: string,
+  clientName: string,
+  email: string,
+  contactName: string | null
+) => {
+  if (!email || !email.trim()) return;
+  try {
+    await supabase.functions.invoke('invite-client', {
+      body: { clientId, clientName, email: email.trim(), fullName: contactName || '', companyId },
+    });
+  } catch (e) {
+    console.error('Failed to send client invite:', e);
+  }
+};
+
+const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -29,9 +53,16 @@ const ClientDetail = () => {
   const qc = useQueryClient();
   const companyId = employee?.company_id;
   const isCeo = (employee?.roles ?? []).includes('ceo');
+  const roles = employee?.roles ?? [];
+  const isManager = ['ceo', 'hr_manager'].some(r => roles.includes(r));
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState<any>(null);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserName, setNewUserName] = useState('');
+  const [invitingUser, setInvitingUser] = useState(false);
 
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ['client', id],
@@ -56,6 +87,19 @@ const ClientDetail = () => {
       return data;
     },
     enabled: !!id && !!companyId,
+  });
+
+  const { data: portalUsers, refetch: refetchPortalUsers } = useQuery({
+    queryKey: ['client-users-detail', id, companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('client_users')
+        .select('id, email, full_name, status, invited_at')
+        .eq('client_id', id!)
+        .eq('company_id', companyId!);
+      return data || [];
+    },
+    enabled: !!id && !!companyId && isManager,
   });
 
   const deleteMutation = useMutation({
@@ -89,6 +133,41 @@ const ClientDetail = () => {
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        name: editForm.name.trim(),
+        contact_name: editForm.contact_name?.trim() || null,
+        contact_email: editForm.contact_email?.trim() || null,
+        contact_phone: editForm.contact_phone?.trim() || null,
+        country: editForm.country?.trim() || null,
+        billing_currency: editForm.billing_currency,
+        notes: editForm.notes?.trim() || null,
+        sub_series: editForm.sub_series || [],
+      };
+      const { error } = await supabase.from('clients').update(payload).eq('id', id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client', id] });
+      qc.invalidateQueries({ queryKey: ['clients'] });
+      setEditOpen(false);
+      toast({ title: 'Client updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+
+  const handleInviteUser = async () => {
+    if (!newUserEmail.trim() || !id || !client) return;
+    setInvitingUser(true);
+    await inviteClientUser(supabase, companyId!, id, client.name, newUserEmail.trim(), newUserName.trim() || null);
+    setNewUserEmail('');
+    setNewUserName('');
+    setInvitingUser(false);
+    refetchPortalUsers();
+    toast({ title: `Invite sent to ${newUserEmail.trim()}` });
+  };
+
   if (clientLoading) {
     return (
       <div className="p-6 space-y-4">
@@ -118,10 +197,30 @@ const ClientDetail = () => {
             <p className="text-sm text-muted-foreground">Client Details</p>
           </div>
         </div>
-        {isCeo && (
-          <Button variant="destructive" onClick={() => setDeleteOpen(true)} className="w-full sm:w-auto">
-            <Trash2 className="h-4 w-4 mr-2" /> Delete Client
-          </Button>
+        {isManager && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditForm({
+                  name: client.name,
+                  contact_name: client.contact_name || '',
+                  contact_email: client.contact_email || '',
+                  contact_phone: client.contact_phone || '',
+                  country: client.country || '',
+                  billing_currency: client.billing_currency || 'USD',
+                  notes: client.notes || '',
+                  sub_series: client.sub_series || [],
+                });
+                setEditOpen(true);
+              }}
+            >
+              <Pencil className="h-4 w-4 mr-2" /> Edit
+            </Button>
+            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-2" /> Delete Client
+            </Button>
+          </div>
         )}
       </div>
 
@@ -162,6 +261,72 @@ const ClientDetail = () => {
           </div>
         )}
       </div>
+
+      {isManager && (
+        <div className="rounded-lg border bg-card p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-base font-semibold text-foreground">Portal Users</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">Users who can log in to the Forte Client Portal to view this client's projects.</p>
+
+          {/* Existing users */}
+          {portalUsers && portalUsers.length > 0 && (
+            <div className="space-y-2">
+              {portalUsers.map((u: any) => (
+                <div key={u.id} className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-sm font-medium truncate">{u.email}</span>
+                    {u.full_name && <span className="text-xs text-muted-foreground">({u.full_name})</span>}
+                    <Badge className={u.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-amber-100 text-amber-700 hover:bg-amber-100'}>
+                      {u.status === 'active' ? 'Active' : 'Invited'}
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 text-xs"
+                    onClick={async () => {
+                      await inviteClientUser(supabase, companyId!, id!, client.name, u.email, u.full_name || null);
+                      toast({ title: `Invite resent to ${u.email}` });
+                    }}
+                  >
+                    Resend
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add new user */}
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="Email address *"
+                type="email"
+                value={newUserEmail}
+                onChange={e => setNewUserEmail(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleInviteUser(); } }}
+              />
+              <Input
+                placeholder="Full name (optional)"
+                value={newUserName}
+                onChange={e => setNewUserName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleInviteUser(); } }}
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              disabled={!newUserEmail.trim() || invitingUser}
+              onClick={handleInviteUser}
+            >
+              {invitingUser ? 'Sending invite…' : '+ Add & Invite User'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Projects Section */}
       <div className="flex items-center justify-between">
@@ -233,6 +398,66 @@ const ClientDetail = () => {
               disabled={deleteConfirmText !== client.name || deleteMutation.isPending}
             >
               {deleteMutation.isPending ? 'Deleting…' : 'Delete Permanently'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={v => { if (!v) setEditOpen(false); }}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Client</DialogTitle>
+          </DialogHeader>
+          {editForm && (
+            <div className="space-y-4 py-2">
+              <div>
+                <Label>Company Name *</Label>
+                <Input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Contact Name</Label>
+                  <Input value={editForm.contact_name} onChange={e => setEditForm({ ...editForm, contact_name: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Contact Email</Label>
+                  <Input value={editForm.contact_email} onChange={e => setEditForm({ ...editForm, contact_email: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Contact Phone</Label>
+                  <Input value={editForm.contact_phone} onChange={e => setEditForm({ ...editForm, contact_phone: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Country</Label>
+                  <Input value={editForm.country} onChange={e => setEditForm({ ...editForm, country: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <Label>Billing Currency</Label>
+                <Select value={editForm.billing_currency} onValueChange={v => setEditForm({ ...editForm, billing_currency: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Sub-Series</Label>
+                <SubSeriesTagInput value={editForm.sub_series} onChange={v => setEditForm({ ...editForm, sub_series: v })} />
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Textarea value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} rows={3} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={!editForm?.name?.trim() || updateMutation.isPending}>
+              {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </DialogContent>
