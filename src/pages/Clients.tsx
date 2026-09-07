@@ -615,7 +615,7 @@ const Clients = () => {
             {clients ? `${activeClients.length} client${activeClients.length !== 1 ? 's' : ''}` : 'Loading…'}
           </p>
         </div>
-        <Button onClick={() => { setForm(emptyForm); setEditingId(null); setModalOpen(true); }} className="w-full sm:w-auto">
+        <Button onClick={() => { setForm(emptyForm); setModalOpen(true); }} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" /> Add Client
         </Button>
       </div>
