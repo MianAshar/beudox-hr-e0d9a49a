@@ -117,9 +117,6 @@ const Clients = () => {
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityCategory>('all');
   const [clientTab, setClientTab] = useState<'active' | 'past'>('active');
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
-  const [newUserEmail, setNewUserEmail] = useState('');
-  const [newUserName, setNewUserName] = useState('');
-  const [invitingUser, setInvitingUser] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<{ id: string; authUserId: string | null; email: string } | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
 
