@@ -215,38 +215,22 @@ const Clients = () => {
         sub_series: form.sub_series,
         company_id: companyId!,
       };
-      if (editingId) {
-        const existingClient = clients?.find(c => c.id === editingId);
-        const { error } = await supabase.from('clients').update(payload).eq('id', editingId);
-        if (error) throw error;
-        if (form.contact_email && form.contact_email !== existingClient?.contact_email) {
-          await inviteClientUser(
-            supabase,
-            companyId!,
-            editingId,
-            form.name,
-            form.contact_email,
-            form.contact_name || null
-          );
-        }
-      } else {
-        const { data: newClient, error } = await supabase.from('clients').insert(payload).select().single();
-        if (error) throw error;
-        if (newClient && form.contact_email) {
-          await inviteClientUser(
-            supabase,
-            companyId!,
-            newClient.id,
-            form.name,
-            form.contact_email,
-            form.contact_name || null
-          );
-        }
+      const { data: newClient, error } = await supabase.from('clients').insert(payload).select().single();
+      if (error) throw error;
+      if (newClient && form.contact_email) {
+        await inviteClientUser(
+          supabase,
+          companyId!,
+          newClient.id,
+          form.name,
+          form.contact_email,
+          form.contact_name || null
+        );
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['clients'] });
-      toast({ title: editingId ? 'Client updated' : 'Client added' });
+      toast({ title: 'Client added' });
       closeModal();
     },
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
