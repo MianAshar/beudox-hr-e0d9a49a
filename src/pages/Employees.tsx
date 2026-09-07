@@ -153,6 +153,17 @@ const Employees = () => {
     return null;
   };
 
+  const computeSalary = (basicSalary: number | null) => {
+    if (!basicSalary || !companySettings) return null;
+    const parseTime = (t: string) => { const [h, m] = t.split(':').map(Number); return h + m / 60; };
+    const shiftHours = parseTime(companySettings.shift_end_time ?? '18:00:00') - parseTime(companySettings.shift_start_time ?? '09:00:00');
+    const workingHoursPerDay = Math.max(1, shiftHours - Number(companySettings.lunch_break_hours ?? 1));
+    const otDivisor = companySettings.ot_divisor || 30;
+    const perDay = Math.ceil(basicSalary / otDivisor);
+    const perHour = Math.floor(basicSalary / otDivisor / workingHoursPerDay);
+    return { perDay, perHour };
+  };
+
   const filtered = (employees || []).filter((emp) => {
     const matchesSearch =
       !search ||
