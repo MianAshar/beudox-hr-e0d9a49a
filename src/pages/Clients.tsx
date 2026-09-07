@@ -587,24 +587,34 @@ const Clients = () => {
                             {clientPortalUsers && clientPortalUsers.length > 0 ? (
                               <div className="space-y-2">
                                 {clientPortalUsers.map((u: any) => (
-                                  <div key={u.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2">
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-sm font-medium">{u.email}</span>
-                                      {u.full_name && <span className="text-xs text-muted-foreground">{u.full_name}</span>}
-                                      <Badge className={u.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-amber-100 text-amber-700 hover:bg-amber-100'}>
+                                  <div key={u.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 gap-2">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <span className="text-sm font-medium truncate">{u.email}</span>
+                                      {u.full_name && <span className="text-xs text-muted-foreground truncate">{u.full_name}</span>}
+                                      <Badge className={u.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100 shrink-0' : 'bg-amber-100 text-amber-700 hover:bg-amber-100 shrink-0'}>
                                         {u.status === 'active' ? 'Active' : 'Invited'}
                                       </Badge>
                                     </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={async () => {
-                                        await inviteClientUser(supabase, companyId!, c.id, c.name, u.email, u.full_name || null);
-                                        toast({ title: `Invite resent to ${u.email}` });
-                                      }}
-                                    >
-                                      Resend Invite
-                                    </Button>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={async () => {
+                                          await inviteClientUser(supabase, companyId!, c.id, c.name, u.email, u.full_name || null);
+                                          toast({ title: `Invite resent to ${u.email}` });
+                                        }}
+                                      >
+                                        Resend Invite
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={() => setDeleteUserId({ id: u.id, authUserId: u.auth_user_id ?? null, email: u.email })}
+                                      >
+                                        Remove
+                                      </Button>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
