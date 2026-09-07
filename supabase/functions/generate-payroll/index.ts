@@ -276,8 +276,8 @@ Deno.serve(async (req) => {
 
       if (!isDirector && enableOtAdjustment) {
         const att = attendanceMap[emp.id];
-        const shortTime = att?.shortTime || 0; // negative — sum of all under-hours days
-        const overtime = att?.overtime || 0;   // positive — sum of all over-hours days
+        const shortTime = -Math.floor(Math.abs(att?.shortTime || 0)); // negative, floored
+        const overtime = Math.floor(att?.overtime || 0);              // positive, floored
 
         // Net OT before relaxation
         const rawNet = shortTime + overtime;
@@ -291,8 +291,9 @@ Deno.serve(async (req) => {
           ? Math.min(0, rawNet + shortTimeRelaxation)
           : rawNet;
 
-        regularOtHours = Math.round(regularOtTotal * 100) / 100;
-        holidayOtHours = att?.holidayOt || 0;
+        // Floor all OT/short-time hours — fractional minutes are discarded, not paid.
+        regularOtHours = Math.floor(regularOtTotal);
+        holidayOtHours = Math.floor(att?.holidayOt || 0);
 
         const perDaySalary = effectiveBasic / otDivisor;
         const perHourSalary = perDaySalary / workingHoursPerDay;
