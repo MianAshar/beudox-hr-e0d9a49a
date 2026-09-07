@@ -46,6 +46,7 @@ const DailyEvaluationForm = () => {
   const [revieweeId, setRevieweeId] = useState('');
   const [date, setDate] = useState<Date>(new Date());
   const [remarks, setRemarks] = useState('');
+  const [projectId, setProjectId] = useState<string>('');
   const [scores, setScores] = useState<Record<string, number>>({});
 
   // Fetch employees based on direction
