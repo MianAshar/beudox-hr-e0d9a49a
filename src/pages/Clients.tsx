@@ -53,6 +53,32 @@ const inviteClientUser = async (
   }
 };
 
+const deleteClientUser = async (
+  supabase: any,
+  clientUserId: string,
+  authUserId: string | null,
+  companyId: string
+) => {
+  // Delete from client_users table
+  await supabase
+    .from('client_users')
+    .delete()
+    .eq('id', clientUserId)
+    .eq('company_id', companyId);
+
+  // Delete auth user via Edge Function (requires service role)
+  if (authUserId) {
+    try {
+      await supabase.functions.invoke('delete-client-user', {
+        body: { authUserId },
+      });
+    } catch (e) {
+      console.error('Failed to delete auth user:', e);
+      // Non-blocking
+    }
+  }
+};
+
 interface Client {
   id: string;
   name: string;
@@ -95,7 +121,8 @@ const Clients = () => {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [invitingUser, setInvitingUser] = useState(false);
-
+  const [deleteUserId, setDeleteUserId] = useState<{ id: string; authUserId: string | null; email: string } | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
@@ -136,7 +163,7 @@ const Clients = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('client_users')
-        .select('id, email, full_name, status, invited_at')
+        .select('id, email, full_name, status, invited_at, auth_user_id')
         .eq('client_id', expandedClientId)
         .eq('company_id', companyId!);
       if (error) throw error;
@@ -151,7 +178,7 @@ const Clients = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('client_users')
-        .select('id, email, full_name, status, invited_at')
+        .select('id, email, full_name, status, invited_at, auth_user_id')
         .eq('client_id', editingId!)
         .eq('company_id', companyId!);
       if (error) throw error;
@@ -317,6 +344,17 @@ const Clients = () => {
     refetchModalUsers();
     qc.invalidateQueries({ queryKey: ['client-users', editingId, companyId] });
     toast({ title: `Invite sent to ${newUserEmail.trim()}` });
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteUserId || !companyId) return;
+    setDeletingUser(true);
+    await deleteClientUser(supabase, deleteUserId.id, deleteUserId.authUserId, companyId);
+    setDeletingUser(false);
+    setDeleteUserId(null);
+    refetchModalUsers();
+    qc.invalidateQueries({ queryKey: ['client-users', expandedClientId, companyId] });
+    toast({ title: `Portal user ${deleteUserId.email} removed` });
   };
 
   const filtered = activeClients.filter(c => {
@@ -549,24 +587,34 @@ const Clients = () => {
                             {clientPortalUsers && clientPortalUsers.length > 0 ? (
                               <div className="space-y-2">
                                 {clientPortalUsers.map((u: any) => (
-                                  <div key={u.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2">
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-sm font-medium">{u.email}</span>
-                                      {u.full_name && <span className="text-xs text-muted-foreground">{u.full_name}</span>}
-                                      <Badge className={u.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-amber-100 text-amber-700 hover:bg-amber-100'}>
+                                  <div key={u.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 gap-2">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <span className="text-sm font-medium truncate">{u.email}</span>
+                                      {u.full_name && <span className="text-xs text-muted-foreground truncate">{u.full_name}</span>}
+                                      <Badge className={u.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100 shrink-0' : 'bg-amber-100 text-amber-700 hover:bg-amber-100 shrink-0'}>
                                         {u.status === 'active' ? 'Active' : 'Invited'}
                                       </Badge>
                                     </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={async () => {
-                                        await inviteClientUser(supabase, companyId!, c.id, c.name, u.email, u.full_name || null);
-                                        toast({ title: `Invite resent to ${u.email}` });
-                                      }}
-                                    >
-                                      Resend Invite
-                                    </Button>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={async () => {
+                                          await inviteClientUser(supabase, companyId!, c.id, c.name, u.email, u.full_name || null);
+                                          toast({ title: `Invite resent to ${u.email}` });
+                                        }}
+                                      >
+                                        Resend Invite
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={() => setDeleteUserId({ id: u.id, authUserId: u.auth_user_id ?? null, email: u.email })}
+                                      >
+                                        Remove
+                                      </Button>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
@@ -740,7 +788,7 @@ const Clients = () => {
                 {modalPortalUsers && modalPortalUsers.length > 0 && (
                   <div className="space-y-2">
                     {modalPortalUsers.map((u: any) => (
-                      <div key={u.id} className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
+                      <div key={u.id} className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2 gap-2">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="text-sm font-medium truncate">{u.email}</span>
                           {u.full_name && <span className="text-xs text-muted-foreground truncate">({u.full_name})</span>}
@@ -748,19 +796,29 @@ const Clients = () => {
                             {u.status === 'active' ? 'Active' : 'Invited'}
                           </Badge>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="shrink-0 text-xs"
-                          onClick={async () => {
-                            const client = clients?.find(c => c.id === editingId);
-                            if (!client) return;
-                            await inviteClientUser(supabase, companyId!, editingId, client.name, u.email, u.full_name || null);
-                            toast({ title: `Invite resent to ${u.email}` });
-                          }}
-                        >
-                          Resend
-                        </Button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="shrink-0 text-xs"
+                            onClick={async () => {
+                              const client = clients?.find(c => c.id === editingId);
+                              if (!client) return;
+                              await inviteClientUser(supabase, companyId!, editingId, client.name, u.email, u.full_name || null);
+                              toast({ title: `Invite resent to ${u.email}` });
+                            }}
+                          >
+                            Resend
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="shrink-0 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteUserId({ id: u.id, authUserId: u.auth_user_id ?? null, email: u.email })}
+                          >
+                            Remove
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -801,6 +859,24 @@ const Clients = () => {
             <Button variant="outline" onClick={closeModal}>Cancel</Button>
             <Button onClick={handleSave} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? 'Saving…' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove Portal User Confirmation */}
+      <Dialog open={!!deleteUserId} onOpenChange={v => { if (!v) setDeleteUserId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Portal User</DialogTitle>
+            <DialogDescription>
+              Remove <strong>{deleteUserId?.email}</strong> from the client portal? They will lose access immediately and their account will be deleted. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteUserId(null)}>Cancel</Button>
+            <Button variant="destructive" disabled={deletingUser} onClick={handleDeleteUser}>
+              {deletingUser ? 'Removing…' : 'Remove User'}
             </Button>
           </DialogFooter>
         </DialogContent>
