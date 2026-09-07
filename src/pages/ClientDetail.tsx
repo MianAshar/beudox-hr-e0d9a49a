@@ -310,17 +310,27 @@ const ClientDetail = () => {
                       {u.status === 'active' ? 'Active' : 'Invited'}
                     </Badge>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0 text-xs"
-                    onClick={async () => {
-                      await inviteClientUser(supabase, companyId!, id!, client.name, u.email, u.full_name || null);
-                      toast({ title: `Invite resent to ${u.email}` });
-                    }}
-                  >
-                    Resend
-                  </Button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs"
+                      onClick={async () => {
+                        await inviteClientUser(supabase, companyId!, id!, client.name, u.email, u.full_name || null);
+                        toast({ title: `Invite resent to ${u.email}` });
+                      }}
+                    >
+                      Resend
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setDeletePortalUser({ id: u.id, authUserId: u.auth_user_id ?? null, email: u.email })}
+                    >
+                      Remove
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
