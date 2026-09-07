@@ -346,6 +346,17 @@ const Clients = () => {
     toast({ title: `Invite sent to ${newUserEmail.trim()}` });
   };
 
+  const handleDeleteUser = async () => {
+    if (!deleteUserId || !companyId) return;
+    setDeletingUser(true);
+    await deleteClientUser(supabase, deleteUserId.id, deleteUserId.authUserId, companyId);
+    setDeletingUser(false);
+    setDeleteUserId(null);
+    refetchModalUsers();
+    qc.invalidateQueries({ queryKey: ['client-users', expandedClientId, companyId] });
+    toast({ title: `Portal user ${deleteUserId.email} removed` });
+  };
+
   const filtered = activeClients.filter(c => {
 
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
