@@ -261,11 +261,8 @@ const Clients = () => {
 
   const closeModal = () => {
     setModalOpen(false);
-    setEditingId(null);
     setForm(emptyForm);
     setErrors({});
-    setNewUserEmail('');
-    setNewUserName('');
   };
 
 
