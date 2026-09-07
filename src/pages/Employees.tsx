@@ -99,6 +99,7 @@ const Employees = () => {
         .select(`
           id, full_name, designation, department, employee_code,
           joining_date, status, avatar_url, employment_type,
+          basic_salary, allowance,
           employee_roles (
             roles ( name )
           )
