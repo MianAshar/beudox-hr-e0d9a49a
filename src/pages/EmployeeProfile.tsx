@@ -220,9 +220,10 @@ const EmployeeProfile = () => {
     const lunchBreak = Number(companySettings.lunch_break_hours ?? 1);
     const workingHoursPerDay = Math.max(1, shiftHours - lunchBreak);
     const otDivisor = companySettings.ot_divisor || 30;
-    const perDay = Number(emp.basic_salary) / otDivisor;
-    const perHour = perDay / workingHoursPerDay;
+    const perDay = Math.ceil(Number(emp.basic_salary) / otDivisor);
+    const perHour = Math.floor(Number(emp.basic_salary) / otDivisor / workingHoursPerDay);
     return { perDay, perHour };
+
   })();
 
   if (isLoading) {
@@ -368,13 +369,14 @@ const EmployeeProfile = () => {
               <div>
                 <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Per Day Salary</p>
                 <p className="text-[15px] text-foreground font-semibold font-mono-bx">
-                  {perHourSalary ? `PKR ${perHourSalary.perDay.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}` : '—'}
+                  {perHourSalary ? `PKR ${perHourSalary.perDay.toLocaleString()}` : '—'}
                 </p>
               </div>
               <div>
                 <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Per Hour Salary</p>
                 <p className="text-[15px] text-foreground font-semibold font-mono-bx">
-                  {perHourSalary ? `PKR ${perHourSalary.perHour.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}` : '—'}
+                  {perHourSalary ? `PKR ${perHourSalary.perHour.toLocaleString()}` : '—'}
+
                 </p>
               </div>
             </SectionCard>
