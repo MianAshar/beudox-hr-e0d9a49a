@@ -197,10 +197,30 @@ const ClientDetail = () => {
             <p className="text-sm text-muted-foreground">Client Details</p>
           </div>
         </div>
-        {isCeo && (
-          <Button variant="destructive" onClick={() => setDeleteOpen(true)} className="w-full sm:w-auto">
-            <Trash2 className="h-4 w-4 mr-2" /> Delete Client
-          </Button>
+        {isManager && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditForm({
+                  name: client.name,
+                  contact_name: client.contact_name || '',
+                  contact_email: client.contact_email || '',
+                  contact_phone: client.contact_phone || '',
+                  country: client.country || '',
+                  billing_currency: client.billing_currency || 'USD',
+                  notes: client.notes || '',
+                  sub_series: client.sub_series || [],
+                });
+                setEditOpen(true);
+              }}
+            >
+              <Pencil className="h-4 w-4 mr-2" /> Edit
+            </Button>
+            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-2" /> Delete Client
+            </Button>
+          </div>
         )}
       </div>
 
