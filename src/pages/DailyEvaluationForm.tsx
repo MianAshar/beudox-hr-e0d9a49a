@@ -224,7 +224,7 @@ const DailyEvaluationForm = () => {
   });
 
   const allScored = (parameters || []).every((p: any) => scores[p.id] > 0);
-  const canSave = revieweeId && date && allScored && !duplicate;
+  const canSave = revieweeId && projectId && date && allScored && !duplicate;
 
   return (
     <div className="space-y-6 max-w-2xl">
