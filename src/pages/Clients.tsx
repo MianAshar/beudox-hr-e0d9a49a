@@ -271,7 +271,10 @@ const Clients = () => {
     setEditingId(null);
     setForm(emptyForm);
     setErrors({});
+    setNewUserEmail('');
+    setNewUserName('');
   };
+
 
   const openEdit = (c: Client) => {
     setEditingId(c.id);
