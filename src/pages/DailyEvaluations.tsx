@@ -385,11 +385,6 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
           <h2 className="text-xl font-semibold text-foreground">{emp.full_name}</h2>
           <p className="text-sm text-muted-foreground">{emp.designation || '—'} · {emp.department || '—'}</p>
         </div>
-        <div className="ml-auto">
-          <Button onClick={() => navigate(`/evaluations/project/new?revieweeId=${emp.id}`)}>
-            <Plus className="h-4 w-4 mr-2" /> Submit Rating
-          </Button>
-        </div>
       </div>
 
       {/* Summary Cards */}
