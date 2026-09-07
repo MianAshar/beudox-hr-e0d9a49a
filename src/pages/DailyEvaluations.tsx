@@ -289,6 +289,64 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
     onError: () => toast.error('Failed to delete'),
   });
 
+  const { data: evalParams } = useQuery({
+    queryKey: ['eval-params-daily', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('evaluation_parameters')
+        .select('id, name, max_score')
+        .eq('company_id', companyId!)
+        .eq('evaluation_type', 'daily')
+        .eq('direction', 'senior_to_junior')
+        .eq('is_active', true)
+        .eq('is_archived', false)
+        .order('display_order');
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
+  const submitRatingMutation = useMutation({
+    mutationFn: async () => {
+      const activeParams = evalParams || [];
+      const paramScores = activeParams.map((p: any) => ratingScores[p.id] || 0);
+      const avg = paramScores.length > 0 ? paramScores.reduce((a: number, b: number) => a + b, 0) / paramScores.length : 0;
+      const myEmployeeId = employee?.employee_id;
+
+      const { data: inserted, error } = await supabase.from('project_evaluations').insert({
+        company_id: companyId!,
+        reviewer_id: myEmployeeId!,
+        reviewee_id: emp.id,
+        direction: 'senior_to_junior',
+        date: format(ratingDate, 'yyyy-MM-dd'),
+        overall_score: Math.round(avg * 100) / 100,
+        remarks: ratingRemarks || null,
+        project_id: ratingProject?.id || null,
+      }).select('id').single();
+      if (error) throw error;
+
+      if (activeParams.length > 0) {
+        const scoreRows = activeParams.map((p: any) => ({
+          project_evaluation_id: inserted.id,
+          company_id: companyId!,
+          parameter_id: p.id,
+          score: ratingScores[p.id] || 0,
+        }));
+        const { error: sErr } = await supabase.from('project_evaluation_scores').insert(scoreRows);
+        if (sErr) throw sErr;
+      }
+    },
+    onSuccess: () => {
+      toast.success('Rating submitted');
+      queryClient.invalidateQueries({ queryKey: ['perf-ratings', emp.id, companyId] });
+      setRatingProject(null);
+      setRatingScores({});
+      setRatingRemarks('');
+      setRatingDate(new Date());
+    },
+    onError: () => toast.error('Failed to submit rating'),
+  });
+
   // Summary stats
   const allTasks = (tasks || []).flatMap(g => g.tasks);
   const totalTasks = allTasks.length;
