@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { canAccess } from '@/lib/role-access';
@@ -8,6 +7,7 @@ import BeudoxLogo from '@/components/BeudoxLogo';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useIsBelowLg } from '@/hooks/use-breakpoint';
 import { useMobileSidebar } from './MobileSidebarContext';
+import { useSidebarCollapsed } from '@/contexts/SidebarContext';
 
 import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
@@ -240,7 +240,7 @@ const SidebarBody = ({ collapsed, onToggleCollapse, onNavigate, showCollapseTogg
 };
 
 const AppSidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setCollapsed } = useSidebarCollapsed();
   const isMobile = useIsBelowLg();
   const { open, setOpen } = useMobileSidebar();
 

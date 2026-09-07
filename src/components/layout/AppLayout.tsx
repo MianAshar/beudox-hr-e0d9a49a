@@ -4,9 +4,11 @@ import TopBar from './TopBar';
 import { useAuth } from '@/hooks/useAuth';
 import { checkReviewAlerts } from '@/lib/review-alerts';
 import { MobileSidebarProvider } from './MobileSidebarContext';
+import { SidebarProvider, useSidebarCollapsed } from '@/contexts/SidebarContext';
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const { employee } = useAuth();
+  const { collapsed } = useSidebarCollapsed();
 
   useEffect(() => {
     if (!employee?.company_id) return;
@@ -19,19 +21,21 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   }, [employee?.company_id]);
 
   return (
-    <MobileSidebarProvider>
-      <div className="min-h-screen flex">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col lg:ml-[240px] min-w-0">
-          <TopBar />
-          <main className="flex-1 bg-background p-4 lg:p-6">
-            <div className="max-w-[1280px] mx-auto">
-              {children}
-            </div>
-          </main>
+    <SidebarProvider>
+      <MobileSidebarProvider>
+        <div className="min-h-screen flex">
+          <AppSidebar />
+          <div className={`flex-1 flex flex-col min-w-0 transition-all duration-250 ${collapsed ? 'lg:ml-[64px]' : 'lg:ml-[240px]'}`}>
+            <TopBar />
+            <main className="flex-1 bg-background p-4 lg:p-6">
+              <div className="max-w-[1280px] mx-auto">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
-    </MobileSidebarProvider>
+      </MobileSidebarProvider>
+    </SidebarProvider>
   );
 };
 
