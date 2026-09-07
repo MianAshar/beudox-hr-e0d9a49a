@@ -163,7 +163,7 @@ const Clients = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('client_users')
-        .select('id, email, full_name, status, invited_at')
+        .select('id, email, full_name, status, invited_at, auth_user_id')
         .eq('client_id', expandedClientId)
         .eq('company_id', companyId!);
       if (error) throw error;
@@ -178,7 +178,7 @@ const Clients = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('client_users')
-        .select('id, email, full_name, status, invited_at')
+        .select('id, email, full_name, status, invited_at, auth_user_id')
         .eq('client_id', editingId!)
         .eq('company_id', companyId!);
       if (error) throw error;
