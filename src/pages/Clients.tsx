@@ -273,34 +273,12 @@ const Clients = () => {
     saveMutation.mutate();
   };
 
-  const handleInviteUser = async () => {
-    if (!newUserEmail.trim() || !editingId) return;
-    const client = clients?.find(c => c.id === editingId);
-    if (!client) return;
-    setInvitingUser(true);
-    await inviteClientUser(
-      supabase,
-      companyId!,
-      editingId,
-      client.name,
-      newUserEmail.trim(),
-      newUserName.trim() || null
-    );
-    setNewUserEmail('');
-    setNewUserName('');
-    setInvitingUser(false);
-    refetchModalUsers();
-    qc.invalidateQueries({ queryKey: ['client-users', editingId, companyId] });
-    toast({ title: `Invite sent to ${newUserEmail.trim()}` });
-  };
-
   const handleDeleteUser = async () => {
     if (!deleteUserId || !companyId) return;
     setDeletingUser(true);
     await deleteClientUser(supabase, deleteUserId.id, deleteUserId.authUserId, companyId);
     setDeletingUser(false);
     setDeleteUserId(null);
-    refetchModalUsers();
     qc.invalidateQueries({ queryKey: ['client-users', expandedClientId, companyId] });
     toast({ title: `Portal user ${deleteUserId.email} removed` });
   };
