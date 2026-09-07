@@ -98,6 +98,20 @@ const EmployeeProfile = () => {
     enabled: !!id,
   });
 
+  const { data: companySettings } = useQuery({
+    queryKey: ['company-settings', emp?.company_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('company_settings')
+        .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours')
+        .eq('company_id', emp!.company_id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!emp?.company_id,
+  });
+
+
   const canView = isManager || isSelfView;
   // HR/Finance managers cannot deactivate or delete their own account — only CEO/Director can manage themselves.
   const isSelfNonCeo = !isCeo && !!authEmployee?.employee_id && authEmployee.employee_id === emp?.id;
@@ -197,7 +211,22 @@ const EmployeeProfile = () => {
     }
   };
 
+  const perHourSalary = (() => {
+    if (!emp?.basic_salary || !companySettings) return null;
+    const parseTime = (t: string) => { const [h, m] = t.split(':').map(Number); return h + m / 60; };
+    const shiftStart = parseTime(companySettings.shift_start_time ?? '09:00:00');
+    const shiftEnd = parseTime(companySettings.shift_end_time ?? '18:00:00');
+    const shiftHours = shiftEnd - shiftStart;
+    const lunchBreak = Number(companySettings.lunch_break_hours ?? 1);
+    const workingHoursPerDay = Math.max(1, shiftHours - lunchBreak);
+    const otDivisor = companySettings.ot_divisor || 30;
+    const perDay = Number(emp.basic_salary) / otDivisor;
+    const perHour = perDay / workingHoursPerDay;
+    return { perDay, perHour };
+  })();
+
   if (isLoading) {
+
     return (
       <div className="space-y-6">
         <div className="bx-skeleton h-8 w-32" />
@@ -327,17 +356,30 @@ const EmployeeProfile = () => {
               <div>
                 <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Basic Salary</p>
                 <p className="text-[15px] text-foreground font-semibold font-mono-bx">
-                  {emp.basic_salary != null ? Number(emp.basic_salary).toLocaleString() : '—'}
+                  {emp.basic_salary != null ? `PKR ${Number(emp.basic_salary).toLocaleString()}` : '—'}
                 </p>
               </div>
               <div>
                 <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Allowance</p>
                 <p className="text-[15px] text-foreground font-semibold font-mono-bx">
-                  {emp.allowance != null ? Number(emp.allowance).toLocaleString() : '—'}
+                  {emp.allowance != null ? `PKR ${Number(emp.allowance).toLocaleString()}` : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Per Day Salary</p>
+                <p className="text-[15px] text-foreground font-semibold font-mono-bx">
+                  {perHourSalary ? `PKR ${perHourSalary.perDay.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}` : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground mb-0.5" style={{ fontFamily: 'var(--ff-body)' }}>Per Hour Salary</p>
+                <p className="text-[15px] text-foreground font-semibold font-mono-bx">
+                  {perHourSalary ? `PKR ${perHourSalary.perHour.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}` : '—'}
                 </p>
               </div>
             </SectionCard>
           )}
+
 
           <SectionCard title="Portal Access">
             <div>
