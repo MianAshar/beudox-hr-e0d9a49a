@@ -50,7 +50,10 @@ Deno.serve(async (req) => {
     const otDivisor = settings?.ot_divisor || 30;
     const enableOtAdjustment = (settings as any)?.enable_ot_adjustment ?? true;
     const shortTimeRelaxation = Number((settings as any)?.short_time_relaxation_hours ?? 0);
-    const workingHoursPerDay = Math.max(0.0001, shiftHours - lunchBreakHours);
+    // Per-hour salary base: shift hours minus lunch break, minimum 1.
+    // Excel uses basic_salary / 30 / 8 — for Forte: 9hr shift - 1hr lunch = 8hrs. ✓
+    // The fallback is 8 (not 9) so a missing lunch_break_hours setting doesn't silently lower the rate.
+    const workingHoursPerDay = Math.max(1, shiftHours - lunchBreakHours);
 
     // 2. Fetch active employees (full_time + director)
     const { data: employees, error: empErr } = await supabase
