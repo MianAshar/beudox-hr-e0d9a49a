@@ -182,6 +182,7 @@ const Employees = () => {
     joining_date: (r: any) => r.joining_date,
     role: (r: any) => getRoleName(r),
     status: (r: any) => r.status,
+    salary: (r: any) => Number(r.basic_salary || 0),
   });
 
   return (
