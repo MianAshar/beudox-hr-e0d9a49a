@@ -46,6 +46,7 @@ const DailyEvaluationForm = () => {
   const [revieweeId, setRevieweeId] = useState('');
   const [date, setDate] = useState<Date>(new Date());
   const [remarks, setRemarks] = useState('');
+  const [projectId, setProjectId] = useState<string>('');
   const [scores, setScores] = useState<Record<string, number>>({});
 
   // Fetch employees based on direction
@@ -159,23 +160,37 @@ const DailyEvaluationForm = () => {
     enabled: !!revieweeId && !!myId && !!companyId && !!date,
   });
 
+  useEffect(() => {
+    setProjectId('');
+  }, [revieweeId]);
+
+  const { data: revieweeProjects } = useQuery({
+    queryKey: ['reviewee-projects', revieweeId, companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_assignments')
+        .select(`
+          project_id,
+          projects!project_assignments_project_id_fkey(
+            id, project_name, project_code, status
+          )
+        `)
+        .eq('employee_id', revieweeId)
+        .eq('company_id', companyId!)
+        .eq('is_active', true);
+      return (data || [])
+        .map((a: any) => a.projects)
+        .filter(Boolean)
+        .filter((p: any) => p.status !== 'cancelled');
+    },
+    enabled: !!revieweeId && !!companyId,
+  });
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const activeParams = parameters || [];
       const paramScores = activeParams.map((p: any) => scores[p.id] || 0);
       const avg = paramScores.length > 0 ? paramScores.reduce((a: number, b: number) => a + b, 0) / paramScores.length : 0;
-
-      // Get most recent active project for reviewee
-      const { data: projectAssignment } = await supabase
-        .from('project_assignments')
-        .select('project_id')
-        .eq('employee_id', revieweeId)
-        .eq('company_id', companyId!)
-        .eq('is_active', true)
-        .order('assigned_at', { ascending: false })
-        .limit(1);
-
-      const projectId = projectAssignment?.[0]?.project_id || null;
 
       const { data, error } = await supabase.from('project_evaluations').insert({
         company_id: companyId!,
@@ -185,7 +200,7 @@ const DailyEvaluationForm = () => {
         date: format(date, 'yyyy-MM-dd'),
         overall_score: Math.round(avg * 100) / 100,
         remarks: remarks || null,
-        project_id: projectId,
+        project_id: projectId || null,
       }).select('id').single();
       if (error) throw error;
 
@@ -209,7 +224,7 @@ const DailyEvaluationForm = () => {
   });
 
   const allScored = (parameters || []).every((p: any) => scores[p.id] > 0);
-  const canSave = revieweeId && date && allScored && !duplicate;
+  const canSave = revieweeId && projectId && date && allScored && !duplicate;
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -231,6 +246,28 @@ const DailyEvaluationForm = () => {
               placeholder="Select person"
             />
           </div>
+
+          {revieweeId && (
+            <div className="space-y-2">
+              <Label>Project *</Label>
+              {!revieweeProjects || revieweeProjects.length === 0 ? (
+                <p className="text-sm text-muted-foreground">This employee has no active project assignments.</p>
+              ) : (
+                <Select value={projectId} onValueChange={setProjectId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select project this rating is for" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {revieweeProjects.map((p: any) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.project_code} — {p.project_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Date *</Label>
