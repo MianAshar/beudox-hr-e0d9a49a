@@ -387,6 +387,25 @@ const Employees = () => {
                         {formatRole(roleName)}
                       </span>
                     </TableCell>
+                    {canViewCompensation && (
+                      <TableCell className="hidden lg:table-cell text-right">
+                        {emp.basic_salary != null ? (
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span className="text-sm font-semibold font-mono text-foreground">
+                              PKR {Number(emp.basic_salary + (emp.allowance || 0)).toLocaleString()}
+                            </span>
+                            {(() => {
+                              const s = computeSalary(emp.basic_salary);
+                              return s ? (
+                                <span className="text-[11px] text-muted-foreground font-mono">
+                                  {s.perDay.toLocaleString()}/day · {s.perHour.toLocaleString()}/hr
+                                </span>
+                              ) : null;
+                            })()}
+                          </div>
+                        ) : '—'}
+                      </TableCell>
+                    )}
                     <TableCell>
                       <Badge
                         variant="outline"
