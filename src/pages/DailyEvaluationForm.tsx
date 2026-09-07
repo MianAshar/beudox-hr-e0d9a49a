@@ -247,6 +247,28 @@ const DailyEvaluationForm = () => {
             />
           </div>
 
+          {revieweeId && (
+            <div className="space-y-2">
+              <Label>Project *</Label>
+              {!revieweeProjects || revieweeProjects.length === 0 ? (
+                <p className="text-sm text-muted-foreground">This employee has no active project assignments.</p>
+              ) : (
+                <Select value={projectId} onValueChange={setProjectId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select project this rating is for" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {revieweeProjects.map((p: any) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.project_code} — {p.project_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Date *</Label>
             <Popover>
