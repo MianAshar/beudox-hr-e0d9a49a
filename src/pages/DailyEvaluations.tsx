@@ -8,13 +8,18 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import {
   Plus, ChevronRight, CheckCircle2, Clock, AlertTriangle,
-  ClipboardCheck, Star, ChevronDown, ChevronUp, ArrowLeft, Trash2
+  ClipboardCheck, Star, ChevronDown, ChevronUp, ArrowLeft, Trash2, CalendarIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDate } from '@/lib/format-date';
+import { format } from 'date-fns';
 
 const getInitials = (name: string) =>
   name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -35,6 +40,17 @@ const statusColors: Record<string, string> = {
   pending: 'bg-[#FEF3C7] text-[#92400E]',
   cancelled: 'bg-[#FEE2E2] text-[#991B1B]',
 };
+
+const StarRating = ({ value, onChange, max = 5 }: { value: number; onChange: (v: number) => void; max?: number }) => (
+  <div className="flex items-center gap-1">
+    {Array.from({ length: max }, (_, i) => (
+      <button key={i} type="button" onClick={() => onChange(i + 1)} className="focus:outline-none">
+        <Star className={`h-5 w-5 transition-colors ${i < value ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`} />
+      </button>
+    ))}
+    <span className="ml-1.5 text-xs font-medium text-muted-foreground">{value}/{max}</span>
+  </div>
+);
 
 // ─── Employee List View ───────────────────────────────────────────────
 
@@ -204,6 +220,10 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
   const companyId = employee?.company_id;
   const [expandedRatings, setExpandedRatings] = useState<Set<string>>(new Set());
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [ratingProject, setRatingProject] = useState<any>(null); // project to rate on
+  const [ratingScores, setRatingScores] = useState<Record<string, number>>({});
+  const [ratingRemarks, setRatingRemarks] = useState('');
+  const [ratingDate, setRatingDate] = useState<Date>(new Date());
   const roles = employee?.roles ?? [];
   const isManager = ['hr_manager', 'ceo'].some(r => roles.includes(r));
   const myId = employee?.employee_id;
@@ -269,6 +289,64 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
     onError: () => toast.error('Failed to delete'),
   });
 
+  const { data: evalParams } = useQuery({
+    queryKey: ['eval-params-daily', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('evaluation_parameters')
+        .select('id, name, max_score')
+        .eq('company_id', companyId!)
+        .eq('evaluation_type', 'daily')
+        .eq('direction', 'senior_to_junior')
+        .eq('is_active', true)
+        .eq('is_archived', false)
+        .order('display_order');
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
+  const submitRatingMutation = useMutation({
+    mutationFn: async () => {
+      const activeParams = evalParams || [];
+      const paramScores = activeParams.map((p: any) => ratingScores[p.id] || 0);
+      const avg = paramScores.length > 0 ? paramScores.reduce((a: number, b: number) => a + b, 0) / paramScores.length : 0;
+      const myEmployeeId = employee?.employee_id;
+
+      const { data: inserted, error } = await supabase.from('project_evaluations').insert({
+        company_id: companyId!,
+        reviewer_id: myEmployeeId!,
+        reviewee_id: emp.id,
+        direction: 'senior_to_junior',
+        date: format(ratingDate, 'yyyy-MM-dd'),
+        overall_score: Math.round(avg * 100) / 100,
+        remarks: ratingRemarks || null,
+        project_id: ratingProject?.id || null,
+      }).select('id').single();
+      if (error) throw error;
+
+      if (activeParams.length > 0) {
+        const scoreRows = activeParams.map((p: any) => ({
+          project_evaluation_id: inserted.id,
+          company_id: companyId!,
+          parameter_id: p.id,
+          score: ratingScores[p.id] || 0,
+        }));
+        const { error: sErr } = await supabase.from('project_evaluation_scores').insert(scoreRows);
+        if (sErr) throw sErr;
+      }
+    },
+    onSuccess: () => {
+      toast.success('Rating submitted');
+      queryClient.invalidateQueries({ queryKey: ['perf-ratings', emp.id, companyId] });
+      setRatingProject(null);
+      setRatingScores({});
+      setRatingRemarks('');
+      setRatingDate(new Date());
+    },
+    onError: () => toast.error('Failed to submit rating'),
+  });
+
   // Summary stats
   const allTasks = (tasks || []).flatMap(g => g.tasks);
   const totalTasks = allTasks.length;
@@ -306,11 +384,6 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
         <div>
           <h2 className="text-xl font-semibold text-foreground">{emp.full_name}</h2>
           <p className="text-sm text-muted-foreground">{emp.designation || '—'} · {emp.department || '—'}</p>
-        </div>
-        <div className="ml-auto">
-          <Button onClick={() => navigate(`/evaluations/project/new?revieweeId=${emp.id}`)}>
-            <Plus className="h-4 w-4 mr-2" /> Submit Rating
-          </Button>
         </div>
       </div>
 
@@ -356,6 +429,20 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">{group.tasks.length} task{group.tasks.length !== 1 ? 's' : ''}</p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 gap-1.5 text-xs text-primary hover:text-primary"
+                  onClick={() => {
+                    setRatingProject(group.project);
+                    setRatingScores({});
+                    setRatingRemarks('');
+                    setRatingDate(new Date());
+                  }}
+                >
+                  <Star className="h-3.5 w-3.5" />
+                  Add Rating
+                </Button>
               </div>
               {/* Task rows */}
               <div className="divide-y">
@@ -371,7 +458,15 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
                         </span>
                       )}
                       <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {t.deadline ? formatDate(t.deadline) : 'No deadline'}
+                        {t.deadline ? (
+                          <>
+                            <span>Due: {formatDate(t.deadline)}</span>
+                            {t.is_completed && t.completed_at && new Date(t.completed_at) > new Date(t.deadline) && (() => {
+                              const daysLate = Math.ceil((new Date(t.completed_at).getTime() - new Date(t.deadline).getTime()) / (1000 * 60 * 60 * 24));
+                              return <span className="text-red-500 ml-1">({daysLate} day{daysLate !== 1 ? 's' : ''} late)</span>;
+                            })()}
+                          </>
+                        ) : 'No deadline'}
                       </span>
                       <div className={cn('flex items-center gap-1 text-xs font-medium whitespace-nowrap', status.color)}>
                         {status.icon}
@@ -466,6 +561,75 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
             <Button variant="destructive" disabled={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Rating dialog */}
+      <Dialog open={!!ratingProject} onOpenChange={v => { if (!v) setRatingProject(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Rating</DialogTitle>
+            <DialogDescription>
+              Rating {emp.full_name} on {ratingProject?.project_code} — {ratingProject?.project_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* Date */}
+            <div className="space-y-1.5">
+              <Label>Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal text-sm">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(ratingDate, 'dd MMM yyyy')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={ratingDate}
+                    onSelect={d => d && setRatingDate(d)}
+                    disabled={d => d > new Date()}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            {/* Parameters */}
+            {(evalParams || []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">No evaluation parameters configured.</p>
+            ) : (
+              (evalParams || []).map((p: any) => (
+                <div key={p.id} className="space-y-1">
+                  <Label className="text-sm">{p.name}</Label>
+                  <StarRating
+                    value={ratingScores[p.id] || 0}
+                    onChange={v => setRatingScores(prev => ({ ...prev, [p.id]: v }))}
+                    max={p.max_score}
+                  />
+                </div>
+              ))
+            )}
+            {/* Remarks */}
+            <div className="space-y-1.5">
+              <Label>Remarks <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+              <Textarea
+                placeholder="Optional notes..."
+                value={ratingRemarks}
+                onChange={e => setRatingRemarks(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRatingProject(null)}>Cancel</Button>
+            <Button
+              onClick={() => submitRatingMutation.mutate()}
+              disabled={submitRatingMutation.isPending || (evalParams || []).some((p: any) => !ratingScores[p.id])}
+            >
+              {submitRatingMutation.isPending ? 'Submitting...' : 'Submit Rating'}
             </Button>
           </DialogFooter>
         </DialogContent>
