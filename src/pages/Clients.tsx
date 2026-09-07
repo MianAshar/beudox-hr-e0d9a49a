@@ -53,6 +53,32 @@ const inviteClientUser = async (
   }
 };
 
+const deleteClientUser = async (
+  supabase: any,
+  clientUserId: string,
+  authUserId: string | null,
+  companyId: string
+) => {
+  // Delete from client_users table
+  await supabase
+    .from('client_users')
+    .delete()
+    .eq('id', clientUserId)
+    .eq('company_id', companyId);
+
+  // Delete auth user via Edge Function (requires service role)
+  if (authUserId) {
+    try {
+      await supabase.functions.invoke('delete-client-user', {
+        body: { authUserId },
+      });
+    } catch (e) {
+      console.error('Failed to delete auth user:', e);
+      // Non-blocking
+    }
+  }
+};
+
 interface Client {
   id: string;
   name: string;
