@@ -112,6 +112,19 @@ const Employees = () => {
     enabled: !!companyId,
   });
 
+  const { data: companySettings } = useQuery({
+    queryKey: ['company-settings', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('company_settings')
+        .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours')
+        .eq('company_id', companyId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
   const handleDelete = async () => {
     if (!deleteTarget?.id) return;
     setDeleting(true);
