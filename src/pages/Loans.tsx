@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { computeLoanAllocations } from '@/lib/loan-balance';
+
 import SearchableEmployeeSelect from '@/components/SearchableEmployeeSelect';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
