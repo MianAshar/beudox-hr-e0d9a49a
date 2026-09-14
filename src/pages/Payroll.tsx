@@ -364,18 +364,27 @@ const Payroll = () => {
       if (loanDed > 0) {
         const { data: loans } = await supabase
           .from('loans')
-          .select('id, remaining_balance')
+          .select('id, remaining_balance, monthly_deduction')
           .eq('employee_id', paidModal.employee_id)
           .eq('company_id', companyId!)
-          .eq('status', 'active');
+          .eq('status', 'active')
+          .order('granted_date', { ascending: true });
 
+        let budget = loanDed;
         for (const loan of loans || []) {
-          const newBalance = Math.max(0, Number(loan.remaining_balance) - Number((loans || []).length > 0 ? loanDed / (loans || []).length : loanDed));
+          if (budget <= 0) break;
+          const remaining = Number(loan.remaining_balance) || 0;
+          if (remaining <= 0) continue;
+          const take = Math.min(Number(loan.monthly_deduction) || 0, remaining, budget);
+          if (take <= 0) continue;
+          const newBalance = Math.max(0, remaining - take);
+          budget -= take;
           const updates: any = { remaining_balance: newBalance };
           if (newBalance <= 0) updates.status = 'settled';
           await supabase.from('loans').update(updates).eq('id', loan.id);
         }
       }
+
 
       // Send payroll_paid notification
       const monthLabel = MONTHS.find(m => m.value === selectedMonth)?.label || selectedMonth;

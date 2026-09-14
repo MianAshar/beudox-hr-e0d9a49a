@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { computeLoanAllocations } from '@/lib/loan-balance';
+
 import SearchableEmployeeSelect from '@/components/SearchableEmployeeSelect';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -115,6 +117,50 @@ const Loans = () => {
     enabled: !!companyId && isManager,
   });
 
+  // All loans (unfiltered) + paid salary records, used to derive true balances.
+  const { data: allLoans } = useQuery({
+    queryKey: ['loans-allocation', companyId, isManager, employee?.employee_id],
+    queryFn: async () => {
+      let q = supabase
+        .from('loans')
+        .select('id, employee_id, total_amount, monthly_deduction, granted_date')
+        .eq('company_id', companyId!);
+      if (!isManager) q = q.eq('employee_id', employee!.employee_id);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  const { data: paidPayroll } = useQuery({
+    queryKey: ['loans-paid-payroll', companyId, isManager, employee?.employee_id],
+    queryFn: async () => {
+      let q = supabase
+        .from('payroll_records')
+        .select('employee_id, month_year, loan_deduction')
+        .eq('company_id', companyId!)
+        .eq('status', 'paid')
+        .eq('superseded', false)
+        .gt('loan_deduction', 0);
+      if (!isManager) q = q.eq('employee_id', employee!.employee_id);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  const allocations = useMemo(
+    () => computeLoanAllocations((allLoans as any) || [], (paidPayroll as any) || []),
+    [allLoans, paidPayroll],
+  );
+
+  const remainingOf = (loan: any) =>
+    allocations[loan.id]?.remaining ?? (Number(loan.total_amount) || 0);
+
+  const paidOf = (loan: any) => allocations[loan.id]?.paid ?? 0;
+
   const filtered = loans?.filter(loan => {
     const empName = (loan.employees as any)?.full_name || '';
     return !search || empName.toLowerCase().includes(search.toLowerCase());
@@ -124,10 +170,11 @@ const Loans = () => {
     employee: (l: any) => (l.employees as any)?.full_name,
     total_amount: (l: any) => Number(l.total_amount),
     monthly_deduction: (l: any) => Number(l.monthly_deduction),
-    remaining_balance: (l: any) => Number(l.remaining_balance),
+    remaining_balance: (l: any) => remainingOf(l),
     granted_date: (l: any) => l.granted_date,
     status: (l: any) => l.status,
   });
+
 
   const resetForm = () => {
     setFormEmployeeId('');
@@ -171,20 +218,27 @@ const Loans = () => {
       }
 
       if (editingLoan) {
+        const oldTotal = Number(editingLoan.total_amount) || 0;
+        const oldRemaining = Number(editingLoan.remaining_balance) || 0;
+        const updatePayload: any = {
+          employee_id: formEmployeeId,
+          total_amount: totalAmount,
+          monthly_deduction: monthlyDeduction,
+          granted_date: format(formDate, 'yyyy-MM-dd'),
+          reason: formReason || null,
+          notes: formNotes || null,
+        };
+        if (totalAmount !== oldTotal) {
+          updatePayload.remaining_balance = Math.max(0, oldRemaining + (totalAmount - oldTotal));
+        }
         const { error } = await supabase
           .from('loans')
-          .update({
-            employee_id: formEmployeeId,
-            total_amount: totalAmount,
-            monthly_deduction: monthlyDeduction,
-            granted_date: format(formDate, 'yyyy-MM-dd'),
-            reason: formReason || null,
-            notes: formNotes || null,
-          })
+          .update(updatePayload)
           .eq('id', editingLoan.id)
           .eq('company_id', companyId!);
         if (error) throw error;
         toast.success('Loan updated');
+
       } else {
         const { data: newLoan, error } = await supabase
           .from('loans')
@@ -347,8 +401,10 @@ const Loans = () => {
               {sorted.map(loan => {
                 const emp = loan.employees as any;
                 const totalAmt = Number(loan.total_amount);
-                const remaining = Number(loan.remaining_balance);
+                const remaining = remainingOf(loan);
+                const repaid = paidOf(loan);
                 const pct = totalAmt > 0 ? (remaining / totalAmt) * 100 : 0;
+
 
                 return (
                   <TableRow key={loan.id}>
@@ -375,8 +431,12 @@ const Loans = () => {
                       <div className="space-y-1">
                         <span className="font-mono text-sm">PKR {remaining.toLocaleString()}</span>
                         <Progress value={pct} className="h-1.5 w-full" />
+                        <span className="block text-[11px] text-muted-foreground font-mono">
+                          PKR {repaid.toLocaleString()} repaid
+                        </span>
                       </div>
                     </TableCell>
+
                     <TableCell className="text-sm text-muted-foreground">
                       {formatDate(loan.granted_date)}
                     </TableCell>
