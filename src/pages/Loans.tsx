@@ -393,8 +393,10 @@ const Loans = () => {
               {sorted.map(loan => {
                 const emp = loan.employees as any;
                 const totalAmt = Number(loan.total_amount);
-                const remaining = Number(loan.remaining_balance);
+                const remaining = remainingOf(loan);
+                const repaid = paidOf(loan);
                 const pct = totalAmt > 0 ? (remaining / totalAmt) * 100 : 0;
+
 
                 return (
                   <TableRow key={loan.id}>
