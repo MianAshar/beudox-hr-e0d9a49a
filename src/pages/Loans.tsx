@@ -157,7 +157,8 @@ const Loans = () => {
   );
 
   const remainingOf = (loan: any) =>
-    allocations[loan.id]?.remaining ?? Number(loan.total_amount) || 0;
+    allocations[loan.id]?.remaining ?? (Number(loan.total_amount) || 0);
+
   const paidOf = (loan: any) => allocations[loan.id]?.paid ?? 0;
 
   const filtered = loans?.filter(loan => {
