@@ -217,20 +217,27 @@ const Loans = () => {
       }
 
       if (editingLoan) {
+        const oldTotal = Number(editingLoan.total_amount) || 0;
+        const oldRemaining = Number(editingLoan.remaining_balance) || 0;
+        const updatePayload: any = {
+          employee_id: formEmployeeId,
+          total_amount: totalAmount,
+          monthly_deduction: monthlyDeduction,
+          granted_date: format(formDate, 'yyyy-MM-dd'),
+          reason: formReason || null,
+          notes: formNotes || null,
+        };
+        if (totalAmount !== oldTotal) {
+          updatePayload.remaining_balance = Math.max(0, oldRemaining + (totalAmount - oldTotal));
+        }
         const { error } = await supabase
           .from('loans')
-          .update({
-            employee_id: formEmployeeId,
-            total_amount: totalAmount,
-            monthly_deduction: monthlyDeduction,
-            granted_date: format(formDate, 'yyyy-MM-dd'),
-            reason: formReason || null,
-            notes: formNotes || null,
-          })
+          .update(updatePayload)
           .eq('id', editingLoan.id)
           .eq('company_id', companyId!);
         if (error) throw error;
         toast.success('Loan updated');
+
       } else {
         const { data: newLoan, error } = await supabase
           .from('loans')
