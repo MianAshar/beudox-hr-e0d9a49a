@@ -423,8 +423,12 @@ const Loans = () => {
                       <div className="space-y-1">
                         <span className="font-mono text-sm">PKR {remaining.toLocaleString()}</span>
                         <Progress value={pct} className="h-1.5 w-full" />
+                        <span className="block text-[11px] text-muted-foreground font-mono">
+                          PKR {repaid.toLocaleString()} repaid
+                        </span>
                       </div>
                     </TableCell>
+
                     <TableCell className="text-sm text-muted-foreground">
                       {formatDate(loan.granted_date)}
                     </TableCell>
