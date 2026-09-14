@@ -1,43 +1,27 @@
-## Root cause
+# Fix remaining loan balances
 
-Abu Baker Abid triggered 6 CEO notifications on 2026-07-23 (at 09:11, 10:54, 11:00, 11:10, 11:12, 11:12) — 3 recipients each. Two independent client-side code paths generate these, and both fire on ordinary user activity:
+## What I found
 
-1. **`src/lib/review-alerts.ts`** — called from `AppLayout` on every session that mounts the shell. Uses `first_review_date` + `review_frequency_months`. Notifies CEO only. Throttled in-memory 30 min per session (resets on every refresh / new tab / new user login).
-2. **`src/pages/Dashboard.tsx`** (lines ~170–226) — runs on Dashboard mount. Uses a *different* rule (`joining_date` anniversary). Notifies **hr_manager + ceo**. No throttle.
+The Remaining Balance column simply shows the value stored on each loan. That value is only ever reduced at one moment: when a salary record is marked as **Paid**. Right now every salary record in the system is still a draft (May to August), so no loan balance has ever been reduced — every loan still shows its full original amount even though monthly deductions have been calculated.
 
-Both paths have a 7-day dedup DB check, but:
-- The check is per-session/per-mount, so concurrent users or rapid navigation race: multiple runs all read "no recent notification" before any INSERT lands, then each inserts.
-- The two paths use different date rules, so one can fire even when the other's dedup would have blocked it.
-- The 30-min in-memory throttle resets on every page refresh and per browser tab, so any active workday with a few logins/refreshes produces several bursts.
+Two further problems:
 
-That matches the pattern in the data exactly — bursts a few minutes apart, always the same 3 CEO recipients.
+1. When a salary is marked paid and an employee has more than one active loan, the deduction is split equally between the loans instead of applying each loan's own monthly deduction.
+2. Editing a loan's total amount does not adjust the remaining balance. Muhammad Asad's loan shows a total of 100,000 but a remaining balance of 75,000 — a leftover from an earlier edit.
 
-## Fix
+So the numbers aren't a display bug; the balance is only maintained through the "mark as paid" step and that step has gaps.
 
-Consolidate to a single code path and make dedup race-proof at the database level.
+## Proposed fix
 
-1. **Delete the Dashboard salary-review notification block** (`src/pages/Dashboard.tsx` lines ~166–230, the whole `useEffect` that inserts `increment_due` notifications). Keep the visual "upcoming reviews" widget if it exists; only remove the insert side-effect.
-2. **Keep `src/lib/review-alerts.ts` as the single source** and tighten it:
-   - Broaden recipients to `['ceo', 'hr_manager']` so HR still gets alerted (matching the previous Dashboard behavior and `NotificationPreferencesTab` which lists this type for both roles).
-   - Change dedup window from "last 7 days" to "same calendar day" — good enough to stop bursts, still allows a fresh reminder next day if unresolved.
-   - Route inserts through the existing `send-notification` edge function (via `sendNotification` in `src/lib/notifications.ts`) so per-user notification preferences are respected, instead of bypassing them with a direct `notifications.insert`.
-3. **Add a database-level guard** so races can never produce same-day duplicates for the same employee/type/recipient:
-   - Migration: `CREATE UNIQUE INDEX notifications_increment_due_daily_uniq ON public.notifications (company_id, recipient_id, reference_id, (created_at::date)) WHERE type = 'increment_due';`
-   - The edge function already tolerates conflicts on insert; wrap the insert with `.onConflict(...).ignore()` equivalent (upsert with `ignoreDuplicates: true`) in `supabase/functions/send-notification/index.ts` so a duplicate insert becomes a no-op instead of a 500.
-4. **Move the trigger out of every render path**: gate `checkReviewAlerts` in `AppLayout` so it only runs once per browser tab per day (persist last-run timestamp in `localStorage` keyed by `company_id`), instead of the in-memory 30-min throttle. This limits DB pressure even before dedup kicks in.
-5. **Backfill cleanup (optional, one-off SQL)**: delete today's duplicate `increment_due` rows for Abu Baker Abid, keeping the earliest per recipient, so the bell clears immediately.
+1. **Show a true remaining balance in the loans list.** Calculate it as: original amount minus everything actually deducted through salaries that have been paid. This is computed from the salary records, so the column is always correct regardless of past gaps.
+2. **Also show what's been deducted so far** and keep the progress bar consistent with the new figure.
+3. **Correct the deduction applied when a salary is marked paid:** apply each loan's own monthly deduction, capped at that loan's remaining amount, instead of splitting the total evenly.
+4. **Keep the stored balance in step when a loan is edited:** if the total amount changes, adjust the remaining amount by the same difference (never below zero).
+5. Loans whose balance reaches zero continue to be marked settled automatically.
 
-## Files touched
+## Technical notes
 
-- `src/pages/Dashboard.tsx` — remove the duplicate notification useEffect.
-- `src/lib/review-alerts.ts` — broaden recipients, tighten dedup to same-day, route through `sendNotification`.
-- `src/components/layout/AppLayout.tsx` — replace in-memory throttle with once-per-day localStorage gate.
-- `supabase/functions/send-notification/index.ts` — use `upsert({ ignoreDuplicates: true })` on the notifications insert.
-- New migration — partial unique index on `notifications` for `increment_due`.
-- One-off cleanup SQL for today's duplicates.
-
-## Verification
-
-- Query `notifications` after the fix: only one `increment_due` row per (recipient, employee) per day.
-- Manually call `checkReviewAlerts` twice back-to-back in the console → second call inserts 0 rows.
-- Log in as HR — confirm HR now receives the alert again.
+- `src/pages/Loans.tsx`: extend the loans query to also fetch paid `payroll_records` (`employee_id`, `loan_deduction`, `month_year`, `status='paid'`, `superseded=false`) for the company and derive `effectiveRemaining = max(0, total_amount - allocatedPaid)`. Allocation per loan: only payroll months on or after the loan's `granted_date`, applying `min(monthly_deduction, outstanding)` per month in granted-date order when an employee has multiple loans. Drive the progress bar and sort key from this derived value.
+- `src/pages/Payroll.tsx` `handleMarkPaid`: replace the even-split calculation (line ~373) with per-loan `min(monthly_deduction, remaining_balance)`, ordered by `granted_date`, bounded by the total `loan_deduction` on the record.
+- `src/pages/Loans.tsx` `handleSave` (edit branch): when `total_amount` changes, write `remaining_balance = max(0, old_remaining + (newTotal - oldTotal))`.
+- No schema changes; no migration needed.
