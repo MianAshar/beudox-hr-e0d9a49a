@@ -115,6 +115,49 @@ const Loans = () => {
     enabled: !!companyId && isManager,
   });
 
+  // All loans (unfiltered) + paid salary records, used to derive true balances.
+  const { data: allLoans } = useQuery({
+    queryKey: ['loans-allocation', companyId, isManager, employee?.employee_id],
+    queryFn: async () => {
+      let q = supabase
+        .from('loans')
+        .select('id, employee_id, total_amount, monthly_deduction, granted_date')
+        .eq('company_id', companyId!);
+      if (!isManager) q = q.eq('employee_id', employee!.employee_id);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  const { data: paidPayroll } = useQuery({
+    queryKey: ['loans-paid-payroll', companyId, isManager, employee?.employee_id],
+    queryFn: async () => {
+      let q = supabase
+        .from('payroll_records')
+        .select('employee_id, month_year, loan_deduction')
+        .eq('company_id', companyId!)
+        .eq('status', 'paid')
+        .eq('superseded', false)
+        .gt('loan_deduction', 0);
+      if (!isManager) q = q.eq('employee_id', employee!.employee_id);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  const allocations = useMemo(
+    () => computeLoanAllocations((allLoans as any) || [], (paidPayroll as any) || []),
+    [allLoans, paidPayroll],
+  );
+
+  const remainingOf = (loan: any) =>
+    allocations[loan.id]?.remaining ?? Number(loan.total_amount) || 0;
+  const paidOf = (loan: any) => allocations[loan.id]?.paid ?? 0;
+
   const filtered = loans?.filter(loan => {
     const empName = (loan.employees as any)?.full_name || '';
     return !search || empName.toLowerCase().includes(search.toLowerCase());
@@ -124,10 +167,11 @@ const Loans = () => {
     employee: (l: any) => (l.employees as any)?.full_name,
     total_amount: (l: any) => Number(l.total_amount),
     monthly_deduction: (l: any) => Number(l.monthly_deduction),
-    remaining_balance: (l: any) => Number(l.remaining_balance),
+    remaining_balance: (l: any) => remainingOf(l),
     granted_date: (l: any) => l.granted_date,
     status: (l: any) => l.status,
   });
+
 
   const resetForm = () => {
     setFormEmployeeId('');
