@@ -391,14 +391,13 @@ const TaskBoard = ({ scopeEmployeeId }: TaskBoardProps) => {
                   <p className="text-xs text-muted-foreground text-center py-6">No tasks</p>
                 ) : (
                   columnTasks.map((task: any) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onMove={moveTask}
-                      myRoles={myRoles}
-                      myId={employee?.auth_user_id ?? ''}
-                      myEmployeeId={myEmployeeId}
-                    />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onMove={moveTask}
+                    myRoles={myRoles}
+                    myEmployeeId={myEmployeeId}
+                  />
                   ))
                 )}
 
