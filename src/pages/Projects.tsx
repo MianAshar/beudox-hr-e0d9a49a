@@ -235,7 +235,7 @@ const Projects = () => {
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', companyId, roleKey, employeeId],
     queryFn: async () => {
-    const projectSelect = '*, scope_updated_at, notes_updated_at, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)';
+    const projectSelect = '*, scope_updated_at, notes_updated_at, clients(id, name, category_id, client_categories(name, code)), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, avatar_url, designation)';
 
       if (isManager) {
         const query = supabase
