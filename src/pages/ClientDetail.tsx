@@ -119,6 +119,21 @@ const ClientDetail = () => {
     enabled: !!id && !!companyId && isManager,
   });
 
+  const { data: clientCategories } = useQuery({
+    queryKey: ['client-categories', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('client_categories')
+        .select('id, name, code')
+        .eq('company_id', companyId!)
+        .eq('is_active', true)
+        .order('display_order')
+        .order('name');
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       // 1. Get all project IDs for this client
@@ -160,6 +175,9 @@ const ClientDetail = () => {
         country: editForm.country?.trim() || null,
         billing_currency: editForm.billing_currency,
         notes: editForm.notes?.trim() || null,
+        scope: editForm.scope?.trim() || null,
+        client_requirements: editForm.client_requirements?.trim() || null,
+        category_id: editForm.category_id || null,
       };
       const { error } = await supabase.from('clients').update(payload).eq('id', id!);
       if (error) throw error;
@@ -236,6 +254,9 @@ const ClientDetail = () => {
                 country: client.country || '',
                 billing_currency: client.billing_currency || 'USD',
                 notes: client.notes || '',
+                scope: client.scope || '',
+                client_requirements: client.client_requirements || '',
+                category_id: client.category_id || '',
               });
               setEditOpen(true);
             }}
@@ -283,6 +304,18 @@ const ClientDetail = () => {
           <div className="col-span-full flex items-start gap-2">
             <StickyNote className="h-4 w-4 text-muted-foreground mt-0.5" />
             <span className="text-sm text-foreground">{client.notes}</span>
+          </div>
+        )}
+        {client.scope && (
+          <div className="col-span-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Scope</p>
+            <p className="text-sm text-foreground whitespace-pre-wrap">{client.scope}</p>
+          </div>
+        )}
+        {client.client_requirements && (
+          <div className="col-span-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Client Requirements</p>
+            <p className="text-sm text-foreground whitespace-pre-wrap">{client.client_requirements}</p>
           </div>
         )}
       </div>
@@ -478,6 +511,25 @@ const ClientDetail = () => {
                     {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Category *</Label>
+                <Select value={editForm.category_id} onValueChange={v => setEditForm({ ...editForm, category_id: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select a category…" /></SelectTrigger>
+                  <SelectContent>
+                    {(clientCategories || []).map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name} ({cat.code})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Scope</Label>
+                <Textarea value={editForm.scope} onChange={e => setEditForm({ ...editForm, scope: e.target.value })} rows={3} />
+              </div>
+              <div>
+                <Label>Client Requirements</Label>
+                <Textarea value={editForm.client_requirements} onChange={e => setEditForm({ ...editForm, client_requirements: e.target.value })} rows={3} />
               </div>
               <div>
                 <Label>Notes</Label>
