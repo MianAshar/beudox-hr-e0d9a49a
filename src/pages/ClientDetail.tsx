@@ -227,19 +227,18 @@ const ClientDetail = () => {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
-              onClick={() => {
-                setEditForm({
-                  name: client.name,
-                  contact_name: client.contact_name || '',
-                  contact_email: client.contact_email || '',
-                  contact_phone: client.contact_phone || '',
-                  country: client.country || '',
-                  billing_currency: client.billing_currency || 'USD',
-                  notes: client.notes || '',
-                  sub_series: client.sub_series || [],
-                });
-                setEditOpen(true);
-              }}
+            onClick={() => {
+              setEditForm({
+                name: client.name,
+                contact_name: client.contact_name || '',
+                contact_email: client.contact_email || '',
+                contact_phone: client.contact_phone || '',
+                country: client.country || '',
+                billing_currency: client.billing_currency || 'USD',
+                notes: client.notes || '',
+              });
+              setEditOpen(true);
+            }}
             >
               <Pencil className="h-4 w-4 mr-2" /> Edit
             </Button>
