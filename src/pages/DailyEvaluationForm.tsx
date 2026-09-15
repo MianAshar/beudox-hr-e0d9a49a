@@ -47,6 +47,7 @@ const DailyEvaluationForm = () => {
   const [date, setDate] = useState<Date>(new Date());
   const [remarks, setRemarks] = useState('');
   const [projectId, setProjectId] = useState<string>('');
+  const [taskId, setTaskId] = useState<string>('');
   const [scores, setScores] = useState<Record<string, number>>({});
 
   // Fetch employees based on direction
@@ -162,7 +163,12 @@ const DailyEvaluationForm = () => {
 
   useEffect(() => {
     setProjectId('');
+    setTaskId('');
   }, [revieweeId]);
+
+  useEffect(() => {
+    setTaskId('');
+  }, [projectId]);
 
   const { data: revieweeProjects } = useQuery({
     queryKey: ['reviewee-projects', revieweeId, companyId],
@@ -187,6 +193,21 @@ const DailyEvaluationForm = () => {
     enabled: !!revieweeId && !!companyId,
   });
 
+  const { data: revieweeTasks } = useQuery({
+    queryKey: ['reviewee-tasks', revieweeId, projectId, companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_tasks')
+        .select('id, title, complexity, is_completed, deadline')
+        .eq('project_id', projectId)
+        .eq('assigned_to', revieweeId)
+        .eq('company_id', companyId!)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+    enabled: !!revieweeId && !!projectId && !!companyId,
+  });
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const activeParams = parameters || [];
@@ -202,6 +223,7 @@ const DailyEvaluationForm = () => {
         overall_score: Math.round(avg * 100) / 100,
         remarks: remarks || null,
         project_id: projectId || null,
+        task_id: taskId || null,
       }).select('id').single();
       if (error) throw error;
 
@@ -225,7 +247,7 @@ const DailyEvaluationForm = () => {
   });
 
   const allScored = (parameters || []).every((p: any) => scores[p.id] > 0);
-  const canSave = revieweeId && projectId && date && allScored && !duplicate;
+  const canSave = revieweeId && projectId && taskId && date && allScored && !duplicate;
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -256,12 +278,42 @@ const DailyEvaluationForm = () => {
               ) : (
                 <Select value={projectId} onValueChange={setProjectId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select project this rating is for" />
+                    <SelectValue placeholder="Select project…" />
                   </SelectTrigger>
                   <SelectContent>
                     {revieweeProjects.map((p: any) => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.project_code} — {p.project_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
+
+          {revieweeId && projectId && (
+            <div className="space-y-2">
+              <Label>Task *</Label>
+              {!revieweeTasks || revieweeTasks.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No tasks assigned to this employee on this project.</p>
+              ) : (
+                <Select value={taskId} onValueChange={setTaskId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select task this rating is for…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(revieweeTasks || []).map((t: any) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        <span className="flex items-center gap-2">
+                          <span>{t.title}</span>
+                          {t.complexity && (
+                            <span className="text-xs text-muted-foreground">({t.complexity})</span>
+                          )}
+                          {t.is_completed && (
+                            <span className="text-xs text-green-600 font-medium">✓ Done</span>
+                          )}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
