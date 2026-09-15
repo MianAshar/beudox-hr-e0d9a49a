@@ -223,6 +223,7 @@ const Projects = () => {
   const [sortBy, setSortBy] = useState<string>('internal_deadline');
   const [listMonth, setListMonth] = useState(() => String(new Date().getMonth() + 1).padStart(2, '0'));
   const [listYear, setListYear] = useState(() => String(new Date().getFullYear()));
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
 
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
