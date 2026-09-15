@@ -310,6 +310,47 @@ export type Database = {
           },
         ]
       }
+      client_categories: {
+        Row: {
+          code: string
+          company_id: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          company_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_categories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_users: {
         Row: {
           auth_user_id: string | null
@@ -364,6 +405,8 @@ export type Database = {
       clients: {
         Row: {
           billing_currency: string
+          category_id: string | null
+          client_requirements: string | null
           company_id: string
           contact_email: string | null
           contact_name: string | null
@@ -374,11 +417,13 @@ export type Database = {
           is_active: boolean
           name: string
           notes: string | null
-          sub_series: string[]
+          scope: string | null
           updated_at: string | null
         }
         Insert: {
           billing_currency?: string
+          category_id?: string | null
+          client_requirements?: string | null
           company_id: string
           contact_email?: string | null
           contact_name?: string | null
@@ -389,11 +434,13 @@ export type Database = {
           is_active?: boolean
           name: string
           notes?: string | null
-          sub_series?: string[]
+          scope?: string | null
           updated_at?: string | null
         }
         Update: {
           billing_currency?: string
+          category_id?: string | null
+          client_requirements?: string | null
           company_id?: string
           contact_email?: string | null
           contact_name?: string | null
@@ -404,10 +451,17 @@ export type Database = {
           is_active?: boolean
           name?: string
           notes?: string | null
-          sub_series?: string[]
+          scope?: string | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "client_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_company_id_fkey"
             columns: ["company_id"]
