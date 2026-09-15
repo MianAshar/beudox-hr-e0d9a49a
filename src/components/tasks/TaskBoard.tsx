@@ -328,7 +328,7 @@ const TaskBoard = ({ scopeEmployeeId }: TaskBoardProps) => {
   const grouped = useMemo(() => {
     const g: Record<Stage, any[]> = { todo: [], in_progress: [], qc: [], done: [] };
     for (const t of (tasks || [])) {
-      const s: Stage = t.status || 'todo';
+      const s = (t.status || 'todo') as Stage;
       if (g[s]) g[s].push(t);
     }
     return g;
