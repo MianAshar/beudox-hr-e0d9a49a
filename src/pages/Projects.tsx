@@ -762,27 +762,37 @@ const Projects = () => {
   if (isManager) {
     return (
       <div className="p-4 lg:p-6 space-y-6">
-        <Tabs value={activeTab === 'past' ? 'past' : 'list'} onValueChange={setActiveTab} className="w-full">
-          <TabsList
-            className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
-            style={{ borderColor: 'hsl(var(--border))' }}
-          >
-            <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              All Projects ({monthFilteredActive.length})
-            </TabsTrigger>
-            <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              Past Projects ({monthFilteredArchived.length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
-          <TabsContent value="past" className="space-y-6 mt-6">{pastContent}</TabsContent>
-        </Tabs>
+        <div className="flex items-center justify-end">{viewSwitcher}</div>
+        {viewMode === 'board' ? (
+          <TaskBoard />
+        ) : (
+          <Tabs value={activeTab === 'past' ? 'past' : 'list'} onValueChange={setActiveTab} className="w-full">
+            <TabsList
+              className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
+              style={{ borderColor: 'hsl(var(--border))' }}
+            >
+              <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+                All Projects ({monthFilteredActive.length})
+              </TabsTrigger>
+              <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+                Past Projects ({monthFilteredArchived.length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
+            <TabsContent value="past" className="space-y-6 mt-6">{pastContent}</TabsContent>
+          </Tabs>
+        )}
         {sharedDialogs}
       </div>
     );
   }
 
-  return <div className="p-4 lg:p-6 space-y-6">{listContent}{sharedDialogs}</div>;
+  return (
+    <div className="p-4 lg:p-6 space-y-6">
+      <div className="flex items-center justify-end">{viewSwitcher}</div>
+      {viewMode === 'board' ? <TaskBoard /> : <>{listContent}{sharedDialogs}</>}
+    </div>
+  );
 };
 
 interface ProjectCardProps {
