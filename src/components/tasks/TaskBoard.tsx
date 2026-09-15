@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -11,24 +10,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Clock, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { MoreHorizontal, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 
 type Stage = 'todo' | 'in_progress' | 'qc' | 'done';
 
-const STAGES: { key: Stage; label: string; color: string; bg: string }[] = [
-  { key: 'todo',        label: 'To Do',       color: '#4B4468', bg: '#F6F5FF' },
-  { key: 'in_progress', label: 'In Progress',  color: '#1E40AF', bg: '#DBEAFE' },
-  { key: 'qc',          label: 'QC',           color: '#92400E', bg: '#FEF3C7' },
-  { key: 'done',        label: 'Done',         color: '#065F46', bg: '#D1FAE5' },
-];
+const STAGES = [
+  { key: 'todo',        label: 'To Do',       dot: '#DFE1E6', topBorder: '#DFE1E6', textColor: '#172B4D' },
+  { key: 'in_progress', label: 'In Progress',  dot: '#0052CC', topBorder: '#0052CC', textColor: '#172B4D' },
+  { key: 'qc',          label: 'QC',           dot: '#FF8B00', topBorder: '#FF8B00', textColor: '#172B4D' },
+  { key: 'done',        label: 'Done',         dot: '#36B37E', topBorder: '#36B37E', textColor: '#172B4D' },
+] as const;
 
 const complexityColors: Record<string, { bg: string; text: string }> = {
-  easy:   { bg: '#D1FAE5', text: '#065F46' },
-  medium: { bg: '#FEF3C7', text: '#92400E' },
-  hard:   { bg: '#FEE2E2', text: '#991B1B' },
+  easy:   { bg: '#E3FCEF', text: '#006644' },
+  medium: { bg: '#FFFAE6', text: '#974F0C' },
+  hard:   { bg: '#FFEBE6', text: '#BF2600' },
 };
 
 const DONE_PAGE_SIZE = 10;
@@ -104,6 +103,7 @@ const TaskCard = ({
   const logs = task.task_stage_logs || [];
   const { execMins, qcMins } = computeDurations(logs);
   const qcRejections = logs.filter((l: any) => l.from_stage === 'qc' && l.to_stage === 'in_progress').length;
+  const isOverdue = !!task.deadline && !task.is_completed && new Date(task.deadline) < new Date();
 
   const handleMoveTo = (toStage: Stage) => {
     // QC → in_progress requires reject modal
@@ -123,98 +123,102 @@ const TaskCard = ({
   return (
     <>
       <div
-        className="bg-white rounded-[10px] border p-3 space-y-2.5 select-none"
-        style={{ borderColor: 'rgba(91,63,248,0.15)' }}
+        className="group bg-white rounded-[3px] border cursor-pointer select-none transition-shadow hover:shadow-md"
+        style={{ borderColor: '#DFE1E6', boxShadow: '0 1px 2px rgba(9,30,66,0.08)' }}
       >
-        {/* Project tag + complexity */}
-        <div className="flex items-center justify-between gap-2">
-          {task.project && (
-            <span className="text-[10px] font-mono font-medium text-muted-foreground bg-[#F6F5FF] px-1.5 py-0.5 rounded">
-              {task.project.project_code}
-            </span>
-          )}
+        <div className="p-[10px_12px] space-y-2">
+          {/* Complexity badge top */}
           {task.complexity && (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full ml-auto" style={{ background: cc.bg, color: cc.text }}>
+            <span
+              className="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded-[3px]"
+              style={{ background: cc.bg, color: cc.text }}
+            >
               {task.complexity.charAt(0).toUpperCase() + task.complexity.slice(1)}
             </span>
           )}
+
+          {/* Title */}
+          <p className="text-[14px] font-medium leading-snug line-clamp-2" style={{ color: '#172B4D' }}>
+            {task.title}
+          </p>
+
+          {/* Duration badges */}
+          {(execMins > 0 || qcMins > 0 || qcRejections > 0) && (
+            <div className="flex flex-wrap gap-1">
+              {execMins > 0 && (
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                  ⏱ {fmtDuration(execMins)} exec
+                </span>
+              )}
+              {qcMins > 0 && (
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">
+                  ⏱ {fmtDuration(qcMins)} QC
+                </span>
+              )}
+              {qcRejections > 0 && (
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">
+                  ✕ {qcRejections} rejection{qcRejections > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Bottom row: project code + deadline + avatar + move button */}
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-2 min-w-0">
+              {task.project && (
+                <span
+                  className="text-[11px] font-mono px-1.5 py-0.5 rounded-[3px] shrink-0"
+                  style={{ background: '#DFE1E6', color: '#42526E' }}
+                >
+                  {task.project.project_code}
+                </span>
+              )}
+              {task.deadline && (
+                <span className={cn("text-[11px] truncate", isOverdue ? "text-red-600 font-medium" : "text-[#6B778C]")}>
+                  {formatDate(task.deadline)}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {targets.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 rounded flex items-center justify-center hover:bg-[#DFE1E6]"
+                    >
+                      <MoreHorizontal className="h-3.5 w-3.5 text-[#42526E]" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    {targets.map(t => {
+                      const stageInfo = STAGES.find(s => s.key === t)!;
+                      return (
+                        <DropdownMenuItem key={t} onClick={() => handleMoveTo(t)}>
+                          <span
+                            className="text-xs px-1.5 py-0.5 rounded-full mr-2"
+                            style={{ background: '#DFE1E6', color: stageInfo.dot }}
+                          >
+                            {stageInfo.label}
+                          </span>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {assignee && (
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={assignee.avatar_url || ''} />
+                  <AvatarFallback className="text-[9px] bg-[#DFE1E6] text-[#42526E]">
+                    {getInitials(assignee.full_name || '?')}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          </div>
         </div>
-
-        {/* Title */}
-        <p className="text-sm font-medium text-foreground leading-snug">{task.title}</p>
-
-        {/* Assignee */}
-        {assignee && (
-          <div className="flex items-center gap-1.5">
-            <Avatar className="h-5 w-5">
-              <AvatarImage src={assignee.avatar_url || ''} />
-              <AvatarFallback className="text-[9px]">{getInitials(assignee.full_name || '?')}</AvatarFallback>
-            </Avatar>
-            <span className="text-xs text-muted-foreground truncate">{assignee.full_name}</span>
-          </div>
-        )}
-
-        {/* Deadline */}
-        {task.deadline && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            <span>{formatDate(task.deadline)}</span>
-            {!task.is_completed && new Date(task.deadline) < new Date() && (
-              <AlertTriangle className="h-3 w-3 text-red-500 ml-0.5" />
-            )}
-          </div>
-        )}
-
-        {/* Duration badges */}
-        {(execMins > 0 || qcMins > 0) && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {execMins > 0 && (
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                ⏱ {fmtDuration(execMins)} exec
-              </span>
-            )}
-            {qcMins > 0 && (
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">
-                ⏱ {fmtDuration(qcMins)} QC
-              </span>
-            )}
-            {qcRejections > 0 && (
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">
-                ✕ {qcRejections} rejection{qcRejections > 1 ? 's' : ''}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Move action */}
-        {targets.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full h-7 text-xs justify-between px-2 border border-dashed border-border hover:border-primary hover:text-primary">
-                Move to <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              {targets.map(t => {
-                const stageInfo = STAGES.find(s => s.key === t)!;
-                return (
-                  <DropdownMenuItem key={t} onClick={() => handleMoveTo(t)}>
-                    <span className="text-xs px-1.5 py-0.5 rounded-full mr-2" style={{ background: stageInfo.bg, color: stageInfo.color }}>
-                      {stageInfo.label}
-                    </span>
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-
-        {isDone && (
-          <div className="flex items-center gap-1 text-xs text-green-600 font-medium">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            Done
-          </div>
-        )}
       </div>
 
       {/* QC Reject modal */}
@@ -333,29 +337,35 @@ const TaskBoard = ({ scopeEmployeeId }: TaskBoardProps) => {
   }, [tasks]);
 
   if (isLoading) return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="flex gap-3 items-start overflow-x-auto pb-4">
       {STAGES.map(s => (
-        <div key={s.key} className="space-y-3">
-          <Skeleton className="h-8 w-full rounded-lg" />
-          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-lg" />)}
+        <div key={s.key} className="flex flex-col min-w-0 flex-1" style={{ borderTop: `3px solid ${s.topBorder}` }}>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-t-sm" style={{ background: '#F4F5F7', minHeight: 36 }}>
+            <span className="h-[6px] w-[6px] rounded-full shrink-0" style={{ background: s.dot }} />
+            <span className="text-[13px] font-semibold" style={{ color: '#172B4D' }}>{s.label}</span>
+            <Skeleton className="h-4 w-6 rounded-full" />
+          </div>
+          <div className="flex flex-col gap-2 p-2 rounded-b-sm flex-1" style={{ background: '#F4F5F7', minHeight: 100, maxHeight: 'calc(100vh - 220px)' }}>
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-[3px]" />)}
+          </div>
         </div>
       ))}
     </div>
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Filters */}
       {!scopeEmployeeId && (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Select value={projectFilter} onValueChange={setProjectFilter}>
-            <SelectTrigger className="w-[220px]">
+            <SelectTrigger className="w-[180px] h-8 text-xs">
               <SelectValue placeholder="All Projects" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Projects</SelectItem>
               {(projects || []).map((p: any) => (
-                <SelectItem key={p.id} value={p.id}>{p.project_code} — {p.project_name}</SelectItem>
+                <SelectItem key={p.id} value={p.id} className="text-xs">{p.project_code} — {p.project_name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -364,7 +374,7 @@ const TaskBoard = ({ scopeEmployeeId }: TaskBoardProps) => {
       )}
 
       {/* Board columns */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+      <div className="flex gap-3 items-start overflow-x-auto pb-4">
         {STAGES.map(stage => {
           const columnTasks = stage.key === 'done'
             ? grouped.done.slice(0, doneLimit)
@@ -372,45 +382,50 @@ const TaskBoard = ({ scopeEmployeeId }: TaskBoardProps) => {
           const totalDone = grouped.done.length;
 
           return (
-            <div key={stage.key} className="flex flex-col gap-2 min-h-[200px]">
-              {/* Column header */}
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wide" style={{ color: stage.color }}>
-                    {stage.label}
-                  </span>
-                  <span className="text-xs font-medium rounded-full px-1.5 py-0.5" style={{ background: stage.bg, color: stage.color }}>
-                    {grouped[stage.key].length}
-                  </span>
-                </div>
+            <div key={stage.key} className="flex flex-col min-w-0 flex-1" style={{ borderTop: `3px solid ${stage.topBorder}` }}>
+              {/* Header */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-t-sm" style={{ background: '#F4F5F7', minHeight: 36 }}>
+                <span className="h-[6px] w-[6px] rounded-full shrink-0" style={{ background: stage.dot }} />
+                <span className="text-[13px] font-semibold" style={{ color: stage.textColor }}>
+                  {stage.label}
+                </span>
+                <span
+                  className="text-[11px] font-medium px-1.5 py-0.5 rounded-full"
+                  style={{ background: '#DFE1E6', color: '#42526E' }}
+                >
+                  {grouped[stage.key].length}
+                </span>
               </div>
 
-              {/* Column drop zone */}
-              <div className="flex flex-col gap-2 rounded-[12px] p-2 min-h-[100px]" style={{ background: stage.bg + '66' }}>
+              {/* Body */}
+              <div
+                className="flex flex-col gap-2 p-2 overflow-y-auto rounded-b-sm flex-1"
+                style={{ background: '#F4F5F7', minHeight: 100, maxHeight: 'calc(100vh - 220px)' }}
+              >
                 {columnTasks.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-6">No tasks</p>
+                  <p className="text-xs text-center py-6" style={{ color: '#5E6C84' }}>No issues</p>
                 ) : (
                   columnTasks.map((task: any) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onMove={moveTask}
-                    myRoles={myRoles}
-                    myEmployeeId={myEmployeeId}
-                  />
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onMove={moveTask}
+                      myRoles={myRoles}
+                      myEmployeeId={myEmployeeId}
+                    />
                   ))
                 )}
 
                 {/* Done — load more */}
                 {stage.key === 'done' && totalDone > doneLimit && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-xs text-muted-foreground hover:text-foreground mt-1"
+                  <button
+                    type="button"
+                    className="text-[11px] text-center py-2 hover:underline"
+                    style={{ color: '#5E6C84' }}
                     onClick={() => setDoneLimit(prev => prev + DONE_PAGE_SIZE)}
                   >
                     Load more ({Math.min(DONE_PAGE_SIZE, totalDone - doneLimit)} of {totalDone - doneLimit} remaining)
-                  </Button>
+                  </button>
                 )}
               </div>
             </div>
