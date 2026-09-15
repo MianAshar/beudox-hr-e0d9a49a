@@ -207,24 +207,7 @@ export const ProjectsSummary = () => {
         )}
       </Card>
 
-      {/* Section 3 — By Sub-Series */}
-      <Card className="p-5">
-        <h3 className="text-base font-semibold mb-3">By Sub-Series</h3>
-        {subTop.length === 0 ? (
-          <EmptyState monthLabel={monthLabel} />
-        ) : (
-          <>
-            {subTop.map(c => (
-              <BarRow key={c.name} label={c.name} count={c.count} total={c.count} maxCount={maxSubCount} fee={c.fee} />
-            ))}
-            {subExtra > 0 && (
-              <p className="text-xs text-muted-foreground mt-2">+ {subExtra} more</p>
-            )}
-          </>
-        )}
-      </Card>
-
-      {/* Section 4 — Completed */}
+      {/* Section 3 — Completed */}
       <Card className="p-5">
         <h3 className="text-base font-semibold mb-3">Completed This Month</h3>
         {completedSorted.length === 0 ? (
