@@ -220,7 +220,7 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
   const companyId = employee?.company_id;
   const [expandedRatings, setExpandedRatings] = useState<Set<string>>(new Set());
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [ratingProject, setRatingProject] = useState<any>(null); // project to rate on
+  const [ratingTask, setRatingTask] = useState<{ task: any; project: any } | null>(null);
   const [ratingScores, setRatingScores] = useState<Record<string, number>>({});
   const [ratingRemarks, setRatingRemarks] = useState('');
   const [ratingDate, setRatingDate] = useState<Date>(new Date());
@@ -321,7 +321,8 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
         date: format(ratingDate, 'yyyy-MM-dd'),
         overall_score: Math.round(avg * 100) / 100,
         remarks: ratingRemarks || null,
-        project_id: ratingProject?.id || null,
+        project_id: ratingTask?.project?.id || null,
+        task_id: ratingTask?.task?.id || null,
       }).select('id').single();
       if (error) throw error;
 
@@ -339,7 +340,7 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
     onSuccess: () => {
       toast.success('Rating submitted');
       queryClient.invalidateQueries({ queryKey: ['perf-ratings', emp.id, companyId] });
-      setRatingProject(null);
+      setRatingTask(null);
       setRatingScores({});
       setRatingRemarks('');
       setRatingDate(new Date());
@@ -429,20 +430,6 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">{group.tasks.length} task{group.tasks.length !== 1 ? 's' : ''}</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="shrink-0 gap-1.5 text-xs text-primary hover:text-primary"
-                  onClick={() => {
-                    setRatingProject(group.project);
-                    setRatingScores({});
-                    setRatingRemarks('');
-                    setRatingDate(new Date());
-                  }}
-                >
-                  <Star className="h-3.5 w-3.5" />
-                  Add Rating
-                </Button>
               </div>
               {/* Task rows */}
               <div className="divide-y">
@@ -450,7 +437,7 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
                   const status = getTaskStatus(t);
                   const cc = complexityColor(t.complexity || '');
                   return (
-                    <div key={t.id} className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-4 py-3 items-center">
+                    <div key={t.id} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-4 py-3 items-center">
                       <span className="text-sm text-foreground">{t.title}</span>
                       {t.complexity && (
                         <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full whitespace-nowrap" style={{ background: cc.bg, color: cc.text }}>
@@ -472,6 +459,20 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
                         {status.icon}
                         {status.label}
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="shrink-0 gap-1 text-xs text-primary hover:text-primary h-7 px-2"
+                        onClick={() => {
+                          setRatingTask({ task: t, project: group.project });
+                          setRatingScores({});
+                          setRatingRemarks('');
+                          setRatingDate(new Date());
+                        }}
+                      >
+                        <Star className="h-3 w-3" />
+                        Rate
+                      </Button>
                     </div>
                   );
                 })}
@@ -567,12 +568,13 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
       </Dialog>
 
       {/* Add Rating dialog */}
-      <Dialog open={!!ratingProject} onOpenChange={v => { if (!v) setRatingProject(null); }}>
+      <Dialog open={!!ratingTask} onOpenChange={v => { if (!v) setRatingTask(null); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Rating</DialogTitle>
+            <DialogTitle>Rate Task</DialogTitle>
             <DialogDescription>
-              Rating {emp.full_name} on {ratingProject?.project_code} — {ratingProject?.project_name}
+              <span className="font-medium text-foreground">{ratingTask?.task?.title}</span>
+              <span className="text-muted-foreground"> · {ratingTask?.project?.project_code} — {ratingTask?.project?.project_name}</span>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -624,7 +626,7 @@ const EmployeeDetailView = ({ emp, onBack }: { emp: any; onBack: () => void }) =
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRatingProject(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setRatingTask(null)}>Cancel</Button>
             <Button
               onClick={() => submitRatingMutation.mutate()}
               disabled={submitRatingMutation.isPending || (evalParams || []).some((p: any) => !ratingScores[p.id])}
