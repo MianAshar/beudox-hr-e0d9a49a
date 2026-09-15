@@ -96,8 +96,8 @@ const TaskCard = ({
       if (stage === 'in_progress') return ['qc'];
       return [];
     }
-    // Team lead or manager — any stage except current and done-to-anything
-    return STAGES.map(s => s.key).filter(s => s !== stage && !(stage === 'done'));
+    // Team lead or manager — any stage except current
+    return STAGES.map(s => s.key).filter(s => s !== stage);
   };
   const targets = allowedTargets();
 
