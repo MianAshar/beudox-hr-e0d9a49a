@@ -160,7 +160,6 @@ const ClientDetail = () => {
         country: editForm.country?.trim() || null,
         billing_currency: editForm.billing_currency,
         notes: editForm.notes?.trim() || null,
-        sub_series: editForm.sub_series || [],
       };
       const { error } = await supabase.from('clients').update(payload).eq('id', id!);
       if (error) throw error;
