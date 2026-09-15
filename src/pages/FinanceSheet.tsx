@@ -118,8 +118,9 @@ const FinanceSheet = () => {
   const { data: incomeProjects, isLoading: incomeLoading } = useQuery({
     queryKey: ['finance-income', companyId, monthYear],
     queryFn: async () => {
-      const monthStart = new Date(Number(selectedYear), Number(selectedMonth) - 1, 1).toISOString();
-      const monthEnd = new Date(Number(selectedYear), Number(selectedMonth), 1).toISOString();
+      const [yr, mo] = monthYear.split('-').map(Number);
+      const monthStart = new Date(yr, mo - 1, 1).toISOString();
+      const monthEnd = new Date(yr, mo, 1).toISOString();
       const { data, error } = await supabase
         .from('projects')
         .select('id, project_code, project_name, fee, billing_currency, created_at, clients(name)')
