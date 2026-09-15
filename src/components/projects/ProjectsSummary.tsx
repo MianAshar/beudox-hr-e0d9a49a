@@ -7,8 +7,9 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FolderKanban } from 'lucide-react';
+import { FolderKanban, Users } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const MONTHS = [
   { value: '01', label: 'January' }, { value: '02', label: 'February' },
@@ -62,6 +63,9 @@ const EmptyState = ({ monthLabel }: { monthLabel: string }) => (
   </div>
 );
 
+const getInitials = (name: string) =>
+  name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
 export const ProjectsSummary = () => {
   const { employee } = useAuth();
   const companyId = employee?.company_id;
@@ -83,6 +87,34 @@ export const ProjectsSummary = () => {
         .eq('company_id', companyId!)
         .eq('is_active', true);
       if (error) throw error;
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
+  const { data: allEmployees } = useQuery({
+    queryKey: ['summary-employees', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('employees')
+        .select('id, full_name, avatar_url, designation, department, employment_type')
+        .eq('company_id', companyId!)
+        .eq('status', 'active')
+        .order('full_name');
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
+  const { data: incompleteTasks } = useQuery({
+    queryKey: ['summary-incomplete-tasks', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_tasks')
+        .select('id, assigned_to, project_id, title, complexity, status, projects!project_tasks_project_id_fkey(id, project_code, project_name)')
+        .eq('company_id', companyId!)
+        .eq('is_completed', false)
+        .not('assigned_to', 'is', null);
       return data || [];
     },
     enabled: !!companyId,
@@ -138,6 +170,45 @@ export const ProjectsSummary = () => {
       new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
     [stats.completed]
   );
+
+  const utilisation = useMemo(() => {
+    // Exclude CEO, directors, outsourced
+    const workforce = (allEmployees || []).filter((e: any) =>
+      e.employment_type !== 'director' && e.employment_type !== 'outsourced'
+    );
+
+    // Group incomplete tasks by assignee
+    const tasksByEmployee = new Map<string, any[]>();
+    for (const t of (incompleteTasks || [])) {
+      if (!t.assigned_to) continue;
+      if (!tasksByEmployee.has(t.assigned_to)) tasksByEmployee.set(t.assigned_to, []);
+      tasksByEmployee.get(t.assigned_to)!.push(t);
+    }
+
+    const occupied: any[] = [];
+    const free: any[] = [];
+
+    for (const emp of workforce) {
+      const tasks = tasksByEmployee.get(emp.id) || [];
+      // Unique projects from their incomplete tasks
+      const projectIds = [...new Set(tasks.map((t: any) => t.project_id))];
+      const projectsOnTask = projectIds.map(pid => {
+        const t = tasks.find((t: any) => t.project_id === pid);
+        return t?.projects;
+      }).filter(Boolean);
+
+      if (tasks.length > 0) {
+        occupied.push({ ...emp, taskCount: tasks.length, projects: projectsOnTask });
+      } else {
+        free.push({ ...emp });
+      }
+    }
+
+    // Sort occupied by taskCount desc
+    occupied.sort((a, b) => b.taskCount - a.taskCount);
+
+    return { occupied, free, total: workforce.length };
+  }, [allEmployees, incompleteTasks]);
 
   const clientsTop = clientBreakdown.slice(0, 8);
   const clientsExtra = Math.max(0, clientBreakdown.length - 8);
@@ -240,6 +311,97 @@ export const ProjectsSummary = () => {
             </TableBody>
           </Table>
         )}
+      </Card>
+
+      {/* Section 4 — Resource Utilisation */}
+      <Card className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-base font-semibold">Resource Utilisation</h3>
+          <span className="ml-auto text-xs text-muted-foreground">{utilisation.total} active employees</span>
+        </div>
+
+        {/* Summary pills */}
+        <div className="flex gap-3 mb-5">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
+            <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+            <span className="text-sm font-semibold text-amber-700">{utilisation.occupied.length}</span>
+            <span className="text-xs text-amber-600">Occupied</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-100">
+            <span className="h-2 w-2 rounded-full bg-green-500 shrink-0" />
+            <span className="text-sm font-semibold text-green-700">{utilisation.free.length}</span>
+            <span className="text-xs text-green-600">Free</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Occupied */}
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+              Occupied ({utilisation.occupied.length})
+            </p>
+            {utilisation.occupied.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No one has pending tasks</p>
+            ) : (
+              <div className="space-y-3">
+                {utilisation.occupied.map((emp: any) => (
+                  <div key={emp.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
+                    <Avatar className="h-8 w-8 shrink-0 mt-0.5">
+                      <AvatarImage src={emp.avatar_url || ''} />
+                      <AvatarFallback className="text-[10px]">{getInitials(emp.full_name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-foreground truncate">{emp.full_name}</p>
+                        <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 shrink-0">
+                          {emp.taskCount} task{emp.taskCount !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      {emp.designation && (
+                        <p className="text-[11px] text-muted-foreground">{emp.designation}</p>
+                      )}
+                      {emp.projects.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {emp.projects.map((p: any) => (
+                            <span
+                              key={p.id}
+                              className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#EBE6FF] text-[#5B3FF8]"
+                            >
+                              {p.project_code}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Free */}
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+              Free ({utilisation.free.length})
+            </p>
+            {utilisation.free.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Everyone has pending tasks</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {utilisation.free.map((emp: any) => (
+                  <div key={emp.id} className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-card">
+                    <Avatar className="h-6 w-6 shrink-0">
+                      <AvatarImage src={emp.avatar_url || ''} />
+                      <AvatarFallback className="text-[9px]">{getInitials(emp.full_name)}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm text-foreground">{emp.full_name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </Card>
     </div>
   );
