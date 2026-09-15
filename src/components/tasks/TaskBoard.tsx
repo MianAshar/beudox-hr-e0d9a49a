@@ -68,14 +68,17 @@ interface TaskBoardProps {
 const TaskCard = ({
   task,
   onMove,
+  onOpenDetail,
   myRoles,
   myEmployeeId,
 }: {
   task: any;
   onMove: (task: any, toStage: Stage, reason?: string) => void;
+  onOpenDetail: (task: any) => void;
   myRoles: string[];
   myEmployeeId: string;
 }) => {
+
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
@@ -127,7 +130,9 @@ const TaskCard = ({
       <div
         className="group bg-white rounded-[3px] border cursor-pointer select-none transition-shadow hover:shadow-md"
         style={{ borderColor: '#DFE1E6', boxShadow: '0 1px 2px rgba(9,30,66,0.08)' }}
+        onClick={() => onOpenDetail(task)}
       >
+
         <div className="p-[10px_12px] space-y-2">
           {/* Complexity badge top */}
           {task.complexity && (
@@ -165,7 +170,20 @@ const TaskCard = ({
             </div>
           )}
 
-          {/* Bottom row: project code + deadline + avatar + move button */}
+          {/* Assignee row */}
+          {assignee && (
+            <div className="flex items-center gap-1.5">
+              <Avatar className="h-5 w-5 shrink-0">
+                <AvatarImage src={assignee.avatar_url || ''} />
+                <AvatarFallback className="text-[8px] bg-[#DFE1E6] text-[#42526E]">
+                  {getInitials(assignee.full_name || '?')}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-[12px]" style={{ color: '#42526E' }}>{assignee.full_name}</span>
+            </div>
+          )}
+
+          {/* Bottom row: project code + deadline + move button */}
           <div className="flex items-center justify-between gap-2 pt-1">
             <div className="flex items-center gap-2 min-w-0">
               {task.project && (
@@ -182,44 +200,36 @@ const TaskCard = ({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {targets.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 rounded flex items-center justify-center hover:bg-[#DFE1E6]"
-                    >
-                      <MoreHorizontal className="h-3.5 w-3.5 text-[#42526E]" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    {targets.map(t => {
-                      const stageInfo = STAGES.find(s => s.key === t)!;
-                      return (
-                        <DropdownMenuItem key={t} onClick={() => handleMoveTo(t)}>
-                          <span
-                            className="text-xs px-1.5 py-0.5 rounded-full mr-2"
-                            style={{ background: '#DFE1E6', color: stageInfo.dot }}
-                          >
-                            {stageInfo.label}
-                          </span>
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              {assignee && (
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={assignee.avatar_url || ''} />
-                  <AvatarFallback className="text-[9px] bg-[#DFE1E6] text-[#42526E]">
-                    {getInitials(assignee.full_name || '?')}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </div>
+            {targets.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 rounded flex items-center justify-center hover:bg-[#DFE1E6] shrink-0"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="h-3.5 w-3.5 text-[#42526E]" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  {targets.map(t => {
+                    const stageInfo = STAGES.find(s => s.key === t)!;
+                    return (
+                      <DropdownMenuItem key={t} onClick={() => handleMoveTo(t)}>
+                        <span
+                          className="text-xs px-1.5 py-0.5 rounded-full mr-2"
+                          style={{ background: '#DFE1E6', color: stageInfo.dot }}
+                        >
+                          {stageInfo.label}
+                        </span>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
+
         </div>
       </div>
 
@@ -263,6 +273,8 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [doneLimit, setDoneLimit] = useState(DONE_PAGE_SIZE);
   const [movingId, setMovingId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+
 
   // Projects for filter dropdown
   const { data: projects } = useQuery({
@@ -339,7 +351,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
   }, [tasks]);
 
   if (isLoading) return (
-    <div className="flex gap-3 items-start overflow-x-auto pb-4">
+    <div className="flex gap-3 items-stretch overflow-x-auto pb-4">
       {STAGES.map(s => (
         <div key={s.key} className="flex flex-col min-w-0 flex-1" style={{ borderTop: `3px solid ${s.topBorder}` }}>
           <div className="flex items-center gap-2 px-3 py-2 rounded-t-sm" style={{ background: '#F4F5F7', minHeight: 36 }}>
@@ -347,13 +359,14 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
             <span className="text-[13px] font-semibold" style={{ color: '#172B4D' }}>{s.label}</span>
             <Skeleton className="h-4 w-6 rounded-full" />
           </div>
-          <div className="flex flex-col gap-2 p-2 rounded-b-sm flex-1" style={{ background: '#F4F5F7', minHeight: 100, maxHeight: 'calc(100vh - 220px)' }}>
+          <div className="flex flex-col gap-2 p-2 rounded-b-sm" style={{ background: '#F4F5F7', minHeight: 100 }}>
             {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-[3px]" />)}
           </div>
         </div>
       ))}
     </div>
   );
+
 
   return (
     <div className="space-y-3">
@@ -380,7 +393,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
 
 
       {/* Board columns */}
-      <div className="flex gap-3 items-start overflow-x-auto pb-4">
+      <div className="flex gap-3 items-stretch overflow-x-auto pb-4">
         {STAGES.map(stage => {
           const columnTasks = stage.key === 'done'
             ? grouped.done.slice(0, doneLimit)
@@ -405,9 +418,10 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
 
               {/* Body */}
               <div
-                className="flex flex-col gap-2 p-2 overflow-y-auto rounded-b-sm flex-1"
-                style={{ background: '#F4F5F7', minHeight: 100, maxHeight: 'calc(100vh - 220px)' }}
+                className="flex flex-col gap-2 p-2 rounded-b-sm"
+                style={{ background: '#F4F5F7', minHeight: 100 }}
               >
+
                 {columnTasks.length === 0 ? (
                   <p className="text-xs text-center py-6" style={{ color: '#5E6C84' }}>No issues</p>
                 ) : (
@@ -416,9 +430,11 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
                       key={task.id}
                       task={task}
                       onMove={moveTask}
+                      onOpenDetail={setSelectedTask}
                       myRoles={myRoles}
                       myEmployeeId={myEmployeeId}
                     />
+
                   ))
                 )}
 
@@ -438,8 +454,148 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
           );
         })}
       </div>
+
+      {/* Task detail modal */}
+      {selectedTask && (() => {
+        const t = selectedTask;
+        const logs: any[] = t.task_stage_logs || [];
+        const { execMins, qcMins } = computeDurations(logs);
+        const qcRejections = logs.filter((l: any) => l.from_stage === 'qc' && l.to_stage === 'in_progress').length;
+        const sortedLogs = [...logs].sort((a, b) => new Date(a.changed_at).getTime() - new Date(b.changed_at).getTime());
+        const stageInfo = STAGES.find(s => s.key === t.status)!;
+        const cc = complexityColors[t.complexity] || complexityColors.easy;
+        const isOverdue = !!t.deadline && !t.is_completed && new Date(t.deadline) < new Date();
+        const stage: Stage = t.status;
+        const assignee = t.assignee;
+
+        return (
+          <Dialog open={!!selectedTask} onOpenChange={v => { if (!v) setSelectedTask(null); }}>
+            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+              {/* Header bar */}
+              <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b">
+                <div className="space-y-2 flex-1 min-w-0">
+                  {/* Breadcrumb */}
+                  {t.project && (
+                    <p className="text-[11px] font-mono" style={{ color: '#42526E' }}>
+                      {t.project.project_code} — {t.project.project_name}
+                    </p>
+                  )}
+                  <h2 className="text-[18px] font-semibold leading-snug" style={{ color: '#172B4D' }}>{t.title}</h2>
+                </div>
+              </div>
+
+              {/* Body: two columns */}
+              <div className="flex gap-0 min-h-0">
+                {/* Left: description + activity */}
+                <div className="flex-1 min-w-0 px-6 py-4 space-y-5 border-r">
+                  {/* Description */}
+                  {t.description ? (
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: '#6B778C' }}>Description</p>
+                      <p className="text-sm whitespace-pre-wrap" style={{ color: '#172B4D' }}>{t.description}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm italic" style={{ color: '#A5ADBA' }}>No description</p>
+                  )}
+
+                  {/* Stage history */}
+                  {sortedLogs.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wide mb-3" style={{ color: '#6B778C' }}>Activity</p>
+                      <div className="space-y-2">
+                        {sortedLogs.map((log: any, i: number) => {
+                          const fromStage = STAGES.find(s => s.key === log.from_stage);
+                          const toStage = STAGES.find(s => s.key === log.to_stage);
+                          return (
+                            <div key={log.id || i} className="flex items-start gap-2 text-xs" style={{ color: '#42526E' }}>
+                              <div className="h-5 w-5 rounded-full bg-[#DFE1E6] shrink-0 flex items-center justify-center text-[9px] font-bold" style={{ color: '#42526E' }}>
+                                →
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span>
+                                  Moved
+                                  {fromStage && <> from <span className="font-medium">{fromStage.label}</span></>}
+                                  {toStage && <> to <span className="font-medium" style={{ color: toStage.dot }}>{toStage.label}</span></>}
+                                </span>
+                                {log.reason && <span className="block text-[11px] mt-0.5 italic" style={{ color: '#6B778C' }}>"{log.reason}"</span>}
+                                <span className="block text-[10px] mt-0.5" style={{ color: '#97A0AF' }}>
+                                  {new Date(log.changed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: metadata sidebar */}
+                <div className="w-52 shrink-0 px-4 py-4 space-y-4">
+                  {/* Status */}
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: '#6B778C' }}>Status</p>
+                    <span className="inline-flex items-center gap-1.5 text-[12px] font-medium px-2 py-1 rounded-[3px]" style={{ background: '#F4F5F7', color: '#172B4D' }}>
+                      <span className="h-2 w-2 rounded-full" style={{ background: stageInfo?.dot }} />
+                      {stageInfo?.label}
+                    </span>
+                  </div>
+
+                  {/* Assignee */}
+                  {assignee && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: '#6B778C' }}>Assignee</p>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={assignee.avatar_url || ''} />
+                          <AvatarFallback className="text-[9px] bg-[#DFE1E6] text-[#42526E]">{getInitials(assignee.full_name || '?')}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-[13px]" style={{ color: '#172B4D' }}>{assignee.full_name}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Complexity */}
+                  {t.complexity && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: '#6B778C' }}>Complexity</p>
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-[3px]" style={{ background: cc.bg, color: cc.text }}>
+                        {t.complexity.charAt(0).toUpperCase() + t.complexity.slice(1)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Deadline */}
+                  {t.deadline && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: '#6B778C' }}>Deadline</p>
+                      <p className={`text-[13px] font-medium ${isOverdue ? 'text-red-600' : ''}`} style={isOverdue ? {} : { color: '#172B4D' }}>
+                        {formatDate(t.deadline)}
+                        {isOverdue && <span className="ml-1 text-[11px] font-normal">(overdue)</span>}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Timing */}
+                  {(execMins > 0 || qcMins > 0) && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: '#6B778C' }}>Time Spent</p>
+                      <div className="space-y-1">
+                        {execMins > 0 && <p className="text-[12px]" style={{ color: '#172B4D' }}>⏱ {fmtDuration(execMins)} execution</p>}
+                        {qcMins > 0 && <p className="text-[12px]" style={{ color: '#172B4D' }}>⏱ {fmtDuration(qcMins)} QC</p>}
+                        {qcRejections > 0 && <p className="text-[12px] text-red-600">✕ {qcRejections} QC rejection{qcRejections > 1 ? 's' : ''}</p>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 };
 
 export default TaskBoard;
+
