@@ -18,8 +18,9 @@ import { toast } from '@/hooks/use-toast';
 import {
   Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight, Trash2,
   Pencil, FileText, Users, ListChecks, History, ArrowUpDown, Play,
-  AlertTriangle,
+  AlertTriangle, LayoutList, LayoutGrid,
 } from 'lucide-react';
+import TaskBoard from '@/components/tasks/TaskBoard';
 import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
