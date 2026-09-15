@@ -969,11 +969,6 @@ const ProjectCard = ({
                       <Link to={`/clients/${p.clients.id}`} className="text-primary hover:underline" onClick={e => e.stopPropagation()}>
                         {p.clients.name}
                       </Link>
-                      {(p as any).sub_series && (
-                        <span className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '2px 8px' }}>
-                          {(p as any).sub_series}
-                        </span>
-                      )}
                     </span>
                   ) : '—'}
                 </MetaRow>
