@@ -224,6 +224,15 @@ const Projects = () => {
   const [listMonth, setListMonth] = useState(() => String(new Date().getMonth() + 1).padStart(2, '0'));
   const [listYear, setListYear] = useState(() => String(new Date().getFullYear()));
   const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+
+  const toggleCategory = (key: string) => {
+    setCollapsedCategories(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
 
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
