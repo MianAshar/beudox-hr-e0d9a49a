@@ -61,7 +61,9 @@ const computeDurations = (logs: any[]) => {
 
 interface TaskBoardProps {
   scopeEmployeeId?: string; // set on My Tasks page to show only own tasks
+  headerAction?: React.ReactNode;
 }
+
 
 const TaskCard = ({
   task,
@@ -248,7 +250,7 @@ const TaskCard = ({
   );
 };
 
-const TaskBoard = ({ scopeEmployeeId }: TaskBoardProps) => {
+const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
   const { employee } = useAuth();
   const companyId = employee?.company_id;
   const myEmployeeId = employee?.employee_id ?? '';
@@ -355,23 +357,27 @@ const TaskBoard = ({ scopeEmployeeId }: TaskBoardProps) => {
 
   return (
     <div className="space-y-3">
-      {/* Filters */}
-      {!scopeEmployeeId && (
-        <div className="flex items-center gap-2">
-          <Select value={projectFilter} onValueChange={setProjectFilter}>
-            <SelectTrigger className="w-[180px] h-8 text-xs">
-              <SelectValue placeholder="All Projects" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              {(projects || []).map((p: any) => (
-                <SelectItem key={p.id} value={p.id} className="text-xs">{p.project_code} — {p.project_name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {movingId && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-        </div>
-      )}
+      {/* Filters + header action */}
+      <div className="flex items-center gap-2">
+        {!scopeEmployeeId && (
+          <>
+            <Select value={projectFilter} onValueChange={setProjectFilter}>
+              <SelectTrigger className="w-[180px] h-8 text-xs">
+                <SelectValue placeholder="All Projects" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Projects</SelectItem>
+                {(projects || []).map((p: any) => (
+                  <SelectItem key={p.id} value={p.id} className="text-xs">{p.project_code} — {p.project_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {movingId && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+          </>
+        )}
+        {headerAction && <div className="ml-auto">{headerAction}</div>}
+      </div>
+
 
       {/* Board columns */}
       <div className="flex gap-3 items-start overflow-x-auto pb-4">
