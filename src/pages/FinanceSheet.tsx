@@ -992,7 +992,7 @@ const FinanceSheet = () => {
               )}
 
               {/* ═══ GRAND TOTAL (hidden on Summary tab) ═══ */}
-              {activeTab !== 'summary' && activeTab !== 'bd' && (
+              {activeTab !== 'summary' && activeTab !== 'bd' && activeTab !== 'income' && (
                 <div className="rounded-[14px] overflow-hidden fs-grand-total-bar mt-6" style={{ background: '#1A1240' }}>
                   <div className="flex items-center justify-between px-6 py-4">
                     <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
