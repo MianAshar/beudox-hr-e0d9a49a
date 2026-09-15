@@ -697,6 +697,60 @@ const FinanceSheet = () => {
             )}
           </TabsContent>
 
+          {/* ═══ INCOME TAB — renders independently, not gated by payroll/expenses loading ═══ */}
+          <TabsContent value="income" className="mt-4">
+            <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[110px]">Code</TableHead>
+                    <TableHead>Project Name</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Added On</TableHead>
+                    <TableHead className="text-right w-[160px]">Fee</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {incomeLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">Loading…</TableCell>
+                    </TableRow>
+                  ) : !incomeProjects || incomeProjects.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                        No projects added in {monthLabel} {selectedYear}.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    <>
+                      {incomeProjects.map((p: any) => (
+                        <TableRow key={p.id}>
+                          <TableCell className="font-mono text-[12px] text-muted-foreground">{p.project_code}</TableCell>
+                          <TableCell className="text-[13px] font-medium" style={{ fontFamily: 'var(--ff-body)' }}>{p.project_name}</TableCell>
+                          <TableCell className="text-[13px] text-muted-foreground">{p.clients?.name || '—'}</TableCell>
+                          <TableCell className="text-[12px] text-muted-foreground">
+                            {new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </TableCell>
+                          <TableCell className="text-right text-[12px] font-mono">
+                            {p.fee ? `${p.billing_currency} ${Number(p.fee).toLocaleString()}` : '—'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="fs-total-row" style={{ background: '#1A1240' }}>
+                        <TableCell colSpan={4} className="text-right text-[12px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
+                          Total Projects: {incomeProjects.length}
+                        </TableCell>
+                        <TableCell className="text-right text-[13px] font-bold font-mono text-white">
+                          {incomeTotalPKR > 0 ? fmtPKR(incomeTotalPKR) : '—'}
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
           {isLoading ? (
             <div className="space-y-3 pt-4">
               {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
