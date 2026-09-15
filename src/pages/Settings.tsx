@@ -89,9 +89,12 @@ const Settings = () => {
         <nav className="sticky top-6 space-y-1">
           {navGroups.map(group => (
             <div key={group.label} className="mb-4">
-              <p className="text-[11px] font-semibold text-foreground/50 uppercase tracking-wider px-3 mb-2 mt-1 border-b pb-1" style={{ borderColor: 'hsl(var(--border))', fontFamily: 'var(--ff-display)' }}>
-                {group.label}
-              </p>
+              <div className="flex items-center gap-2 px-3 mb-1.5 mt-1">
+                <span className="text-[11px] font-bold uppercase tracking-widest shrink-0" style={{ color: '#5B3FF8', fontFamily: 'var(--ff-display)' }}>
+                  {group.label}
+                </span>
+                <div className="flex-1 h-px" style={{ backgroundColor: '#5B3FF8', opacity: 0.25 }} />
+              </div>
               {group.items.map(item => (
                 <button
                   key={item.value}
