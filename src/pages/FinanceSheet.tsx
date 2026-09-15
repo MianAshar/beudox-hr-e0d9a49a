@@ -668,6 +668,7 @@ const FinanceSheet = () => {
           <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap no-print" style={{ borderColor: 'hsl(var(--border))' }}>
             {[
               { value: 'summary', label: 'Summary' },
+              { value: 'income', label: 'Income' },
               { value: 'payroll', label: 'Payroll' },
               { value: 'expenses', label: 'Expenses' },
               ...(isCeo ? [{ value: 'bd', label: 'BD Expenses' }] : []),
