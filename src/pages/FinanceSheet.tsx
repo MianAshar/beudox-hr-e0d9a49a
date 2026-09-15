@@ -114,6 +114,30 @@ const FinanceSheet = () => {
     enabled: !!companyId,
   });
 
+  // ─── INCOME DATA (projects added this month) ───
+  const { data: incomeProjects, isLoading: incomeLoading } = useQuery({
+    queryKey: ['finance-income', companyId, monthYear],
+    queryFn: async () => {
+      const monthStart = `${selectedYear}-${selectedMonth}-01`;
+      const monthEnd = new Date(Number(selectedYear), Number(selectedMonth), 1).toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, project_code, project_name, fee, billing_currency, created_at, clients(name)')
+        .eq('company_id', companyId!)
+        .gte('created_at', monthStart)
+        .lt('created_at', monthEnd)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
+  const incomeTotalPKR = (incomeProjects || []).reduce((sum: number, p: any) => {
+    // Only sum PKR fees for simplicity; non-PKR shown as-is
+    return sum + (p.billing_currency === 'PKR' ? Number(p.fee || 0) : 0);
+  }, 0);
+
   // ─── GROUP PAYROLL BY DEPARTMENT ───
   const payrollByDept: Record<string, any[]> = {};
   (payrollData || []).forEach((rec: any) => {
@@ -570,7 +594,7 @@ const FinanceSheet = () => {
   }, [departments, payrollByDept, payrollGrandTotal, categories, lineItems, monthlyExpenses, monthLabel, selectedYear, expensesGrandTotal, bdCategory, bdCategoryId, bdGrandTotal, isCeo]);
 
   const [activeTab, setActiveTab] = useState('summary');
-  const isLoading = payrollLoading || expensesLoading;
+  const isLoading = payrollLoading || expensesLoading || incomeLoading;
 
   return (
     <>
@@ -644,6 +668,7 @@ const FinanceSheet = () => {
           <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap no-print" style={{ borderColor: 'hsl(var(--border))' }}>
             {[
               { value: 'summary', label: 'Summary' },
+              { value: 'income', label: 'Income' },
               { value: 'payroll', label: 'Payroll' },
               { value: 'expenses', label: 'Expenses' },
               ...(isCeo ? [{ value: 'bd', label: 'BD Expenses' }] : []),
@@ -689,6 +714,64 @@ const FinanceSheet = () => {
                 </div>
                 <hr className="mt-2 mb-4" style={{ borderColor: '#5B3FF8', borderWidth: 2 }} />
               </div>
+
+              {/* ═══ INCOME TAB ═══ */}
+              <TabsContent value="income" className="mt-4">
+                <div className="fs-section">
+                  <div className="rounded-[14px] border bg-card overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[110px]">Code</TableHead>
+                          <TableHead>Project Name</TableHead>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Added On</TableHead>
+                          <TableHead className="text-right w-[160px]">Fee</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {incomeLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                              Loading…
+                            </TableCell>
+                          </TableRow>
+                        ) : !incomeProjects || incomeProjects.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                              No projects added in {monthLabel} {selectedYear}.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          <>
+                            {incomeProjects.map((p: any) => (
+                              <TableRow key={p.id}>
+                                <TableCell className="font-mono text-[12px] text-muted-foreground">{p.project_code}</TableCell>
+                                <TableCell className="text-[13px] font-medium" style={{ fontFamily: 'var(--ff-body)' }}>{p.project_name}</TableCell>
+                                <TableCell className="text-[13px] text-muted-foreground">{p.clients?.name || '—'}</TableCell>
+                                <TableCell className="text-[12px] text-muted-foreground">
+                                  {new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </TableCell>
+                                <TableCell className="text-right text-[12px] font-mono">
+                                  {p.fee ? `${p.billing_currency} ${Number(p.fee).toLocaleString()}` : '—'}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow className="fs-total-row" style={{ background: '#1A1240' }}>
+                              <TableCell colSpan={4} className="text-right text-[12px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
+                                Total Projects: {incomeProjects.length}
+                              </TableCell>
+                              <TableCell className="text-right text-[13px] font-bold font-mono text-white">
+                                {incomeTotalPKR > 0 ? fmtPKR(incomeTotalPKR) : '—'}
+                              </TableCell>
+                            </TableRow>
+                          </>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </TabsContent>
 
               {/* ═══ PAYROLL TAB ═══ */}
               <TabsContent value="payroll" className="mt-4">
@@ -967,7 +1050,7 @@ const FinanceSheet = () => {
               )}
 
               {/* ═══ GRAND TOTAL (hidden on Summary tab) ═══ */}
-              {activeTab !== 'summary' && activeTab !== 'bd' && (
+              {activeTab !== 'summary' && activeTab !== 'bd' && activeTab !== 'income' && (
                 <div className="rounded-[14px] overflow-hidden fs-grand-total-bar mt-6" style={{ background: '#1A1240' }}>
                   <div className="flex items-center justify-between px-6 py-4">
                     <span className="text-[16px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
