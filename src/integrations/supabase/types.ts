@@ -2745,6 +2745,7 @@ export type Database = {
           id: string
           is_completed: boolean | null
           project_id: string
+          status: string
           title: string
           updated_at: string | null
         }
@@ -2761,6 +2762,7 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           project_id: string
+          status?: string
           title: string
           updated_at?: string | null
         }
@@ -2777,6 +2779,7 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           project_id?: string
+          status?: string
           title?: string
           updated_at?: string | null
         }
@@ -3131,6 +3134,64 @@ export type Database = {
             columns: ["rejected_by"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_stage_logs: {
+        Row: {
+          changed_at: string
+          changed_by: string
+          company_id: string
+          created_at: string
+          from_stage: string | null
+          id: string
+          reason: string | null
+          task_id: string
+          to_stage: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by: string
+          company_id: string
+          created_at?: string
+          from_stage?: string | null
+          id?: string
+          reason?: string | null
+          task_id: string
+          to_stage: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string
+          company_id?: string
+          created_at?: string
+          from_stage?: string | null
+          id?: string
+          reason?: string | null
+          task_id?: string
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_stage_logs_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_stage_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_stage_logs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "project_tasks"
             referencedColumns: ["id"]
           },
         ]
