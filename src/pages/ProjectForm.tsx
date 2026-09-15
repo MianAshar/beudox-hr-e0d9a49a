@@ -184,7 +184,6 @@ const ProjectForm = () => {
         internal_deadline: form.internal_deadline ? format(form.internal_deadline, 'yyyy-MM-dd') : null,
         project_lead_id: form.project_lead_id || null,
         notes: form.notes.trim() || null,
-        sub_series: form.sub_series || null,
         location: form.location.trim() || null,
         company_id: companyId!,
       };
