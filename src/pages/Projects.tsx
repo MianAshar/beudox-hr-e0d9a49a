@@ -684,7 +684,167 @@ const Projects = () => {
   };
 
   const listContent = renderProjectList(monthFilteredActive, { showAdd: true });
-  const pastContent = renderProjectList(monthFilteredArchived, { showAdd: false, past: true });
+
+  // Group past projects by client category
+  const pastGrouped = useMemo(() => {
+    const groups = new Map<string, { key: string; label: string; code: string | null; projects: any[] }>();
+    for (const p of monthFilteredArchived) {
+      const cat = p.clients?.client_categories;
+      const key = cat?.name ?? '__uncategorised__';
+      const label = cat?.name ?? 'Uncategorised';
+      const code = cat?.code ?? null;
+      if (!groups.has(key)) groups.set(key, { key, label, code, projects: [] });
+      groups.get(key)!.projects.push(p);
+    }
+    // Sort: named categories alphabetically, Uncategorised last
+    return Array.from(groups.values()).sort((a, b) => {
+      if (a.key === '__uncategorised__') return 1;
+      if (b.key === '__uncategorised__') return -1;
+      return a.label.localeCompare(b.label);
+    });
+  }, [monthFilteredArchived]);
+
+  const effectivePastSortBy = sortBy === 'internal_deadline' ? 'default' : sortBy;
+
+  const pastContent = (
+    <div className="space-y-6">
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="relative w-full sm:max-w-xs sm:flex-1 sm:min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search code or name…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        {isManager && (
+          <>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[140px] sm:w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                {['submitted', 'cancelled'].map(s => (
+                  <SelectItem key={s} value={s}>{fmt(s)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {clients && clients.length > 0 && (
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger className="w-[160px]"><SelectValue placeholder="Client" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Clients</SelectItem>
+                  {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Select value={listMonth} onValueChange={setListMonth}>
+              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={listYear} onValueChange={setListYear}>
+              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PROJ_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+        <div className="flex items-center gap-2 ml-auto">
+          <Select value={effectivePastSortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default order</SelectItem>
+              <SelectItem value="project_code">Project Code</SelectItem>
+              <SelectItem value="project_name">Project Name</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
+        </div>
+      ) : monthFilteredArchived.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+          <FolderKanban className="h-12 w-12 mb-4 opacity-40" />
+          <p className="text-lg font-medium">No past projects</p>
+          <p className="text-sm mt-1">Projects with Submitted or Cancelled status will appear here.</p>
+        </div>
+      ) : (
+        pastGrouped.map(group => {
+          const isCollapsed = collapsedCategories.has(group.key);
+          return (
+            <div key={group.key}>
+              {/* Category group header */}
+              <button
+                type="button"
+                onClick={() => toggleCategory(group.key)}
+                className="flex items-center gap-2 w-full text-left mb-3 group"
+              >
+                {isCollapsed
+                  ? <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                }
+                <span className="text-sm font-semibold text-foreground">{group.label}</span>
+                {group.code && (
+                  <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-[#EBE6FF] text-[#5B3FF8]">
+                    {group.code}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">({group.projects.length})</span>
+                <span className="flex-1 h-px bg-border ml-1" />
+              </button>
+
+              {/* Projects in this category */}
+              {!isCollapsed && (
+                <div className="space-y-3">
+                  {group.projects.map((p: any) => {
+                    const isProjectCollapsed = !expandedIds.has(p.id);
+                    const team = teamByProject.get(p.id) ?? [];
+                    const tc = taskCountByProject.get(p.id);
+                    const isProjectLead = p.project_lead_id === employeeId;
+                    const showScopeAlert = isManager || assignedProjectIds.has(p.id) || isProjectLead;
+                    const isDueToday = p.internal_deadline === todayIso;
+                    return (
+                      <ProjectCard
+                        key={p.id}
+                        project={p}
+                        team={team}
+                        taskCount={tc}
+                        isCollapsed={isProjectCollapsed}
+                        onToggle={() => toggleOne(p.id)}
+                        onOpenDetail={() => navigate(`/projects/${p.id}`)}
+                        onDelete={() => { setDeleteTarget(p); setDeleteConfirmText(''); }}
+                        onManageTeam={() => setManageTeamProject(p)}
+                        canManageTeam={canManageTeam}
+                        isDueToday={isDueToday}
+                        isManager={isManager}
+                        canSeeClient={canSeeClient}
+                        canSeeFinancial={canSeeFinancial}
+                        canSeeTeam={canSeeTeam}
+                        canEditStatus={canEditStatus}
+                        canEditDeadline={canEditDeadline}
+                        canSeeActivity={canSeeActivity}
+                        companyId={companyId!}
+                        employeeId={employeeId!}
+                        roles={roles}
+                        isCeoOrDirector={isCeoOrDirector}
+                        showScopeAlert={showScopeAlert}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
 
   const sharedDialogs = (
     <>
