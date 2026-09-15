@@ -912,7 +912,7 @@ const Projects = () => {
                   Summary
                 </TabsTrigger>
                 <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-                  All Projects ({monthFilteredActive.length})
+                Active Projects ({monthFilteredActive.length})
                 </TabsTrigger>
                 <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
                   Past Projects ({monthFilteredArchived.length})
