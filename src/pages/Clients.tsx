@@ -88,7 +88,6 @@ interface Client {
   billing_currency: string;
   notes: string | null;
   is_active: boolean;
-  sub_series: string[] | null;
 }
 
 const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
