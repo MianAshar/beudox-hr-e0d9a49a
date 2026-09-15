@@ -427,23 +427,14 @@ const Clients = () => {
                   <>
                     <TableRow key={c.id}>
                       <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => navigate(`/clients/${c.id}`)}
-                              className="text-primary hover:underline font-medium"
-                            >
-                              {c.name}
-                            </button>
-                          </div>
-                          {c.sub_series && c.sub_series.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {c.sub_series.map(s => (
-                                <span key={s} className="inline-flex items-center rounded-full" style={{ backgroundColor: '#F6F5FF', color: '#4B4468', fontSize: 11, padding: '3px 10px' }}>{s}</span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => navigate(`/clients/${c.id}`)}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          {c.name}
+                        </button>
+                      </div>
                       </TableCell>
                       {showActivity && (
                         <TableCell>
