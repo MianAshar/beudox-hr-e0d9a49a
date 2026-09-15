@@ -44,12 +44,9 @@ const ProjectForm = () => {
     internal_deadline: undefined as Date | undefined,
     project_lead_id: '',
     notes: '',
-    sub_series: '',
     location: '',
   });
   const [newClientOpen, setNewClientOpen] = useState(false);
-  const [addingSubSeries, setAddingSubSeries] = useState(false);
-  const [newSubSeries, setNewSubSeries] = useState('');
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -66,7 +63,7 @@ const ProjectForm = () => {
   const { data: clients } = useQuery({
     queryKey: ['clients-lookup', companyId],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id, name, billing_currency, sub_series').eq('company_id', companyId!).eq('is_active', true).order('name');
+      const { data } = await supabase.from('clients').select('id, name, billing_currency').eq('company_id', companyId!).eq('is_active', true).order('name');
       return data ?? [];
     },
     enabled: !!companyId,
@@ -162,8 +159,7 @@ const ProjectForm = () => {
         internal_deadline: existingProject.internal_deadline ? new Date(existingProject.internal_deadline) : undefined,
         project_lead_id: existingProject.project_lead_id || '',
         notes: existingProject.notes || '',
-        sub_series: (existingProject as any).sub_series || '',
-        location: (existingProject as any).location || '',
+        location: existingProject.location || '',
       });
     }
   }, [existingProject]);
@@ -188,7 +184,6 @@ const ProjectForm = () => {
         internal_deadline: form.internal_deadline ? format(form.internal_deadline, 'yyyy-MM-dd') : null,
         project_lead_id: form.project_lead_id || null,
         notes: form.notes.trim() || null,
-        sub_series: form.sub_series || null,
         location: form.location.trim() || null,
         company_id: companyId!,
       };
@@ -548,8 +543,8 @@ const ProjectForm = () => {
               </div>
             </div>
 
-            {/* Row 2: Client + Sub-Series */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Row 2: Client */}
+            <div>
               <div>
                 <Label>Client *</Label>
                 <Popover open={clientOpen} onOpenChange={setClientOpen}>
@@ -566,7 +561,7 @@ const ProjectForm = () => {
                         <CommandEmpty>No clients found.</CommandEmpty>
                         <CommandGroup>
                           {filteredClients.map(c => (
-                            <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id, sub_series: '' }); setClientOpen(false); setClientSearch(''); }}>
+                            <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id }); setClientOpen(false); setClientSearch(''); }}>
                               <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
                               {c.name}
                             </CommandItem>
@@ -580,42 +575,6 @@ const ProjectForm = () => {
                   </PopoverContent>
                 </Popover>
                 {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
-              </div>
-              <div>
-                <Label>Sub-Series</Label>
-                {form.client_id ? (
-                  <>
-                    <Select value={form.sub_series || '__none__'} onValueChange={v => { if (v === '__add_new__') { setAddingSubSeries(true); setNewSubSeries(''); return; } setForm({ ...form, sub_series: v === '__none__' ? '' : v }); }}>
-                      <SelectTrigger><SelectValue placeholder="Select sub-series" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">— None —</SelectItem>
-                        {(selectedClient?.sub_series ?? []).map((s: string) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
-                        <SelectItem value="__add_new__" className="text-[#5B3FF8] font-medium">+ Add New Sub-Series</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {addingSubSeries && (
-                      <div className="mt-2 flex gap-2">
-                        <Input autoFocus value={newSubSeries} onChange={e => setNewSubSeries(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('add-sub-series-btn')?.click(); } }} placeholder="New sub-series name" />
-                        <Button id="add-sub-series-btn" type="button" onClick={async () => {
-                          const v = newSubSeries.trim();
-                          if (!v || !form.client_id) return;
-                          const current = selectedClient?.sub_series ?? [];
-                          if (current.includes(v)) { setForm({ ...form, sub_series: v }); setAddingSubSeries(false); return; }
-                          const next = [...current, v];
-                          const { error } = await supabase.from('clients').update({ sub_series: next }).eq('id', form.client_id);
-                          if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
-                          await qc.invalidateQueries({ queryKey: ['clients-lookup'] });
-                          setForm({ ...form, sub_series: v });
-                          setAddingSubSeries(false);
-                          setNewSubSeries('');
-                        }}>Add</Button>
-                        <Button type="button" variant="outline" onClick={() => { setAddingSubSeries(false); setNewSubSeries(''); }}>Cancel</Button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <Input disabled placeholder="Select a client first" className="text-muted-foreground" />
-                )}
               </div>
             </div>
 

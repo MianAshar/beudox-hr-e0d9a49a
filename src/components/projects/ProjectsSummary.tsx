@@ -79,7 +79,7 @@ export const ProjectsSummary = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, project_code, project_name, status, fee, sub_series, created_at, updated_at, internal_deadline, client_id, clients(id, name), lead:employees!projects_project_lead_id_fkey(id, full_name)')
+        .select('id, project_code, project_name, status, fee, created_at, updated_at, internal_deadline, client_id, clients(id, name), lead:employees!projects_project_lead_id_fkey(id, full_name)')
         .eq('company_id', companyId!)
         .eq('is_active', true);
       if (error) throw error;
@@ -133,18 +133,6 @@ export const ProjectsSummary = () => {
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
   }, [monthProjects]);
 
-  const subSeriesBreakdown = useMemo(() => {
-    const map = new Map<string, { name: string; count: number; fee: number }>();
-    monthProjects.forEach((p: any) => {
-      const name = (p.sub_series && String(p.sub_series).trim()) || 'Unspecified';
-      const c = map.get(name) ?? { name, count: 0, fee: 0 };
-      c.count += 1;
-      c.fee += Number(p.fee) || 0;
-      map.set(name, c);
-    });
-    return Array.from(map.values()).sort((a, b) => b.count - a.count);
-  }, [monthProjects]);
-
   const completedSorted = useMemo(
     () => [...stats.completed].sort((a: any, b: any) =>
       new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
@@ -154,9 +142,6 @@ export const ProjectsSummary = () => {
   const clientsTop = clientBreakdown.slice(0, 8);
   const clientsExtra = Math.max(0, clientBreakdown.length - 8);
   const maxClientCount = clientsTop.reduce((m, c) => Math.max(m, c.count), 0);
-  const subTop = subSeriesBreakdown.slice(0, 8);
-  const subExtra = Math.max(0, subSeriesBreakdown.length - 8);
-  const maxSubCount = subTop.reduce((m, c) => Math.max(m, c.count), 0);
 
   if (isLoading) {
     return (
@@ -222,24 +207,7 @@ export const ProjectsSummary = () => {
         )}
       </Card>
 
-      {/* Section 3 — By Sub-Series */}
-      <Card className="p-5">
-        <h3 className="text-base font-semibold mb-3">By Sub-Series</h3>
-        {subTop.length === 0 ? (
-          <EmptyState monthLabel={monthLabel} />
-        ) : (
-          <>
-            {subTop.map(c => (
-              <BarRow key={c.name} label={c.name} count={c.count} total={c.count} maxCount={maxSubCount} fee={c.fee} />
-            ))}
-            {subExtra > 0 && (
-              <p className="text-xs text-muted-foreground mt-2">+ {subExtra} more</p>
-            )}
-          </>
-        )}
-      </Card>
-
-      {/* Section 4 — Completed */}
+      {/* Section 3 — Completed */}
       <Card className="p-5">
         <h3 className="text-base font-semibold mb-3">Completed This Month</h3>
         {completedSorted.length === 0 ? (

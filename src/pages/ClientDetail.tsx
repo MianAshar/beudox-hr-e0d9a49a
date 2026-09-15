@@ -15,7 +15,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
-import { SubSeriesTagInput } from '@/components/clients/SubSeriesTagInput';
 
 const inviteClientUser = async (
   supabase: any,
@@ -161,7 +160,6 @@ const ClientDetail = () => {
         country: editForm.country?.trim() || null,
         billing_currency: editForm.billing_currency,
         notes: editForm.notes?.trim() || null,
-        sub_series: editForm.sub_series || [],
       };
       const { error } = await supabase.from('clients').update(payload).eq('id', id!);
       if (error) throw error;
@@ -229,19 +227,18 @@ const ClientDetail = () => {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
-              onClick={() => {
-                setEditForm({
-                  name: client.name,
-                  contact_name: client.contact_name || '',
-                  contact_email: client.contact_email || '',
-                  contact_phone: client.contact_phone || '',
-                  country: client.country || '',
-                  billing_currency: client.billing_currency || 'USD',
-                  notes: client.notes || '',
-                  sub_series: client.sub_series || [],
-                });
-                setEditOpen(true);
-              }}
+            onClick={() => {
+              setEditForm({
+                name: client.name,
+                contact_name: client.contact_name || '',
+                contact_email: client.contact_email || '',
+                contact_phone: client.contact_phone || '',
+                country: client.country || '',
+                billing_currency: client.billing_currency || 'USD',
+                notes: client.notes || '',
+              });
+              setEditOpen(true);
+            }}
             >
               <Pencil className="h-4 w-4 mr-2" /> Edit
             </Button>
@@ -481,10 +478,6 @@ const ClientDetail = () => {
                     {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label>Sub-Series</Label>
-                <SubSeriesTagInput value={editForm.sub_series} onChange={v => setEditForm({ ...editForm, sub_series: v })} />
               </div>
               <div>
                 <Label>Notes</Label>

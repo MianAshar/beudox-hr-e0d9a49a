@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { SubSeriesTagInput } from './SubSeriesTagInput';
 
 const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
 
@@ -25,12 +24,10 @@ export const NewClientModal = ({ open, onOpenChange, companyId, onCreated }: Pro
     name: '', contact_name: '', contact_email: '', contact_phone: '',
     country: '', billing_currency: 'USD', notes: '',
   });
-  const [subSeries, setSubSeries] = useState<string[]>([]);
   const [err, setErr] = useState('');
 
   const reset = () => {
     setForm({ name: '', contact_name: '', contact_email: '', contact_phone: '', country: '', billing_currency: 'USD', notes: '' });
-    setSubSeries([]);
     setErr('');
   };
 
@@ -44,7 +41,6 @@ export const NewClientModal = ({ open, onOpenChange, companyId, onCreated }: Pro
         country: form.country.trim() || null,
         billing_currency: form.billing_currency,
         notes: form.notes.trim() || null,
-        sub_series: subSeries,
         company_id: companyId,
       }).select('id').single();
       if (error) throw error;
@@ -104,11 +100,6 @@ export const NewClientModal = ({ open, onOpenChange, companyId, onCreated }: Pro
                 {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label>Sub-Series</Label>
-            <p className="text-xs text-muted-foreground mb-2">Add sub-series or divisions under this client (e.g. different property types, regions, or project lines)</p>
-            <SubSeriesTagInput value={subSeries} onChange={setSubSeries} />
           </div>
           <div>
             <Label>Notes</Label>
