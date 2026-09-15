@@ -129,6 +129,20 @@ const FinanceSheet = () => {
     (sum: number, r: any) => sum + Number(r.final_payment || 0), 0
   );
 
+  const payrollColumnTotals = (payrollData || []).reduce(
+    (acc: any, r: any) => ({
+      basic: acc.basic + Number(r.basic_salary || 0),
+      allowance: acc.allowance + Number(r.allowance || 0),
+      otHrs: acc.otHrs + Number(r.regular_ot_hours || 0) + Number(r.holiday_ot_hours || 0),
+      otAmt: acc.otAmt + Number(r.regular_ot_amount || 0) + Number(r.holiday_ot_amount || 0),
+      bonus: acc.bonus + Number(r.bonus || 0),
+      dinner: acc.dinner + Number(r.dinner_expense || 0),
+      loanDed: acc.loanDed + Number(r.loan_deduction || 0),
+      finalPmt: acc.finalPmt + Number(r.final_payment || 0),
+    }),
+    { basic: 0, allowance: 0, otHrs: 0, otAmt: 0, bonus: 0, dinner: 0, loanDed: 0, finalPmt: 0 }
+  );
+
   // ─── EXPENSE HELPERS ───
   const getExpenseAmount = (lineItemId: string) => {
     const row = (monthlyExpenses || []).find((e: any) => e.line_item_id === lineItemId);
@@ -734,6 +748,19 @@ const FinanceSheet = () => {
                             </>
                           );
                         })}
+                        <TableRow className="fs-total-row" style={{ background: '#1A1240' }}>
+                          <TableCell className="text-[12px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
+                            Column Totals
+                          </TableCell>
+                          <TableCell className="text-right text-[12px] font-bold font-mono text-white">{payrollColumnTotals.basic.toLocaleString()}</TableCell>
+                          <TableCell className="text-right text-[12px] font-bold font-mono text-white">{payrollColumnTotals.allowance.toLocaleString()}</TableCell>
+                          <TableCell className="text-right text-[12px] font-bold font-mono text-white">{payrollColumnTotals.otHrs.toFixed(1)}</TableCell>
+                          <TableCell className="text-right text-[12px] font-bold font-mono text-white">{payrollColumnTotals.otAmt.toLocaleString()}</TableCell>
+                          <TableCell className="text-right text-[12px] font-bold font-mono text-white">{payrollColumnTotals.bonus.toLocaleString()}</TableCell>
+                          <TableCell className="text-right text-[12px] font-bold font-mono text-white">{payrollColumnTotals.dinner.toLocaleString()}</TableCell>
+                          <TableCell className="text-right text-[12px] font-bold font-mono text-white">{payrollColumnTotals.loanDed.toLocaleString()}</TableCell>
+                          <TableCell className="text-right text-[12px] font-bold font-mono text-white">{payrollColumnTotals.finalPmt.toLocaleString()}</TableCell>
+                        </TableRow>
                         <TableRow className="fs-grand-row" style={{ background: '#5B3FF8' }}>
                           <TableCell colSpan={8} className="text-right text-[13px] font-bold text-white" style={{ fontFamily: 'var(--ff-display)' }}>
                             Total Payroll
