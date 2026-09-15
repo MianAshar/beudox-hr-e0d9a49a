@@ -88,6 +88,9 @@ interface Client {
   billing_currency: string;
   notes: string | null;
   is_active: boolean;
+  scope: string | null;
+  client_requirements: string | null;
+  category_id: string | null;
 }
 
 const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
@@ -100,6 +103,9 @@ const emptyForm = {
   country: '',
   billing_currency: 'USD',
   notes: '',
+  scope: '',
+  client_requirements: '',
+  category_id: '',
 };
 
 const Clients = () => {
@@ -126,11 +132,26 @@ const Clients = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clients')
-        .select('*')
+        .select('*, client_categories(id, name, code)')
         .eq('company_id', companyId!)
         .order('name');
       if (error) throw error;
-      return data as Client[];
+      return data as unknown as Client[];
+    },
+    enabled: !!companyId,
+  });
+
+  const { data: clientCategories } = useQuery({
+    queryKey: ['client-categories', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('client_categories')
+        .select('id, name, code')
+        .eq('company_id', companyId!)
+        .eq('is_active', true)
+        .order('display_order')
+        .order('name');
+      return data || [];
     },
     enabled: !!companyId,
   });
@@ -209,20 +230,13 @@ const Clients = () => {
         country: form.country.trim() || null,
         billing_currency: form.billing_currency,
         notes: form.notes.trim() || null,
+        scope: form.scope.trim() || null,
+        client_requirements: form.client_requirements.trim() || null,
+        category_id: form.category_id || null,
         company_id: companyId!,
       };
-      const { data: newClient, error } = await supabase.from('clients').insert(payload).select().single();
+      const { error } = await supabase.from('clients').insert(payload).select().single();
       if (error) throw error;
-      if (newClient && form.contact_email) {
-        await inviteClientUser(
-          supabase,
-          companyId!,
-          newClient.id,
-          form.name,
-          form.contact_email,
-          form.contact_name || null
-        );
-      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['clients'] });
@@ -265,6 +279,7 @@ const Clients = () => {
   const handleSave = () => {
     const errs: Record<string, string> = {};
     if (!form.name.trim()) errs.name = 'Company name is required';
+    if (!form.category_id) errs.category_id = 'Category is required';
     if (Object.keys(errs).length) { setErrors(errs); return; }
     saveMutation.mutate();
   };
@@ -410,6 +425,7 @@ const Clients = () => {
             <TableHeader>
               <TableRow>
                 <SortableHeader column="name" sort={sort} onSort={toggleSort}>Client Name</SortableHeader>
+                <TableHead>Category</TableHead>
                 {showActivity && <SortableHeader column="activity" sort={sort} onSort={toggleSort}>Activity</SortableHeader>}
                 <SortableHeader column="contact_name" sort={sort} onSort={toggleSort}>Contact Name</SortableHeader>
                 <SortableHeader column="contact_email" sort={sort} onSort={toggleSort}>Contact Email</SortableHeader>
@@ -422,7 +438,7 @@ const Clients = () => {
                 const cat = activityByClient.get(c.id);
                 const styles = cat ? ACTIVITY_STYLES[cat] : null;
                 const isExpanded = expandedClientId === c.id;
-                const colSpan = showActivity ? 6 : 5;
+                const colSpan = showActivity ? 7 : 6;
                 return (
                   <>
                     <TableRow key={c.id}>
@@ -435,6 +451,13 @@ const Clients = () => {
                           {c.name}
                         </button>
                       </div>
+                      </TableCell>
+                      <TableCell>
+                        {(c as any).client_categories ? (
+                          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-violet-50 text-violet-700">
+                            {(c as any).client_categories.code}
+                          </span>
+                        ) : '—'}
                       </TableCell>
                       {showActivity && (
                         <TableCell>
@@ -679,6 +702,29 @@ const Clients = () => {
                   {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label>Category *</Label>
+              <Select value={form.category_id} onValueChange={v => { setForm({ ...form, category_id: v }); setErrors({}); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(clientCategories || []).map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name} ({cat.code})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.category_id && <p className="text-sm text-destructive mt-1">{errors.category_id}</p>}
+            </div>
+            <div>
+              <Label>Scope</Label>
+              <p className="text-xs text-muted-foreground mb-1">High-level description of work for this client. Will auto-populate on new projects.</p>
+              <Textarea value={form.scope} onChange={e => setForm({ ...form, scope: e.target.value })} rows={3} />
+            </div>
+            <div>
+              <Label>Client Requirements</Label>
+              <Textarea value={form.client_requirements} onChange={e => setForm({ ...form, client_requirements: e.target.value })} rows={3} />
             </div>
             <div>
               <Label>Notes</Label>

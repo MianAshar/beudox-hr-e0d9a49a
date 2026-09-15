@@ -10,6 +10,7 @@ import RolesTab from '@/components/settings/RolesTab';
 import DangerZoneTab from '@/components/settings/DangerZoneTab';
 import ExpenseCategoriesTab from '@/components/settings/ExpenseCategoriesTab';
 import LeaveTypesTab from '@/components/settings/LeaveTypesTab';
+import ClientCategoriesTab from '@/components/settings/ClientCategoriesTab';
 
 import LoginLogsTab from '@/components/settings/LoginLogsTab';
 import LeaveOverwriteLogTab from '@/components/settings/LeaveOverwriteLogTab';
@@ -57,6 +58,12 @@ const Settings = () => {
       label: 'Finance',
       items: [
         { value: 'expense-categories', label: 'Expense Categories' },
+      ],
+    }] : []),
+    ...(isCeo || isHr ? [{
+      label: 'Clients',
+      items: [
+        { value: 'client-categories', label: 'Client Categories' },
       ],
     }] : []),
     ...(isCeo || isHr ? [{
@@ -117,6 +124,7 @@ const Settings = () => {
         {(isCeo || isHr) && activeTab === 'eval-params' && <EvaluationParametersTab />}
         {isCeo && activeTab === 'roles' && <RolesTab />}
         {(isCeo || isFinance) && activeTab === 'expense-categories' && <ExpenseCategoriesTab />}
+        {(isCeo || isHr) && activeTab === 'client-categories' && <ClientCategoriesTab />}
         {(isCeo || isHr) && activeTab === 'leave-types' && <LeaveTypesTab />}
         {(isCeo || isHr) && activeTab === 'login-logs' && <LoginLogsTab />}
         {(isCeo || isHr) && activeTab === 'leave-overwrites' && <LeaveOverwriteLogTab />}
