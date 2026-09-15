@@ -543,8 +543,8 @@ const ProjectForm = () => {
               </div>
             </div>
 
-            {/* Row 2: Client + Sub-Series */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Row 2: Client */}
+            <div>
               <div>
                 <Label>Client *</Label>
                 <Popover open={clientOpen} onOpenChange={setClientOpen}>
