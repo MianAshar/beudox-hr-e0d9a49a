@@ -576,42 +576,6 @@ const ProjectForm = () => {
                 </Popover>
                 {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
               </div>
-              <div>
-                <Label>Sub-Series</Label>
-                {form.client_id ? (
-                  <>
-                    <Select value={form.sub_series || '__none__'} onValueChange={v => { if (v === '__add_new__') { setAddingSubSeries(true); setNewSubSeries(''); return; } setForm({ ...form, sub_series: v === '__none__' ? '' : v }); }}>
-                      <SelectTrigger><SelectValue placeholder="Select sub-series" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">— None —</SelectItem>
-                        {(selectedClient?.sub_series ?? []).map((s: string) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
-                        <SelectItem value="__add_new__" className="text-[#5B3FF8] font-medium">+ Add New Sub-Series</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {addingSubSeries && (
-                      <div className="mt-2 flex gap-2">
-                        <Input autoFocus value={newSubSeries} onChange={e => setNewSubSeries(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('add-sub-series-btn')?.click(); } }} placeholder="New sub-series name" />
-                        <Button id="add-sub-series-btn" type="button" onClick={async () => {
-                          const v = newSubSeries.trim();
-                          if (!v || !form.client_id) return;
-                          const current = selectedClient?.sub_series ?? [];
-                          if (current.includes(v)) { setForm({ ...form, sub_series: v }); setAddingSubSeries(false); return; }
-                          const next = [...current, v];
-                          const { error } = await supabase.from('clients').update({ sub_series: next }).eq('id', form.client_id);
-                          if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
-                          await qc.invalidateQueries({ queryKey: ['clients-lookup'] });
-                          setForm({ ...form, sub_series: v });
-                          setAddingSubSeries(false);
-                          setNewSubSeries('');
-                        }}>Add</Button>
-                        <Button type="button" variant="outline" onClick={() => { setAddingSubSeries(false); setNewSubSeries(''); }}>Cancel</Button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <Input disabled placeholder="Select a client first" className="text-muted-foreground" />
-                )}
-              </div>
             </div>
 
             {/* Row 3: Location + Category */}
