@@ -739,12 +739,6 @@ const FinanceSheet = () => {
                                   <TableCell className="text-right text-[12px] font-mono font-semibold">{Number(r.final_payment).toLocaleString()}</TableCell>
                                 </TableRow>
                               ))}
-                              <TableRow key={`sub-${dept}`} className="fs-subtotal-row" style={{ background: '#F6F5FF' }}>
-                                <TableCell colSpan={8} className="text-right text-[12px] font-semibold" style={{ fontFamily: 'var(--ff-body)' }}>
-                                  {dept} Subtotal
-                                </TableCell>
-                                <TableCell className="text-right text-[13px] font-bold font-mono">{subtotal.toLocaleString()}</TableCell>
-                              </TableRow>
                             </>
                           );
                         })}
