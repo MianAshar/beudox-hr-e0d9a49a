@@ -1,0 +1,2 @@
+ALTER TABLE project_evaluations ADD COLUMN IF NOT EXISTS task_id UUID REFERENCES project_tasks(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_project_evaluations_task_id ON project_evaluations(task_id);

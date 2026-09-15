@@ -2536,6 +2536,7 @@ export type Database = {
           remarks: string | null
           reviewee_id: string
           reviewer_id: string
+          task_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2549,6 +2550,7 @@ export type Database = {
           remarks?: string | null
           reviewee_id: string
           reviewer_id: string
+          task_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2562,6 +2564,7 @@ export type Database = {
           remarks?: string | null
           reviewee_id?: string
           reviewer_id?: string
+          task_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2591,6 +2594,13 @@ export type Database = {
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_evaluations_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "project_tasks"
             referencedColumns: ["id"]
           },
         ]
