@@ -100,7 +100,6 @@ const emptyForm = {
   country: '',
   billing_currency: 'USD',
   notes: '',
-  sub_series: [] as string[],
 };
 
 const Clients = () => {
