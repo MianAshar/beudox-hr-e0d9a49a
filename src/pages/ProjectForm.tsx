@@ -63,7 +63,7 @@ const ProjectForm = () => {
   const { data: clients } = useQuery({
     queryKey: ['clients-lookup', companyId],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id, name, billing_currency').eq('company_id', companyId!).eq('is_active', true).order('name');
+      const { data } = await supabase.from('clients').select('id, name, billing_currency, scope').eq('company_id', companyId!).eq('is_active', true).order('name');
       return data ?? [];
     },
     enabled: !!companyId,
@@ -561,7 +561,17 @@ const ProjectForm = () => {
                         <CommandEmpty>No clients found.</CommandEmpty>
                         <CommandGroup>
                           {filteredClients.map(c => (
-                            <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id }); setClientOpen(false); setClientSearch(''); }}>
+                            <CommandItem key={c.id} value={c.id} onSelect={() => {
+                              const clientScope = (c as any).scope || '';
+                              setForm(prev => ({
+                                ...prev,
+                                client_id: c.id,
+                                // Auto-populate scope only on new projects and only if user hasn't typed anything yet
+                                scope_of_work: !isEdit && !prev.scope_of_work ? clientScope : prev.scope_of_work,
+                              }));
+                              setClientOpen(false);
+                              setClientSearch('');
+                            }}>
                               <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
                               {c.name}
                             </CommandItem>
@@ -742,6 +752,9 @@ const ProjectForm = () => {
               <div>
                 <Label>Scope of Work</Label>
                 <Textarea value={form.scope_of_work} onChange={e => setForm({ ...form, scope_of_work: e.target.value })} rows={4} />
+                {!isEdit && form.client_id && (clients?.find(c => c.id === form.client_id) as any)?.scope && (
+                  <p className="text-xs text-muted-foreground mt-1">Auto-populated from client scope. Edit as needed.</p>
+                )}
               </div>
               <div>
                 <Label>Instructions</Label>
