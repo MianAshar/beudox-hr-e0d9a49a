@@ -114,6 +114,30 @@ const FinanceSheet = () => {
     enabled: !!companyId,
   });
 
+  // ─── INCOME DATA (projects added this month) ───
+  const { data: incomeProjects, isLoading: incomeLoading } = useQuery({
+    queryKey: ['finance-income', companyId, monthYear],
+    queryFn: async () => {
+      const monthStart = `${selectedYear}-${selectedMonth}-01`;
+      const monthEnd = new Date(Number(selectedYear), Number(selectedMonth), 1).toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, project_code, project_name, fee, billing_currency, created_at, clients(name)')
+        .eq('company_id', companyId!)
+        .gte('created_at', monthStart)
+        .lt('created_at', monthEnd)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
+  const incomeTotalPKR = (incomeProjects || []).reduce((sum: number, p: any) => {
+    // Only sum PKR fees for simplicity; non-PKR shown as-is
+    return sum + (p.billing_currency === 'PKR' ? Number(p.fee || 0) : 0);
+  }, 0);
+
   // ─── GROUP PAYROLL BY DEPARTMENT ───
   const payrollByDept: Record<string, any[]> = {};
   (payrollData || []).forEach((rec: any) => {
