@@ -480,10 +480,6 @@ const ClientDetail = () => {
                 </Select>
               </div>
               <div>
-                <Label>Sub-Series</Label>
-                <SubSeriesTagInput value={editForm.sub_series} onChange={v => setEditForm({ ...editForm, sub_series: v })} />
-              </div>
-              <div>
                 <Label>Notes</Label>
                 <Textarea value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} rows={3} />
               </div>
