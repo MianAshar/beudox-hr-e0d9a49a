@@ -359,7 +359,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
             <span className="text-[13px] font-semibold" style={{ color: '#172B4D' }}>{s.label}</span>
             <Skeleton className="h-4 w-6 rounded-full" />
           </div>
-          <div className="flex flex-col gap-2 p-2 rounded-b-sm" style={{ background: '#F8F9FA', minHeight: 100 }}>
+          <div className="flex flex-col gap-2 p-2 rounded-b-sm" style={{ background: '#F8F9FA', minHeight: 'calc(100vh - 280px)' }}>
             {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-[3px]" />)}
           </div>
         </div>
@@ -419,7 +419,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
               {/* Body */}
               <div
                 className="flex flex-col gap-2 p-2 rounded-b-sm"
-                style={{ background: '#F8F9FA', minHeight: 100 }}
+                style={{ background: '#F8F9FA', minHeight: 'calc(100vh - 280px)' }}
               >
 
                 {columnTasks.length === 0 ? (
