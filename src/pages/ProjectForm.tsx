@@ -159,8 +159,7 @@ const ProjectForm = () => {
         internal_deadline: existingProject.internal_deadline ? new Date(existingProject.internal_deadline) : undefined,
         project_lead_id: existingProject.project_lead_id || '',
         notes: existingProject.notes || '',
-        sub_series: (existingProject as any).sub_series || '',
-        location: (existingProject as any).location || '',
+        location: existingProject.location || '',
       });
     }
   }, [existingProject]);
