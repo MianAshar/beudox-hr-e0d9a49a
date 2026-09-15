@@ -490,6 +490,27 @@ const Projects = () => {
   const isCEO = roles.includes('ceo');
   const tabTriggerClass = 'rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0';
 
+  const viewSwitcher = (
+    <div className="flex items-center rounded-lg border overflow-hidden">
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn('rounded-none h-8 px-2.5', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+        onClick={() => setViewMode('list')}
+      >
+        <LayoutList className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn('rounded-none h-8 px-2.5', viewMode === 'board' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+        onClick={() => setViewMode('board')}
+      >
+        <LayoutGrid className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+
   const renderProjectList = (items: any[], opts: { showAdd: boolean; past?: boolean }) => {
     const effectiveSortBy = opts.past && sortBy === 'internal_deadline' ? 'default' : sortBy;
     const allExpanded = items.length > 0 && items.every((p: any) => expandedIds.has(p.id));
