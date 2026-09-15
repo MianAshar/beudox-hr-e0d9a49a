@@ -594,7 +594,7 @@ const FinanceSheet = () => {
   }, [departments, payrollByDept, payrollGrandTotal, categories, lineItems, monthlyExpenses, monthLabel, selectedYear, expensesGrandTotal, bdCategory, bdCategoryId, bdGrandTotal, isCeo]);
 
   const [activeTab, setActiveTab] = useState('summary');
-  const isLoading = payrollLoading || expensesLoading;
+  const isLoading = payrollLoading || expensesLoading || incomeLoading;
 
   return (
     <>
