@@ -731,13 +731,9 @@ const Projects = () => {
     return (
       <div className="p-4 lg:p-6 space-y-6">
         {viewMode === 'board' ? (
-          <>
-            <div className="flex items-center justify-end border-b pb-2" style={{ borderColor: 'hsl(var(--border))' }}>
-              {viewSwitcher}
-            </div>
-            <TaskBoard />
-          </>
+          <TaskBoard headerAction={viewSwitcher} />
         ) : (
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex items-center border-b" style={{ borderColor: 'hsl(var(--border))' }}>
               <TabsList
@@ -769,13 +765,9 @@ const Projects = () => {
     return (
       <div className="p-4 lg:p-6 space-y-6">
         {viewMode === 'board' ? (
-          <>
-            <div className="flex items-center justify-end border-b pb-2" style={{ borderColor: 'hsl(var(--border))' }}>
-              {viewSwitcher}
-            </div>
-            <TaskBoard />
-          </>
+          <TaskBoard headerAction={viewSwitcher} />
         ) : (
+
           <Tabs value={activeTab === 'past' ? 'past' : 'list'} onValueChange={setActiveTab} className="w-full">
             <div className="flex items-center border-b" style={{ borderColor: 'hsl(var(--border))' }}>
               <TabsList
@@ -802,13 +794,9 @@ const Projects = () => {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {viewMode === 'board' ? (
-        <>
-          <div className="flex items-center justify-end border-b pb-2" style={{ borderColor: 'hsl(var(--border))' }}>
-            {viewSwitcher}
-          </div>
-          <TaskBoard />
-        </>
+        <TaskBoard headerAction={viewSwitcher} />
       ) : (
+
         <>
           <div className="flex items-center justify-end border-b pb-2" style={{ borderColor: 'hsl(var(--border))' }}>
             {viewSwitcher}
