@@ -15,7 +15,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
-import { SubSeriesTagInput } from '@/components/clients/SubSeriesTagInput';
 
 const inviteClientUser = async (
   supabase: any,
