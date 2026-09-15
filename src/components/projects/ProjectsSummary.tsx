@@ -133,18 +133,6 @@ export const ProjectsSummary = () => {
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
   }, [monthProjects]);
 
-  const subSeriesBreakdown = useMemo(() => {
-    const map = new Map<string, { name: string; count: number; fee: number }>();
-    monthProjects.forEach((p: any) => {
-      const name = (p.sub_series && String(p.sub_series).trim()) || 'Unspecified';
-      const c = map.get(name) ?? { name, count: 0, fee: 0 };
-      c.count += 1;
-      c.fee += Number(p.fee) || 0;
-      map.set(name, c);
-    });
-    return Array.from(map.values()).sort((a, b) => b.count - a.count);
-  }, [monthProjects]);
-
   const completedSorted = useMemo(
     () => [...stats.completed].sort((a: any, b: any) =>
       new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
@@ -154,9 +142,6 @@ export const ProjectsSummary = () => {
   const clientsTop = clientBreakdown.slice(0, 8);
   const clientsExtra = Math.max(0, clientBreakdown.length - 8);
   const maxClientCount = clientsTop.reduce((m, c) => Math.max(m, c.count), 0);
-  const subTop = subSeriesBreakdown.slice(0, 8);
-  const subExtra = Math.max(0, subSeriesBreakdown.length - 8);
-  const maxSubCount = subTop.reduce((m, c) => Math.max(m, c.count), 0);
 
   if (isLoading) {
     return (
