@@ -79,7 +79,7 @@ export const ProjectsSummary = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, project_code, project_name, status, fee, sub_series, created_at, updated_at, internal_deadline, client_id, clients(id, name), lead:employees!projects_project_lead_id_fkey(id, full_name)')
+        .select('id, project_code, project_name, status, fee, created_at, updated_at, internal_deadline, client_id, clients(id, name), lead:employees!projects_project_lead_id_fkey(id, full_name)')
         .eq('company_id', companyId!)
         .eq('is_active', true);
       if (error) throw error;
