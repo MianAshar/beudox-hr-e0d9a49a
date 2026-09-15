@@ -764,6 +764,20 @@ const Projects = () => {
         </div>
       </div>
 
+      {/* Sticky column headers */}
+      {!isLoading && monthFilteredArchived.length > 0 && (
+        <div className="hidden lg:flex sticky top-0 z-10 h-10 items-center gap-3 border-b bg-secondary px-4">
+          <div className="w-8 shrink-0" />
+          <span className="w-20 shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Code</span>
+          <span className="flex-1 min-w-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Name</span>
+          <span className="w-[220px] shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Scope of Work</span>
+          <span className="w-[180px] shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Deadline</span>
+          <span className="w-[160px] shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Lead</span>
+          <span className="w-[160px] shrink-0 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Status</span>
+          <div className="w-10 shrink-0" />
+        </div>
+      )}
+
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
