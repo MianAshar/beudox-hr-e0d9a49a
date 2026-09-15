@@ -68,13 +68,11 @@ const TaskCard = ({
   task,
   onMove,
   myRoles,
-  myId,
   myEmployeeId,
 }: {
   task: any;
   onMove: (task: any, toStage: Stage, reason?: string) => void;
   myRoles: string[];
-  myId: string;
   myEmployeeId: string;
 }) => {
   const [rejectOpen, setRejectOpen] = useState(false);
