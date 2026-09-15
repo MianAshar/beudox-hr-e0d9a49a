@@ -561,7 +561,7 @@ const ProjectForm = () => {
                         <CommandEmpty>No clients found.</CommandEmpty>
                         <CommandGroup>
                           {filteredClients.map(c => (
-                            <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id, sub_series: '' }); setClientOpen(false); setClientSearch(''); }}>
+                            <CommandItem key={c.id} value={c.id} onSelect={() => { setForm({ ...form, client_id: c.id }); setClientOpen(false); setClientSearch(''); }}>
                               <Check className={cn('mr-2 h-4 w-4', form.client_id === c.id ? 'opacity-100' : 'opacity-0')} />
                               {c.name}
                             </CommandItem>
