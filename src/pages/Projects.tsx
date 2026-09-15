@@ -18,8 +18,9 @@ import { toast } from '@/hooks/use-toast';
 import {
   Plus, Search, FolderKanban, XCircle, Loader2, ChevronDown, ChevronRight, Trash2,
   Pencil, FileText, Users, ListChecks, History, ArrowUpDown, Play,
-  AlertTriangle,
+  AlertTriangle, LayoutList, LayoutGrid,
 } from 'lucide-react';
+import TaskBoard from '@/components/tasks/TaskBoard';
 import { formatDate } from '@/lib/format-date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -222,6 +223,7 @@ const Projects = () => {
   const [sortBy, setSortBy] = useState<string>('internal_deadline');
   const [listMonth, setListMonth] = useState(() => String(new Date().getMonth() + 1).padStart(2, '0'));
   const [listYear, setListYear] = useState(() => String(new Date().getFullYear()));
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
 
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
@@ -488,6 +490,27 @@ const Projects = () => {
   const isCEO = roles.includes('ceo');
   const tabTriggerClass = 'rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-[13px] font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0';
 
+  const viewSwitcher = (
+    <div className="flex items-center rounded-lg border overflow-hidden">
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn('rounded-none h-8 px-2.5', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+        onClick={() => setViewMode('list')}
+      >
+        <LayoutList className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn('rounded-none h-8 px-2.5', viewMode === 'board' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+        onClick={() => setViewMode('board')}
+      >
+        <LayoutGrid className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+
   const renderProjectList = (items: any[], opts: { showAdd: boolean; past?: boolean }) => {
     const effectiveSortBy = opts.past && sortBy === 'internal_deadline' ? 'default' : sortBy;
     const allExpanded = items.length > 0 && items.every((p: any) => expandedIds.has(p.id));
@@ -707,25 +730,30 @@ const Projects = () => {
   if (isCEO) {
     return (
       <div className="p-4 lg:p-6 space-y-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList
-            className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
-            style={{ borderColor: 'hsl(var(--border))' }}
-          >
-            <TabsTrigger value="summary" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              Summary
-            </TabsTrigger>
-            <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              All Projects ({monthFilteredActive.length})
-            </TabsTrigger>
-            <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              Past Projects ({monthFilteredArchived.length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="summary" className="mt-6"><ProjectsSummary /></TabsContent>
-          <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
-          <TabsContent value="past" className="space-y-6 mt-6">{pastContent}</TabsContent>
-        </Tabs>
+        <div className="flex items-center justify-end">{viewSwitcher}</div>
+        {viewMode === 'board' ? (
+          <TaskBoard />
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList
+              className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
+              style={{ borderColor: 'hsl(var(--border))' }}
+            >
+              <TabsTrigger value="summary" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+                Summary
+              </TabsTrigger>
+              <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+                All Projects ({monthFilteredActive.length})
+              </TabsTrigger>
+              <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+                Past Projects ({monthFilteredArchived.length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="summary" className="mt-6"><ProjectsSummary /></TabsContent>
+            <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
+            <TabsContent value="past" className="space-y-6 mt-6">{pastContent}</TabsContent>
+          </Tabs>
+        )}
         {sharedDialogs}
       </div>
     );
@@ -734,27 +762,37 @@ const Projects = () => {
   if (isManager) {
     return (
       <div className="p-4 lg:p-6 space-y-6">
-        <Tabs value={activeTab === 'past' ? 'past' : 'list'} onValueChange={setActiveTab} className="w-full">
-          <TabsList
-            className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
-            style={{ borderColor: 'hsl(var(--border))' }}
-          >
-            <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              All Projects ({monthFilteredActive.length})
-            </TabsTrigger>
-            <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
-              Past Projects ({monthFilteredArchived.length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
-          <TabsContent value="past" className="space-y-6 mt-6">{pastContent}</TabsContent>
-        </Tabs>
+        <div className="flex items-center justify-end">{viewSwitcher}</div>
+        {viewMode === 'board' ? (
+          <TaskBoard />
+        ) : (
+          <Tabs value={activeTab === 'past' ? 'past' : 'list'} onValueChange={setActiveTab} className="w-full">
+            <TabsList
+              className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap"
+              style={{ borderColor: 'hsl(var(--border))' }}
+            >
+              <TabsTrigger value="list" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+                All Projects ({monthFilteredActive.length})
+              </TabsTrigger>
+              <TabsTrigger value="past" className={tabTriggerClass} style={{ fontFamily: 'var(--ff-body)' }}>
+                Past Projects ({monthFilteredArchived.length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="list" className="space-y-6 mt-6">{listContent}</TabsContent>
+            <TabsContent value="past" className="space-y-6 mt-6">{pastContent}</TabsContent>
+          </Tabs>
+        )}
         {sharedDialogs}
       </div>
     );
   }
 
-  return <div className="p-4 lg:p-6 space-y-6">{listContent}{sharedDialogs}</div>;
+  return (
+    <div className="p-4 lg:p-6 space-y-6">
+      <div className="flex items-center justify-end">{viewSwitcher}</div>
+      {viewMode === 'board' ? <TaskBoard /> : <>{listContent}{sharedDialogs}</>}
+    </div>
+  );
 };
 
 interface ProjectCardProps {
