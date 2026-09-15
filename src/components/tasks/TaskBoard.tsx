@@ -354,12 +354,12 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
     <div className="flex gap-3 items-stretch overflow-x-auto pb-4">
       {STAGES.map(s => (
         <div key={s.key} className="flex flex-col min-w-0 flex-1" style={{ borderTop: `3px solid ${s.topBorder}` }}>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-t-sm" style={{ background: '#F4F5F7', minHeight: 36 }}>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-t-sm" style={{ background: '#F8F9FA', minHeight: 36 }}>
             <span className="h-[6px] w-[6px] rounded-full shrink-0" style={{ background: s.dot }} />
             <span className="text-[13px] font-semibold" style={{ color: '#172B4D' }}>{s.label}</span>
             <Skeleton className="h-4 w-6 rounded-full" />
           </div>
-          <div className="flex flex-col gap-2 p-2 rounded-b-sm" style={{ background: '#F4F5F7', minHeight: 100 }}>
+          <div className="flex flex-col gap-2 p-2 rounded-b-sm" style={{ background: '#F8F9FA', minHeight: 100 }}>
             {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-[3px]" />)}
           </div>
         </div>
@@ -403,7 +403,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
           return (
             <div key={stage.key} className="flex flex-col min-w-0 flex-1" style={{ borderTop: `3px solid ${stage.topBorder}` }}>
               {/* Header */}
-              <div className="flex items-center gap-2 px-3 py-2 rounded-t-sm" style={{ background: '#F4F5F7', minHeight: 36 }}>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-t-sm" style={{ background: '#F8F9FA', minHeight: 36 }}>
                 <span className="h-[6px] w-[6px] rounded-full shrink-0" style={{ background: stage.dot }} />
                 <span className="text-[13px] font-semibold" style={{ color: stage.textColor }}>
                   {stage.label}
@@ -419,7 +419,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
               {/* Body */}
               <div
                 className="flex flex-col gap-2 p-2 rounded-b-sm"
-                style={{ background: '#F4F5F7', minHeight: 100 }}
+                style={{ background: '#F8F9FA', minHeight: 100 }}
               >
 
                 {columnTasks.length === 0 ? (
@@ -535,7 +535,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
                   {/* Status */}
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: '#6B778C' }}>Status</p>
-                    <span className="inline-flex items-center gap-1.5 text-[12px] font-medium px-2 py-1 rounded-[3px]" style={{ background: '#F4F5F7', color: '#172B4D' }}>
+                    <span className="inline-flex items-center gap-1.5 text-[12px] font-medium px-2 py-1 rounded-[3px]" style={{ background: '#F8F9FA', color: '#172B4D' }}>
                       <span className="h-2 w-2 rounded-full" style={{ background: stageInfo?.dot }} />
                       {stageInfo?.label}
                     </span>
