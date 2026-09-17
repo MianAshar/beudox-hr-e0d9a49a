@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
-import { CalendarX2 } from 'lucide-react';
+import { CalendarX2, AlertTriangle, Pencil } from 'lucide-react';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
+import MissingEntryModal, { MissingEntryTarget } from '@/components/attendance/MissingEntryModal';
 
 const MONTHS = [
   { value: '01', label: 'January' }, { value: '02', label: 'February' },
