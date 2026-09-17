@@ -174,6 +174,13 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
         </Select>
       </div>
 
+      {isCeo && attendanceLocked && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm" style={{ background: '#FEF3C7', color: '#92400E', border: '1px solid #F5C6A0' }}>
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          Attendance is locked for this month — payroll has been approved.
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <SummaryCard label="Present Days" value={summary.present} accent="text-[hsl(var(--bx-success-text))]" />
         <SummaryCard label="Absent Days" value={summary.absent} accent="text-[hsl(var(--bx-danger-text))]" />
