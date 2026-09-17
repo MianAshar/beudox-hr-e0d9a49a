@@ -414,21 +414,21 @@ const Attendance = () => {
   }, [employee?.company_id]);
 
   // Check if payroll for this month is approved/paid (locked)
-  const monthYear = `${selectedYear}-${String(MONTHS.indexOf(month) + 1).padStart(2, '0')}`;
+  const monthYear = `${year}-${String(MONTHS.indexOf(month) + 1).padStart(2, '0')}`;
   const { data: payrollLockStatus } = useQuery({
-    queryKey: ['attendance-payroll-lock', companyId, monthYear],
+    queryKey: ['attendance-payroll-lock', employee?.company_id, monthYear],
     queryFn: async () => {
       const { data } = await supabase
         .from('payroll_records')
         .select('status')
-        .eq('company_id', companyId!)
+        .eq('company_id', employee!.company_id)
         .eq('month_year', monthYear)
         .eq('superseded', false)
         .in('status', ['approved', 'paid'])
         .limit(1);
       return (data?.length ?? 0) > 0;
     },
-    enabled: !!companyId,
+    enabled: !!employee?.company_id,
   });
   const attendanceLocked = !!payrollLockStatus;
 
