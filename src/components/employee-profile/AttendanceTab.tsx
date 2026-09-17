@@ -264,6 +264,21 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
           </Table>
         )}
       </div>
+
+      <MissingEntryModal
+        open={!!editTarget}
+        target={editTarget}
+        shiftStart={shiftStart}
+        shiftEnd={shiftEnd}
+        shiftDuration={shiftDuration}
+        lateThresholdMin={0}
+        lunchBreakHours={lunchBreakHours}
+        onClose={() => setEditTarget(null)}
+        onSaved={() => {
+          setEditTarget(null);
+          qc.invalidateQueries({ queryKey: ['employee-attendance', employeeId, year, month] });
+        }}
+      />
     </div>
   );
 };
