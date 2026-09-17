@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
-import { CalendarX2 } from 'lucide-react';
+import { CalendarX2, AlertTriangle, Pencil } from 'lucide-react';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
+import MissingEntryModal, { MissingEntryTarget } from '@/components/attendance/MissingEntryModal';
 
 const MONTHS = [
   { value: '01', label: 'January' }, { value: '02', label: 'February' },
@@ -31,12 +33,71 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
   const now = new Date();
   const [month, setMonth] = useState(String(now.getMonth() + 1).padStart(2, '0'));
   const [year, setYear] = useState(String(now.getFullYear()));
+  const [editTarget, setEditTarget] = useState<MissingEntryTarget | null>(null);
+
+  const { employee: authEmp } = useAuth();
+  const isCeo = (authEmp?.roles ?? []).includes('ceo');
+  const companyId = authEmp?.company_id;
+  const qc = useQueryClient();
 
   const startDate = `${year}-${month}-01`;
   const endDate = (() => {
     const d = new Date(Number(year), Number(month), 0);
     return `${year}-${month}-${String(d.getDate()).padStart(2, '0')}`;
   })();
+
+  const monthYear = `${year}-${month}`;
+
+  // Payroll lock check
+  const { data: attendanceLocked } = useQuery({
+    queryKey: ['att-tab-payroll-lock', companyId, monthYear],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('payroll_records')
+        .select('status')
+        .eq('company_id', companyId!)
+        .eq('month_year', monthYear)
+        .eq('superseded', false)
+        .in('status', ['approved', 'paid'])
+        .limit(1);
+      return (data?.length ?? 0) > 0;
+    },
+    enabled: !!companyId,
+  });
+
+  // Fetch employee info needed for modal (code + name)
+  const { data: empInfo } = useQuery({
+    queryKey: ['att-tab-emp-info', employeeId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('employees')
+        .select('employee_code, full_name')
+        .eq('id', employeeId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!employeeId,
+  });
+
+  // Company settings for shift calculations
+  const { data: settings } = useQuery({
+    queryKey: ['att-tab-settings', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('company_settings')
+        .select('shift_start_time, shift_end_time, lunch_break_hours')
+        .eq('company_id', companyId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  const shiftStart = settings?.shift_start_time ?? '09:00:00';
+  const shiftEnd = settings?.shift_end_time ?? '18:00:00';
+  const lunchBreakHours = Number(settings?.lunch_break_hours ?? 1);
+  const parseT = (t: string) => { const [h, m] = t.split(':').map(Number); return h + m / 60; };
+  const shiftDuration = Math.max(0, parseT(shiftEnd) - parseT(shiftStart) - lunchBreakHours);
 
   const { data: records, isLoading } = useQuery({
     queryKey: ['employee-attendance', employeeId, year, month],
@@ -113,6 +174,13 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
         </Select>
       </div>
 
+      {isCeo && attendanceLocked && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm" style={{ background: '#FEF3C7', color: '#92400E', border: '1px solid #F5C6A0' }}>
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          Attendance is locked for this month — payroll has been approved.
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <SummaryCard label="Present Days" value={summary.present} accent="text-[hsl(var(--bx-success-text))]" />
         <SummaryCard label="Absent Days" value={summary.absent} accent="text-[hsl(var(--bx-danger-text))]" />
@@ -140,6 +208,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                 <TableHead>Working Hrs</TableHead>
                 <TableHead>OT Hrs</TableHead>
                 <TableHead>Status</TableHead>
+                {isCeo && <TableHead />}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -163,6 +232,31 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                     <TableCell>
                       <Badge variant="outline" className={`text-[11px] border-0 ${cls}`}>{status}</Badge>
                     </TableCell>
+                    {isCeo && (
+                      <TableCell>
+                        {!r.is_weekend && !r.is_holiday && !attendanceLocked && (
+                          <button
+                            type="button"
+                            onClick={() => setEditTarget({
+                              recordId: r.id,
+                              employeeId,
+                              employeeName: empInfo?.full_name ?? null,
+                              employeeCode: empInfo?.employee_code ?? null,
+                              date: r.date,
+                              field: 'both',
+                              mode: r.is_absent ? 'insert' : 'update',
+                              existingCheckIn: r.check_in,
+                              existingCheckOut: r.check_out,
+                            })}
+                            className="inline-flex items-center gap-1 px-2 h-6 text-[11px] font-medium rounded border transition-colors hover:bg-muted"
+                            style={{ borderColor: 'rgba(91,63,248,0.3)', color: '#5B3FF8' }}
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Edit
+                          </button>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
@@ -170,6 +264,21 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
           </Table>
         )}
       </div>
+
+      <MissingEntryModal
+        open={!!editTarget}
+        target={editTarget}
+        shiftStart={shiftStart}
+        shiftEnd={shiftEnd}
+        shiftDuration={shiftDuration}
+        lateThresholdMin={0}
+        lunchBreakHours={lunchBreakHours}
+        onClose={() => setEditTarget(null)}
+        onSaved={() => {
+          setEditTarget(null);
+          qc.invalidateQueries({ queryKey: ['employee-attendance', employeeId, year, month] });
+        }}
+      />
     </div>
   );
 };
