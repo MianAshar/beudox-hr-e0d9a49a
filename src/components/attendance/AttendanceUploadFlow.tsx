@@ -849,6 +849,18 @@ const AttendanceUploadFlow = ({
                                       +{otAmount}h OT
                                     </span>
                                   )}
+                                  {(() => {
+                                    const inM = timeToMinutes(r.check_in);
+                                    const outM = timeToMinutes(r.check_out);
+                                    return inM != null && outM != null && outM < inM;
+                                  })() && (
+                                    <span style={{
+                                      backgroundColor: 'rgba(245,166,35,0.15)', color: '#92400E',
+                                      fontSize: '10px', padding: '1px 6px', borderRadius: '9999px', lineHeight: 1.4,
+                                    }}>
+                                      +1 day
+                                    </span>
+                                  )}
                                 </span>
                               )}
                             </TableCell>
