@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { List, CalendarDays, Check, X } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, parseISO } from 'date-fns';
+const eachDay = eachDayOfInterval;
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { sendNotification } from '@/lib/notifications';
