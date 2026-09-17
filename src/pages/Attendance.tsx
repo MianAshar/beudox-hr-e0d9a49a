@@ -298,6 +298,18 @@ function RecordsTable({
                           Add Entry
                         </button>
                       )}
+                      {/* CEO can edit fully-present records too */}
+                      {!editable && !isOnLeave && !isAbsent && r.check_in && r.check_out && canEdit(r) && (
+                        <button
+                          type="button"
+                          onClick={() => onRequestEdit(r, 'both')}
+                          className="inline-flex items-center gap-1 px-2.5 h-7 text-[11px] font-medium rounded-md border transition-colors hover:bg-muted"
+                          style={{ borderColor: 'rgba(91, 63, 248, 0.3)', color: '#5B3FF8' }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                          Edit Times
+                        </button>
+                      )}
                       {editable && missingField && (
                         <button
                           type="button"
