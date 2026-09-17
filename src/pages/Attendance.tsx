@@ -366,10 +366,10 @@ const Attendance = () => {
   const tabs = useMemo(() => {
     const list: Array<{ value: string; label: string }> = [];
     if (isManager) list.push({ value: 'summary', label: 'Summary' });
-    list.push({ value: 'my', label: 'My Attendance' });
+    if (!isCeo) list.push({ value: 'my', label: 'My Attendance' });
     if (canSeeCompanyTab) list.push({ value: 'company', label: 'Attendance' });
     return list;
-  }, [isManager, canSeeCompanyTab]);
+  }, [isManager, canSeeCompanyTab, isCeo]);
 
   const [activeTab, setActiveTab] = useState<string>(isManager ? 'summary' : 'my');
   useEffect(() => {
@@ -903,19 +903,21 @@ const Attendance = () => {
           </TabsContent>
         )}
 
-        <TabsContent value="my" className="mt-4">
-          <Card className="overflow-hidden">
-            <RecordsTable
-              records={myRecords}
-              loading={loadingMy}
-              shiftDuration={shiftDuration}
-              monthYearLabel={monthYearLabel}
-              showCodeAndName={false}
-              canEdit={canEditMy}
-              onRequestEdit={handleRequestEdit}
-            />
-          </Card>
-        </TabsContent>
+        {!isCeo && (
+          <TabsContent value="my" className="mt-4">
+            <Card className="overflow-hidden">
+              <RecordsTable
+                records={myRecords}
+                loading={loadingMy}
+                shiftDuration={shiftDuration}
+                monthYearLabel={monthYearLabel}
+                showCodeAndName={false}
+                canEdit={canEditMy}
+                onRequestEdit={handleRequestEdit}
+              />
+            </Card>
+          </TabsContent>
+        )}
 
         {canSeeCompanyTab && (
           <TabsContent value="company" className="mt-4 space-y-3">
