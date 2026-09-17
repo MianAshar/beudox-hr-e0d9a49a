@@ -250,6 +250,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
   const allowance = Number(record.allowance || 0);
   const bonus = Number(record.bonus || 0);
   const loan = Number(record.loan_deduction || 0);
+  const forgoLoan = !!record.forgo_loan;
   const rawRegOtAmt = Number(record.regular_ot_amount || 0);
   const regOtAmt = record.forgo_ot ? 0 : rawRegOtAmt;
   const holOtAmt = Number(record.holiday_ot_amount || 0);
