@@ -804,7 +804,7 @@ const Attendance = () => {
   };
 
   const canEditMy = (row: AttendanceRow) => row.employee_id === employee?.employee_id;
-  const canEditCompany = () => isManager;
+  const canEditCompany = (row: AttendanceRow) => isCeo && !attendanceLocked;
 
   return (
     <div className="max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
