@@ -119,17 +119,15 @@ const FinanceSheet = () => {
     queryKey: ['finance-income', companyId, monthYear],
     queryFn: async () => {
       const [yr, mo] = monthYear.split('-').map(Number);
-      const monthStart = new Date(yr, mo - 1, 1).toISOString();
-      const monthEnd = new Date(yr, mo, 1).toISOString();
-      console.log('[Income] monthYear:', monthYear, 'yr:', yr, 'mo:', mo, 'start:', monthStart, 'end:', monthEnd, 'companyId:', companyId);
+      const monthStart = new Date(Date.UTC(yr, mo - 1, 1)).toISOString();
+      const monthEnd = new Date(Date.UTC(yr, mo, 1)).toISOString();
       const { data, error } = await supabase
         .from('projects')
-        .select('id, project_code, project_name, fee, billing_currency, created_at, clients(name)')
+        .select('id, project_code, project_name, fee, created_at, clients(name, billing_currency)')
         .eq('company_id', companyId!)
         .gte('created_at', monthStart)
         .lt('created_at', monthEnd)
         .order('created_at', { ascending: true });
-      console.log('[Income] result count:', data?.length, 'error:', error);
       if (error) throw error;
       return data || [];
     },
@@ -137,8 +135,8 @@ const FinanceSheet = () => {
   });
 
   const incomeTotalPKR = (incomeProjects || []).reduce((sum: number, p: any) => {
-    // Only sum PKR fees for simplicity; non-PKR shown as-is
-    return sum + (p.billing_currency === 'PKR' ? Number(p.fee || 0) : 0);
+    const currency = (p.clients as any)?.billing_currency || 'PKR';
+    return sum + (currency === 'PKR' ? Number(p.fee || 0) : 0);
   }, 0);
 
   // ─── GROUP PAYROLL BY DEPARTMENT ───
@@ -735,7 +733,7 @@ const FinanceSheet = () => {
                             {new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </TableCell>
                           <TableCell className="text-right text-[12px] font-mono">
-                            {p.fee ? `${p.billing_currency} ${Number(p.fee).toLocaleString()}` : '—'}
+                            {p.fee ? `${(p.clients as any)?.billing_currency || 'PKR'} ${Number(p.fee).toLocaleString()}` : '—'}
                           </TableCell>
                         </TableRow>
                       ))}
