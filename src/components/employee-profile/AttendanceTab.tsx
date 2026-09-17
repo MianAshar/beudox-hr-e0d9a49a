@@ -54,6 +54,40 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
     enabled: !!employeeId,
   });
 
+  const { data: leaveData } = useQuery({
+    queryKey: ['employee-attendance-leaves', employeeId, year, month],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('leave_requests')
+        .select('status, days_requested, approved_days, start_date, end_date, leave_types(name)')
+        .eq('employee_id', employeeId)
+        .in('status', ['approved', 'partially_approved'])
+        .or(`start_date.lte.${endDate},end_date.gte.${startDate}`)
+        .order('start_date');
+      return data || [];
+    },
+    enabled: !!employeeId,
+  });
+
+  const paidLeaveDays = useMemo(() => {
+    return (leaveData || []).reduce((sum, lr: any) => {
+      if (lr.status === 'partially_approved') {
+        return sum + Number(lr.approved_days || 0);
+      }
+      // For fully approved — count days that overlap with this month only
+      const s = new Date(Math.max(new Date(lr.start_date).getTime(), new Date(startDate).getTime()));
+      const e = new Date(Math.min(new Date(lr.end_date).getTime(), new Date(endDate).getTime()));
+      let count = 0;
+      const cur = new Date(s);
+      while (cur <= e) {
+        const dow = cur.getDay();
+        if (dow !== 0 && dow !== 6) count++; // exclude weekends
+        cur.setDate(cur.getDate() + 1);
+      }
+      return sum + count;
+    }, 0);
+  }, [leaveData, startDate, endDate]);
+
   const summary = useMemo(() => {
     const list = records || [];
     return {
