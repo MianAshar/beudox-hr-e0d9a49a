@@ -121,6 +121,7 @@ const FinanceSheet = () => {
       const [yr, mo] = monthYear.split('-').map(Number);
       const monthStart = new Date(yr, mo - 1, 1).toISOString();
       const monthEnd = new Date(yr, mo, 1).toISOString();
+      console.log('[Income] monthYear:', monthYear, 'yr:', yr, 'mo:', mo, 'start:', monthStart, 'end:', monthEnd, 'companyId:', companyId);
       const { data, error } = await supabase
         .from('projects')
         .select('id, project_code, project_name, fee, billing_currency, created_at, clients(name)')
@@ -128,6 +129,7 @@ const FinanceSheet = () => {
         .gte('created_at', monthStart)
         .lt('created_at', monthEnd)
         .order('created_at', { ascending: true });
+      console.log('[Income] result count:', data?.length, 'error:', error);
       if (error) throw error;
       return data || [];
     },
