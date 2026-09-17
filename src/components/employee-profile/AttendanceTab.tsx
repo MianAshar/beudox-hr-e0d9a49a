@@ -113,11 +113,12 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <SummaryCard label="Present Days" value={summary.present} accent="text-[hsl(var(--bx-success-text))]" />
         <SummaryCard label="Absent Days" value={summary.absent} accent="text-[hsl(var(--bx-danger-text))]" />
         <SummaryCard label="Late Arrivals" value={summary.late} accent="text-[hsl(var(--bx-warning-text))]" />
         <SummaryCard label="Total OT Hours" value={summary.ot.toFixed(1)} />
+        <SummaryCard label="Paid Leaves" value={paidLeaveDays} accent="text-primary" />
       </div>
 
       <div className="bg-card rounded-[14px] border overflow-hidden">
