@@ -569,8 +569,23 @@ const Payroll = () => {
                         <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
                           {hideSalary ? masked : isDirector ? '—' : fmtPKR(otAmount)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
-                          {hideSalary ? masked : loan > 0 ? fmtPKR(loan) : <span className="text-muted-foreground">—</span>}
+                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell" onClick={e => e.stopPropagation()}>
+                          {hideSalary ? masked : loan > 0 && rec.status === 'draft' && !rec.forgo_loan ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              defaultValue={loan}
+                              className="w-24 h-7 text-right font-mono text-sm text-destructive ml-auto"
+                              onBlur={e => handleFieldBlur(rec, 'loan_deduction', e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            />
+                          ) : loan > 0 ? (
+                            <span className={rec.forgo_loan ? 'line-through text-muted-foreground' : ''}>
+                              {fmtPKR(loan)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         {canForgo && (
                           <TableCell className="text-center hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
