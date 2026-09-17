@@ -63,6 +63,29 @@ export default function MissingEntryModal({
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Pre-fill times when editing existing records
+  useEffect(() => {
+    if (!target) return;
+    if (target.existingCheckIn) {
+      const d = new Date(target.existingCheckIn);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      setCheckInTime(`${hh}:${mm}`);
+    } else {
+      setCheckInTime('');
+    }
+    if (target.existingCheckOut) {
+      const d = new Date(target.existingCheckOut);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      setCheckOutTime(`${hh}:${mm}`);
+    } else {
+      setCheckOutTime('');
+    }
+    setTime('');
+    setReason('');
+  }, [target]);
+
   const isBoth = target?.field === 'both';
   const mode = target?.mode ?? 'update';
 
