@@ -1579,6 +1579,8 @@ export type Database = {
         Row: {
           actioned_at: string | null
           actioned_by: string | null
+          approved_dates: string[] | null
+          approved_days: number | null
           company_id: string
           created_at: string | null
           days_requested: number
@@ -1588,6 +1590,7 @@ export type Database = {
           half_day_period: string | null
           id: string
           leave_type_id: string
+          partial_approval_reason: string | null
           reason: string | null
           rejection_reason: string | null
           start_date: string
@@ -1597,6 +1600,8 @@ export type Database = {
         Insert: {
           actioned_at?: string | null
           actioned_by?: string | null
+          approved_dates?: string[] | null
+          approved_days?: number | null
           company_id: string
           created_at?: string | null
           days_requested?: number
@@ -1606,6 +1611,7 @@ export type Database = {
           half_day_period?: string | null
           id?: string
           leave_type_id: string
+          partial_approval_reason?: string | null
           reason?: string | null
           rejection_reason?: string | null
           start_date: string
@@ -1615,6 +1621,8 @@ export type Database = {
         Update: {
           actioned_at?: string | null
           actioned_by?: string | null
+          approved_dates?: string[] | null
+          approved_days?: number | null
           company_id?: string
           created_at?: string | null
           days_requested?: number
@@ -1624,6 +1632,7 @@ export type Database = {
           half_day_period?: string | null
           id?: string
           leave_type_id?: string
+          partial_approval_reason?: string | null
           reason?: string | null
           rejection_reason?: string | null
           start_date?: string
