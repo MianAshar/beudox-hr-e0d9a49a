@@ -462,7 +462,7 @@ const AttendanceUploadFlow = ({
           employee_code: code,
           date: r.date,
           check_in: isoTimestampKarachi(r.date, r.check_in),
-          check_out: isoTimestampKarachi(r.date, r.check_out),
+          check_out: checkOutIsoKarachi(r.date, r.check_in, r.check_out),
           working_hours: wh,
           is_late: isLate, is_absent: false, is_weekend: weekend, is_holiday: holiday,
           regular_ot_hours: regularOt, holiday_ot_hours: holidayOt,
