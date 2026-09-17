@@ -124,6 +124,22 @@ function isoTimestampKarachi(date: string, time: string | null): string | null {
   return `${date}T${hh}:${mm}:${ss}${KARACHI_OFFSET}`;
 }
 
+/** Returns the correct ISO timestamp for check-out, advancing the date by 1
+ *  when the check-out time is earlier than check-in (midnight crossover). */
+function checkOutIsoKarachi(date: string, checkInTime: string | null, checkOutTime: string | null): string | null {
+  if (!checkOutTime) return null;
+  const inM = timeToMinutes(checkInTime);
+  const outM = timeToMinutes(checkOutTime);
+  if (inM != null && outM != null && outM < inM) {
+    // Checkout crossed midnight — anchor to the next calendar day
+    const d = new Date(`${date}T00:00:00`);
+    d.setDate(d.getDate() + 1);
+    const nextDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return isoTimestampKarachi(nextDate, checkOutTime);
+  }
+  return isoTimestampKarachi(date, checkOutTime);
+}
+
 function workingHours(checkIn: string | null, checkOut: string | null): number | null {
   const inM = timeToMinutes(checkIn);
   const outM = timeToMinutes(checkOut);
