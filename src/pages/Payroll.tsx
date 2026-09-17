@@ -588,19 +588,32 @@ const Payroll = () => {
                           )}
                         </TableCell>
                         {canForgo && (
-                          <TableCell className="text-center hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
-                            {canShowForgo ? (
-                              <div className="flex items-center justify-center gap-2">
-                                <Switch
-                                  checked={forgoOn}
-                                  onCheckedChange={(v) => handleToggleForgo(rec, v)}
-                                  aria-label="Forgo deduction"
-                                />
-                                <span className="text-[11px] text-muted-foreground">Forgo deduction</span>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
+                          <TableCell className="hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex flex-col gap-1.5 items-start">
+                              {canShowForgo && (
+                                <div className="flex items-center gap-1.5">
+                                  <Switch
+                                    checked={forgoOn}
+                                    onCheckedChange={(v) => handleToggleForgo(rec, v)}
+                                    aria-label="Forgo OT deduction"
+                                  />
+                                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">Forgo OT</span>
+                                </div>
+                              )}
+                              {rec.status === 'draft' && loan > 0 && (
+                                <div className="flex items-center gap-1.5">
+                                  <Switch
+                                    checked={!!rec.forgo_loan}
+                                    onCheckedChange={(v) => handleToggleForgoLoan(rec, v)}
+                                    aria-label="Forgo loan deduction"
+                                  />
+                                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">Forgo Loan</span>
+                                </div>
+                              )}
+                              {!canShowForgo && !(rec.status === 'draft' && loan > 0) && (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </div>
                           </TableCell>
                         )}
                         <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: hideSalary ? undefined : '#5B3FF8' }}>
