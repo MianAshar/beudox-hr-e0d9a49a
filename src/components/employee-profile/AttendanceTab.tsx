@@ -33,12 +33,71 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
   const now = new Date();
   const [month, setMonth] = useState(String(now.getMonth() + 1).padStart(2, '0'));
   const [year, setYear] = useState(String(now.getFullYear()));
+  const [editTarget, setEditTarget] = useState<MissingEntryTarget | null>(null);
+
+  const { employee: authEmp } = useAuth();
+  const isCeo = (authEmp?.roles ?? []).includes('ceo');
+  const companyId = authEmp?.company_id;
+  const qc = useQueryClient();
 
   const startDate = `${year}-${month}-01`;
   const endDate = (() => {
     const d = new Date(Number(year), Number(month), 0);
     return `${year}-${month}-${String(d.getDate()).padStart(2, '0')}`;
   })();
+
+  const monthYear = `${year}-${month}`;
+
+  // Payroll lock check
+  const { data: attendanceLocked } = useQuery({
+    queryKey: ['att-tab-payroll-lock', companyId, monthYear],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('payroll_records')
+        .select('status')
+        .eq('company_id', companyId!)
+        .eq('month_year', monthYear)
+        .eq('superseded', false)
+        .in('status', ['approved', 'paid'])
+        .limit(1);
+      return (data?.length ?? 0) > 0;
+    },
+    enabled: !!companyId,
+  });
+
+  // Fetch employee info needed for modal (code + name)
+  const { data: empInfo } = useQuery({
+    queryKey: ['att-tab-emp-info', employeeId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('employees')
+        .select('employee_code, full_name')
+        .eq('id', employeeId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!employeeId,
+  });
+
+  // Company settings for shift calculations
+  const { data: settings } = useQuery({
+    queryKey: ['att-tab-settings', companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('company_settings')
+        .select('shift_start_time, shift_end_time, lunch_break_hours')
+        .eq('company_id', companyId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  const shiftStart = settings?.shift_start_time ?? '09:00:00';
+  const shiftEnd = settings?.shift_end_time ?? '18:00:00';
+  const lunchBreakHours = Number(settings?.lunch_break_hours ?? 1);
+  const parseT = (t: string) => { const [h, m] = t.split(':').map(Number); return h + m / 60; };
+  const shiftDuration = Math.max(0, parseT(shiftEnd) - parseT(shiftStart) - lunchBreakHours);
 
   const { data: records, isLoading } = useQuery({
     queryKey: ['employee-attendance', employeeId, year, month],
