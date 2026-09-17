@@ -420,7 +420,10 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                   </span>
                 </div>
                 {record.forgo_ot && (
-                  <Row label="Forgo Applied" value="Yes" valueColor={GREEN} bold />
+                  <Row label="OT Forgo Applied" value="Short-time deduction waived" valueColor={GREEN} />
+                )}
+                {forgoLoan && (
+                  <Row label="Loan Forgo Applied" value="Loan deduction waived this month" valueColor={GREEN} />
                 )}
                 <div
                   className="flex items-center justify-between"
