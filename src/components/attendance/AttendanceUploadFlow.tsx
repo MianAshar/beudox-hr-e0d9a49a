@@ -124,12 +124,32 @@ function isoTimestampKarachi(date: string, time: string | null): string | null {
   return `${date}T${hh}:${mm}:${ss}${KARACHI_OFFSET}`;
 }
 
+/** Returns the correct ISO timestamp for check-out, advancing the date by 1
+ *  when the check-out time is earlier than check-in (midnight crossover). */
+function checkOutIsoKarachi(date: string, checkInTime: string | null, checkOutTime: string | null): string | null {
+  if (!checkOutTime) return null;
+  const inM = timeToMinutes(checkInTime);
+  const outM = timeToMinutes(checkOutTime);
+  if (inM != null && outM != null && outM < inM) {
+    // Checkout crossed midnight — anchor to the next calendar day
+    const d = new Date(`${date}T00:00:00`);
+    d.setDate(d.getDate() + 1);
+    const nextDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return isoTimestampKarachi(nextDate, checkOutTime);
+  }
+  return isoTimestampKarachi(date, checkOutTime);
+}
+
 function workingHours(checkIn: string | null, checkOut: string | null): number | null {
   const inM = timeToMinutes(checkIn);
-  const outM = timeToMinutes(checkOut);
+  let outM = timeToMinutes(checkOut);
   if (inM == null || outM == null) return null;
-  if (outM <= inM) return null;
-  return Math.round(((outM - inM) / 60) * 100) / 100;
+  // Midnight crossover: checkout time is on the next calendar day
+  if (outM < inM) outM += 24 * 60;
+  const hrs = Math.round(((outM - inM) / 60) * 100) / 100;
+  // Cap at 20hrs — anything beyond is likely bad data from the machine
+  if (hrs > 20) return null;
+  return hrs;
 }
 
 function isWeekend(dateStr: string): boolean {
@@ -442,7 +462,7 @@ const AttendanceUploadFlow = ({
           employee_code: code,
           date: r.date,
           check_in: isoTimestampKarachi(r.date, r.check_in),
-          check_out: isoTimestampKarachi(r.date, r.check_out),
+          check_out: checkOutIsoKarachi(r.date, r.check_in, r.check_out),
           working_hours: wh,
           is_late: isLate, is_absent: false, is_weekend: weekend, is_holiday: holiday,
           regular_ot_hours: regularOt, holiday_ot_hours: holidayOt,
@@ -827,6 +847,18 @@ const AttendanceUploadFlow = ({
                                       fontSize: '10px', padding: '1px 6px', borderRadius: '9999px', lineHeight: 1.4,
                                     }}>
                                       +{otAmount}h OT
+                                    </span>
+                                  )}
+                                  {(() => {
+                                    const inM = timeToMinutes(r.check_in);
+                                    const outM = timeToMinutes(r.check_out);
+                                    return inM != null && outM != null && outM < inM;
+                                  })() && (
+                                    <span style={{
+                                      backgroundColor: 'rgba(245,166,35,0.15)', color: '#92400E',
+                                      fontSize: '10px', padding: '1px 6px', borderRadius: '9999px', lineHeight: 1.4,
+                                    }}>
+                                      +1 day
                                     </span>
                                   )}
                                 </span>
