@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { Users, CalendarCheck, DollarSign, FolderKanban } from 'lucide-react';
-import { uniqueRecipients } from '@/lib/notifications';
-import { useEffect, useRef } from 'react';
+
+
 
 const getGreeting = () => {
   const h = new Date().getHours();
