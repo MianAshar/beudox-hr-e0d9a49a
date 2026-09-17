@@ -229,15 +229,15 @@ const Payroll = () => {
     }
   };
 
-  const handleFieldBlur = async (record: PayrollRecord, field: 'bonus' | 'dinner_expense', value: string) => {
-    const numVal = parseFloat(value) || 0;
+  const handleFieldBlur = async (record: PayrollRecord, field: 'bonus' | 'dinner_expense' | 'loan_deduction', value: string) => {
+    const numVal = Math.max(0, parseFloat(value) || 0);
     if (numVal === Number(record[field])) return;
 
     const basicSalary = Number(record.basic_salary);
     const allowance = Number(record.allowance);
-    const regularOtAmount = Number(record.regular_ot_amount);
+    const regularOtAmount = record.forgo_ot ? 0 : Number(record.regular_ot_amount);
     const holidayOtAmount = Number(record.holiday_ot_amount);
-    const loanDeduction = Number(record.loan_deduction);
+    const loanDeduction = field === 'loan_deduction' ? numVal : (record.forgo_loan ? 0 : Number(record.loan_deduction));
     const bonus = field === 'bonus' ? numVal : Number(record.bonus);
     const dinnerExpense = field === 'dinner_expense' ? numVal : Number(record.dinner_expense);
 
@@ -250,13 +250,9 @@ const Payroll = () => {
         : r
     ));
 
-    const updateData = field === 'bonus'
-      ? { bonus: numVal, total_salary: totalSalary, final_payment: finalPayment }
-      : { dinner_expense: numVal, total_salary: totalSalary, final_payment: finalPayment };
-
     const { error } = await supabase
       .from('payroll_records')
-      .update(updateData)
+      .update({ [field]: numVal, total_salary: totalSalary, final_payment: finalPayment })
       .eq('id', record.id);
     if (error) {
       toast.error('Failed to save');
