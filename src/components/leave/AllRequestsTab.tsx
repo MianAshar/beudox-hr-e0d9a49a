@@ -397,8 +397,11 @@ const AllRequestsTab = () => {
                   <TableCell>
                     {r.status === 'pending' && (
                       <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600" onClick={() => approveMutation.mutate(r)}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600" title="Approve all days" onClick={() => approveMutation.mutate(r)}>
                           <Check className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[11px] text-amber-600 hover:text-amber-700" title="Partially approve" onClick={() => { openPartialModal(r); setDetailModal({ open: false, request: null }); }}>
+                          Partial
                         </Button>
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setRejectModal({ open: true, requestId: r.id })}>
                           <X className="h-4 w-4" />
