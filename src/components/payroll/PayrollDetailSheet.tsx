@@ -390,6 +390,8 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                         label="Loan Deduction"
                         value={`- ${fmtPKR(loan)}`}
                         valueColor={RED}
+                        strikethrough={forgoLoan}
+                        note={forgoLoan ? 'Forgone this month' : undefined}
                       />
                     )}
                     {bonus > 0 && (
