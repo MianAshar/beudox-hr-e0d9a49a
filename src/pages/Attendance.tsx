@@ -401,6 +401,25 @@ const Attendance = () => {
     })();
   }, [employee?.company_id]);
 
+  // Check if payroll for this month is approved/paid (locked)
+  const monthYear = `${selectedYear}-${String(MONTHS.indexOf(month) + 1).padStart(2, '0')}`;
+  const { data: payrollLockStatus } = useQuery({
+    queryKey: ['attendance-payroll-lock', companyId, monthYear],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('payroll_records')
+        .select('status')
+        .eq('company_id', companyId!)
+        .eq('month_year', monthYear)
+        .eq('superseded', false)
+        .in('status', ['approved', 'paid'])
+        .limit(1);
+      return (data?.length ?? 0) > 0;
+    },
+    enabled: !!companyId,
+  });
+  const attendanceLocked = !!payrollLockStatus;
+
   const dateRange = useMemo(() => {
     const monthIndex = MONTHS.indexOf(month);
     const mm = String(monthIndex + 1).padStart(2, '0');
