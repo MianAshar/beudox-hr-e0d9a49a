@@ -300,7 +300,9 @@ export default function MissingEntryModal({
       <DialogContent className="max-w-md p-6">
         <DialogHeader>
           <DialogTitle style={{ fontFamily: 'var(--ff-display)' }}>
-            Add Missing Entry — {dateLabel}
+            {target?.existingCheckIn && target?.existingCheckOut
+              ? `Edit Attendance — ${dateLabel}`
+              : `Add Missing Entry — ${dateLabel}`}
           </DialogTitle>
         </DialogHeader>
 
