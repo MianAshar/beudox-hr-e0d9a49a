@@ -290,6 +290,35 @@ const Payroll = () => {
     }
   };
 
+  const handleToggleForgoLoan = async (record: PayrollRecord, next: boolean) => {
+    const basicSalary = Number(record.basic_salary || 0);
+    const allowance = Number(record.allowance || 0);
+    const regularOtAmount = (record.forgo_ot) ? 0 : Number(record.regular_ot_amount || 0);
+    const holidayOtAmount = Number(record.holiday_ot_amount || 0);
+    const bonus = Number(record.bonus || 0);
+    const dinnerExpense = Number(record.dinner_expense || 0);
+    const loanDeduction = next ? 0 : Number(record.loan_deduction || 0);
+
+    const totalSalary = Math.max(0, basicSalary + allowance + regularOtAmount + holidayOtAmount + bonus + dinnerExpense - loanDeduction);
+    const finalPayment = Math.ceil(totalSalary / 50) * 50;
+
+    const prev = records;
+    setRecords(p => p.map(r =>
+      r.id === record.id
+        ? { ...r, forgo_loan: next, total_salary: totalSalary, final_payment: finalPayment }
+        : r
+    ));
+
+    const { error } = await supabase
+      .from('payroll_records')
+      .update({ forgo_loan: next, total_salary: totalSalary, final_payment: finalPayment } as any)
+      .eq('id', record.id);
+    if (error) {
+      setRecords(prev);
+      toast.error('Failed to update');
+    }
+  };
+
 
   const handleApprove = async () => {
     setApproving(true);
