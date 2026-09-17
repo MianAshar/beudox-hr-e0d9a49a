@@ -104,6 +104,30 @@ const AllRequestsTab = () => {
   }
 
 
+  // Fetch public holidays for filtering working days in partial approval
+  const { data: publicHolidays = [] } = useQuery({
+    queryKey: ['public-holidays-leave', companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data } = await supabase.from('public_holidays').select('date').eq('company_id', companyId!);
+      return (data || []).map((h: any) => h.date as string);
+    },
+  });
+  const holidaySet = new Set<string>(publicHolidays);
+
+  const getWorkingDaysInRange = (start: string, end: string): string[] => {
+    return eachDay({ start: parseISO(start), end: parseISO(end) })
+      .filter(d => !isWeekend(d) && !holidaySet.has(format(d, 'yyyy-MM-dd')))
+      .map(d => format(d, 'yyyy-MM-dd'));
+  };
+
+  const openPartialModal = (request: any) => {
+    const workingDays = getWorkingDaysInRange(request.start_date, request.end_date);
+    setSelectedDates(new Set(workingDays)); // all pre-selected
+    setPartialReason('');
+    setPartialModal({ open: true, request });
+  };
+
   const filtered = requests.filter((r: any) => {
     if (statusFilter !== 'all' && r.status !== statusFilter) return false;
     if (employeeFilter !== 'all' && r.employee_id !== employeeFilter) return false;
