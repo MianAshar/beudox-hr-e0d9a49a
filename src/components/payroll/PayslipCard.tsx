@@ -275,7 +275,8 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
     const workingPerDay = Math.max(0.0001, shiftDuration - lunch);
     const perDay = Number(emp.basic_salary || 0) / Number(settings.ot_divisor || 26);
     const perHour = perDay / workingPerDay;
-    return { perDay, perHour };
+    const shortTimeRelaxation = Number((settings as any).short_time_relaxation_hours ?? 0);
+    return { perDay, perHour, shortTimeRelaxation };
   }, [emp, settings]);
 
   const attStats = useMemo(() => {
@@ -369,7 +370,18 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
       cur.setDate(cur.getDate() + 1);
     }
 
-    return { present, late, leaveDays, otSum, holOt, shortTime, overtime, absent };
+    // Count total working days in the month (excl. weekends + public holidays)
+    let totalWorkingDays = 0;
+    const wdCur = new Date(startDate + 'T00:00:00');
+    const wdStop = new Date(endDate + 'T00:00:00');
+    while (wdCur <= wdStop) {
+      const ds = fmtDate(wdCur);
+      const dow = wdCur.getDay();
+      if (workingDays.includes(dow) && !holidaySet.has(ds)) totalWorkingDays++;
+      wdCur.setDate(wdCur.getDate() + 1);
+    }
+
+    return { present, late, leaveDays, otSum, holOt, shortTime, overtime, absent, totalWorkingDays };
   }, [attendance, leaves, monthYear, settings, holidays]);
 
   const breakdown = useMemo(() => {
@@ -452,11 +464,15 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
   const attTable: TableSpec = {
     title: 'Attendance Summary',
     rows: [
+      { label: 'Working Days', value: attStats.totalWorkingDays },
       { label: 'Present Days', value: attStats.present },
       { label: 'Absents', value: attStats.absent, valueColor: attStats.absent > 0 ? '#E84545' : undefined },
       { label: 'Leaves Taken', value: attStats.leaveDays },
       { label: 'Late Arrivals', value: attStats.late },
       { label: 'Short Time', value: `${Math.abs(attStats.shortTime).toFixed(2)} hrs` },
+      ...(rates && rates.shortTimeRelaxation > 0
+        ? [{ label: `After ${rates.shortTimeRelaxation}hr relaxation`, value: '', note: true }]
+        : []),
       { label: 'Overtime', value: `${attStats.overtime.toFixed(2)} hrs` },
     ],
   };
@@ -468,6 +484,9 @@ const PayslipCard = ({ employeeId, monthYear }: PayslipCardProps) => {
           { label: 'Allowance', value: fmtPKR(breakdown.allowance) },
           { label: 'Per Day Salary', value: rates ? mask(fmtPKR(rates.perDay)) : '—' },
           { label: 'Per Hour Salary', value: rates ? mask(fmtPKR(rates.perHour)) : '—' },
+          ...(breakdown.loan > 0
+            ? [{ label: 'Loan Deduction', value: `- ${fmtPKR(breakdown.loan)}`, valueColor: '#E84545', bold: true }]
+            : []),
         ],
       }
     : { title: 'Salary Breakdown', rows: [] };
