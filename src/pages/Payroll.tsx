@@ -250,9 +250,15 @@ const Payroll = () => {
         : r
     ));
 
+    const updateData = field === 'bonus'
+      ? { bonus: numVal, total_salary: totalSalary, final_payment: finalPayment }
+      : field === 'dinner_expense'
+        ? { dinner_expense: numVal, total_salary: totalSalary, final_payment: finalPayment }
+        : { loan_deduction: numVal, total_salary: totalSalary, final_payment: finalPayment };
+
     const { error } = await supabase
       .from('payroll_records')
-      .update({ [field]: numVal, total_salary: totalSalary, final_payment: finalPayment })
+      .update(updateData)
       .eq('id', record.id);
     if (error) {
       toast.error('Failed to save');
