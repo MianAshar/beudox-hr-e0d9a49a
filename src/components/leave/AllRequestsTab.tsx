@@ -560,6 +560,85 @@ const AllRequestsTab = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Partial Approval Modal */}
+      <Dialog open={partialModal.open} onOpenChange={open => { if (!open) { setPartialModal({ open: false, request: null }); setSelectedDates(new Set()); setPartialReason(''); } }}>
+        <DialogContent className="sm:max-w-md" style={{ fontFamily: 'var(--ff-body)' }}>
+          <DialogHeader>
+            <DialogTitle>Partial Leave Approval</DialogTitle>
+          </DialogHeader>
+          {partialModal.request && (() => {
+            const r = partialModal.request;
+            const workingDays = getWorkingDaysInRange(r.start_date, r.end_date);
+            const selectedCount = selectedDates.size;
+            return (
+              <div className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">{r.employees?.full_name}</span> requested <span className="font-medium text-foreground">{r.days_requested} day(s)</span> of {r.leave_types?.name}.
+                  Select which days to approve:
+                </div>
+
+                {/* Day chips */}
+                <div className="flex flex-wrap gap-2">
+                  {workingDays.map(d => {
+                    const isSelected = selectedDates.has(d);
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => {
+                          setSelectedDates(prev => {
+                            const next = new Set(prev);
+                            next.has(d) ? next.delete(d) : next.add(d);
+                            return next;
+                          });
+                        }}
+                        className="text-[12px] font-medium px-2.5 py-1.5 rounded-lg border transition-all"
+                        style={isSelected
+                          ? { background: '#D1FAE5', color: '#065F46', borderColor: '#6EE7B7' }
+                          : { background: '#F9FAFB', color: '#6B7280', borderColor: '#E5E7EB' }
+                        }
+                      >
+                        {format(parseISO(d), 'EEE d MMM')}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Summary */}
+                <p className="text-sm font-medium">
+                  Approving <span className="text-primary">{selectedCount}</span> of <span>{workingDays.length}</span> working day(s)
+                  {selectedCount < workingDays.length && (
+                    <span className="text-muted-foreground font-normal"> — {workingDays.length - selectedCount} day(s) will be rejected</span>
+                  )}
+                </p>
+
+                {/* Reason */}
+                <div className="space-y-1.5">
+                  <Label>Reason for partial approval <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+                  <Textarea
+                    value={partialReason}
+                    onChange={e => setPartialReason(e.target.value)}
+                    rows={2}
+                    placeholder="e.g. Only 2 days approved due to project deadline..."
+                  />
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPartialModal({ open: false, request: null }); setSelectedDates(new Set()); setPartialReason(''); }}>
+              Cancel
+            </Button>
+            <Button
+              disabled={selectedDates.size === 0 || partialApproveMutation.isPending}
+              onClick={() => partialApproveMutation.mutate()}
+            >
+              {partialApproveMutation.isPending ? 'Saving…' : `Approve ${selectedDates.size} Day(s)`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
