@@ -903,19 +903,21 @@ const Attendance = () => {
           </TabsContent>
         )}
 
-        <TabsContent value="my" className="mt-4">
-          <Card className="overflow-hidden">
-            <RecordsTable
-              records={myRecords}
-              loading={loadingMy}
-              shiftDuration={shiftDuration}
-              monthYearLabel={monthYearLabel}
-              showCodeAndName={false}
-              canEdit={canEditMy}
-              onRequestEdit={handleRequestEdit}
-            />
-          </Card>
-        </TabsContent>
+        {!isCeo && (
+          <TabsContent value="my" className="mt-4">
+            <Card className="overflow-hidden">
+              <RecordsTable
+                records={myRecords}
+                loading={loadingMy}
+                shiftDuration={shiftDuration}
+                monthYearLabel={monthYearLabel}
+                showCodeAndName={false}
+                canEdit={canEditMy}
+                onRequestEdit={handleRequestEdit}
+              />
+            </Card>
+          </TabsContent>
+        )}
 
         {canSeeCompanyTab && (
           <TabsContent value="company" className="mt-4 space-y-3">
