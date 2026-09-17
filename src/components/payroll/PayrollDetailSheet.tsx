@@ -38,12 +38,16 @@ const Row = ({
   valueColor,
   bold,
   valueSize,
+  strikethrough,
+  note,
 }: {
   label: string;
   value: string;
   valueColor?: string;
   bold?: boolean;
   valueSize?: number;
+  strikethrough?: boolean;
+  note?: string;
 }) => (
   <div
     className="flex items-center justify-between"
@@ -52,16 +56,25 @@ const Row = ({
     <span style={{ fontFamily: 'var(--ff-body)', fontWeight: 400, fontSize: 13, color: LABEL }}>
       {label}
     </span>
-    <span
-      style={{
-        fontFamily: 'var(--ff-body)',
-        fontWeight: bold ? 700 : 500,
-        fontSize: valueSize ?? 13,
-        color: valueColor ?? VALUE,
-      }}
-    >
-      {value}
-    </span>
+    <div className="text-right">
+      <span
+        style={{
+          fontFamily: 'var(--ff-body)',
+          fontWeight: bold ? 700 : 500,
+          fontSize: valueSize ?? 13,
+          color: strikethrough ? LABEL : (valueColor ?? VALUE),
+          textDecoration: strikethrough ? 'line-through' : undefined,
+          opacity: strikethrough ? 0.6 : 1,
+        }}
+      >
+        {value}
+      </span>
+      {note && (
+        <span style={{ display: 'block', fontSize: 10, color: '#1DC97A', fontFamily: 'var(--ff-body)', fontWeight: 500 }}>
+          {note}
+        </span>
+      )}
+    </div>
   </div>
 );
 
@@ -237,6 +250,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
   const allowance = Number(record.allowance || 0);
   const bonus = Number(record.bonus || 0);
   const loan = Number(record.loan_deduction || 0);
+  const forgoLoan = !!record.forgo_loan;
   const rawRegOtAmt = Number(record.regular_ot_amount || 0);
   const regOtAmt = record.forgo_ot ? 0 : rawRegOtAmt;
   const holOtAmt = Number(record.holiday_ot_amount || 0);
@@ -376,6 +390,8 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                         label="Loan Deduction"
                         value={`- ${fmtPKR(loan)}`}
                         valueColor={RED}
+                        strikethrough={forgoLoan}
+                        note={forgoLoan ? 'Forgone this month' : undefined}
                       />
                     )}
                     {bonus > 0 && (
@@ -404,7 +420,10 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                   </span>
                 </div>
                 {record.forgo_ot && (
-                  <Row label="Forgo Applied" value="Yes" valueColor={GREEN} bold />
+                  <Row label="OT Forgo Applied" value="Short-time deduction waived" valueColor={GREEN} />
+                )}
+                {forgoLoan && (
+                  <Row label="Loan Forgo Applied" value="Loan deduction waived this month" valueColor={GREEN} />
                 )}
                 <div
                   className="flex items-center justify-between"
