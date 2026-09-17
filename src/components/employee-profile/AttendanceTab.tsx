@@ -232,6 +232,31 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                     <TableCell>
                       <Badge variant="outline" className={`text-[11px] border-0 ${cls}`}>{status}</Badge>
                     </TableCell>
+                    {isCeo && (
+                      <TableCell>
+                        {!r.is_weekend && !r.is_holiday && !attendanceLocked && (
+                          <button
+                            type="button"
+                            onClick={() => setEditTarget({
+                              recordId: r.id,
+                              employeeId,
+                              employeeName: empInfo?.full_name ?? null,
+                              employeeCode: empInfo?.employee_code ?? null,
+                              date: r.date,
+                              field: 'both',
+                              mode: r.is_absent ? 'insert' : 'update',
+                              existingCheckIn: r.check_in,
+                              existingCheckOut: r.check_out,
+                            })}
+                            className="inline-flex items-center gap-1 px-2 h-6 text-[11px] font-medium rounded border transition-colors hover:bg-muted"
+                            style={{ borderColor: 'rgba(91,63,248,0.3)', color: '#5B3FF8' }}
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Edit
+                          </button>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
