@@ -235,7 +235,7 @@ export const ProjectRFITab = ({
         await sendNotification({
           companyId,
           recipientIds: recipients,
-          type: 'rfi_submitted',
+          type: 'rfi_followup',
           title: 'Follow-up question added',
           message: `A follow-up question has been added to an RFI on ${projectName}.`,
           referenceType: 'project',
