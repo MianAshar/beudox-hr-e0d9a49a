@@ -38,12 +38,16 @@ const Row = ({
   valueColor,
   bold,
   valueSize,
+  strikethrough,
+  note,
 }: {
   label: string;
   value: string;
   valueColor?: string;
   bold?: boolean;
   valueSize?: number;
+  strikethrough?: boolean;
+  note?: string;
 }) => (
   <div
     className="flex items-center justify-between"
@@ -52,16 +56,25 @@ const Row = ({
     <span style={{ fontFamily: 'var(--ff-body)', fontWeight: 400, fontSize: 13, color: LABEL }}>
       {label}
     </span>
-    <span
-      style={{
-        fontFamily: 'var(--ff-body)',
-        fontWeight: bold ? 700 : 500,
-        fontSize: valueSize ?? 13,
-        color: valueColor ?? VALUE,
-      }}
-    >
-      {value}
-    </span>
+    <div className="text-right">
+      <span
+        style={{
+          fontFamily: 'var(--ff-body)',
+          fontWeight: bold ? 700 : 500,
+          fontSize: valueSize ?? 13,
+          color: strikethrough ? LABEL : (valueColor ?? VALUE),
+          textDecoration: strikethrough ? 'line-through' : undefined,
+          opacity: strikethrough ? 0.6 : 1,
+        }}
+      >
+        {value}
+      </span>
+      {note && (
+        <span style={{ display: 'block', fontSize: 10, color: '#1DC97A', fontFamily: 'var(--ff-body)', fontWeight: 500 }}>
+          {note}
+        </span>
+      )}
+    </div>
   </div>
 );
 
