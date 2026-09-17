@@ -220,22 +220,6 @@ const ProjectForm = () => {
           }
           if (existingProject && (existingProject.notes || null) !== (payload.notes || null)) {
             await supabase.from('projects').update({ notes_updated_at: new Date().toISOString() } as any).eq('id', id!);
-            const { data: assignees } = await supabase
-              .from('project_assignments').select('employee_id')
-              .eq('project_id', id!).eq('company_id', companyId!).eq('is_active', true)
-              .neq('employee_id', employee?.employee_id!);
-            const recipientIds = (assignees ?? []).map(a => a.employee_id);
-            if (recipientIds.length > 0) {
-              await sendNotification({
-                companyId: companyId!,
-                recipientIds,
-                type: 'notes_updated',
-                title: 'Project instructions updated',
-                message: `${existingProject.project_name} — Instructions have been updated. Please review the updated instructions.`,
-                referenceType: 'project',
-                referenceId: id!,
-              });
-            }
           }
           return;
         }
