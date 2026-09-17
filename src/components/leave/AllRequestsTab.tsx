@@ -163,7 +163,7 @@ const AllRequestsTab = () => {
 
       sendNotification({
         companyId: companyId!, recipientIds: [request.employee_id],
-        type: 'leave_actioned', title: 'Leave Approved',
+        type: 'leave_approved', title: 'Leave Approved',
         message: `Your ${request.leave_types?.name || 'leave'} from ${request.start_date} to ${request.end_date} has been approved.`,
         referenceType: 'leave', referenceId: request.id,
       });
@@ -191,7 +191,7 @@ const AllRequestsTab = () => {
         const msg = reason ? `Your ${(req as any).leave_types?.name || 'leave'} request was not approved. Reason: ${reason}.` : `Your ${(req as any).leave_types?.name || 'leave'} request was not approved.`;
         sendNotification({
           companyId: companyId!, recipientIds: [req.employee_id],
-          type: 'leave_actioned', title: 'Leave Rejected', message: msg,
+          type: 'leave_rejected', title: 'Leave Rejected', message: msg,
           referenceType: 'leave', referenceId: requestId,
         });
       }
@@ -258,7 +258,7 @@ const AllRequestsTab = () => {
       sendNotification({
         companyId: companyId!,
         recipientIds: [request.employee_id],
-        type: 'leave_actioned',
+        type: isFullApproval ? 'leave_approved' : 'leave_partially_approved',
         title: isFullApproval ? 'Leave Approved' : 'Leave Partially Approved',
         message: msg,
         referenceType: 'leave',
