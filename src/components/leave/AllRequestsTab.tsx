@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { List, CalendarDays, Check, X } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, parseISO } from 'date-fns';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { sendNotification } from '@/lib/notifications';
@@ -23,6 +23,7 @@ import { sendNotification } from '@/lib/notifications';
 const statusStyles: Record<string, { bg: string; text: string }> = {
   pending: { bg: '#FEF3C7', text: '#92400E' },
   approved: { bg: '#D1FAE5', text: '#065F46' },
+  partially_approved: { bg: '#FEF3C7', text: '#B45309' },
   rejected: { bg: '#FEE2E2', text: '#991B1B' },
   cancelled: { bg: '#F3F4F6', text: '#374151' },
 };
@@ -42,6 +43,10 @@ const AllRequestsTab = () => {
   // Reject modal
   const [rejectModal, setRejectModal] = useState<{ open: boolean; requestId: string | null }>({ open: false, requestId: null });
   const [rejectionReason, setRejectionReason] = useState('');
+  // Partial approval modal
+  const [partialModal, setPartialModal] = useState<{ open: boolean; request: any | null }>({ open: false, request: null });
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+  const [partialReason, setPartialReason] = useState('');
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['all-leave-requests', companyId],
@@ -201,6 +206,7 @@ const AllRequestsTab = () => {
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="partially_approved">Partially Approved</SelectItem>
             </SelectContent>
           </Select>
           <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
