@@ -2219,6 +2219,7 @@ export type Database = {
           dinner_expense: number
           employee_id: string
           final_payment: number
+          forgo_loan: boolean
           forgo_ot: boolean
           holiday_ot_amount: number
           holiday_ot_hours: number
@@ -2249,6 +2250,7 @@ export type Database = {
           dinner_expense?: number
           employee_id: string
           final_payment?: number
+          forgo_loan?: boolean
           forgo_ot?: boolean
           holiday_ot_amount?: number
           holiday_ot_hours?: number
@@ -2279,6 +2281,7 @@ export type Database = {
           dinner_expense?: number
           employee_id?: string
           final_payment?: number
+          forgo_loan?: boolean
           forgo_ot?: boolean
           holiday_ot_amount?: number
           holiday_ot_hours?: number

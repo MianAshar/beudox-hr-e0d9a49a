@@ -229,15 +229,15 @@ const Payroll = () => {
     }
   };
 
-  const handleFieldBlur = async (record: PayrollRecord, field: 'bonus' | 'dinner_expense', value: string) => {
-    const numVal = parseFloat(value) || 0;
+  const handleFieldBlur = async (record: PayrollRecord, field: 'bonus' | 'dinner_expense' | 'loan_deduction', value: string) => {
+    const numVal = Math.max(0, parseFloat(value) || 0);
     if (numVal === Number(record[field])) return;
 
     const basicSalary = Number(record.basic_salary);
     const allowance = Number(record.allowance);
-    const regularOtAmount = Number(record.regular_ot_amount);
+    const regularOtAmount = record.forgo_ot ? 0 : Number(record.regular_ot_amount);
     const holidayOtAmount = Number(record.holiday_ot_amount);
-    const loanDeduction = Number(record.loan_deduction);
+    const loanDeduction = field === 'loan_deduction' ? numVal : (record.forgo_loan ? 0 : Number(record.loan_deduction));
     const bonus = field === 'bonus' ? numVal : Number(record.bonus);
     const dinnerExpense = field === 'dinner_expense' ? numVal : Number(record.dinner_expense);
 
@@ -252,7 +252,9 @@ const Payroll = () => {
 
     const updateData = field === 'bonus'
       ? { bonus: numVal, total_salary: totalSalary, final_payment: finalPayment }
-      : { dinner_expense: numVal, total_salary: totalSalary, final_payment: finalPayment };
+      : field === 'dinner_expense'
+        ? { dinner_expense: numVal, total_salary: totalSalary, final_payment: finalPayment }
+        : { loan_deduction: numVal, total_salary: totalSalary, final_payment: finalPayment };
 
     const { error } = await supabase
       .from('payroll_records')
@@ -287,6 +289,35 @@ const Payroll = () => {
     const { error } = await supabase
       .from('payroll_records')
       .update({ forgo_ot: next, total_salary: totalSalary, final_payment: finalPayment } as any)
+      .eq('id', record.id);
+    if (error) {
+      setRecords(prev);
+      toast.error('Failed to update');
+    }
+  };
+
+  const handleToggleForgoLoan = async (record: PayrollRecord, next: boolean) => {
+    const basicSalary = Number(record.basic_salary || 0);
+    const allowance = Number(record.allowance || 0);
+    const regularOtAmount = (record.forgo_ot) ? 0 : Number(record.regular_ot_amount || 0);
+    const holidayOtAmount = Number(record.holiday_ot_amount || 0);
+    const bonus = Number(record.bonus || 0);
+    const dinnerExpense = Number(record.dinner_expense || 0);
+    const loanDeduction = next ? 0 : Number(record.loan_deduction || 0);
+
+    const totalSalary = Math.max(0, basicSalary + allowance + regularOtAmount + holidayOtAmount + bonus + dinnerExpense - loanDeduction);
+    const finalPayment = Math.ceil(totalSalary / 50) * 50;
+
+    const prev = records;
+    setRecords(p => p.map(r =>
+      r.id === record.id
+        ? { ...r, forgo_loan: next, total_salary: totalSalary, final_payment: finalPayment }
+        : r
+    ));
+
+    const { error } = await supabase
+      .from('payroll_records')
+      .update({ forgo_loan: next, total_salary: totalSalary, final_payment: finalPayment } as any)
       .eq('id', record.id);
     if (error) {
       setRecords(prev);
@@ -544,23 +575,51 @@ const Payroll = () => {
                         <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
                           {hideSalary ? masked : isDirector ? '—' : fmtPKR(otAmount)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">
-                          {hideSalary ? masked : loan > 0 ? fmtPKR(loan) : <span className="text-muted-foreground">—</span>}
+                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell" onClick={e => e.stopPropagation()}>
+                          {hideSalary ? masked : loan > 0 && rec.status === 'draft' && !rec.forgo_loan ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              defaultValue={loan}
+                              className="w-24 h-7 text-right font-mono text-sm text-destructive ml-auto"
+                              onBlur={e => handleFieldBlur(rec, 'loan_deduction', e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            />
+                          ) : loan > 0 ? (
+                            <span className={rec.forgo_loan ? 'line-through text-muted-foreground' : ''}>
+                              {fmtPKR(loan)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         {canForgo && (
-                          <TableCell className="text-center hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
-                            {canShowForgo ? (
-                              <div className="flex items-center justify-center gap-2">
-                                <Switch
-                                  checked={forgoOn}
-                                  onCheckedChange={(v) => handleToggleForgo(rec, v)}
-                                  aria-label="Forgo deduction"
-                                />
-                                <span className="text-[11px] text-muted-foreground">Forgo deduction</span>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
+                          <TableCell className="hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex flex-col gap-1.5 items-start">
+                              {canShowForgo && (
+                                <div className="flex items-center gap-1.5">
+                                  <Switch
+                                    checked={forgoOn}
+                                    onCheckedChange={(v) => handleToggleForgo(rec, v)}
+                                    aria-label="Forgo OT deduction"
+                                  />
+                                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">Forgo OT</span>
+                                </div>
+                              )}
+                              {rec.status === 'draft' && loan > 0 && (
+                                <div className="flex items-center gap-1.5">
+                                  <Switch
+                                    checked={!!rec.forgo_loan}
+                                    onCheckedChange={(v) => handleToggleForgoLoan(rec, v)}
+                                    aria-label="Forgo loan deduction"
+                                  />
+                                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">Forgo Loan</span>
+                                </div>
+                              )}
+                              {!canShowForgo && !(rec.status === 'draft' && loan > 0) && (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </div>
                           </TableCell>
                         )}
                         <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: hideSalary ? undefined : '#5B3FF8' }}>
