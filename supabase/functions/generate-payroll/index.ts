@@ -138,9 +138,9 @@ Deno.serve(async (req) => {
     // harmless because attendance won't have OT entries for those days anyway).
     const { data: approvedLeaves } = await supabase
       .from('leave_requests')
-      .select('employee_id, start_date, end_date')
+      .select('employee_id, start_date, end_date, status, approved_dates')
       .eq('company_id', company_id)
-      .eq('status', 'approved')
+      .in('status', ['approved', 'partially_approved'])
       .lte('start_date', endDate)
       .gte('end_date', startDate);
 
@@ -149,15 +149,24 @@ Deno.serve(async (req) => {
       const empId = (lr as any).employee_id as string;
       if (!leaveDatesByEmp[empId]) leaveDatesByEmp[empId] = new Set<string>();
       const set = leaveDatesByEmp[empId];
-      const s = new Date(((lr as any).start_date as string) + 'T00:00:00');
-      const e = new Date(((lr as any).end_date as string) + 'T00:00:00');
-      const winStart = new Date(startDate + 'T00:00:00');
-      const winEnd = new Date(endDate + 'T00:00:00');
-      const cur = new Date(Math.max(s.getTime(), winStart.getTime()));
-      const stop = new Date(Math.min(e.getTime(), winEnd.getTime()));
-      while (cur <= stop) {
-        set.add(cur.toISOString().split('T')[0]);
-        cur.setDate(cur.getDate() + 1);
+
+      if ((lr as any).status === 'partially_approved' && (lr as any).approved_dates?.length) {
+        // Only add the specific approved dates
+        for (const d of (lr as any).approved_dates as string[]) {
+          if (d >= startDate && d <= endDate) set.add(d);
+        }
+      } else {
+        // Full approval — expand the date range as before
+        const s = new Date(((lr as any).start_date as string) + 'T00:00:00');
+        const e = new Date(((lr as any).end_date as string) + 'T00:00:00');
+        const winStart = new Date(startDate + 'T00:00:00');
+        const winEnd = new Date(endDate + 'T00:00:00');
+        const cur = new Date(Math.max(s.getTime(), winStart.getTime()));
+        const stop = new Date(Math.min(e.getTime(), winEnd.getTime()));
+        while (cur <= stop) {
+          set.add(cur.toISOString().split('T')[0]);
+          cur.setDate(cur.getDate() + 1);
+        }
       }
     }
 

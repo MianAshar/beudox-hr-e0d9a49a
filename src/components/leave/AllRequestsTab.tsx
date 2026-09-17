@@ -14,7 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { List, CalendarDays, Check, X } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, parseISO } from 'date-fns';
+const eachDay = eachDayOfInterval;
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { sendNotification } from '@/lib/notifications';
@@ -23,6 +24,7 @@ import { sendNotification } from '@/lib/notifications';
 const statusStyles: Record<string, { bg: string; text: string }> = {
   pending: { bg: '#FEF3C7', text: '#92400E' },
   approved: { bg: '#D1FAE5', text: '#065F46' },
+  partially_approved: { bg: '#FEF3C7', text: '#B45309' },
   rejected: { bg: '#FEE2E2', text: '#991B1B' },
   cancelled: { bg: '#F3F4F6', text: '#374151' },
 };
@@ -42,6 +44,10 @@ const AllRequestsTab = () => {
   // Reject modal
   const [rejectModal, setRejectModal] = useState<{ open: boolean; requestId: string | null }>({ open: false, requestId: null });
   const [rejectionReason, setRejectionReason] = useState('');
+  // Partial approval modal
+  const [partialModal, setPartialModal] = useState<{ open: boolean; request: any | null }>({ open: false, request: null });
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+  const [partialReason, setPartialReason] = useState('');
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['all-leave-requests', companyId],
@@ -97,6 +103,30 @@ const AllRequestsTab = () => {
     };
   }
 
+
+  // Fetch public holidays for filtering working days in partial approval
+  const { data: publicHolidays = [] } = useQuery({
+    queryKey: ['public-holidays-leave', companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data } = await supabase.from('public_holidays').select('date').eq('company_id', companyId!);
+      return (data || []).map((h: any) => h.date as string);
+    },
+  });
+  const holidaySet = new Set<string>(publicHolidays);
+
+  const getWorkingDaysInRange = (start: string, end: string): string[] => {
+    return eachDay({ start: parseISO(start), end: parseISO(end) })
+      .filter(d => !isWeekend(d) && !holidaySet.has(format(d, 'yyyy-MM-dd')))
+      .map(d => format(d, 'yyyy-MM-dd'));
+  };
+
+  const openPartialModal = (request: any) => {
+    const workingDays = getWorkingDaysInRange(request.start_date, request.end_date);
+    setSelectedDates(new Set(workingDays)); // all pre-selected
+    setPartialReason('');
+    setPartialModal({ open: true, request });
+  };
 
   const filtered = requests.filter((r: any) => {
     if (statusFilter !== 'all' && r.status !== statusFilter) return false;
@@ -176,6 +206,77 @@ const AllRequestsTab = () => {
     onError: () => toast.error('Failed to reject'),
   });
 
+  const partialApproveMutation = useMutation({
+    mutationFn: async () => {
+      const request = partialModal.request;
+      if (!request) throw new Error('No request');
+      const approvedDatesArr = Array.from(selectedDates).sort();
+      const approvedDays = approvedDatesArr.length;
+      if (approvedDays === 0) throw new Error('No dates selected');
+
+      // If all working days are selected — treat as full approval
+      const workingDays = getWorkingDaysInRange(request.start_date, request.end_date);
+      const isFullApproval = approvedDays === workingDays.length;
+      const newStatus = isFullApproval ? 'approved' : 'partially_approved';
+
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({
+          status: newStatus,
+          approved_dates: approvedDatesArr,
+          approved_days: approvedDays,
+          partial_approval_reason: partialReason.trim() || null,
+          actioned_by: employee!.employee_id,
+          actioned_at: new Date().toISOString(),
+        } as any)
+        .eq('id', request.id);
+      if (error) throw error;
+
+      // Deduct approved_days from leave balance
+      const year = new Date(request.start_date).getFullYear();
+      const { data: balance } = await supabase
+        .from('leave_balances')
+        .select('id, used_days')
+        .eq('company_id', companyId!)
+        .eq('employee_id', request.employee_id)
+        .eq('leave_type_id', request.leave_type_id)
+        .eq('year', year)
+        .single();
+      if (balance) {
+        await supabase
+          .from('leave_balances')
+          .update({ used_days: (balance.used_days || 0) + approvedDays } as any)
+          .eq('id', balance.id);
+      }
+
+      // Notification
+      const leaveTypeName = request.leave_types?.name || 'leave';
+      const msg = isFullApproval
+        ? `Your ${leaveTypeName} from ${formatDate(request.start_date)} to ${formatDate(request.end_date)} has been approved.`
+        : `Your ${leaveTypeName} request was partially approved. ${approvedDays} of ${request.days_requested} day(s) approved.${partialReason ? ` Reason: ${partialReason}` : ''}`;
+
+      sendNotification({
+        companyId: companyId!,
+        recipientIds: [request.employee_id],
+        type: 'leave_actioned',
+        title: isFullApproval ? 'Leave Approved' : 'Leave Partially Approved',
+        message: msg,
+        referenceType: 'leave',
+        referenceId: request.id,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-leave-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['all-leave-balances'] });
+      setPartialModal({ open: false, request: null });
+      setDetailModal({ open: false, request: null });
+      setSelectedDates(new Set());
+      setPartialReason('');
+      toast.success('Leave approved');
+    },
+    onError: (e: any) => toast.error(e?.message || 'Failed to approve'),
+  });
+
   const monthStart = startOfMonth(calMonth);
   const monthEnd = endOfMonth(calMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
@@ -201,6 +302,7 @@ const AllRequestsTab = () => {
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="partially_approved">Partially Approved</SelectItem>
             </SelectContent>
           </Select>
           <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
@@ -295,8 +397,11 @@ const AllRequestsTab = () => {
                   <TableCell>
                     {r.status === 'pending' && (
                       <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600" onClick={() => approveMutation.mutate(r)}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600" title="Approve all days" onClick={() => approveMutation.mutate(r)}>
                           <Check className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[11px] text-amber-600 hover:text-amber-700" title="Partially approve" onClick={() => { openPartialModal(r); setDetailModal({ open: false, request: null }); }}>
+                          Partial
                         </Button>
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setRejectModal({ open: true, requestId: r.id })}>
                           <X className="h-4 w-4" />
@@ -410,9 +515,25 @@ const AllRequestsTab = () => {
                   </div>
                 )}
                 {r.status === 'pending' && (
-                  <div className="flex gap-2 pt-2">
-                    <Button className="flex-1" onClick={() => approveMutation.mutate(r)}>Approve</Button>
+                  <div className="flex gap-2 pt-2 flex-wrap">
+                    <Button className="flex-1" onClick={() => approveMutation.mutate(r)}>Approve All</Button>
+                    <Button variant="outline" className="flex-1 border-amber-300 text-amber-700 hover:bg-amber-50" onClick={() => { openPartialModal(r); setDetailModal({ open: false, request: null }); }}>Partial</Button>
                     <Button variant="destructive" className="flex-1" onClick={() => { setDetailModal({ open: false, request: null }); setRejectModal({ open: true, requestId: r.id }); }}>Reject</Button>
+                  </div>
+                )}
+                {r.status === 'partially_approved' && r.approved_dates && (
+                  <div className="text-sm space-y-2 pt-2 border-t">
+                    <p className="text-muted-foreground font-medium text-xs uppercase tracking-wide">Approved Dates ({r.approved_days} of {r.days_requested} days)</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(r.approved_dates as string[]).map((d: string) => (
+                        <span key={d} className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ background: '#D1FAE5', color: '#065F46' }}>
+                          {format(parseISO(d), 'd MMM')}
+                        </span>
+                      ))}
+                    </div>
+                    {r.partial_approval_reason && (
+                      <p className="text-xs text-muted-foreground">Reason: {r.partial_approval_reason}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -435,6 +556,85 @@ const AllRequestsTab = () => {
             <Button variant="outline" onClick={() => setRejectModal({ open: false, requestId: null })}>Cancel</Button>
             <Button variant="destructive" onClick={() => rejectMutation.mutate({ requestId: rejectModal.requestId!, reason: rejectionReason.trim() })}>
               Reject
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Partial Approval Modal */}
+      <Dialog open={partialModal.open} onOpenChange={open => { if (!open) { setPartialModal({ open: false, request: null }); setSelectedDates(new Set()); setPartialReason(''); } }}>
+        <DialogContent className="sm:max-w-md" style={{ fontFamily: 'var(--ff-body)' }}>
+          <DialogHeader>
+            <DialogTitle>Partial Leave Approval</DialogTitle>
+          </DialogHeader>
+          {partialModal.request && (() => {
+            const r = partialModal.request;
+            const workingDays = getWorkingDaysInRange(r.start_date, r.end_date);
+            const selectedCount = selectedDates.size;
+            return (
+              <div className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">{r.employees?.full_name}</span> requested <span className="font-medium text-foreground">{r.days_requested} day(s)</span> of {r.leave_types?.name}.
+                  Select which days to approve:
+                </div>
+
+                {/* Day chips */}
+                <div className="flex flex-wrap gap-2">
+                  {workingDays.map(d => {
+                    const isSelected = selectedDates.has(d);
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => {
+                          setSelectedDates(prev => {
+                            const next = new Set(prev);
+                            next.has(d) ? next.delete(d) : next.add(d);
+                            return next;
+                          });
+                        }}
+                        className="text-[12px] font-medium px-2.5 py-1.5 rounded-lg border transition-all"
+                        style={isSelected
+                          ? { background: '#D1FAE5', color: '#065F46', borderColor: '#6EE7B7' }
+                          : { background: '#F9FAFB', color: '#6B7280', borderColor: '#E5E7EB' }
+                        }
+                      >
+                        {format(parseISO(d), 'EEE d MMM')}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Summary */}
+                <p className="text-sm font-medium">
+                  Approving <span className="text-primary">{selectedCount}</span> of <span>{workingDays.length}</span> working day(s)
+                  {selectedCount < workingDays.length && (
+                    <span className="text-muted-foreground font-normal"> — {workingDays.length - selectedCount} day(s) will be rejected</span>
+                  )}
+                </p>
+
+                {/* Reason */}
+                <div className="space-y-1.5">
+                  <Label>Reason for partial approval <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+                  <Textarea
+                    value={partialReason}
+                    onChange={e => setPartialReason(e.target.value)}
+                    rows={2}
+                    placeholder="e.g. Only 2 days approved due to project deadline..."
+                  />
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPartialModal({ open: false, request: null }); setSelectedDates(new Set()); setPartialReason(''); }}>
+              Cancel
+            </Button>
+            <Button
+              disabled={selectedDates.size === 0 || partialApproveMutation.isPending}
+              onClick={() => partialApproveMutation.mutate()}
+            >
+              {partialApproveMutation.isPending ? 'Saving…' : `Approve ${selectedDates.size} Day(s)`}
             </Button>
           </DialogFooter>
         </DialogContent>
