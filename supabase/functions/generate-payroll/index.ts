@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     // Fetch all attendance records for this month + company
     const { data: attendance } = await supabase
       .from('attendance_records')
-      .select('employee_id, date, regular_ot_hours, holiday_ot_hours, is_weekend, is_holiday, check_in, check_out')
+      .select('employee_id, date, regular_ot_hours, holiday_ot_hours, working_hours, is_weekend, is_holiday, check_in, check_out')
       .eq('company_id', company_id)
       .gte('date', startDate)
       .lte('date', endDate);
@@ -185,7 +185,12 @@ Deno.serve(async (req) => {
       if ((rec as any).is_weekend || (rec as any).is_holiday) {
         if (leaveDatesByEmp[empId]?.has(recDate)) continue;
         if (!(rec as any).check_in || !(rec as any).check_out) continue;
-        attendanceMap[empId].holidayOt += Number(rec.holiday_ot_hours || 0);
+        // Use working_hours as the source of truth for holiday OT.
+        // holiday_ot_hours may be stale if the public holiday was added after the
+        // attendance file was imported (in which case it would be 0 while
+        // working_hours correctly reflects the hours worked).
+        const holOt = Number((rec as any).working_hours || rec.holiday_ot_hours || 0);
+        attendanceMap[empId].holidayOt += holOt;
         continue;
       }
 
