@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -62,6 +62,29 @@ export default function MissingEntryModal({
   const [checkOutTime, setCheckOutTime] = useState('');
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Pre-fill times when editing existing records
+  useEffect(() => {
+    if (!target) return;
+    if (target.existingCheckIn) {
+      const d = new Date(target.existingCheckIn);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      setCheckInTime(`${hh}:${mm}`);
+    } else {
+      setCheckInTime('');
+    }
+    if (target.existingCheckOut) {
+      const d = new Date(target.existingCheckOut);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      setCheckOutTime(`${hh}:${mm}`);
+    } else {
+      setCheckOutTime('');
+    }
+    setTime('');
+    setReason('');
+  }, [target]);
 
   const isBoth = target?.field === 'both';
   const mode = target?.mode ?? 'update';
@@ -277,7 +300,9 @@ export default function MissingEntryModal({
       <DialogContent className="max-w-md p-6">
         <DialogHeader>
           <DialogTitle style={{ fontFamily: 'var(--ff-display)' }}>
-            Add Missing Entry — {dateLabel}
+            {target?.existingCheckIn && target?.existingCheckOut
+              ? `Edit Attendance — ${dateLabel}`
+              : `Add Missing Entry — ${dateLabel}`}
           </DialogTitle>
         </DialogHeader>
 

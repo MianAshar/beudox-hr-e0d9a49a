@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -18,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { CalendarCheck, Plus, Loader2, Trash2, Pencil, Search } from 'lucide-react';
+import { CalendarCheck, Plus, Loader2, Trash2, Pencil, Search, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
@@ -297,6 +298,18 @@ function RecordsTable({
                           Add Entry
                         </button>
                       )}
+                      {/* CEO can edit fully-present records too */}
+                      {!editable && !isOnLeave && !isAbsent && r.check_in && r.check_out && canEdit(r) && (
+                        <button
+                          type="button"
+                          onClick={() => onRequestEdit(r, 'both')}
+                          className="inline-flex items-center gap-1 px-2.5 h-7 text-[11px] font-medium rounded-md border transition-colors hover:bg-muted"
+                          style={{ borderColor: 'rgba(91, 63, 248, 0.3)', color: '#5B3FF8' }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                          Edit Times
+                        </button>
+                      )}
                       {editable && missingField && (
                         <button
                           type="button"
@@ -399,6 +412,25 @@ const Attendance = () => {
       }
     })();
   }, [employee?.company_id]);
+
+  // Check if payroll for this month is approved/paid (locked)
+  const monthYear = `${year}-${String(MONTHS.indexOf(month) + 1).padStart(2, '0')}`;
+  const { data: payrollLockStatus } = useQuery({
+    queryKey: ['attendance-payroll-lock', employee?.company_id, monthYear],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('payroll_records')
+        .select('status')
+        .eq('company_id', employee!.company_id)
+        .eq('month_year', monthYear)
+        .eq('superseded', false)
+        .in('status', ['approved', 'paid'])
+        .limit(1);
+      return (data?.length ?? 0) > 0;
+    },
+    enabled: !!employee?.company_id,
+  });
+  const attendanceLocked = !!payrollLockStatus;
 
   const dateRange = useMemo(() => {
     const monthIndex = MONTHS.indexOf(month);
@@ -784,7 +816,7 @@ const Attendance = () => {
   };
 
   const canEditMy = (row: AttendanceRow) => row.employee_id === employee?.employee_id;
-  const canEditCompany = () => isManager;
+  const canEditCompany = (row: AttendanceRow) => isCeo && !attendanceLocked;
 
   return (
     <div className="max-w-[1100px] mx-auto space-y-6" style={{ fontFamily: 'var(--ff-body)' }}>
@@ -833,6 +865,13 @@ const Attendance = () => {
           )}
         </div>
       </div>
+
+      {attendanceLocked && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm" style={{ background: '#FEF3C7', color: '#92400E', border: '1px solid #F5C6A0' }}>
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          Attendance is locked for this month — payroll has been approved.
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-transparent border-b rounded-none h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap" style={{ borderColor: 'hsl(var(--border))' }}>
