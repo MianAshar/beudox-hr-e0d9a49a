@@ -142,10 +142,14 @@ function checkOutIsoKarachi(date: string, checkInTime: string | null, checkOutTi
 
 function workingHours(checkIn: string | null, checkOut: string | null): number | null {
   const inM = timeToMinutes(checkIn);
-  const outM = timeToMinutes(checkOut);
+  let outM = timeToMinutes(checkOut);
   if (inM == null || outM == null) return null;
-  if (outM <= inM) return null;
-  return Math.round(((outM - inM) / 60) * 100) / 100;
+  // Midnight crossover: checkout time is on the next calendar day
+  if (outM < inM) outM += 24 * 60;
+  const hrs = Math.round(((outM - inM) / 60) * 100) / 100;
+  // Cap at 20hrs — anything beyond is likely bad data from the machine
+  if (hrs > 20) return null;
+  return hrs;
 }
 
 function isWeekend(dateStr: string): boolean {
