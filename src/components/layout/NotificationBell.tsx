@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -40,8 +41,18 @@ const REFERENCE_ROUTES: Record<string, string> = {
   employee: '/employees',
   loan: '/loans',
   evaluation: '/employee-reviews',
+  salary_history: '/employees',
   invoice: '/invoices',
   leave: '/leave',
+  project: '/projects',
+};
+
+const getNotifRoute = (notif: Notification): string | null => {
+  if (!notif.reference_type) return null;
+  const base = REFERENCE_ROUTES[notif.reference_type];
+  if (!base) return null;
+  if (notif.reference_id) return `${base}/${notif.reference_id}`;
+  return base;
 };
 
 const NotificationBell = () => {
@@ -78,6 +89,47 @@ const NotificationBell = () => {
     if (open) fetchNotifications();
   }, [open, fetchNotifications]);
 
+  // Realtime subscription — listen for new notifications
+  useEffect(() => {
+    if (!employeeId || !companyId) return;
+
+    const channel = supabase
+      .channel(`notifications:${employeeId}`)
+      .on(
+        'postgres_changes' as any,
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `recipient_id=eq.${employeeId}`,
+        },
+        (payload: any) => {
+          const newNotif = payload.new as Notification;
+          // Prepend to list (cap at 20), increment unread count
+          setNotifications((prev) => [newNotif, ...prev].slice(0, 20));
+          setUnreadCount((c) => c + 1);
+          // Show toast popup
+          const route = getNotifRoute(newNotif);
+          toast(newNotif.title, {
+            description: newNotif.message,
+            duration: 5000,
+            position: 'bottom-right',
+            action: route
+              ? {
+                  label: 'View',
+                  onClick: () => navigate(route),
+                }
+              : undefined,
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [employeeId, companyId, navigate]);
+
   const markAsRead = async (notif: Notification) => {
     if (!notif.is_read) {
       await supabase
@@ -90,18 +142,10 @@ const NotificationBell = () => {
       setUnreadCount((c) => Math.max(0, c - 1));
     }
     // Navigate if reference exists
-    if (notif.reference_type && notif.reference_id) {
-      const base = REFERENCE_ROUTES[notif.reference_type];
-      if (base) {
-        navigate(`${base}/${notif.reference_id}`);
-        setOpen(false);
-      }
-    } else if (notif.reference_type) {
-      const base = REFERENCE_ROUTES[notif.reference_type];
-      if (base) {
-        navigate(base);
-        setOpen(false);
-      }
+    const route = getNotifRoute(notif);
+    if (route) {
+      navigate(route);
+      setOpen(false);
     }
   };
 
