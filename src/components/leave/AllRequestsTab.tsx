@@ -206,6 +206,77 @@ const AllRequestsTab = () => {
     onError: () => toast.error('Failed to reject'),
   });
 
+  const partialApproveMutation = useMutation({
+    mutationFn: async () => {
+      const request = partialModal.request;
+      if (!request) throw new Error('No request');
+      const approvedDatesArr = Array.from(selectedDates).sort();
+      const approvedDays = approvedDatesArr.length;
+      if (approvedDays === 0) throw new Error('No dates selected');
+
+      // If all working days are selected — treat as full approval
+      const workingDays = getWorkingDaysInRange(request.start_date, request.end_date);
+      const isFullApproval = approvedDays === workingDays.length;
+      const newStatus = isFullApproval ? 'approved' : 'partially_approved';
+
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({
+          status: newStatus,
+          approved_dates: approvedDatesArr,
+          approved_days: approvedDays,
+          partial_approval_reason: partialReason.trim() || null,
+          actioned_by: employee!.employee_id,
+          actioned_at: new Date().toISOString(),
+        } as any)
+        .eq('id', request.id);
+      if (error) throw error;
+
+      // Deduct approved_days from leave balance
+      const year = new Date(request.start_date).getFullYear();
+      const { data: balance } = await supabase
+        .from('leave_balances')
+        .select('id, used_days')
+        .eq('company_id', companyId!)
+        .eq('employee_id', request.employee_id)
+        .eq('leave_type_id', request.leave_type_id)
+        .eq('year', year)
+        .single();
+      if (balance) {
+        await supabase
+          .from('leave_balances')
+          .update({ used_days: (balance.used_days || 0) + approvedDays } as any)
+          .eq('id', balance.id);
+      }
+
+      // Notification
+      const leaveTypeName = request.leave_types?.name || 'leave';
+      const msg = isFullApproval
+        ? `Your ${leaveTypeName} from ${formatDate(request.start_date)} to ${formatDate(request.end_date)} has been approved.`
+        : `Your ${leaveTypeName} request was partially approved. ${approvedDays} of ${request.days_requested} day(s) approved.${partialReason ? ` Reason: ${partialReason}` : ''}`;
+
+      sendNotification({
+        companyId: companyId!,
+        recipientIds: [request.employee_id],
+        type: 'leave_actioned',
+        title: isFullApproval ? 'Leave Approved' : 'Leave Partially Approved',
+        message: msg,
+        referenceType: 'leave',
+        referenceId: request.id,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-leave-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['all-leave-balances'] });
+      setPartialModal({ open: false, request: null });
+      setDetailModal({ open: false, request: null });
+      setSelectedDates(new Set());
+      setPartialReason('');
+      toast.success('Leave approved');
+    },
+    onError: (e: any) => toast.error(e?.message || 'Failed to approve'),
+  });
+
   const monthStart = startOfMonth(calMonth);
   const monthEnd = endOfMonth(calMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
