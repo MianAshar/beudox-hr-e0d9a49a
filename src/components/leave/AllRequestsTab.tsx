@@ -515,9 +515,25 @@ const AllRequestsTab = () => {
                   </div>
                 )}
                 {r.status === 'pending' && (
-                  <div className="flex gap-2 pt-2">
-                    <Button className="flex-1" onClick={() => approveMutation.mutate(r)}>Approve</Button>
+                  <div className="flex gap-2 pt-2 flex-wrap">
+                    <Button className="flex-1" onClick={() => approveMutation.mutate(r)}>Approve All</Button>
+                    <Button variant="outline" className="flex-1 border-amber-300 text-amber-700 hover:bg-amber-50" onClick={() => { openPartialModal(r); setDetailModal({ open: false, request: null }); }}>Partial</Button>
                     <Button variant="destructive" className="flex-1" onClick={() => { setDetailModal({ open: false, request: null }); setRejectModal({ open: true, requestId: r.id }); }}>Reject</Button>
+                  </div>
+                )}
+                {r.status === 'partially_approved' && r.approved_dates && (
+                  <div className="text-sm space-y-2 pt-2 border-t">
+                    <p className="text-muted-foreground font-medium text-xs uppercase tracking-wide">Approved Dates ({r.approved_days} of {r.days_requested} days)</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(r.approved_dates as string[]).map((d: string) => (
+                        <span key={d} className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ background: '#D1FAE5', color: '#065F46' }}>
+                          {format(parseISO(d), 'd MMM')}
+                        </span>
+                      ))}
+                    </div>
+                    {r.partial_approval_reason && (
+                      <p className="text-xs text-muted-foreground">Reason: {r.partial_approval_reason}</p>
+                    )}
                   </div>
                 )}
               </div>
