@@ -417,6 +417,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          nature_of_business: string | null
           notes: string | null
           onboarding_date: string | null
           scope: string | null
@@ -438,6 +439,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          nature_of_business?: string | null
           notes?: string | null
           onboarding_date?: string | null
           scope?: string | null
@@ -459,6 +461,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          nature_of_business?: string | null
           notes?: string | null
           onboarding_date?: string | null
           scope?: string | null
