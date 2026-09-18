@@ -307,6 +307,30 @@ const ClientDetail = () => {
             <span className="text-sm text-foreground">{client.country}</span>
           </div>
         )}
+        {client.contact_designation && (
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Designation</p>
+            <p className="text-sm">{client.contact_designation}</p>
+          </div>
+        )}
+        {client.state && (
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">State</p>
+            <p className="text-sm">{client.state}</p>
+          </div>
+        )}
+        {client.source && (
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Source</p>
+            <p className="text-sm">{client.source}</p>
+          </div>
+        )}
+        {client.onboarding_date && (
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Onboarding Date</p>
+            <p className="text-sm">{new Date(client.onboarding_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <DollarSign className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm text-foreground">{client.billing_currency}</span>
