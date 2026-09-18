@@ -38,6 +38,13 @@ Rules:
 - If only one punch exists for the day, put it in check_in OR check_out
   depending on whether it is closer to the start or end of the typical workday
   (under 14:00 → check_in, otherwise check_out) and add notes "single_punch".
+- MIDNIGHT CROSSOVER: If an employee has a punch before 06:00 on day N+1, AND
+  also has only a check_in (no check_out) on day N, the early punch on day N+1
+  is almost certainly the checkout for day N that crossed midnight. In this case:
+  set it as check_out on day N (keep the time as-is, the system will shift the
+  date), do NOT create a separate record for day N+1 for that early punch, and
+  add notes "midnight_crossover" on the day N record. Only apply this rule when
+  the gap between the day N check_in and the early day N+1 punch is under 20 hours.
 - If the file contains rows for weekends or holidays where the employee did not
   punch, OMIT those rows — do not invent absences.
 - Skip any header rows, totals rows, or summary rows.
