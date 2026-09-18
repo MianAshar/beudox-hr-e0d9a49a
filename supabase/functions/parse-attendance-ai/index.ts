@@ -186,21 +186,24 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return parts[0] * 60 + parts[1];
     };
 
-    // Group by employee_code → sorted by date
-    const byEmployee = new Map<string, ParsedRecord[]>();
-    for (const r of cleanRecords) {
+    // Build index: employee_code → array of { record, cleanIdx }
+    // so we can look up and mutate by position without indexOf reference issues
+    const byEmployee = new Map<string, Array<{ rec: ParsedRecord; idx: number }>>();
+    for (let i = 0; i < cleanRecords.length; i++) {
+      const r = cleanRecords[i];
       if (!byEmployee.has(r.employee_code)) byEmployee.set(r.employee_code, []);
-      byEmployee.get(r.employee_code)!.push(r);
+      byEmployee.get(r.employee_code)!.push({ rec: r, idx: i });
     }
 
     const toRemove = new Set<number>();
 
-    for (const [, empRecords] of byEmployee) {
-      empRecords.sort((a, b) => a.date.localeCompare(b.date));
+    for (const [, entries] of byEmployee) {
+      // Sort by date
+      entries.sort((a, b) => a.rec.date.localeCompare(b.rec.date));
 
-      for (let i = 0; i < empRecords.length - 1; i++) {
-        const dayN = empRecords[i];
-        const dayNext = empRecords[i + 1];
+      for (let i = 0; i < entries.length - 1; i++) {
+        const { rec: dayN, idx: idxN } = entries[i];
+        const { rec: dayNext, idx: idxNext } = entries[i + 1];
 
         // Day N must have check_in but no check_out
         if (!dayN.check_in || dayN.check_out) continue;
@@ -221,41 +224,25 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const totalMins = (24 * 60 - inMins) + nextInMins;
         if (totalMins > 20 * 60) continue;
 
-        const idxN = cleanRecords.indexOf(dayN);
-        const idxNext = cleanRecords.indexOf(dayNext);
-
         if (!dayNext.check_out) {
-          // ── Scenario A: Day N+1 is check_in only → fully remove it ──
-          if (idxN !== -1) {
-            cleanRecords[idxN] = {
-              ...dayN,
-              check_out: dayNext.check_in,
-              notes: 'midnight_crossover',
-            };
-          }
-          if (idxNext !== -1) toRemove.add(idxNext);
+          // ── Scenario A: Day N+1 is check_in only → remove it entirely ──
+          cleanRecords[idxN] = { ...dayN, check_out: dayNext.check_in, notes: 'midnight_crossover' };
+          toRemove.add(idxNext);
+          // Update entries[i] so further iterations see the mutated record
+          entries[i] = { rec: cleanRecords[idxN], idx: idxN };
 
           warnings.push(
             `Midnight crossover (A) for ${dayN.employee_code} on ${dayN.date}: checkout ${dayNext.check_in} moved from ${dayNext.date}.`
           );
         } else {
-          // ── Scenario B: Day N+1 has full record, early punch absorbed as its check_in ──
+          // ── Scenario B: Day N+1 absorbed the early punch as its check_in ──
           // Move early punch → Day N check_out
-          // Set Day N+1 check_in to null (needs manual correction by CEO)
-          if (idxN !== -1) {
-            cleanRecords[idxN] = {
-              ...dayN,
-              check_out: dayNext.check_in,
-              notes: 'midnight_crossover',
-            };
-          }
-          if (idxNext !== -1) {
-            cleanRecords[idxNext] = {
-              ...dayNext,
-              check_in: null,
-              notes: 'midnight_crossover_checkin_missing',
-            };
-          }
+          // Null out Day N+1 check_in — CEO must manually set the real check_in
+          cleanRecords[idxN] = { ...dayN, check_out: dayNext.check_in, notes: 'midnight_crossover' };
+          cleanRecords[idxNext] = { ...dayNext, check_in: null, notes: 'midnight_crossover_checkin_missing' };
+          // Update entries so further iterations see mutated records
+          entries[i] = { rec: cleanRecords[idxN], idx: idxN };
+          entries[i + 1] = { rec: cleanRecords[idxNext], idx: idxNext };
 
           warnings.push(
             `Midnight crossover (B) for ${dayN.employee_code} on ${dayN.date}: checkout ${dayNext.check_in} extracted from ${dayNext.date}. Check-in on ${dayNext.date} needs manual correction.`
