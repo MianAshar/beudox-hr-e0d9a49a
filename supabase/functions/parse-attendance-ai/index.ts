@@ -27,33 +27,39 @@ const SYSTEM_PROMPT = `You are an attendance data normaliser. You will be given 
 content of a biometric attendance machine export (typically ZKTeco). Your job is
 to extract a clean list of per-employee, per-day attendance entries.
 
-Rules:
+Process each employee's punches in this exact order:
+
+STEP 1 — MIDNIGHT CROSSOVER CHECK (do this BEFORE collapsing punches):
+For each employee, look at ALL their raw punches across all dates chronologically.
+If you see a punch at or before 06:00 on any given day, check if the PREVIOUS day
+for that employee has punches but none after 18:00 (i.e. no checkout).
+If yes: that early morning punch is a midnight crossover — it is the checkout from
+the previous day, NOT a check-in for the current day.
+Action: assign it as check_out on the previous day record. Remove it from the
+current day's punch list entirely before processing the current day.
+Add notes "midnight_crossover" on the previous day record.
+Example: Employee has punches on Aug 4 [10:12] and Aug 5 [01:50, 11:42, 18:40].
+The 01:50 on Aug 5 is a midnight crossover — assign it as check_out on Aug 4.
+Aug 5 is then processed with only [11:42, 18:40].
+
+STEP 2 — COLLAPSE PUNCHES PER DAY:
+After applying Step 1, for each employee per date:
+- If multiple punches remain: keep the EARLIEST as check_in and LATEST as check_out.
+- If only one punch remains: put it in check_in if before 14:00, else check_out.
+  Add notes "single_punch".
+
+STEP 3 — OUTPUT RULES:
 - Output STRICT JSON only, no prose, no markdown fences.
 - Shape: { "records": [...], "warnings": ["..."] }
 - Each record must have: employee_code (string), name (string or null), date
   (YYYY-MM-DD), check_in (HH:mm:ss or null), check_out (HH:mm:ss or null),
   notes (string or null).
-- One record per employee per date. If an employee punched in multiple times,
-  keep the EARLIEST as check_in and the LATEST as check_out.
-- If only one punch exists for the day, put it in check_in OR check_out
-  depending on whether it is closer to the start or end of the typical workday
-  (under 14:00 → check_in, otherwise check_out) and add notes "single_punch".
-- MIDNIGHT CROSSOVER: If an employee has a punch before 06:00 on day N+1, AND
-  also has only a check_in (no check_out) on day N, the early punch on day N+1
-  is almost certainly the checkout for day N that crossed midnight. In this case:
-  set it as check_out on day N (keep the time as-is, the system will shift the
-  date), do NOT create a separate record for day N+1 for that early punch, and
-  add notes "midnight_crossover" on the day N record. Only apply this rule when
-  the gap between the day N check_in and the early day N+1 punch is under 20 hours.
-- If the file contains rows for weekends or holidays where the employee did not
-  punch, OMIT those rows — do not invent absences.
-- Skip any header rows, totals rows, or summary rows.
-- Skip rows where you cannot determine an employee_code AND a date.
-- Add an entry to "warnings" describing any structural issue you encountered
-  (e.g. "Could not parse 12 rows", "Detected duplicate header rows").
-- Times must be 24-hour, zero-padded, with seconds (HH:mm:ss). If seconds are
-  missing, append :00.
+- Times must be 24-hour, zero-padded, with seconds (HH:mm:ss). If seconds missing, append :00.
 - Dates must be ISO YYYY-MM-DD.
+- Omit rows where employee did not punch at all (do not invent absences).
+- Skip header rows, totals rows, summary rows.
+- Skip rows where you cannot determine employee_code AND date.
+- Add warnings for any structural issues encountered.
 - Return at most 5000 records.`;
 
 Deno.serve(async (req: Request): Promise<Response> => {
