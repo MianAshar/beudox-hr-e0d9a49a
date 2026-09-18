@@ -98,7 +98,7 @@ async function fileToCsv(file: File): Promise<string> {
   const XLSX = await loadSheetJs();
   const buf = await file.arrayBuffer();
   // Read with dense mode and all cell types preserved
-  const wb = XLSX.read(buf, { type: 'array', cellDates: true, cellText: true, cellStyles: false, dense: false });
+  const wb = XLSX.read(buf, { type: 'array', cellDates: true, cellText: true, cellStyles: false, cellFormula: true, dense: false });
   const parts: string[] = [];
 
   for (const name of wb.SheetNames) {
