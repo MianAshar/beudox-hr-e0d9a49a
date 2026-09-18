@@ -97,11 +97,15 @@ function loadSheetJs(): Promise<any> {
 async function fileToCsv(file: File): Promise<string> {
   const XLSX = await loadSheetJs();
   const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: 'array', cellDates: true, cellText: false });
+  // Read with both cellDates (for machine-exported datetime serials) and
+  // cellText: true (so manually-typed plain text values are preserved in w).
+  const wb = XLSX.read(buf, { type: 'array', cellDates: true, cellText: true });
   const parts: string[] = [];
   for (const name of wb.SheetNames) {
     const sheet = wb.Sheets[name];
-    const csv = XLSX.utils.sheet_to_csv(sheet, { blankrows: false });
+    // Use rawNumbers: false so dates render as readable strings not serial numbers,
+    // and the displayed text (w) is used for manually-typed cells.
+    const csv = XLSX.utils.sheet_to_csv(sheet, { blankrows: false, rawNumbers: false });
     if (csv && csv.trim()) parts.push(`# Sheet: ${name}\n${csv}`);
   }
   return parts.join('\n\n');
