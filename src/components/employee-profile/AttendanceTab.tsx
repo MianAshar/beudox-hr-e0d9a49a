@@ -228,7 +228,6 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
             <TableBody>
               {records!.map(r => {
                 const d = parseISO(r.date);
-                const ot = Number(r.regular_ot_hours || 0) + Number(r.holiday_ot_hours || 0);
                 let status = 'Present';
                 let cls = 'bg-bx-success-bg text-[hsl(var(--bx-success-text))]';
                 if (r.is_absent) { status = 'Absent'; cls = 'bg-bx-danger-bg text-[hsl(var(--bx-danger-text))]'; }
