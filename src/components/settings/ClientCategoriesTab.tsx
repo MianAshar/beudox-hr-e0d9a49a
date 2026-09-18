@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Archive, RotateCcw } from 'lucide-react';
+import { Plus, Archive, RotateCcw, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ClientCategoriesTab = () => {
@@ -19,6 +19,7 @@ const ClientCategoriesTab = () => {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [editingCategory, setEditingCategory] = useState<any>(null);
 
   const queryKey = ['client-categories-settings', companyId];
 
@@ -67,6 +68,34 @@ const ClientCategoriesTab = () => {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('client_categories')
+        .update({ name: name.trim(), code: code.trim().toUpperCase() })
+        .eq('id', editingCategory.id)
+        .eq('company_id', companyId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ['client-categories'] });
+      setDialogOpen(false);
+      setEditingCategory(null);
+      setName('');
+      setCode('');
+      setErrors({});
+      toast.success('Category updated');
+    },
+    onError: (e: any) => {
+      if (e?.code === '23505' || `${e?.message}`.toLowerCase().includes('duplicate')) {
+        setErrors({ code: 'This code is already in use' });
+      } else {
+        toast.error(e?.message || 'Failed to update category');
+      }
+    },
+  });
+
   const setActiveMutation = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
       const { error } = await supabase
@@ -88,10 +117,18 @@ const ClientCategoriesTab = () => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = 'Name is required';
     if (!code.trim()) errs.code = 'Code is required';
-    const dup = (categories || []).some((c: any) => c.code?.toUpperCase() === code.trim().toUpperCase());
+    // Exclude current row when checking for duplicate code during edit
+    const dup = (categories || []).some((c: any) =>
+      c.code?.toUpperCase() === code.trim().toUpperCase() &&
+      c.id !== editingCategory?.id
+    );
     if (!errs.code && dup) errs.code = 'This code is already in use';
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    addMutation.mutate();
+    if (editingCategory) {
+      updateMutation.mutate();
+    } else {
+      addMutation.mutate();
+    }
   };
 
   if (!companyId) return null;
@@ -102,7 +139,7 @@ const ClientCategoriesTab = () => {
         <h3 className="font-semibold text-[15px] text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
           Client Categories
         </h3>
-        <Button size="sm" variant="outline" onClick={() => { setName(''); setCode(''); setErrors({}); setDialogOpen(true); }}>
+        <Button size="sm" variant="outline" onClick={() => { setEditingCategory(null); setName(''); setCode(''); setErrors({}); setDialogOpen(true); }}>
           <Plus className="h-4 w-4 mr-1" /> Add Category
         </Button>
       </div>
@@ -129,27 +166,44 @@ const ClientCategoriesTab = () => {
                   <TableCell className="font-mono text-sm">{c.code}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{c.is_active ? 'Active' : 'Archived'}</TableCell>
                   <TableCell className="text-right">
-                    {c.is_active ? (
+                    <div className="flex items-center justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        title="Archive"
-                        onClick={() => setActiveMutation.mutate({ id: c.id, active: false })}
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        title="Edit"
+                        onClick={() => {
+                          setEditingCategory(c);
+                          setName(c.name);
+                          setCode(c.code);
+                          setErrors({});
+                          setDialogOpen(true);
+                        }}
                       >
-                        <Archive className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" />
                       </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-primary"
-                        title="Restore"
-                        onClick={() => setActiveMutation.mutate({ id: c.id, active: true })}
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                      </Button>
-                    )}
+                      {c.is_active ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          title="Archive"
+                          onClick={() => setActiveMutation.mutate({ id: c.id, active: false })}
+                        >
+                          <Archive className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-primary"
+                          title="Restore"
+                          onClick={() => setActiveMutation.mutate({ id: c.id, active: true })}
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -161,7 +215,7 @@ const ClientCategoriesTab = () => {
       <Dialog open={dialogOpen} onOpenChange={v => { if (!v) setDialogOpen(false); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Add Client Category</DialogTitle>
+            <DialogTitle>{editingCategory ? 'Edit Client Category' : 'Add Client Category'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
@@ -181,8 +235,8 @@ const ClientCategoriesTab = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={addMutation.isPending}>
-              {addMutation.isPending ? 'Saving…' : 'Save'}
+            <Button onClick={handleSave} disabled={addMutation.isPending || updateMutation.isPending}>
+              {addMutation.isPending || updateMutation.isPending ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
