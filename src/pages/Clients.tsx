@@ -17,9 +17,12 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Country, State } from 'country-state-city';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
-import { Plus, Search, XCircle, Building2, RotateCcw, Users } from 'lucide-react';
+import { Plus, Search, XCircle, Building2, RotateCcw, Users, Check, ChevronsUpDown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import {
   ActivityCategory,
   ACTIVITY_LABELS,
@@ -130,6 +133,8 @@ const Clients = () => {
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<{ id: string; authUserId: string | null; email: string } | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [stateOpen, setStateOpen] = useState(false);
 
   const companyId = employee?.company_id;
   const roles = employee?.roles ?? [];
@@ -676,19 +681,19 @@ const Clients = () => {
 
       {/* Add Client Sheet */}
       <Sheet open={modalOpen} onOpenChange={v => { if (!v) closeModal(); }}>
-        <SheetContent className="w-full sm:max-w-[540px] overflow-y-auto flex flex-col">
+        <SheetContent className="w-full sm:max-w-[648px] overflow-y-auto flex flex-col px-6">
           <SheetHeader className="shrink-0">
             <SheetTitle>Add Client</SheetTitle>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-1">
+          <div className="flex-1 overflow-y-auto py-4 space-y-6">
 
             {/* Section: Company Info */}
             <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Company Info</p>
+              <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Company Info</p>
               <div>
                 <Label>Company Name *</Label>
-                <Input value={form.name} onChange={e => { setForm({ ...form, name: e.target.value }); setErrors({}); }} />
+                <Input className="bg-white" value={form.name} onChange={e => { setForm({ ...form, name: e.target.value }); setErrors({}); }} />
                 {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -716,71 +721,120 @@ const Clients = () => {
               </div>
               <div>
                 <Label>Onboarding Date</Label>
-                <Input type="date" value={form.onboarding_date} onChange={e => setForm({ ...form, onboarding_date: e.target.value })} />
+                <Input className="bg-white" type="date" value={form.onboarding_date} onChange={e => setForm({ ...form, onboarding_date: e.target.value })} />
               </div>
             </div>
 
             {/* Section: Contact Details */}
             <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contact Details</p>
+              <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Contact Details</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Contact Name</Label>
-                  <Input value={form.contact_name} onChange={e => setForm({ ...form, contact_name: e.target.value })} />
+                  <Input className="bg-white" value={form.contact_name} onChange={e => setForm({ ...form, contact_name: e.target.value })} />
                 </div>
                 <div>
                   <Label>Designation</Label>
-                  <Input value={form.contact_designation} onChange={e => setForm({ ...form, contact_designation: e.target.value })} placeholder="e.g. Project Manager" />
+                  <Input className="bg-white" value={form.contact_designation} onChange={e => setForm({ ...form, contact_designation: e.target.value })} placeholder="e.g. Project Manager" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Contact Email</Label>
-                  <Input type="email" value={form.contact_email} onChange={e => setForm({ ...form, contact_email: e.target.value })} />
+                  <Input className="bg-white" type="email" value={form.contact_email} onChange={e => setForm({ ...form, contact_email: e.target.value })} />
                 </div>
                 <div>
                   <Label>Contact Phone</Label>
-                  <Input value={form.contact_phone} onChange={e => setForm({ ...form, contact_phone: e.target.value })} />
+                  <Input className="bg-white" value={form.contact_phone} onChange={e => setForm({ ...form, contact_phone: e.target.value })} />
                 </div>
               </div>
             </div>
 
             {/* Section: Location & Billing */}
             <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Location & Billing</p>
+              <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Location & Billing</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Country</Label>
-                  <Select
-                    value={form.country}
-                    onValueChange={v => setForm({ ...form, country: v, state: '' })}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Select country…" /></SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
-                      {Country.getAllCountries().map(c => (
-                        <SelectItem key={c.isoCode} value={c.name}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" className="w-full justify-between bg-white font-normal">
+                        {form.country || <span className="text-muted-foreground">Select country…</span>}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[280px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search country…" />
+                        <CommandList className="max-h-[200px]">
+                          <CommandEmpty>No country found.</CommandEmpty>
+                          <CommandGroup>
+                            {Country.getAllCountries().map(c => (
+                              <CommandItem
+                                key={c.isoCode}
+                                value={c.name}
+                                onSelect={val => {
+                                  setForm({ ...form, country: val, state: '' });
+                                  setCountryOpen(false);
+                                }}
+                              >
+                                <Check className={cn('mr-2 h-4 w-4', form.country === c.name ? 'opacity-100' : 'opacity-0')} />
+                                {c.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label>State / Province</Label>
-                  <Select
-                    value={form.state}
-                    onValueChange={v => setForm({ ...form, state: v })}
-                    disabled={!form.country}
-                  >
-                    <SelectTrigger><SelectValue placeholder={form.country ? 'Select state…' : 'Select country first'} /></SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
-                      {form.country && (() => {
-                        const isoCode = Country.getAllCountries().find(c => c.name === form.country)?.isoCode;
-                        const states = isoCode ? State.getStatesOfCountry(isoCode) : [];
-                        return states.length > 0
-                          ? states.map(s => <SelectItem key={s.isoCode} value={s.name}>{s.name}</SelectItem>)
-                          : <SelectItem value="_none" disabled>No states available</SelectItem>;
-                      })()}
-                    </SelectContent>
-                  </Select>
+                  {(() => {
+                    const isoCode = Country.getAllCountries().find(c => c.name === form.country)?.isoCode;
+                    const stateList = isoCode ? State.getStatesOfCountry(isoCode) : [];
+                    return (
+                      <Popover open={stateOpen} onOpenChange={setStateOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            disabled={!form.country}
+                            className="w-full justify-between bg-white font-normal"
+                          >
+                            {form.state || <span className="text-muted-foreground">{form.country ? 'Select state…' : 'Select country first'}</span>}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[280px] p-0">
+                          <Command>
+                            <CommandInput placeholder="Search state…" />
+                            <CommandList className="max-h-[200px]">
+                              <CommandEmpty>No state found.</CommandEmpty>
+                              <CommandGroup>
+                                {stateList.length === 0
+                                  ? <CommandItem disabled value="_none">No states available</CommandItem>
+                                  : stateList.map(s => (
+                                    <CommandItem
+                                      key={s.isoCode}
+                                      value={s.name}
+                                      onSelect={val => {
+                                        setForm({ ...form, state: val });
+                                        setStateOpen(false);
+                                      }}
+                                    >
+                                      <Check className={cn('mr-2 h-4 w-4', form.state === s.name ? 'opacity-100' : 'opacity-0')} />
+                                      {s.name}
+                                    </CommandItem>
+                                  ))
+                                }
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    );
+                  })()}
                 </div>
               </div>
               <div>
@@ -794,19 +848,19 @@ const Clients = () => {
 
             {/* Section: Requirements */}
             <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Requirements</p>
+              <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Requirements</p>
               <div>
                 <Label>Scope</Label>
                 <p className="text-xs text-muted-foreground mb-1">High-level description of work. Will auto-populate on new projects.</p>
-                <Textarea value={form.scope} onChange={e => setForm({ ...form, scope: e.target.value })} rows={3} />
+                <Textarea className="bg-white" value={form.scope} onChange={e => setForm({ ...form, scope: e.target.value })} rows={3} />
               </div>
               <div>
                 <Label>Client Requirements</Label>
-                <Textarea value={form.client_requirements} onChange={e => setForm({ ...form, client_requirements: e.target.value })} rows={3} />
+                <Textarea className="bg-white" value={form.client_requirements} onChange={e => setForm({ ...form, client_requirements: e.target.value })} rows={3} />
               </div>
               <div>
                 <Label>Notes</Label>
-                <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} />
+                <Textarea className="bg-white" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} />
               </div>
             </div>
 
