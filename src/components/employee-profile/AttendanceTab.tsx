@@ -108,7 +108,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
         .eq('employee_id', employeeId)
         .gte('date', startDate)
         .lte('date', endDate)
-        .order('date', { ascending: false });
+        .order('date', { ascending: true });
       if (error) throw error;
       return data || [];
     },
@@ -155,7 +155,8 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
       present: list.filter(r => !r.is_absent && !r.is_weekend && !r.is_holiday).length,
       absent: list.filter(r => r.is_absent).length,
       late: list.filter(r => r.is_late).length,
-      ot: list.reduce((s, r) => s + Number(r.regular_ot_hours || 0) + Number(r.holiday_ot_hours || 0), 0),
+      regularOt: list.reduce((s, r) => s + Number(r.regular_ot_hours || 0), 0),
+      holidayOt: list.reduce((s, r) => s + Number(r.holiday_ot_hours || 0), 0),
     };
   }, [records]);
 
@@ -185,7 +186,19 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
         <SummaryCard label="Present Days" value={summary.present} accent="text-[hsl(var(--bx-success-text))]" />
         <SummaryCard label="Absent Days" value={summary.absent} accent="text-[hsl(var(--bx-danger-text))]" />
         <SummaryCard label="Late Arrivals" value={summary.late} accent="text-[hsl(var(--bx-warning-text))]" />
-        <SummaryCard label="Total OT Hours" value={summary.ot.toFixed(1)} />
+        <div className="bg-card rounded-[12px] border p-4">
+          <p className="text-[11px] text-muted-foreground mb-1" style={{ fontFamily: 'var(--ff-body)' }}>OT Hours</p>
+          <div className="flex flex-col gap-0.5">
+            <p className="text-[13px] font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+              <span className="text-[10px] font-normal text-muted-foreground mr-1">Reg</span>
+              {summary.regularOt.toFixed(2)}h
+            </p>
+            <p className="text-[13px] font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+              <span className="text-[10px] font-normal text-muted-foreground mr-1">Hol</span>
+              {summary.holidayOt.toFixed(2)}h
+            </p>
+          </div>
+        </div>
         <SummaryCard label="Paid Leaves" value={paidLeaveDays} accent="text-primary" />
       </div>
 
@@ -205,8 +218,9 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                 <TableHead>Day</TableHead>
                 <TableHead>Check In</TableHead>
                 <TableHead>Check Out</TableHead>
-                <TableHead>Working Hrs</TableHead>
-                <TableHead>OT Hrs</TableHead>
+                <TableHead className="text-right">Working Hrs</TableHead>
+                <TableHead className="text-right">Reg OT</TableHead>
+                <TableHead className="text-right">Hol OT</TableHead>
                 <TableHead>Status</TableHead>
                 {isCeo && <TableHead />}
               </TableRow>
@@ -214,7 +228,6 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
             <TableBody>
               {records!.map(r => {
                 const d = parseISO(r.date);
-                const ot = Number(r.regular_ot_hours || 0) + Number(r.holiday_ot_hours || 0);
                 let status = 'Present';
                 let cls = 'bg-bx-success-bg text-[hsl(var(--bx-success-text))]';
                 if (r.is_absent) { status = 'Absent'; cls = 'bg-bx-danger-bg text-[hsl(var(--bx-danger-text))]'; }
@@ -227,8 +240,38 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                     <TableCell className="text-[13px] text-muted-foreground">{format(d, 'EEEE')}</TableCell>
                     <TableCell className="text-[13px] font-mono">{fmtTime(r.check_in)}</TableCell>
                     <TableCell className="text-[13px] font-mono">{fmtTime(r.check_out)}</TableCell>
-                    <TableCell className="text-[13px] font-mono">{r.working_hours == null ? '—' : formatWorkingHours(Number(r.working_hours))}</TableCell>
-                    <TableCell className="text-[13px] font-mono">{ot.toFixed(1)}</TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {r.working_hours == null ? <span className="text-muted-foreground">—</span> : (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="text-[13px] font-medium">{formatWorkingHours(Number(r.working_hours))}</span>
+                          <span className="text-[10px] text-muted-foreground">{Number(r.working_hours).toFixed(2)}h</span>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {Number(r.regular_ot_hours || 0) !== 0 ? (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="text-[13px] font-medium" style={{ color: Number(r.regular_ot_hours) < 0 ? '#E84545' : '#1DC97A' }}>
+                            {Number(r.regular_ot_hours) > 0 ? '+' : ''}{formatWorkingHours(Math.abs(Number(r.regular_ot_hours)))}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {Number(r.regular_ot_hours) > 0 ? '+' : ''}{Number(r.regular_ot_hours).toFixed(2)}h
+                          </span>
+                        </div>
+                      ) : <span className="text-muted-foreground text-[13px]">—</span>}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {Number(r.holiday_ot_hours || 0) > 0 ? (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="text-[13px] font-medium" style={{ color: '#5B3FF8' }}>
+                            +{formatWorkingHours(Number(r.holiday_ot_hours))}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            +{Number(r.holiday_ot_hours).toFixed(2)}h
+                          </span>
+                        </div>
+                      ) : <span className="text-muted-foreground text-[13px]">—</span>}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-[11px] border-0 ${cls}`}>{status}</Badge>
                     </TableCell>
