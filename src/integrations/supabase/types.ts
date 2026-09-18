@@ -408,6 +408,7 @@ export type Database = {
           category_id: string | null
           client_requirements: string | null
           company_id: string
+          contact_designation: string | null
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
@@ -417,7 +418,10 @@ export type Database = {
           is_active: boolean
           name: string
           notes: string | null
+          onboarding_date: string | null
           scope: string | null
+          source: string | null
+          state: string | null
           updated_at: string | null
         }
         Insert: {
@@ -425,6 +429,7 @@ export type Database = {
           category_id?: string | null
           client_requirements?: string | null
           company_id: string
+          contact_designation?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -434,7 +439,10 @@ export type Database = {
           is_active?: boolean
           name: string
           notes?: string | null
+          onboarding_date?: string | null
           scope?: string | null
+          source?: string | null
+          state?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -442,6 +450,7 @@ export type Database = {
           category_id?: string | null
           client_requirements?: string | null
           company_id?: string
+          contact_designation?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -451,7 +460,10 @@ export type Database = {
           is_active?: boolean
           name?: string
           notes?: string | null
+          onboarding_date?: string | null
           scope?: string | null
+          source?: string | null
+          state?: string | null
           updated_at?: string | null
         }
         Relationships: [
