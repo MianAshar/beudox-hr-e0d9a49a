@@ -241,8 +241,38 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                     <TableCell className="text-[13px] text-muted-foreground">{format(d, 'EEEE')}</TableCell>
                     <TableCell className="text-[13px] font-mono">{fmtTime(r.check_in)}</TableCell>
                     <TableCell className="text-[13px] font-mono">{fmtTime(r.check_out)}</TableCell>
-                    <TableCell className="text-[13px] font-mono">{r.working_hours == null ? '—' : formatWorkingHours(Number(r.working_hours))}</TableCell>
-                    <TableCell className="text-[13px] font-mono">{ot.toFixed(1)}</TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {r.working_hours == null ? <span className="text-muted-foreground">—</span> : (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="text-[13px] font-medium">{formatWorkingHours(Number(r.working_hours))}</span>
+                          <span className="text-[10px] text-muted-foreground">{Number(r.working_hours).toFixed(2)}h</span>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {Number(r.regular_ot_hours || 0) !== 0 ? (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="text-[13px] font-medium" style={{ color: Number(r.regular_ot_hours) < 0 ? '#E84545' : '#1DC97A' }}>
+                            {Number(r.regular_ot_hours) > 0 ? '+' : ''}{formatWorkingHours(Math.abs(Number(r.regular_ot_hours)))}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {Number(r.regular_ot_hours) > 0 ? '+' : ''}{Number(r.regular_ot_hours).toFixed(2)}h
+                          </span>
+                        </div>
+                      ) : <span className="text-muted-foreground text-[13px]">—</span>}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {Number(r.holiday_ot_hours || 0) > 0 ? (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="text-[13px] font-medium" style={{ color: '#5B3FF8' }}>
+                            +{formatWorkingHours(Number(r.holiday_ot_hours))}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            +{Number(r.holiday_ot_hours).toFixed(2)}h
+                          </span>
+                        </div>
+                      ) : <span className="text-muted-foreground text-[13px]">—</span>}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-[11px] border-0 ${cls}`}>{status}</Badge>
                     </TableCell>
