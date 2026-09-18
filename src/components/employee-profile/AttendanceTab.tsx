@@ -38,7 +38,6 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
   const { employee: authEmp } = useAuth();
   const isCeo = (authEmp?.roles ?? []).includes('ceo');
   const isHrManager = (authEmp?.roles ?? []).includes('hr_manager');
-  const canEditAttendance = (isCeo || isHrManager) && !attendanceLocked;
   const companyId = authEmp?.company_id;
   const qc = useQueryClient();
 
@@ -66,6 +65,8 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
     },
     enabled: !!companyId,
   });
+
+  const canEditAttendance = (isCeo || isHrManager) && !attendanceLocked;
 
   // Fetch employee info needed for modal (code + name)
   const { data: empInfo } = useQuery({
