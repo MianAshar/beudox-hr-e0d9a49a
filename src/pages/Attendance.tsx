@@ -85,12 +85,13 @@ interface RecordsTableProps {
   emptyHint?: string;
   showCodeAndName?: boolean;
   canEdit: (row: AttendanceRow) => boolean;
+  canEditFull?: (row: AttendanceRow) => boolean;
   onRequestEdit: (row: AttendanceRow, field: 'check_in' | 'check_out' | 'both') => void;
 }
 
 function RecordsTable({
   records, loading, shiftDuration, monthYearLabel, emptyHint,
-  showCodeAndName = true, canEdit, onRequestEdit,
+  showCodeAndName = true, canEdit, canEditFull, onRequestEdit,
 }: RecordsTableProps) {
   const groupedRecords = useMemo(() => {
     const map = new Map<string, AttendanceRow[]>();
@@ -302,8 +303,8 @@ function RecordsTable({
                           Add Entry
                         </button>
                       )}
-                      {/* CEO can edit fully-present records too */}
-                      {!editable && !isOnLeave && !isAbsent && r.check_in && r.check_out && canEdit(r) && (
+                      {/* CEO/HR can edit fully-present records too */}
+                      {!editable && !isOnLeave && !isAbsent && r.check_in && r.check_out && (canEditFull ? canEditFull(r) : canEdit(r)) && (
                         <button
                           type="button"
                           onClick={() => onRequestEdit(r, 'both')}
@@ -917,6 +918,7 @@ const Attendance = () => {
                 monthYearLabel={monthYearLabel}
                 showCodeAndName={false}
                 canEdit={canEditMy}
+                canEditFull={() => false}
                 onRequestEdit={handleRequestEdit}
               />
             </Card>
@@ -943,6 +945,7 @@ const Attendance = () => {
                 emptyHint={isManager ? "Click 'Add Attendance' to import an attendance file" : undefined}
                 showCodeAndName
                 canEdit={canEditCompany}
+                canEditFull={canEditCompany}
                 onRequestEdit={handleRequestEdit}
               />
             </Card>
