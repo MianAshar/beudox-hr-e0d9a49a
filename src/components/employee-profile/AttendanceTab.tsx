@@ -37,6 +37,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
 
   const { employee: authEmp } = useAuth();
   const isCeo = (authEmp?.roles ?? []).includes('ceo');
+  const isHrManager = (authEmp?.roles ?? []).includes('hr_manager');
   const companyId = authEmp?.company_id;
   const qc = useQueryClient();
 
@@ -64,6 +65,8 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
     },
     enabled: !!companyId,
   });
+
+  const canEditAttendance = (isCeo || isHrManager) && !attendanceLocked;
 
   // Fetch employee info needed for modal (code + name)
   const { data: empInfo } = useQuery({
@@ -175,7 +178,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
         </Select>
       </div>
 
-      {isCeo && attendanceLocked && (
+      {canEditAttendance === false && (isCeo || isHrManager) && attendanceLocked && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm" style={{ background: '#FEF3C7', color: '#92400E', border: '1px solid #F5C6A0' }}>
           <AlertTriangle className="h-4 w-4 shrink-0" />
           Attendance is locked for this month — payroll has been approved.
@@ -222,7 +225,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                 <TableHead className="text-right">Reg OT</TableHead>
                 <TableHead className="text-right">Hol OT</TableHead>
                 <TableHead>Status</TableHead>
-                {isCeo && <TableHead />}
+                {(isCeo || isHrManager) && <TableHead />}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -275,7 +278,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                     <TableCell>
                       <Badge variant="outline" className={`text-[11px] border-0 ${cls}`}>{status}</Badge>
                     </TableCell>
-                    {isCeo && (
+                    {(isCeo || isHrManager) && (
                       <TableCell>
                         {!r.is_weekend && !r.is_holiday && !attendanceLocked && (
                           <button
