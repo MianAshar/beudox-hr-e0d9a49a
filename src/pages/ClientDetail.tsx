@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
+import { Country, State } from 'country-state-city';
 
 const inviteClientUser = async (
   supabase: any,
@@ -51,6 +52,8 @@ const deleteClientUserHelper = async (
 };
 
 const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
+
+const SOURCE_OPTIONS = ['Direct', 'Referral', 'LinkedIn', 'Cold Outreach', 'Website', 'Exhibition', 'Other'];
 
 const statusColors: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-700',
@@ -170,9 +173,13 @@ const ClientDetail = () => {
       const payload = {
         name: editForm.name.trim(),
         contact_name: editForm.contact_name?.trim() || null,
+        contact_designation: editForm.contact_designation?.trim() || null,
         contact_email: editForm.contact_email?.trim() || null,
         contact_phone: editForm.contact_phone?.trim() || null,
         country: editForm.country?.trim() || null,
+        state: editForm.state?.trim() || null,
+        source: editForm.source || null,
+        onboarding_date: editForm.onboarding_date || null,
         billing_currency: editForm.billing_currency,
         notes: editForm.notes?.trim() || null,
         scope: editForm.scope?.trim() || null,
@@ -249,9 +256,13 @@ const ClientDetail = () => {
               setEditForm({
                 name: client.name,
                 contact_name: client.contact_name || '',
+                contact_designation: client.contact_designation || '',
                 contact_email: client.contact_email || '',
                 contact_phone: client.contact_phone || '',
                 country: client.country || '',
+                state: client.state || '',
+                source: client.source || '',
+                onboarding_date: client.onboarding_date || '',
                 billing_currency: client.billing_currency || 'USD',
                 notes: client.notes || '',
                 scope: client.scope || '',
