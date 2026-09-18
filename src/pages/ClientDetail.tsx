@@ -513,63 +513,134 @@ const ClientDetail = () => {
             <DialogTitle>Edit Client</DialogTitle>
           </DialogHeader>
           {editForm && (
-            <div className="space-y-4 py-2">
-              <div>
-                <Label>Company Name *</Label>
-                <Input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6 py-2">
+
+              {/* Section: Company Info */}
+              <div className="space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Company Info</p>
                 <div>
-                  <Label>Contact Name</Label>
-                  <Input value={editForm.contact_name} onChange={e => setEditForm({ ...editForm, contact_name: e.target.value })} />
+                  <Label>Company Name *</Label>
+                  <Input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Category *</Label>
+                    <Select value={editForm.category_id} onValueChange={v => setEditForm({ ...editForm, category_id: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select a category…" /></SelectTrigger>
+                      <SelectContent>
+                        {(clientCategories || []).map(cat => (
+                          <SelectItem key={cat.id} value={cat.id}>{cat.name} ({cat.code})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Source</Label>
+                    <Select value={editForm.source} onValueChange={v => setEditForm({ ...editForm, source: v })}>
+                      <SelectTrigger><SelectValue placeholder="How did they find us?" /></SelectTrigger>
+                      <SelectContent>
+                        {SOURCE_OPTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div>
-                  <Label>Contact Email</Label>
-                  <Input value={editForm.contact_email} onChange={e => setEditForm({ ...editForm, contact_email: e.target.value })} />
+                  <Label>Onboarding Date</Label>
+                  <Input type="date" value={editForm.onboarding_date} onChange={e => setEditForm({ ...editForm, onboarding_date: e.target.value })} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+
+              {/* Section: Contact Details */}
+              <div className="space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contact Details</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Contact Name</Label>
+                    <Input value={editForm.contact_name} onChange={e => setEditForm({ ...editForm, contact_name: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Designation</Label>
+                    <Input value={editForm.contact_designation} onChange={e => setEditForm({ ...editForm, contact_designation: e.target.value })} placeholder="e.g. Project Manager" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Contact Email</Label>
+                    <Input type="email" value={editForm.contact_email} onChange={e => setEditForm({ ...editForm, contact_email: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Contact Phone</Label>
+                    <Input value={editForm.contact_phone} onChange={e => setEditForm({ ...editForm, contact_phone: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section: Location & Billing */}
+              <div className="space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Location & Billing</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Country</Label>
+                    <Select
+                      value={editForm.country}
+                      onValueChange={v => setEditForm({ ...editForm, country: v, state: '' })}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select country…" /></SelectTrigger>
+                      <SelectContent className="max-h-[200px]">
+                        {Country.getAllCountries().map(c => (
+                          <SelectItem key={c.isoCode} value={c.name}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>State / Province</Label>
+                    <Select
+                      value={editForm.state}
+                      onValueChange={v => setEditForm({ ...editForm, state: v })}
+                      disabled={!editForm.country}
+                    >
+                      <SelectTrigger><SelectValue placeholder={editForm.country ? 'Select state…' : 'Select country first'} /></SelectTrigger>
+                      <SelectContent className="max-h-[200px]">
+                        {editForm.country && (() => {
+                          const isoCode = Country.getAllCountries().find(c => c.name === editForm.country)?.isoCode;
+                          const states = isoCode ? State.getStatesOfCountry(isoCode) : [];
+                          return states.length > 0
+                            ? states.map(s => <SelectItem key={s.isoCode} value={s.name}>{s.name}</SelectItem>)
+                            : <SelectItem value="_none" disabled>No states available</SelectItem>;
+                        })()}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div>
-                  <Label>Contact Phone</Label>
-                  <Input value={editForm.contact_phone} onChange={e => setEditForm({ ...editForm, contact_phone: e.target.value })} />
+                  <Label>Billing Currency</Label>
+                  <Select value={editForm.billing_currency} onValueChange={v => setEditForm({ ...editForm, billing_currency: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Section: Requirements */}
+              <div className="space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Requirements</p>
+                <div>
+                  <Label>Scope</Label>
+                  <Textarea value={editForm.scope} onChange={e => setEditForm({ ...editForm, scope: e.target.value })} rows={3} />
                 </div>
                 <div>
-                  <Label>Country</Label>
-                  <Input value={editForm.country} onChange={e => setEditForm({ ...editForm, country: e.target.value })} />
+                  <Label>Client Requirements</Label>
+                  <Textarea value={editForm.client_requirements} onChange={e => setEditForm({ ...editForm, client_requirements: e.target.value })} rows={3} />
+                </div>
+                <div>
+                  <Label>Notes</Label>
+                  <Textarea value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} rows={3} />
                 </div>
               </div>
-              <div>
-                <Label>Billing Currency</Label>
-                <Select value={editForm.billing_currency} onValueChange={v => setEditForm({ ...editForm, billing_currency: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Category *</Label>
-                <Select value={editForm.category_id} onValueChange={v => setEditForm({ ...editForm, category_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select a category…" /></SelectTrigger>
-                  <SelectContent>
-                    {(clientCategories || []).map(cat => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name} ({cat.code})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Scope</Label>
-                <Textarea value={editForm.scope} onChange={e => setEditForm({ ...editForm, scope: e.target.value })} rows={3} />
-              </div>
-              <div>
-                <Label>Client Requirements</Label>
-                <Textarea value={editForm.client_requirements} onChange={e => setEditForm({ ...editForm, client_requirements: e.target.value })} rows={3} />
-              </div>
-              <div>
-                <Label>Notes</Label>
-                <Textarea value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} rows={3} />
-              </div>
+
             </div>
           )}
           <DialogFooter>
