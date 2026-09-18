@@ -186,7 +186,19 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
         <SummaryCard label="Present Days" value={summary.present} accent="text-[hsl(var(--bx-success-text))]" />
         <SummaryCard label="Absent Days" value={summary.absent} accent="text-[hsl(var(--bx-danger-text))]" />
         <SummaryCard label="Late Arrivals" value={summary.late} accent="text-[hsl(var(--bx-warning-text))]" />
-        <SummaryCard label="Total OT Hours" value={summary.ot.toFixed(1)} />
+        <div className="bg-card rounded-[12px] border p-4">
+          <p className="text-[11px] text-muted-foreground mb-1" style={{ fontFamily: 'var(--ff-body)' }}>OT Hours</p>
+          <div className="flex flex-col gap-0.5">
+            <p className="text-[13px] font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+              <span className="text-[10px] font-normal text-muted-foreground mr-1">Reg</span>
+              {summary.regularOt.toFixed(2)}h
+            </p>
+            <p className="text-[13px] font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
+              <span className="text-[10px] font-normal text-muted-foreground mr-1">Hol</span>
+              {summary.holidayOt.toFixed(2)}h
+            </p>
+          </div>
+        </div>
         <SummaryCard label="Paid Leaves" value={paidLeaveDays} accent="text-primary" />
       </div>
 
