@@ -218,8 +218,9 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                 <TableHead>Day</TableHead>
                 <TableHead>Check In</TableHead>
                 <TableHead>Check Out</TableHead>
-                <TableHead>Working Hrs</TableHead>
-                <TableHead>OT Hrs</TableHead>
+                <TableHead className="text-right">Working Hrs</TableHead>
+                <TableHead className="text-right">Reg OT</TableHead>
+                <TableHead className="text-right">Hol OT</TableHead>
                 <TableHead>Status</TableHead>
                 {isCeo && <TableHead />}
               </TableRow>
