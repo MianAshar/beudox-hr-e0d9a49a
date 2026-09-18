@@ -109,7 +109,7 @@ function RecordsTable({
     });
   }, [records]);
 
-  const colSpan = showCodeAndName ? 7 : 5;
+  const colSpan = showCodeAndName ? 8 : 6;
 
   if (loading) {
     return (
@@ -142,6 +142,7 @@ function RecordsTable({
             <TableHead>Check-in</TableHead>
             <TableHead>Check-out</TableHead>
             <TableHead className="text-right">Working Hrs</TableHead>
+            <TableHead className="text-right">Regular OT</TableHead>
             <TableHead className="hidden lg:table-cell">Notes</TableHead>
             <TableHead className="text-right hidden md:table-cell">Action</TableHead>
           </TableRow>
@@ -215,23 +216,26 @@ function RecordsTable({
                           <span style={{ fontSize: '13px', fontWeight: 500, color: '#120E36' }}>
                             {formatWorkingHours(r.working_hours)}
                           </span>
-                          {r.working_hours != null && (() => {
-                            const dev = r.working_hours - shiftDuration;
-                            if (Math.abs(dev) < 1 / 120) return null;
-                            if (dev > 0) {
-                              return (
-                                <span style={{ fontSize: '11px', color: '#1DC97A' }}>
-                                  +{formatDeviation(dev)} OT
-                                </span>
-                              );
-                            }
-                            return (
-                              <span style={{ fontSize: '11px', color: '#E84545' }}>
-                                -{formatDeviation(dev)} Short
-                              </span>
-                            );
-                          })()}
+                          {r.working_hours != null && (
+                            <span style={{ fontSize: '10px', color: '#9490B4' }}>
+                              {Number(r.working_hours).toFixed(2)}h
+                            </span>
+                          )}
                         </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums whitespace-nowrap">
+                      {!isAbsent && !isOnLeave && r.regular_ot_hours != null && r.regular_ot_hours !== 0 ? (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span style={{ fontSize: '13px', fontWeight: 500, color: r.regular_ot_hours < 0 ? '#E84545' : '#1DC97A' }}>
+                            {r.regular_ot_hours > 0 ? '+' : '-'}{formatWorkingHours(Math.abs(r.regular_ot_hours))}
+                          </span>
+                          <span style={{ fontSize: '10px', color: '#9490B4' }}>
+                            {r.regular_ot_hours > 0 ? '+' : ''}{Number(r.regular_ot_hours).toFixed(2)}h
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground" style={{ fontSize: '13px' }}>—</span>
                       )}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
