@@ -43,13 +43,17 @@ function parseTimeToHours(t: string): number {
   return parseInt(m[1], 10) + parseInt(m[2], 10) / 60;
 }
 
-function buildIsoForDate(date: string, time12: string): string {
-  // time12 from <input type="time"> is "HH:mm" (24h)
+function buildIsoForDate(date: string, time12: string, nextDay = false): string {
   const [h, m] = time12.split(':').map(n => parseInt(n, 10));
-  // Build ISO string in Karachi offset +05:00
+  let d = date;
+  if (nextDay) {
+    const dt = new Date(`${date}T00:00:00`);
+    dt.setDate(dt.getDate() + 1);
+    d = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+  }
   const hh = String(h).padStart(2, '0');
   const mm = String(m).padStart(2, '0');
-  return `${date}T${hh}:${mm}:00+05:00`;
+  return `${d}T${hh}:${mm}:00+05:00`;
 }
 
 export default function MissingEntryModal({
@@ -110,8 +114,10 @@ export default function MissingEntryModal({
         toast.error('Please select both check-in and check-out times');
         return;
       }
-      if (parseTimeToHours(checkOutTime) <= parseTimeToHours(checkInTime)) {
-        toast.error('Check-out must be after check-in');
+      // Allow checkout earlier than check-in — it means next-day (midnight crossover)
+      // Only block if they are exactly equal
+      if (checkOutTime === checkInTime) {
+        toast.error('Check-out time cannot be the same as check-in time');
         return;
       }
     } else if (!time) {
@@ -130,8 +136,9 @@ export default function MissingEntryModal({
       let newCheckOut: string | null;
 
       if (isBoth) {
+        const checkoutCrossesMinight = parseTimeToHours(checkOutTime) < parseTimeToHours(checkInTime);
         newCheckIn = buildIsoForDate(target.date, checkInTime);
-        newCheckOut = buildIsoForDate(target.date, checkOutTime);
+        newCheckOut = buildIsoForDate(target.date, checkOutTime, checkoutCrossesMinight);
       } else {
         const newIso = buildIsoForDate(target.date, time);
         newCheckIn = target.field === 'check_in' ? newIso : target.existingCheckIn;
@@ -335,6 +342,9 @@ export default function MissingEntryModal({
               <div className="space-y-1.5">
                 <Label className="text-xs" htmlFor="missing-check-out">
                   Check-out time <span className="text-destructive">*</span>
+                  {checkInTime && checkOutTime && parseTimeToHours(checkOutTime) < parseTimeToHours(checkInTime) && (
+                    <span className="ml-2 text-[11px] font-normal text-amber-600">(next day +1)</span>
+                  )}
                 </Label>
                 <Input
                   id="missing-check-out"
