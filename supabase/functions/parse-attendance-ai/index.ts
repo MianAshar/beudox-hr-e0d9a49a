@@ -38,6 +38,13 @@ Rules:
 - If only one punch exists for the day, put it in check_in OR check_out
   depending on whether it is closer to the start or end of the typical workday
   (under 14:00 → check_in, otherwise check_out) and add notes "single_punch".
+- MIDNIGHT CROSSOVER: If an employee has a punch before 06:00 on day N+1, AND
+  also has only a check_in (no check_out) on day N, the early punch on day N+1
+  is almost certainly the checkout for day N that crossed midnight. In this case:
+  set it as check_out on day N (keep the time as-is, the system will shift the
+  date), do NOT create a separate record for day N+1 for that early punch, and
+  add notes "midnight_crossover" on the day N record. Only apply this rule when
+  the gap between the day N check_in and the early day N+1 punch is under 20 hours.
 - If the file contains rows for weekends or holidays where the employee did not
   punch, OMIT those rows — do not invent absences.
 - Skip any header rows, totals rows, or summary rows.
@@ -155,8 +162,85 @@ Deno.serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    // ─── Post-processing: deterministic midnight crossover merge ───────────────
+    // Catches cases where the AI missed the pattern. After AI processing,
+    // scan for employees who have:
+    //   - Day N: check_in only (no check_out), notes = "single_punch"
+    //   - Day N+1: check_in only before 06:00 (no check_out)
+    // Merge the Day N+1 early punch as check_out of Day N.
+
+    const timeToMins = (t: string | null): number | null => {
+      if (!t) return null;
+      const parts = t.split(':').map(Number);
+      if (parts.length < 2) return null;
+      return parts[0] * 60 + parts[1];
+    };
+
+    // Group by employee_code → sorted by date
+    const byEmployee = new Map<string, ParsedRecord[]>();
+    for (const r of cleanRecords) {
+      if (!byEmployee.has(r.employee_code)) byEmployee.set(r.employee_code, []);
+      byEmployee.get(r.employee_code)!.push(r);
+    }
+
+    const toRemove = new Set<number>(); // indices in cleanRecords to remove
+
+    for (const [, empRecords] of byEmployee) {
+      empRecords.sort((a, b) => a.date.localeCompare(b.date));
+
+      for (let i = 0; i < empRecords.length - 1; i++) {
+        const dayN = empRecords[i];
+        const dayNext = empRecords[i + 1];
+
+        // Check day N: has check_in but no check_out
+        if (!dayN.check_in || dayN.check_out) continue;
+
+        // Check day N+1: has early check_in (before 06:00) and no check_out
+        const nextInMins = timeToMins(dayNext.check_in);
+        if (nextInMins == null || nextInMins >= 6 * 60) continue;
+        if (dayNext.check_out) continue;
+
+        // Verify the two dates are consecutive calendar days
+        const dN = new Date(dayN.date + 'T00:00:00Z');
+        const dNext = new Date(dayNext.date + 'T00:00:00Z');
+        const diffDays = (dNext.getTime() - dN.getTime()) / (1000 * 60 * 60 * 24);
+        if (diffDays !== 1) continue;
+
+        // Verify total gap is under 20 hours
+        const inMins = timeToMins(dayN.check_in);
+        if (inMins == null) continue;
+        const totalMins = (24 * 60 - inMins) + nextInMins; // time from check_in to midnight + early punch
+        if (totalMins > 20 * 60) continue;
+
+        // Merge: set dayN check_out to the early punch time
+        const idx = cleanRecords.indexOf(dayN);
+        const nextIdx = cleanRecords.indexOf(dayNext);
+
+        if (idx !== -1) {
+          cleanRecords[idx] = {
+            ...dayN,
+            check_out: dayNext.check_in,
+            notes: 'midnight_crossover',
+          };
+        }
+
+        // Remove the day N+1 early punch record
+        if (nextIdx !== -1) {
+          toRemove.add(nextIdx);
+        }
+
+        // Add a warning so HR can see it in the preview
+        warnings.push(
+          `Midnight crossover detected for ${dayN.employee_code} on ${dayN.date} — checkout at ${dayNext.check_in} (next day) has been merged.`
+        );
+      }
+    }
+
+    // Remove the merged early-punch records
+    const finalRecords = cleanRecords.filter((_, i) => !toRemove.has(i));
+
     return new Response(
-      JSON.stringify({ records: cleanRecords, warnings }),
+      JSON.stringify({ records: finalRecords, warnings }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (err) {
