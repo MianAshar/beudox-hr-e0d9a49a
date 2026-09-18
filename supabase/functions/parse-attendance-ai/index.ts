@@ -163,11 +163,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     // ─── Post-processing: deterministic midnight crossover merge ───────────────
-    // Catches cases where the AI missed the pattern. After AI processing,
-    // scan for employees who have:
-    //   - Day N: check_in only (no check_out), notes = "single_punch"
-    //   - Day N+1: check_in only before 06:00 (no check_out)
-    // Merge the Day N+1 early punch as check_out of Day N.
+    // Two scenarios handled:
+    //
+    // Scenario A (simple): Day N has check_in only. Day N+1 has check_in before
+    //   06:00 and NO check_out. Merge the early punch as Day N's check_out.
+    //
+    // Scenario B (absorbed): Day N has check_in only. Day N+1 has check_in
+    //   before 06:00 AND a check_out. The early punch was absorbed as Day N+1's
+    //   check_in by the AI (AI kept earliest punch). In this case:
+    //   - Move the early punch to Day N's check_out
+    //   - Find the SECOND earliest punch for Day N+1 and set that as check_in
+    //   This requires re-examining original punches — but we don't have them
+    //   post-AI. Instead, we detect the pattern and flag it for manual correction,
+    //   AND apply a best-effort fix: set Day N check_out = Day N+1 check_in,
+    //   then set Day N+1 check_in = null (single_punch_adjusted) so HR can see it.
+    //   The user must manually correct Day N+1 check_in via CEO edit.
 
     const timeToMins = (t: string | null): number | null => {
       if (!t) return null;
@@ -183,7 +193,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       byEmployee.get(r.employee_code)!.push(r);
     }
 
-    const toRemove = new Set<number>(); // indices in cleanRecords to remove
+    const toRemove = new Set<number>();
 
     for (const [, empRecords] of byEmployee) {
       empRecords.sort((a, b) => a.date.localeCompare(b.date));
@@ -192,51 +202,68 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const dayN = empRecords[i];
         const dayNext = empRecords[i + 1];
 
-        // Check day N: has check_in but no check_out
+        // Day N must have check_in but no check_out
         if (!dayN.check_in || dayN.check_out) continue;
 
-        // Check day N+1: has early check_in (before 06:00) and no check_out
+        // Day N+1 must have a check_in before 06:00
         const nextInMins = timeToMins(dayNext.check_in);
         if (nextInMins == null || nextInMins >= 6 * 60) continue;
-        if (dayNext.check_out) continue;
 
-        // Verify the two dates are consecutive calendar days
+        // Must be consecutive calendar days
         const dN = new Date(dayN.date + 'T00:00:00Z');
         const dNext = new Date(dayNext.date + 'T00:00:00Z');
         const diffDays = (dNext.getTime() - dN.getTime()) / (1000 * 60 * 60 * 24);
         if (diffDays !== 1) continue;
 
-        // Verify total gap is under 20 hours
+        // Total gap must be under 20 hours
         const inMins = timeToMins(dayN.check_in);
         if (inMins == null) continue;
-        const totalMins = (24 * 60 - inMins) + nextInMins; // time from check_in to midnight + early punch
+        const totalMins = (24 * 60 - inMins) + nextInMins;
         if (totalMins > 20 * 60) continue;
 
-        // Merge: set dayN check_out to the early punch time
-        const idx = cleanRecords.indexOf(dayN);
-        const nextIdx = cleanRecords.indexOf(dayNext);
+        const idxN = cleanRecords.indexOf(dayN);
+        const idxNext = cleanRecords.indexOf(dayNext);
 
-        if (idx !== -1) {
-          cleanRecords[idx] = {
-            ...dayN,
-            check_out: dayNext.check_in,
-            notes: 'midnight_crossover',
-          };
+        if (!dayNext.check_out) {
+          // ── Scenario A: Day N+1 is check_in only → fully remove it ──
+          if (idxN !== -1) {
+            cleanRecords[idxN] = {
+              ...dayN,
+              check_out: dayNext.check_in,
+              notes: 'midnight_crossover',
+            };
+          }
+          if (idxNext !== -1) toRemove.add(idxNext);
+
+          warnings.push(
+            `Midnight crossover (A) for ${dayN.employee_code} on ${dayN.date}: checkout ${dayNext.check_in} moved from ${dayNext.date}.`
+          );
+        } else {
+          // ── Scenario B: Day N+1 has full record, early punch absorbed as its check_in ──
+          // Move early punch → Day N check_out
+          // Set Day N+1 check_in to null (needs manual correction by CEO)
+          if (idxN !== -1) {
+            cleanRecords[idxN] = {
+              ...dayN,
+              check_out: dayNext.check_in,
+              notes: 'midnight_crossover',
+            };
+          }
+          if (idxNext !== -1) {
+            cleanRecords[idxNext] = {
+              ...dayNext,
+              check_in: null,
+              notes: 'midnight_crossover_checkin_missing',
+            };
+          }
+
+          warnings.push(
+            `Midnight crossover (B) for ${dayN.employee_code} on ${dayN.date}: checkout ${dayNext.check_in} extracted from ${dayNext.date}. Check-in on ${dayNext.date} needs manual correction.`
+          );
         }
-
-        // Remove the day N+1 early punch record
-        if (nextIdx !== -1) {
-          toRemove.add(nextIdx);
-        }
-
-        // Add a warning so HR can see it in the preview
-        warnings.push(
-          `Midnight crossover detected for ${dayN.employee_code} on ${dayN.date} — checkout at ${dayNext.check_in} (next day) has been merged.`
-        );
       }
     }
 
-    // Remove the merged early-punch records
     const finalRecords = cleanRecords.filter((_, i) => !toRemove.has(i));
 
     return new Response(
