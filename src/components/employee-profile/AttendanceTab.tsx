@@ -155,7 +155,8 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
       present: list.filter(r => !r.is_absent && !r.is_weekend && !r.is_holiday).length,
       absent: list.filter(r => r.is_absent).length,
       late: list.filter(r => r.is_late).length,
-      ot: list.reduce((s, r) => s + Number(r.regular_ot_hours || 0) + Number(r.holiday_ot_hours || 0), 0),
+      regularOt: list.reduce((s, r) => s + Number(r.regular_ot_hours || 0), 0),
+      holidayOt: list.reduce((s, r) => s + Number(r.holiday_ot_hours || 0), 0),
     };
   }, [records]);
 
