@@ -180,6 +180,7 @@ const ClientDetail = () => {
         state: editForm.state?.trim() || null,
         source: editForm.source || null,
         onboarding_date: editForm.onboarding_date || null,
+        nature_of_business: editForm.nature_of_business?.trim() || null,
         billing_currency: editForm.billing_currency,
         notes: editForm.notes?.trim() || null,
         scope: editForm.scope?.trim() || null,
@@ -263,6 +264,7 @@ const ClientDetail = () => {
                 state: client.state || '',
                 source: client.source || '',
                 onboarding_date: client.onboarding_date || '',
+                nature_of_business: client.nature_of_business || '',
                 billing_currency: client.billing_currency || 'USD',
                 notes: client.notes || '',
                 scope: client.scope || '',
@@ -329,6 +331,12 @@ const ClientDetail = () => {
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Onboarding Date</p>
             <p className="text-sm">{new Date(client.onboarding_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+          </div>
+        )}
+        {client.nature_of_business && (
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Nature of Business</p>
+            <p className="text-sm">{client.nature_of_business}</p>
           </div>
         )}
         <div className="flex items-center gap-2">
@@ -547,6 +555,10 @@ const ClientDetail = () => {
                 <div>
                   <Label>Onboarding Date</Label>
                   <Input type="date" value={editForm.onboarding_date} onChange={e => setEditForm({ ...editForm, onboarding_date: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Nature of Business</Label>
+                  <Input value={editForm.nature_of_business} onChange={e => setEditForm({ ...editForm, nature_of_business: e.target.value })} placeholder="e.g. Construction Estimating, Architecture, MEP" />
                 </div>
               </div>
 

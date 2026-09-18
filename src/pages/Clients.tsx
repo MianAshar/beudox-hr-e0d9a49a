@@ -112,6 +112,7 @@ const emptyForm = {
   state: '',
   billing_currency: 'USD',
   source: '',
+  nature_of_business: '',
   onboarding_date: '',
   notes: '',
   scope: '',
@@ -245,6 +246,7 @@ const Clients = () => {
         state: form.state.trim() || null,
         billing_currency: form.billing_currency,
         source: form.source || null,
+        nature_of_business: form.nature_of_business.trim() || null,
         onboarding_date: form.onboarding_date || null,
         notes: form.notes.trim() || null,
         scope: form.scope.trim() || null,
@@ -722,6 +724,10 @@ const Clients = () => {
               <div>
                 <Label>Onboarding Date</Label>
                 <Input className="bg-white" type="date" value={form.onboarding_date} onChange={e => setForm({ ...form, onboarding_date: e.target.value })} />
+              </div>
+              <div>
+                <Label>Nature of Business</Label>
+                <Input className="bg-white" value={form.nature_of_business} onChange={e => setForm({ ...form, nature_of_business: e.target.value })} placeholder="e.g. Construction Estimating, Architecture, MEP" />
               </div>
             </div>
 
