@@ -681,12 +681,12 @@ const Clients = () => {
 
       {/* Add Client Sheet */}
       <Sheet open={modalOpen} onOpenChange={v => { if (!v) closeModal(); }}>
-        <SheetContent className="w-full sm:max-w-[648px] overflow-y-auto flex flex-col px-6">
-          <SheetHeader className="shrink-0">
+        <SheetContent className="w-full sm:max-w-[648px] overflow-y-auto flex flex-col">
+          <SheetHeader className="shrink-0 px-6">
             <SheetTitle>Add Client</SheetTitle>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto py-4 space-y-6">
+          <div className="flex-1 overflow-y-auto py-4 space-y-6 px-6">
 
             {/* Section: Company Info */}
             <div className="space-y-3">
@@ -866,7 +866,7 @@ const Clients = () => {
 
           </div>
 
-          <SheetFooter className="shrink-0 pt-4 border-t gap-2">
+          <SheetFooter className="shrink-0 pt-4 border-t gap-2 px-6">
             <Button variant="outline" onClick={closeModal} className="flex-1">Cancel</Button>
             <Button onClick={handleSave} disabled={saveMutation.isPending} className="flex-1">
               {saveMutation.isPending ? 'Saving…' : 'Save Client'}
