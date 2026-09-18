@@ -97,17 +97,69 @@ function loadSheetJs(): Promise<any> {
 async function fileToCsv(file: File): Promise<string> {
   const XLSX = await loadSheetJs();
   const buf = await file.arrayBuffer();
-  // Read with both cellDates (for machine-exported datetime serials) and
-  // cellText: true (so manually-typed plain text values are preserved in w).
-  const wb = XLSX.read(buf, { type: 'array', cellDates: true, cellText: true });
+  // Read with dense mode and all cell types preserved
+  const wb = XLSX.read(buf, { type: 'array', cellDates: true, cellText: true, cellStyles: false, dense: false });
   const parts: string[] = [];
+
   for (const name of wb.SheetNames) {
     const sheet = wb.Sheets[name];
-    // Use rawNumbers: false so dates render as readable strings not serial numbers,
-    // and the displayed text (w) is used for manually-typed cells.
-    const csv = XLSX.utils.sheet_to_csv(sheet, { blankrows: false, rawNumbers: false });
-    if (csv && csv.trim()) parts.push(`# Sheet: ${name}\n${csv}`);
+    if (!sheet || !sheet['!ref']) continue;
+
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    const rows: string[] = [];
+
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      const cells: string[] = [];
+      let hasValue = false;
+
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const addr = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = sheet[addr];
+
+        if (!cell) {
+          cells.push('');
+          continue;
+        }
+
+        let val = '';
+
+        // Priority order: formatted text (w) → raw value (v) → formula result
+        if (cell.w !== undefined && cell.w !== null && String(cell.w).trim() !== '') {
+          val = String(cell.w).trim();
+        } else if (cell.v !== undefined && cell.v !== null) {
+          if (cell.t === 'd' && cell.v instanceof Date) {
+            // Date object from cellDates:true
+            const d = cell.v as Date;
+            const mo = d.getMonth() + 1;
+            const dy = d.getDate();
+            const yr = d.getFullYear();
+            const hh = d.getHours();
+            const mm = d.getMinutes();
+            const ss = d.getSeconds();
+            const ampm = hh >= 12 ? 'PM' : 'AM';
+            const h12 = hh % 12 || 12;
+            val = `${mo}/${dy}/${yr} ${h12}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')} ${ampm}`;
+          } else {
+            val = String(cell.v).trim();
+          }
+        }
+
+        if (val !== '') hasValue = true;
+        // Escape commas and quotes for CSV
+        if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+          val = `"${val.replace(/"/g, '""')}"`;
+        }
+        cells.push(val);
+      }
+
+      if (hasValue) rows.push(cells.join(','));
+    }
+
+    if (rows.length > 0) {
+      parts.push(`# Sheet: ${name}\n${rows.join('\n')}`);
+    }
   }
+
   return parts.join('\n\n');
 }
 
