@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import { Country, State } from 'country-state-city';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Plus, Search, XCircle, Building2, RotateCcw, Users } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -95,13 +97,19 @@ interface Client {
 
 const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
 
+const SOURCE_OPTIONS = ['Direct', 'Referral', 'LinkedIn', 'Cold Outreach', 'Website', 'Exhibition', 'Other'];
+
 const emptyForm = {
   name: '',
   contact_name: '',
+  contact_designation: '',
   contact_email: '',
   contact_phone: '',
   country: '',
+  state: '',
   billing_currency: 'USD',
+  source: '',
+  onboarding_date: '',
   notes: '',
   scope: '',
   client_requirements: '',
@@ -225,10 +233,14 @@ const Clients = () => {
       const payload = {
         name: form.name.trim(),
         contact_name: form.contact_name.trim() || null,
+        contact_designation: form.contact_designation.trim() || null,
         contact_email: form.contact_email.trim() || null,
         contact_phone: form.contact_phone.trim() || null,
         country: form.country.trim() || null,
+        state: form.state.trim() || null,
         billing_currency: form.billing_currency,
+        source: form.source || null,
+        onboarding_date: form.onboarding_date || null,
         notes: form.notes.trim() || null,
         scope: form.scope.trim() || null,
         client_requirements: form.client_requirements.trim() || null,
@@ -662,84 +674,152 @@ const Clients = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Client Modal */}
-      <Dialog open={modalOpen} onOpenChange={v => { if (!v) closeModal(); }}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Add Client</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <Label>Company Name *</Label>
-              <Input value={form.name} onChange={e => { setForm({ ...form, name: e.target.value }); setErrors({}); }} />
-              {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+      {/* Add Client Sheet */}
+      <Sheet open={modalOpen} onOpenChange={v => { if (!v) closeModal(); }}>
+        <SheetContent className="w-full sm:max-w-[540px] overflow-y-auto flex flex-col">
+          <SheetHeader className="shrink-0">
+            <SheetTitle>Add Client</SheetTitle>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-1">
+
+            {/* Section: Company Info */}
+            <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Company Info</p>
               <div>
-                <Label>Contact Name</Label>
-                <Input value={form.contact_name} onChange={e => setForm({ ...form, contact_name: e.target.value })} />
+                <Label>Company Name *</Label>
+                <Input value={form.name} onChange={e => { setForm({ ...form, name: e.target.value }); setErrors({}); }} />
+                {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Category *</Label>
+                  <Select value={form.category_id} onValueChange={v => { setForm({ ...form, category_id: v }); setErrors({}); }}>
+                    <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                    <SelectContent>
+                      {(clientCategories || []).map(cat => (
+                        <SelectItem key={cat.id} value={cat.id}>{cat.name} ({cat.code})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.category_id && <p className="text-sm text-destructive mt-1">{errors.category_id}</p>}
+                </div>
+                <div>
+                  <Label>Source</Label>
+                  <Select value={form.source} onValueChange={v => setForm({ ...form, source: v })}>
+                    <SelectTrigger><SelectValue placeholder="How did they find us?" /></SelectTrigger>
+                    <SelectContent>
+                      {SOURCE_OPTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div>
-                <Label>Contact Email</Label>
-                <Input value={form.contact_email} onChange={e => setForm({ ...form, contact_email: e.target.value })} />
+                <Label>Onboarding Date</Label>
+                <Input type="date" value={form.onboarding_date} onChange={e => setForm({ ...form, onboarding_date: e.target.value })} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            {/* Section: Contact Details */}
+            <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contact Details</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Contact Name</Label>
+                  <Input value={form.contact_name} onChange={e => setForm({ ...form, contact_name: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Designation</Label>
+                  <Input value={form.contact_designation} onChange={e => setForm({ ...form, contact_designation: e.target.value })} placeholder="e.g. Project Manager" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Contact Email</Label>
+                  <Input type="email" value={form.contact_email} onChange={e => setForm({ ...form, contact_email: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Contact Phone</Label>
+                  <Input value={form.contact_phone} onChange={e => setForm({ ...form, contact_phone: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* Section: Location & Billing */}
+            <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Location & Billing</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Country</Label>
+                  <Select
+                    value={form.country}
+                    onValueChange={v => setForm({ ...form, country: v, state: '' })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select country…" /></SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {Country.getAllCountries().map(c => (
+                        <SelectItem key={c.isoCode} value={c.name}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>State / Province</Label>
+                  <Select
+                    value={form.state}
+                    onValueChange={v => setForm({ ...form, state: v })}
+                    disabled={!form.country}
+                  >
+                    <SelectTrigger><SelectValue placeholder={form.country ? 'Select state…' : 'Select country first'} /></SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {form.country && (() => {
+                        const isoCode = Country.getAllCountries().find(c => c.name === form.country)?.isoCode;
+                        const states = isoCode ? State.getStatesOfCountry(isoCode) : [];
+                        return states.length > 0
+                          ? states.map(s => <SelectItem key={s.isoCode} value={s.name}>{s.name}</SelectItem>)
+                          : <SelectItem value="_none" disabled>No states available</SelectItem>;
+                      })()}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div>
-                <Label>Contact Phone</Label>
-                <Input value={form.contact_phone} onChange={e => setForm({ ...form, contact_phone: e.target.value })} />
+                <Label>Billing Currency</Label>
+                <Select value={form.billing_currency} onValueChange={v => setForm({ ...form, billing_currency: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Section: Requirements */}
+            <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Requirements</p>
+              <div>
+                <Label>Scope</Label>
+                <p className="text-xs text-muted-foreground mb-1">High-level description of work. Will auto-populate on new projects.</p>
+                <Textarea value={form.scope} onChange={e => setForm({ ...form, scope: e.target.value })} rows={3} />
               </div>
               <div>
-                <Label>Country</Label>
-                <Input value={form.country} onChange={e => setForm({ ...form, country: e.target.value })} />
+                <Label>Client Requirements</Label>
+                <Textarea value={form.client_requirements} onChange={e => setForm({ ...form, client_requirements: e.target.value })} rows={3} />
               </div>
-            </div>
-            <div>
-              <Label>Billing Currency</Label>
-              <Select value={form.billing_currency} onValueChange={v => setForm({ ...form, billing_currency: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Category *</Label>
-              <Select value={form.category_id} onValueChange={v => { setForm({ ...form, category_id: v }); setErrors({}); }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(clientCategories || []).map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.name} ({cat.code})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.category_id && <p className="text-sm text-destructive mt-1">{errors.category_id}</p>}
-            </div>
-            <div>
-              <Label>Scope</Label>
-              <p className="text-xs text-muted-foreground mb-1">High-level description of work for this client. Will auto-populate on new projects.</p>
-              <Textarea value={form.scope} onChange={e => setForm({ ...form, scope: e.target.value })} rows={3} />
-            </div>
-            <div>
-              <Label>Client Requirements</Label>
-              <Textarea value={form.client_requirements} onChange={e => setForm({ ...form, client_requirements: e.target.value })} rows={3} />
-            </div>
-            <div>
-              <Label>Notes</Label>
-              <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
+              <div>
+                <Label>Notes</Label>
+                <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} />
+              </div>
             </div>
 
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? 'Saving…' : 'Save'}
+
+          <SheetFooter className="shrink-0 pt-4 border-t gap-2">
+            <Button variant="outline" onClick={closeModal} className="flex-1">Cancel</Button>
+            <Button onClick={handleSave} disabled={saveMutation.isPending} className="flex-1">
+              {saveMutation.isPending ? 'Saving…' : 'Save Client'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* Remove Portal User Confirmation */}
       <Dialog open={!!deleteUserId} onOpenChange={v => { if (!v) setDeleteUserId(null); }}>
