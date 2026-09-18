@@ -108,7 +108,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
         .eq('employee_id', employeeId)
         .gte('date', startDate)
         .lte('date', endDate)
-        .order('date', { ascending: false });
+        .order('date', { ascending: true });
       if (error) throw error;
       return data || [];
     },
