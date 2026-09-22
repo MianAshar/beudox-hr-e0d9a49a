@@ -171,6 +171,10 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
         if (r.is_late) lateCount++;
       }
 
+      const relaxation = Number((csRes.data as any)?.short_time_relaxation_hours ?? 0);
+      const shortHoursAfterRelaxation = Math.floor(Math.max(0, shortHours - relaxation));
+      const overtimeHoursFloored = Math.floor(overtimeHours);
+
       const leaveDays = leaveDates.size;
 
       const cs = csRes.data;
