@@ -175,12 +175,27 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
     // Short time after relaxation: if relaxation covers it fully, short time = 0
     const shortTimeAfterRelaxation = Math.max(0, Math.abs(negativeSum) - relaxationHours);
 
+    // Per-row totals for the table footer
+    const totalShortTime = list.reduce((s, r) => {
+      const v = Number(r.regular_ot_hours || 0);
+      return v < 0 ? s + Math.abs(v) : s;
+    }, 0);
+    const totalRegularOt = list.reduce((s, r) => {
+      const v = Number(r.regular_ot_hours || 0);
+      return v > 0 ? s + v : s;
+    }, 0);
+    const totalHolOt = list.reduce((s, r) => s + Number(r.holiday_ot_hours || 0), 0);
+
     return {
       absent: list.filter(r => r.is_absent).length,
       late: list.filter(r => r.is_late).length,
       shortTime: shortTimeAfterRelaxation,
       regularOt: positiveSum,
-      holidayOt: list.reduce((s, r) => s + Number(r.holiday_ot_hours || 0), 0),
+      holidayOt: totalHolOt,
+      // Raw column totals (no relaxation applied — just sum of values per column)
+      colShortTime: totalShortTime,
+      colRegularOt: totalRegularOt,
+      colHolOt: totalHolOt,
     };
   }, [records, relaxationHours]);
 
