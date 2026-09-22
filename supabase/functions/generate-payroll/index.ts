@@ -304,24 +304,23 @@ Deno.serve(async (req) => {
 
       if (!isDirector && enableOtAdjustment) {
         const att = attendanceMap[emp.id];
-        const shortTime = -Math.floor(Math.abs(att?.shortTime || 0)); // negative, floored
-        const overtime = Math.floor(att?.overtime || 0);              // positive, floored
+        const rawShortTime = Math.abs(att?.shortTime || 0); // positive magnitude, e.g. 2.32
+        const rawOvertime = att?.overtime || 0;             // positive, e.g. 8.01
 
-        // Net OT before relaxation
-        const rawNet = shortTime + overtime;
+        // Apply relaxation to short time FIRST — absorbs the deficit before netting.
+        // e.g. shortTime=2.32, relaxation=3 → shortTimeAfterRelaxation=0 (fully covered)
+        // e.g. shortTime=5.00, relaxation=3 → shortTimeAfterRelaxation=2 (partial cover)
+        const shortTimeAfterRelaxation = Math.max(0, rawShortTime - shortTimeRelaxation);
 
-        // Apply short-time relaxation: the buffer absorbs deficit but CANNOT create phantom OT.
-        // If rawNet >= 0 the employee already has net overtime — relaxation does nothing.
-        // If rawNet < 0 the employee is in deficit — relax up to 0 but never above.
-        // e.g. rawNet = -1, relaxation = 3 → min(0, -1 + 3) = min(0, 2) = 0 ✓ (not 2)
-        // e.g. rawNet = -5, relaxation = 3 → min(0, -5 + 3) = min(0, -2) = -2 ✓
-        const regularOtTotal = rawNet < 0
-          ? Math.min(0, rawNet + shortTimeRelaxation)
-          : rawNet;
+        // Net OT = overtime minus the remaining (unabsorbed) short time
+        // e.g. 8.01 - 0 = 8.01 → floor = 8h OT
+        // e.g. 8.01 - 2 = 6.01 → floor = 6h OT
+        const regularOtTotal = rawOvertime - shortTimeAfterRelaxation;
 
         // Floor all OT/short-time hours — fractional minutes are discarded, not paid.
         regularOtHours = Math.floor(regularOtTotal);
         holidayOtHours = Math.floor(att?.holidayOt || 0);
+
 
         const perDaySalary = effectiveBasic / otDivisor;
         const perHourSalary = perDaySalary / workingHoursPerDay;
