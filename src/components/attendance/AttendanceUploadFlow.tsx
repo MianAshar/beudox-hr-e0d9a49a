@@ -463,6 +463,7 @@ const AttendanceUploadFlow = ({
       };
       const leaveByEmpDate = new Map<string, LeaveReq>(); // key: empId|date
       const empNameById = new Map<string, string>();
+      const halfDayEmpDates = new Set<string>(); // key: `${empId}|${date}`
       (empRows ?? []).forEach((e: any) => {
         if (e.id && e.full_name) empNameById.set(e.id, e.full_name);
       });
@@ -470,7 +471,7 @@ const AttendanceUploadFlow = ({
       if (matchedEmpIds.length > 0) {
         const { data: leaveRows } = await supabase
           .from('leave_requests')
-          .select('id, employee_id, leave_type_id, start_date, end_date, days_requested, leave_types!leave_requests_leave_type_id_fkey(name)')
+          .select('id, employee_id, leave_type_id, start_date, end_date, days_requested, half_day, leave_types!leave_requests_leave_type_id_fkey(name)')
           .eq('company_id', companyId)
           .eq('status', 'approved')
           .in('employee_id', matchedEmpIds)
@@ -495,6 +496,13 @@ const AttendanceUploadFlow = ({
               });
             }
             cur.setDate(cur.getDate() + 1);
+          }
+
+          if (lr.half_day) {
+            const d = lr.start_date as string;
+            if (d >= minDate && d <= maxDate) {
+              halfDayEmpDates.add(`${lr.employee_id}|${d}`);
+            }
           }
         }
       }
@@ -557,7 +565,8 @@ const AttendanceUploadFlow = ({
         const inMin = timeToMinutes(r.check_in);
         const isLate = inMin != null && inMin > lateCutoff;
 
-        const regularOt = !weekend && !holiday && wh != null
+        const isHalfDayLeave = empId ? halfDayEmpDates.has(`${empId}|${r.date}`) : false;
+        const regularOt = !weekend && !holiday && !isHalfDayLeave && wh != null
           ? Math.round((wh - shiftHrs) * 100) / 100 : 0;
         const holidayOt = (weekend || holiday) && wh != null ? wh : 0;
 

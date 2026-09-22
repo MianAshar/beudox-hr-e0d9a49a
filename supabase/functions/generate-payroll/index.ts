@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
     // harmless because attendance won't have OT entries for those days anyway).
     const { data: approvedLeaves } = await supabase
       .from('leave_requests')
-      .select('employee_id, start_date, end_date, status, approved_dates')
+      .select('employee_id, start_date, end_date, status, approved_dates, half_day')
       .eq('company_id', company_id)
       .in('status', ['approved', 'partially_approved'])
       .lte('start_date', endDate)
@@ -170,6 +170,18 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Build a set of half-day leave dates per employee
+    // On these dates, regular_ot_hours contribution is zeroed out (no OT, no short time)
+    const halfDayDatesByEmp: Record<string, Set<string>> = {};
+    for (const lr of approvedLeaves || []) {
+      if (!(lr as any).half_day) continue;
+      const empId = (lr as any).employee_id as string;
+      if (!halfDayDatesByEmp[empId]) halfDayDatesByEmp[empId] = new Set<string>();
+      // Half-day leaves are always single-day (start_date === end_date)
+      const d = (lr as any).start_date as string;
+      if (d >= startDate && d <= endDate) halfDayDatesByEmp[empId].add(d);
+    }
+
     // Group attendance by employee — split negative (short time) from positive (overtime).
     // Include every record that is NOT weekend/holiday/leave AND has both check_in and check_out.
     // No threshold on size of deviation — every valid day counts at its full value.
@@ -198,6 +210,8 @@ Deno.serve(async (req) => {
       const deviation = Number(rec.regular_ot_hours || 0);
       if (leaveDatesByEmp[empId]?.has(recDate)) continue;
       if (!(rec as any).check_in || !(rec as any).check_out) continue;
+      // Half-day leave: employee worked a half day — don't count OT or short time
+      if (halfDayDatesByEmp[empId]?.has(recDate)) continue;
 
       if (deviation < 0) attendanceMap[empId].shortTime += deviation;
       else attendanceMap[empId].overtime += deviation;
