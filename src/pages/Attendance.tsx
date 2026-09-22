@@ -44,11 +44,14 @@ interface AttendanceRow {
   working_hours: number | null;
   notes: string | null;
   is_late: boolean | null;
+  is_holiday: boolean | null;
+  is_weekend: boolean | null;
   regular_ot_hours: number | null;
   holiday_ot_hours: number | null;
   status: string | null;
   employee_name?: string | null;
 }
+
 
 interface CompanySettings {
   shift_start_time: string;
