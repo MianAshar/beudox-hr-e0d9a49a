@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users, ExternalLink, X } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { Country, State } from 'country-state-city';
 
