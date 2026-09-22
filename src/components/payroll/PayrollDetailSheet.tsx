@@ -126,7 +126,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
           .gte('end_date', startDate),
         supabase
           .from('company_settings')
-          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, working_days')
+          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, working_days, short_time_relaxation_hours')
           .eq('company_id', companyId!)
           .maybeSingle(),
         supabase
@@ -174,6 +174,9 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
       const leaveDays = leaveDates.size;
 
       const cs = csRes.data;
+      const relaxation = Number((cs as any)?.short_time_relaxation_hours || 0);
+      const shortHoursAfterRelaxation = Math.max(0, shortHours - relaxation);
+      const overtimeHoursFloored = Math.floor(overtimeHours);
       const otDivisor = Number(cs?.ot_divisor) || 26;
       const workingDays: number[] = Array.isArray((cs as any)?.working_days)
         ? (cs as any).working_days
@@ -229,13 +232,15 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
       }
 
       return {
-        shortHours,
-        overtimeHours,
+        rawShortHours: Math.floor(shortHours),
+        shortHours: shortHoursAfterRelaxation,
+        overtimeHours: overtimeHoursFloored,
         lateCount,
         absentCount,
         leaveDays,
         otDivisor,
         workingHoursPerDay,
+        relaxation,
       };
     },
   });
@@ -261,8 +266,10 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
   const regOtHours = Number(record.regular_ot_hours || 0);
   const holOtHours = Number(record.holiday_ot_hours || 0);
 
+  const rawShortHours = extra?.rawShortHours ?? (regOtHours < 0 ? Math.abs(regOtHours) : 0);
   const shortHours = extra?.shortHours ?? (regOtHours < 0 ? Math.abs(regOtHours) : 0);
   const overtimeHours = extra?.overtimeHours ?? (regOtHours > 0 ? regOtHours : 0);
+  const relaxation = extra?.relaxation ?? 0;
   const lateCount = extra?.lateCount ?? 0;
   const absentCount = extra?.absentCount ?? 0;
   const leaveDays = extra?.leaveDays ?? 0;
@@ -339,6 +346,12 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                 <Row label="Basic Salary" value={fmtPKR(basic)} />
                 <Row label="Allowance" value={fmtPKR(allowance)} />
                 <Row label="Total Base Salary" value={fmtPKR(basic + allowance)} bold />
+                {!isDirector && (
+                  <>
+                    <Row label="Per Day Salary" value={fmtPKR(perDay)} />
+                    <Row label="Per Hour Salary" value={fmtPKR(perHour)} />
+                  </>
+                )}
               </div>
 
               {!isDirector && (
