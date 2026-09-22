@@ -189,8 +189,9 @@ export default function MissingEntryModal({
             is_late: isLate,
 
             is_absent: false,
-            is_weekend: false,
-            is_holiday: false,
+            is_weekend: target.isWeekend ?? false,
+            is_holiday: target.isHoliday ?? false,
+
             status: isLate ? 'late' : 'present',
             source: 'manual_entry',
             notes: null,
