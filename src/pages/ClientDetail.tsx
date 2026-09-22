@@ -618,7 +618,7 @@ const ClientDetail = () => {
 
               {/* Section: Location & Billing */}
               <div className="space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Location & Billing</p>
+                <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Location & Billing</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Country</Label>
