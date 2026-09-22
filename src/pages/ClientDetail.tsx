@@ -82,6 +82,8 @@ const ClientDetail = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<any>(null);
+  const [editCountryOpen, setEditCountryOpen] = useState(false);
+  const [editStateOpen, setEditStateOpen] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [invitingUser, setInvitingUser] = useState(false);
