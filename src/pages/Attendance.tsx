@@ -134,9 +134,9 @@ function RecordsTable({
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-auto max-h-[60vh]">
+    <div className="overflow-x-auto">
       <Table>
-        <TableHeader className="bg-secondary sticky top-0 z-10">
+        <TableHeader className="bg-secondary">
           <TableRow>
             {showCodeAndName && <TableHead className="hidden md:table-cell">Code</TableHead>}
             {showCodeAndName && <TableHead>Name</TableHead>}
