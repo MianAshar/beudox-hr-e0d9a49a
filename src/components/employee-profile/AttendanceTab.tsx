@@ -327,14 +327,28 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                         </div>
                       )}
                     </TableCell>
+                    {/* Short Time column — negative regular_ot_hours only */}
                     <TableCell className="text-right font-mono tabular-nums">
-                      {Number(r.regular_ot_hours || 0) !== 0 ? (
+                      {Number(r.regular_ot_hours || 0) < 0 ? (
                         <div className="flex flex-col items-end leading-tight">
-                          <span className="text-[13px] font-medium" style={{ color: Number(r.regular_ot_hours) < 0 ? '#E84545' : '#1DC97A' }}>
-                            {Number(r.regular_ot_hours) > 0 ? '+' : ''}{formatWorkingHours(Math.abs(Number(r.regular_ot_hours)))}
+                          <span className="text-[13px] font-medium" style={{ color: '#E84545' }}>
+                            {formatWorkingHours(Math.abs(Number(r.regular_ot_hours)))}
                           </span>
                           <span className="text-[10px] text-muted-foreground">
-                            {Number(r.regular_ot_hours) > 0 ? '+' : ''}{Number(r.regular_ot_hours).toFixed(2)}h
+                            {Math.abs(Number(r.regular_ot_hours)).toFixed(2)}h
+                          </span>
+                        </div>
+                      ) : <span className="text-muted-foreground text-[13px]">—</span>}
+                    </TableCell>
+                    {/* Reg OT column — positive regular_ot_hours only */}
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {Number(r.regular_ot_hours || 0) > 0 ? (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="text-[13px] font-medium" style={{ color: '#1DC97A' }}>
+                            +{formatWorkingHours(Number(r.regular_ot_hours))}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            +{Number(r.regular_ot_hours).toFixed(2)}h
                           </span>
                         </div>
                       ) : <span className="text-muted-foreground text-[13px]">—</span>}
