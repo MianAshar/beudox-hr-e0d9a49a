@@ -88,7 +88,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
     queryFn: async () => {
       const { data } = await supabase
         .from('company_settings')
-        .select('shift_start_time, shift_end_time, lunch_break_hours')
+        .select('shift_start_time, shift_end_time, lunch_break_hours, short_time_relaxation_hours')
         .eq('company_id', companyId!)
         .maybeSingle();
       return data;
@@ -99,6 +99,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
   const shiftStart = settings?.shift_start_time ?? '09:00:00';
   const shiftEnd = settings?.shift_end_time ?? '18:00:00';
   const lunchBreakHours = Number(settings?.lunch_break_hours ?? 1);
+  const relaxationHours = Number((settings as any)?.short_time_relaxation_hours ?? 0);
   const parseT = (t: string) => { const [h, m] = t.split(':').map(Number); return h + m / 60; };
   const shiftDuration = Math.max(0, parseT(shiftEnd) - parseT(shiftStart) - lunchBreakHours);
 
@@ -154,17 +155,34 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
 
   const summary = useMemo(() => {
     const list = records || [];
-    const regOtRaw = list.reduce((s, r) => s + Number(r.regular_ot_hours || 0), 0);
+
+    // Match sheet formula exactly:
+    // Short Time = SUMIF(regular_ot_hours, "<0") + relaxation_hours
+    // Overtime   = SUMIF(regular_ot_hours, ">0")
+    // Regular Days OT (display) = Short Time + Overtime
+    // Holidays OT = SUM(holiday_ot_hours)
+
+    const negativeSum = list.reduce((s, r) => {
+      const v = Number(r.regular_ot_hours || 0);
+      return v < 0 ? s + v : s;
+    }, 0); // e.g. -1.02
+
+    const positiveSum = list.reduce((s, r) => {
+      const v = Number(r.regular_ot_hours || 0);
+      return v > 0 ? s + v : s;
+    }, 0); // e.g. 16
+
+    // Short time after relaxation: if relaxation covers it fully, short time = 0
+    const shortTimeAfterRelaxation = Math.max(0, Math.abs(negativeSum) - relaxationHours);
+
     return {
       absent: list.filter(r => r.is_absent).length,
       late: list.filter(r => r.is_late).length,
-      // Short time = sum of all negative regular_ot values (abs value)
-      shortTime: Math.abs(Math.min(0, regOtRaw)),
-      // Regular OT = sum of positive regular_ot values only
-      regularOt: Math.max(0, regOtRaw),
+      shortTime: shortTimeAfterRelaxation,
+      regularOt: positiveSum,
       holidayOt: list.reduce((s, r) => s + Number(r.holiday_ot_hours || 0), 0),
     };
-  }, [records]);
+  }, [records, relaxationHours]);
 
   const fmtTime = (t: string | null) => t ? formatTime12h(parseISO(t)) : '—';
 
