@@ -17,8 +17,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Loader2, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RotateCw,
+  Loader2, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RotateCw, Pencil,
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 
@@ -244,10 +245,58 @@ const AttendanceUploadFlow = ({
   const [showUnmatchedDialog, setShowUnmatchedDialog] = useState(false);
   const [unmatchedDecision, setUnmatchedDecision] = useState<UnmatchedDecision>('import');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // Role check for inline editing
+  const isCeoOrHr = (employee?.roles ?? []).some((r: string) => ['ceo', 'hr_manager'].includes(r));
+
+  // Inline edit state: key is `${date}|${idx}`, value is { check_in, check_out }
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editIn, setEditIn] = useState('');
+  const [editOut, setEditOut] = useState('');
 
   const setParsedBoth = (next: ParseResponse | null) => {
     parsedRef.current = next;
     setParsed(next);
+  };
+
+  const applyEdit = (date: string, idx: number) => {
+    if (!parsed) return;
+    // Find the actual index in parsed.records (matching date + position)
+    let pos = 0;
+    const updated = parsed.records.map(r => {
+      if (r.date !== date) return r;
+      if (pos === idx) {
+        pos++;
+        const newIn = editIn.trim() || r.check_in;
+        const newOut = editOut.trim() || r.check_out;
+        // Normalize to HH:mm:ss
+        const fmt = (t: string | null) => {
+          if (!t) return null;
+          const m = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+          if (!m) return t;
+          return `${m[1].padStart(2, '0')}:${m[2]}:${m[3] ?? '00'}`;
+        };
+        return { ...r, check_in: fmt(newIn), check_out: fmt(newOut) };
+      }
+      pos++;
+      return r;
+    });
+    setParsedBoth({ ...parsed, records: updated });
+    setEditingKey(null);
+    setEditIn('');
+    setEditOut('');
+  };
+
+  const startEdit = (r: ParsedRecord, date: string, idx: number) => {
+    setEditingKey(`${date}|${idx}`);
+    // Strip seconds for time input (HH:mm)
+    const toHhmm = (t: string | null) => {
+      if (!t) return '';
+      const m = t.match(/^(\d{1,2}):(\d{2})/);
+      if (!m) return '';
+      return `${m[1].padStart(2, '0')}:${m[2]}`;
+    };
+    setEditIn(toHhmm(r.check_in));
+    setEditOut(toHhmm(r.check_out));
   };
 
   useEffect(() => { loadSheetJs().catch(() => {}); }, []);
@@ -839,13 +888,14 @@ const AttendanceUploadFlow = ({
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check-out</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">Working Hrs</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</TableHead>
+                    {isCeoOrHr && <TableHead className="w-10" />}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {groupedRecords.map(group => (
                     <Fragment key={group.date}>
                       <TableRow className="border-b-0 hover:bg-transparent">
-                        <TableCell colSpan={6} className="sticky top-10 z-10 backdrop-blur-sm p-0 border-b-0">
+                        <TableCell colSpan={7} className="sticky top-10 z-10 backdrop-blur-sm p-0 border-b-0">
                           <div className="flex items-center gap-2 h-9 pl-4 pr-4"
                             style={{ backgroundColor: 'rgba(91, 63, 248, 0.08)', borderLeft: '3px solid #5B3FF8' }}>
                             <span style={{ fontFamily: 'Syne, sans-serif', fontSize: '13px', fontWeight: 600, color: '#5B3FF8' }}>
@@ -867,12 +917,21 @@ const AttendanceUploadFlow = ({
                         const otAmount = isOT && wh != null ? Math.round((wh - shiftHours) * 100) / 100 : 0;
                         const isUnmatched = unmatchedCodesSet.has(r.employee_code.trim());
                         const rowStyle = isShort ? { backgroundColor: 'rgba(239, 68, 68, 0.04)' } : undefined;
+                        const key = `${group.date}|${idx}`;
+                        const isEditing = editingKey === key;
                         return (
-                          <TableRow key={`${group.date}-${idx}`} style={rowStyle}>
+                          <TableRow key={`${group.date}-${idx}`} style={rowStyle} className="group">
                             <TableCell className="font-mono text-xs">{r.employee_code}</TableCell>
                             <TableCell className="text-sm">{r.name ?? '—'}</TableCell>
                             <TableCell>
-                              {r.check_in ? (
+                              {isEditing ? (
+                                <Input
+                                  type="time"
+                                  value={editIn}
+                                  onChange={e => setEditIn(e.target.value)}
+                                  className="h-7 w-28 text-xs font-mono"
+                                />
+                              ) : r.check_in ? (
                                 <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
                                   {formatTime12h(r.check_in)}
                                 </Badge>
@@ -881,7 +940,14 @@ const AttendanceUploadFlow = ({
                               )}
                             </TableCell>
                             <TableCell>
-                              {r.check_out ? (
+                              {isEditing ? (
+                                <Input
+                                  type="time"
+                                  value={editOut}
+                                  onChange={e => setEditOut(e.target.value)}
+                                  className="h-7 w-28 text-xs font-mono"
+                                />
+                              ) : r.check_out ? (
                                 <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
                                   {formatTime12h(r.check_out)}
                                 </Badge>
@@ -932,6 +998,38 @@ const AttendanceUploadFlow = ({
                                 <span className="text-muted-foreground">{r.notes ?? ''}</span>
                               )}
                             </TableCell>
+                            {isCeoOrHr && (
+                              <TableCell className="text-right pr-2">
+                                {isEditing ? (
+                                  <div className="flex items-center gap-1 justify-end">
+                                    <Button
+                                      size="sm"
+                                      className="h-6 px-2 text-[11px]"
+                                      onClick={() => applyEdit(group.date, idx)}
+                                    >
+                                      Save
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 px-2 text-[11px]"
+                                      onClick={() => { setEditingKey(null); setEditIn(''); setEditOut(''); }}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
+                                    onClick={() => startEdit(r, group.date, idx)}
+                                  >
+                                    <Pencil className="h-3 w-3 text-muted-foreground" />
+                                  </Button>
+                                )}
+                              </TableCell>
+                            )}
                           </TableRow>
                         );
                       })}
