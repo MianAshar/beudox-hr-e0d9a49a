@@ -78,7 +78,7 @@ const ProjectDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*, clients(id, name), project_categories(name), lead:employees!projects_project_lead_id_fkey(id, full_name, designation, avatar_url)')
+        .select('*, clients(id, name), lead:employees!projects_project_lead_id_fkey(id, full_name, designation, avatar_url)')
         .eq('id', id!)
         .eq('company_id', companyId!)
         .single();
@@ -377,10 +377,6 @@ const ProjectDetail = () => {
                   <span className="text-foreground font-medium">{Number(project.fee).toLocaleString()}</span>
                 </div>
               )}
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground uppercase tracking-wide">Category</span>
-                <span className="text-foreground">{(project.project_categories as any)?.name || '—'}</span>
-              </div>
             </div>
           </div>
 
