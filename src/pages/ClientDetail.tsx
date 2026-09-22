@@ -554,7 +554,7 @@ const ClientDetail = () => {
 
               {/* Section: Company Info */}
               <div className="space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Company Info</p>
+                <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Company Info</p>
                 <div>
                   <Label>Company Name *</Label>
                   <Input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
