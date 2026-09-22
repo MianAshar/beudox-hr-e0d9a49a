@@ -416,6 +416,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_active: boolean
+          links: Json | null
           name: string
           nature_of_business: string | null
           notes: string | null
@@ -438,6 +439,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean
+          links?: Json | null
           name: string
           nature_of_business?: string | null
           notes?: string | null
@@ -460,6 +462,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean
+          links?: Json | null
           name?: string
           nature_of_business?: string | null
           notes?: string | null
