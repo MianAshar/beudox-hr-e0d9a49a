@@ -258,6 +258,47 @@ const AttendanceUploadFlow = ({
     setParsed(next);
   };
 
+  const applyEdit = (date: string, idx: number) => {
+    if (!parsed) return;
+    // Find the actual index in parsed.records (matching date + position)
+    let pos = 0;
+    const updated = parsed.records.map(r => {
+      if (r.date !== date) return r;
+      if (pos === idx) {
+        pos++;
+        const newIn = editIn.trim() || r.check_in;
+        const newOut = editOut.trim() || r.check_out;
+        // Normalize to HH:mm:ss
+        const fmt = (t: string | null) => {
+          if (!t) return null;
+          const m = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+          if (!m) return t;
+          return `${m[1].padStart(2, '0')}:${m[2]}:${m[3] ?? '00'}`;
+        };
+        return { ...r, check_in: fmt(newIn), check_out: fmt(newOut) };
+      }
+      pos++;
+      return r;
+    });
+    setParsedBoth({ ...parsed, records: updated });
+    setEditingKey(null);
+    setEditIn('');
+    setEditOut('');
+  };
+
+  const startEdit = (r: ParsedRecord, date: string, idx: number) => {
+    setEditingKey(`${date}|${idx}`);
+    // Strip seconds for time input (HH:mm)
+    const toHhmm = (t: string | null) => {
+      if (!t) return '';
+      const m = t.match(/^(\d{1,2}):(\d{2})/);
+      if (!m) return '';
+      return `${m[1].padStart(2, '0')}:${m[2]}`;
+    };
+    setEditIn(toHhmm(r.check_in));
+    setEditOut(toHhmm(r.check_out));
+  };
+
   useEffect(() => { loadSheetJs().catch(() => {}); }, []);
 
   const yearOptions = useMemo(() => {
