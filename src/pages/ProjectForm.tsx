@@ -513,21 +513,7 @@ const ProjectForm = () => {
         {/* Manager/CEO full form */}
         {!isTeamLead && (
           <div className="space-y-6">
-            {/* Row 1: Code + Name */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <Label>Project Code *</Label>
-                <Input value={form.project_code} onChange={e => setForm({ ...form, project_code: e.target.value })} placeholder="e.g. 915NY" />
-                {errors.project_code && <p className="text-sm text-destructive mt-1">{errors.project_code}</p>}
-              </div>
-              <div>
-                <Label>Project Name *</Label>
-                <Input value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} />
-                {errors.project_name && <p className="text-sm text-destructive mt-1">{errors.project_name}</p>}
-              </div>
-            </div>
-
-            {/* Row 2: Client */}
+            {/* Row 1: Client */}
             <div>
               <div>
                 <Label>Client *</Label>
@@ -569,6 +555,20 @@ const ProjectForm = () => {
                   </PopoverContent>
                 </Popover>
                 {errors.client_id && <p className="text-sm text-destructive mt-1">{errors.client_id}</p>}
+              </div>
+            </div>
+
+            {/* Row 2: Code + Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <Label>Project Code *</Label>
+                <Input value={form.project_code} onChange={e => setForm({ ...form, project_code: e.target.value })} placeholder="e.g. 915NY" />
+                {errors.project_code && <p className="text-sm text-destructive mt-1">{errors.project_code}</p>}
+              </div>
+              <div>
+                <Label>Project Name *</Label>
+                <Input value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} />
+                {errors.project_name && <p className="text-sm text-destructive mt-1">{errors.project_name}</p>}
               </div>
             </div>
 
