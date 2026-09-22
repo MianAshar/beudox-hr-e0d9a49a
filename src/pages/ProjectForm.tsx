@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -37,7 +36,6 @@ const ProjectForm = () => {
     project_code: '',
     project_name: '',
     client_id: preselectedClientId || '',
-    category_id: '',
     scope_of_work: '',
     fee: '',
     client_deadline: undefined as Date | undefined,
@@ -64,15 +62,6 @@ const ProjectForm = () => {
     queryKey: ['clients-lookup', companyId],
     queryFn: async () => {
       const { data } = await supabase.from('clients').select('id, name, billing_currency, scope').eq('company_id', companyId!).eq('is_active', true).order('name');
-      return data ?? [];
-    },
-    enabled: !!companyId,
-  });
-
-  const { data: categories } = useQuery({
-    queryKey: ['project-categories', companyId],
-    queryFn: async () => {
-      const { data } = await supabase.from('project_categories').select('id, name').eq('company_id', companyId!).eq('is_active', true).order('name');
       return data ?? [];
     },
     enabled: !!companyId,
@@ -152,7 +141,6 @@ const ProjectForm = () => {
         project_code: existingProject.project_code,
         project_name: existingProject.project_name,
         client_id: existingProject.client_id,
-        category_id: existingProject.category_id || '',
         scope_of_work: existingProject.scope_of_work || '',
         fee: existingProject.fee?.toString() || '',
         client_deadline: existingProject.client_deadline ? new Date(existingProject.client_deadline) : undefined,
@@ -177,7 +165,6 @@ const ProjectForm = () => {
         project_code: form.project_code.trim(),
         project_name: form.project_name.trim(),
         client_id: form.client_id,
-        category_id: form.category_id || null,
         scope_of_work: form.scope_of_work.trim() || null,
         fee: form.fee ? parseFloat(form.fee) : null,
         client_deadline: form.client_deadline ? format(form.client_deadline, 'yyyy-MM-dd') : null,
@@ -572,22 +559,10 @@ const ProjectForm = () => {
               </div>
             </div>
 
-            {/* Row 3: Location + Category */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <Label>Location</Label>
-                <Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. New York, NY" />
-              </div>
-              <div>
-                <Label>Category</Label>
-                <Select value={form.category_id || '__none__'} onValueChange={v => setForm({ ...form, category_id: v === '__none__' ? '' : v })}>
-                  <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">— None —</SelectItem>
-                    {(categories ?? []).map((c: any) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Row 3: Location */}
+            <div>
+              <Label>Location</Label>
+              <Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. New York, NY" />
             </div>
 
             {/* Row 4: Fee + Client Deadline + Internal Deadline */}
