@@ -888,6 +888,7 @@ const AttendanceUploadFlow = ({
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check-out</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">Working Hrs</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</TableHead>
+                    {isCeoOrHr && <TableHead className="w-10" />}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
