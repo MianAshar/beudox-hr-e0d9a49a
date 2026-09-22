@@ -817,8 +817,11 @@ const Attendance = () => {
       mode: isSynthetic ? 'insert' : 'update',
       existingCheckIn: row.check_in,
       existingCheckOut: row.check_out,
+      isHoliday: row.is_holiday ?? false,
+      isWeekend: row.is_weekend ?? false,
     });
   };
+
 
   const canEditMy = (row: AttendanceRow) => row.employee_id === employee?.employee_id;
   const canEditCompany = (row: AttendanceRow) => (isCeo || isHr) && !attendanceLocked;
