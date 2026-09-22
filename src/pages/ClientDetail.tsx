@@ -667,7 +667,7 @@ const ClientDetail = () => {
 
               {/* Section: Requirements */}
               <div className="space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Requirements</p>
+                <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Requirements</p>
                 <div>
                   <Label>Scope</Label>
                   <Textarea value={editForm.scope} onChange={e => setEditForm({ ...editForm, scope: e.target.value })} rows={3} />
