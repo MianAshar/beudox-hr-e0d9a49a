@@ -245,6 +245,13 @@ const AttendanceUploadFlow = ({
   const [showUnmatchedDialog, setShowUnmatchedDialog] = useState(false);
   const [unmatchedDecision, setUnmatchedDecision] = useState<UnmatchedDecision>('import');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // Role check for inline editing
+  const isCeoOrHr = (employee?.roles ?? []).some((r: string) => ['ceo', 'hr_manager'].includes(r));
+
+  // Inline edit state: key is `${date}|${idx}`, value is { check_in, check_out }
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editIn, setEditIn] = useState('');
+  const [editOut, setEditOut] = useState('');
 
   const setParsedBoth = (next: ParseResponse | null) => {
     parsedRef.current = next;
