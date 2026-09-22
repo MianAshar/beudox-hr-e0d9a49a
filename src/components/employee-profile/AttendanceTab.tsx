@@ -206,41 +206,63 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
         </div>
       )}
 
-      <div className="space-y-4">
-        {/* Summary group */}
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#5B3FF8' }}>Summary</p>
-          <div className="grid grid-cols-3 gap-4">
-            <SummaryCard label="Leaves" value={paidLeaveDays} accent="text-primary" />
-            <SummaryCard label="Absents" value={summary.absent} accent="text-[hsl(var(--bx-danger-text))]" />
-            <SummaryCard label="Lates" value={summary.late} accent="text-[hsl(var(--bx-warning-text))]" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        {/* Card 1 — Summary */}
+        <div className="bg-card rounded-[12px] border p-4 space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Summary</p>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-muted-foreground">Leaves</span>
+              <span className="text-[14px] font-bold text-primary">{paidLeaveDays}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-muted-foreground">Absents</span>
+              <span className="text-[14px] font-bold text-[hsl(var(--bx-danger-text))]">{summary.absent}</span>
+            </div>
+            <div className="flex items-center justify-between border-t pt-2">
+              <span className="text-[12px] text-muted-foreground">Lates</span>
+              <span className="text-[14px] font-bold text-[hsl(var(--bx-warning-text))]">{summary.late}</span>
+            </div>
           </div>
         </div>
-        {/* Attendance group */}
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#5B3FF8' }}>Attendance</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-card rounded-[12px] border p-4">
-              <p className="text-[11px] text-muted-foreground mb-1" style={{ fontFamily: 'var(--ff-body)' }}>Total Short Time</p>
-              <p className="text-[22px] font-bold text-[hsl(var(--bx-danger-text))]" style={{ fontFamily: 'var(--ff-display)' }}>
+
+        {/* Card 2 — Regular Days */}
+        <div className="bg-card rounded-[12px] border p-4 space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Regular Days</p>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-muted-foreground">Short Time</span>
+              <span className="text-[14px] font-bold text-[hsl(var(--bx-danger-text))]">
                 {summary.shortTime.toFixed(2)}h
-              </p>
+              </span>
             </div>
-            <div className="bg-card rounded-[12px] border p-4">
-              <p className="text-[11px] text-muted-foreground mb-1" style={{ fontFamily: 'var(--ff-body)' }}>Total Overtime</p>
-              <div className="flex flex-col gap-0.5 mt-1">
-                <p className="text-[13px] font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
-                  <span className="text-[10px] font-normal text-muted-foreground mr-1">Reg</span>
-                  <span style={{ color: '#1DC97A' }}>{summary.regularOt.toFixed(2)}h</span>
-                </p>
-                <p className="text-[13px] font-semibold text-foreground" style={{ fontFamily: 'var(--ff-display)' }}>
-                  <span className="text-[10px] font-normal text-muted-foreground mr-1">Hol</span>
-                  <span style={{ color: '#5B3FF8' }}>{summary.holidayOt.toFixed(2)}h</span>
-                </p>
-              </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-muted-foreground">Overtime</span>
+              <span className="text-[14px] font-bold" style={{ color: '#1DC97A' }}>
+                {summary.regularOt.toFixed(2)}h
+              </span>
+            </div>
+            <div className="flex items-center justify-between border-t pt-2">
+              <span className="text-[12px] font-semibold text-foreground">Total</span>
+              <span className="text-[14px] font-bold text-foreground">
+                {(summary.regularOt - summary.shortTime).toFixed(2)}h
+              </span>
             </div>
           </div>
         </div>
+
+        {/* Card 3 — Holidays Overtime */}
+        <div className="bg-card rounded-[12px] border p-4 space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Holidays OT</p>
+          <div className="flex items-end gap-1 mt-1">
+            <span className="text-[32px] font-bold leading-none" style={{ color: '#5B3FF8', fontFamily: 'var(--ff-display)' }}>
+              {summary.holidayOt.toFixed(2)}
+            </span>
+            <span className="text-[13px] text-muted-foreground mb-1">hrs</span>
+          </div>
+        </div>
+
       </div>
 
       <div className="bg-card rounded-[14px] border overflow-hidden">
