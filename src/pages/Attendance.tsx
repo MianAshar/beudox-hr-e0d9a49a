@@ -544,11 +544,14 @@ const Attendance = () => {
         working_hours: null,
         notes: leaveTypeName,
         is_late: false,
+        is_holiday: false,
+        is_weekend: false,
         regular_ot_hours: 0,
         holiday_ot_hours: 0,
         status: 'on_leave',
         employee_name: employeeName,
       });
+
     });
     return rows;
   };
@@ -588,11 +591,14 @@ const Attendance = () => {
           working_hours: null,
           notes: 'Absent',
           is_late: false,
+          is_holiday: false,
+          is_weekend: false,
           regular_ot_hours: 0,
           holiday_ot_hours: 0,
           status: 'absent',
           employee_name: employeeName,
         });
+
       }
       cur.setDate(cur.getDate() + 1);
     }
