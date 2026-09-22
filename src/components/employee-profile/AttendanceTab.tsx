@@ -154,11 +154,14 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
 
   const summary = useMemo(() => {
     const list = records || [];
+    const regOtRaw = list.reduce((s, r) => s + Number(r.regular_ot_hours || 0), 0);
     return {
-      present: list.filter(r => !r.is_absent && !r.is_weekend && !r.is_holiday).length,
       absent: list.filter(r => r.is_absent).length,
       late: list.filter(r => r.is_late).length,
-      regularOt: list.reduce((s, r) => s + Number(r.regular_ot_hours || 0), 0),
+      // Short time = sum of all negative regular_ot values (abs value)
+      shortTime: Math.abs(Math.min(0, regOtRaw)),
+      // Regular OT = sum of positive regular_ot values only
+      regularOt: Math.max(0, regOtRaw),
       holidayOt: list.reduce((s, r) => s + Number(r.holiday_ot_hours || 0), 0),
     };
   }, [records]);
