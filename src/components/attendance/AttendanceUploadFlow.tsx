@@ -17,8 +17,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Loader2, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RotateCw,
+  Loader2, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, X, RotateCw, Pencil,
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { formatTime12h, formatWorkingHours } from '@/lib/attendance-format';
 
