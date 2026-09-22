@@ -895,7 +895,7 @@ const AttendanceUploadFlow = ({
                   {groupedRecords.map(group => (
                     <Fragment key={group.date}>
                       <TableRow className="border-b-0 hover:bg-transparent">
-                        <TableCell colSpan={6} className="sticky top-10 z-10 backdrop-blur-sm p-0 border-b-0">
+                        <TableCell colSpan={7} className="sticky top-10 z-10 backdrop-blur-sm p-0 border-b-0">
                           <div className="flex items-center gap-2 h-9 pl-4 pr-4"
                             style={{ backgroundColor: 'rgba(91, 63, 248, 0.08)', borderLeft: '3px solid #5B3FF8' }}>
                             <span style={{ fontFamily: 'Syne, sans-serif', fontSize: '13px', fontWeight: 600, color: '#5B3FF8' }}>
