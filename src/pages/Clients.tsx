@@ -443,7 +443,7 @@ const Clients = () => {
           <Table className="min-w-[860px]">
             <TableHeader>
               <TableRow>
-                <SortableHeader column="name" sort={sort} onSort={toggleSort}>Client Name</SortableHeader>
+                <SortableHeader column="name" sort={sort} onSort={toggleSort}>Company Name</SortableHeader>
                 <TableHead>Category</TableHead>
                 {showActivity && <SortableHeader column="activity" sort={sort} onSort={toggleSort}>Activity</SortableHeader>}
                 <SortableHeader column="contact_name" sort={sort} onSort={toggleSort}>Contact Name</SortableHeader>
@@ -461,17 +461,17 @@ const Clients = () => {
                 return (
                   <>
                     <TableRow key={c.id}>
-                      <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <button
-                          onClick={() => navigate(`/clients/${c.id}`)}
-                          className="text-primary hover:underline font-medium"
-                        >
-                          {c.name}
-                        </button>
-                      </div>
+                      <TableCell className="text-left">
+                        <div className="flex flex-col gap-1 items-start justify-start">
+                          <button
+                            onClick={() => navigate(`/clients/${c.id}`)}
+                            className="text-primary hover:underline font-medium text-left"
+                          >
+                            {c.name}
+                          </button>
+                        </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-left">
                         {(c as any).client_categories ? (
                           <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-violet-50 text-violet-700">
                             {(c as any).client_categories.code}
@@ -479,7 +479,7 @@ const Clients = () => {
                         ) : '—'}
                       </TableCell>
                       {showActivity && (
-                        <TableCell>
+                        <TableCell className="text-left">
                           {cat && styles && (
                             <TooltipProvider delayDuration={150}>
                               <Tooltip>
@@ -512,9 +512,9 @@ const Clients = () => {
                           )}
                         </TableCell>
                       )}
-                      <TableCell>{c.contact_name || '—'}</TableCell>
-                      <TableCell>{c.contact_email || '—'}</TableCell>
-                      <TableCell>{c.country || '—'}</TableCell>
+                      <TableCell className="text-left">{c.contact_name || '—'}</TableCell>
+                      <TableCell className="text-left">{c.contact_email || '—'}</TableCell>
+                      <TableCell className="text-left">{c.country || '—'}</TableCell>
                       <TableCell className="text-right space-x-2">
                         <Button
                           variant="ghost"
