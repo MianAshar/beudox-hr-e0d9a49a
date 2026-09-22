@@ -268,6 +268,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
 
   const shortHours = extra?.shortHours ?? (regOtHours < 0 ? Math.abs(regOtHours) : 0);
   const overtimeHours = extra?.overtimeHours ?? (regOtHours > 0 ? regOtHours : 0);
+  const relaxation = extra?.relaxation ?? 0;
   const lateCount = extra?.lateCount ?? 0;
   const absentCount = extra?.absentCount ?? 0;
   const leaveDays = extra?.leaveDays ?? 0;
