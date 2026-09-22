@@ -762,14 +762,15 @@ const ClientDetail = () => {
 
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={() => updateMutation.mutate()} disabled={!editForm?.name?.trim() || updateMutation.isPending}>
+          </div>
+          <SheetFooter className="shrink-0 px-6 pb-6 pt-4 border-t gap-2">
+            <Button variant="outline" onClick={() => setEditOpen(false)} className="flex-1">Cancel</Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={!editForm?.name?.trim() || updateMutation.isPending} className="flex-1">
               {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* Remove Portal User Dialog */}
       <Dialog open={!!deletePortalUser} onOpenChange={v => { if (!v) setDeletePortalUser(null); }}>
