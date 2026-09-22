@@ -175,12 +175,27 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
     // Short time after relaxation: if relaxation covers it fully, short time = 0
     const shortTimeAfterRelaxation = Math.max(0, Math.abs(negativeSum) - relaxationHours);
 
+    // Per-row totals for the table footer
+    const totalShortTime = list.reduce((s, r) => {
+      const v = Number(r.regular_ot_hours || 0);
+      return v < 0 ? s + Math.abs(v) : s;
+    }, 0);
+    const totalRegularOt = list.reduce((s, r) => {
+      const v = Number(r.regular_ot_hours || 0);
+      return v > 0 ? s + v : s;
+    }, 0);
+    const totalHolOt = list.reduce((s, r) => s + Number(r.holiday_ot_hours || 0), 0);
+
     return {
       absent: list.filter(r => r.is_absent).length,
       late: list.filter(r => r.is_late).length,
       shortTime: shortTimeAfterRelaxation,
       regularOt: positiveSum,
-      holidayOt: list.reduce((s, r) => s + Number(r.holiday_ot_hours || 0), 0),
+      holidayOt: totalHolOt,
+      // Raw column totals (no relaxation applied — just sum of values per column)
+      colShortTime: totalShortTime,
+      colRegularOt: totalRegularOt,
+      colHolOt: totalHolOt,
     };
   }, [records, relaxationHours]);
 
@@ -282,6 +297,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                 <TableHead>Check In</TableHead>
                 <TableHead>Check Out</TableHead>
                 <TableHead className="text-right">Working Hrs</TableHead>
+                <TableHead className="text-right">Short Time</TableHead>
                 <TableHead className="text-right">Reg OT</TableHead>
                 <TableHead className="text-right">Hol OT</TableHead>
                 <TableHead>Status</TableHead>
@@ -311,14 +327,28 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                         </div>
                       )}
                     </TableCell>
+                    {/* Short Time column — negative regular_ot_hours only */}
                     <TableCell className="text-right font-mono tabular-nums">
-                      {Number(r.regular_ot_hours || 0) !== 0 ? (
+                      {Number(r.regular_ot_hours || 0) < 0 ? (
                         <div className="flex flex-col items-end leading-tight">
-                          <span className="text-[13px] font-medium" style={{ color: Number(r.regular_ot_hours) < 0 ? '#E84545' : '#1DC97A' }}>
-                            {Number(r.regular_ot_hours) > 0 ? '+' : ''}{formatWorkingHours(Math.abs(Number(r.regular_ot_hours)))}
+                          <span className="text-[13px] font-medium" style={{ color: '#E84545' }}>
+                            {formatWorkingHours(Math.abs(Number(r.regular_ot_hours)))}
                           </span>
                           <span className="text-[10px] text-muted-foreground">
-                            {Number(r.regular_ot_hours) > 0 ? '+' : ''}{Number(r.regular_ot_hours).toFixed(2)}h
+                            {Math.abs(Number(r.regular_ot_hours)).toFixed(2)}h
+                          </span>
+                        </div>
+                      ) : <span className="text-muted-foreground text-[13px]">—</span>}
+                    </TableCell>
+                    {/* Reg OT column — positive regular_ot_hours only */}
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {Number(r.regular_ot_hours || 0) > 0 ? (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="text-[13px] font-medium" style={{ color: '#1DC97A' }}>
+                            +{formatWorkingHours(Number(r.regular_ot_hours))}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            +{Number(r.regular_ot_hours).toFixed(2)}h
                           </span>
                         </div>
                       ) : <span className="text-muted-foreground text-[13px]">—</span>}
@@ -369,6 +399,47 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                   </TableRow>
                 );
               })}
+              {/* Totals row */}
+              <TableRow style={{ background: '#F6F5FF', borderTop: '2px solid rgba(91,63,248,0.15)' }}>
+                <TableCell colSpan={4} className="text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wide py-2">
+                  Monthly Total
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums py-2">
+                  <span className="text-[12px] font-semibold text-muted-foreground">—</span>
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums py-2">
+                  {summary.colShortTime > 0 ? (
+                    <div className="flex flex-col items-end leading-tight">
+                      <span className="text-[13px] font-bold" style={{ color: '#E84545' }}>
+                        {formatWorkingHours(summary.colShortTime)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{summary.colShortTime.toFixed(2)}h</span>
+                    </div>
+                  ) : <span className="text-muted-foreground text-[12px]">—</span>}
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums py-2">
+                  {summary.colRegularOt > 0 ? (
+                    <div className="flex flex-col items-end leading-tight">
+                      <span className="text-[13px] font-bold" style={{ color: '#1DC97A' }}>
+                        +{formatWorkingHours(summary.colRegularOt)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">+{summary.colRegularOt.toFixed(2)}h</span>
+                    </div>
+                  ) : <span className="text-muted-foreground text-[12px]">—</span>}
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums py-2">
+                  {summary.colHolOt > 0 ? (
+                    <div className="flex flex-col items-end leading-tight">
+                      <span className="text-[13px] font-bold" style={{ color: '#5B3FF8' }}>
+                        +{formatWorkingHours(summary.colHolOt)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">+{summary.colHolOt.toFixed(2)}h</span>
+                    </div>
+                  ) : <span className="text-muted-foreground text-[12px]">—</span>}
+                </TableCell>
+                <TableCell />
+                {(isCeo || isHrManager) && <TableCell />}
+              </TableRow>
             </TableBody>
           </Table>
         )}
