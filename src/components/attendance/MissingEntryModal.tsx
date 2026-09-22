@@ -158,7 +158,8 @@ export default function MissingEntryModal({
         const inDate = new Date(newCheckIn);
         const outDate = new Date(newCheckOut);
         const rawHours = (outDate.getTime() - inDate.getTime()) / (1000 * 60 * 60);
-        workingHours = Math.max(0, rawHours - lunchBreakHours);
+        // No lunch deduction for holidays/weekends — full hours count as holiday OT
+        workingHours = Math.max(0, isHolidayOrWeekend ? rawHours : rawHours - lunchBreakHours);
 
         if (isHolidayOrWeekend) {
           // Holiday/weekend: all working hours count as holiday OT
