@@ -917,12 +917,21 @@ const AttendanceUploadFlow = ({
                         const otAmount = isOT && wh != null ? Math.round((wh - shiftHours) * 100) / 100 : 0;
                         const isUnmatched = unmatchedCodesSet.has(r.employee_code.trim());
                         const rowStyle = isShort ? { backgroundColor: 'rgba(239, 68, 68, 0.04)' } : undefined;
+                        const key = `${group.date}|${idx}`;
+                        const isEditing = editingKey === key;
                         return (
-                          <TableRow key={`${group.date}-${idx}`} style={rowStyle}>
+                          <TableRow key={`${group.date}-${idx}`} style={rowStyle} className="group">
                             <TableCell className="font-mono text-xs">{r.employee_code}</TableCell>
                             <TableCell className="text-sm">{r.name ?? '—'}</TableCell>
                             <TableCell>
-                              {r.check_in ? (
+                              {isEditing ? (
+                                <Input
+                                  type="time"
+                                  value={editIn}
+                                  onChange={e => setEditIn(e.target.value)}
+                                  className="h-7 w-28 text-xs font-mono"
+                                />
+                              ) : r.check_in ? (
                                 <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-mono">
                                   {formatTime12h(r.check_in)}
                                 </Badge>
@@ -931,7 +940,14 @@ const AttendanceUploadFlow = ({
                               )}
                             </TableCell>
                             <TableCell>
-                              {r.check_out ? (
+                              {isEditing ? (
+                                <Input
+                                  type="time"
+                                  value={editOut}
+                                  onChange={e => setEditOut(e.target.value)}
+                                  className="h-7 w-28 text-xs font-mono"
+                                />
+                              ) : r.check_out ? (
                                 <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-mono">
                                   {formatTime12h(r.check_out)}
                                 </Badge>
@@ -982,6 +998,38 @@ const AttendanceUploadFlow = ({
                                 <span className="text-muted-foreground">{r.notes ?? ''}</span>
                               )}
                             </TableCell>
+                            {isCeoOrHr && (
+                              <TableCell className="text-right pr-2">
+                                {isEditing ? (
+                                  <div className="flex items-center gap-1 justify-end">
+                                    <Button
+                                      size="sm"
+                                      className="h-6 px-2 text-[11px]"
+                                      onClick={() => applyEdit(group.date, idx)}
+                                    >
+                                      Save
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 px-2 text-[11px]"
+                                      onClick={() => { setEditingKey(null); setEditIn(''); setEditOut(''); }}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
+                                    onClick={() => startEdit(r, group.date, idx)}
+                                  >
+                                    <Pencil className="h-3 w-3 text-muted-foreground" />
+                                  </Button>
+                                )}
+                              </TableCell>
+                            )}
                           </TableRow>
                         );
                       })}
