@@ -126,7 +126,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
           .gte('end_date', startDate),
         supabase
           .from('company_settings')
-          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, working_days')
+          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, working_days, short_time_relaxation_hours')
           .eq('company_id', companyId!)
           .maybeSingle(),
         supabase
@@ -174,6 +174,9 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
       const leaveDays = leaveDates.size;
 
       const cs = csRes.data;
+      const relaxation = Number((cs as any)?.short_time_relaxation_hours || 0);
+      const shortHoursAfterRelaxation = Math.max(0, shortHours - relaxation);
+      const overtimeHoursFloored = Math.floor(overtimeHours);
       const otDivisor = Number(cs?.ot_divisor) || 26;
       const workingDays: number[] = Array.isArray((cs as any)?.working_days)
         ? (cs as any).working_days
@@ -229,13 +232,15 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
       }
 
       return {
-        shortHours,
-        overtimeHours,
+        rawShortHours: Math.floor(shortHours),
+        shortHours: shortHoursAfterRelaxation,
+        overtimeHours: overtimeHoursFloored,
         lateCount,
         absentCount,
         leaveDays,
         otDivisor,
         workingHoursPerDay,
+        relaxation,
       };
     },
   });
@@ -261,8 +266,10 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
   const regOtHours = Number(record.regular_ot_hours || 0);
   const holOtHours = Number(record.holiday_ot_hours || 0);
 
+  const rawShortHours = extra?.rawShortHours ?? (regOtHours < 0 ? Math.abs(regOtHours) : 0);
   const shortHours = extra?.shortHours ?? (regOtHours < 0 ? Math.abs(regOtHours) : 0);
   const overtimeHours = extra?.overtimeHours ?? (regOtHours > 0 ? regOtHours : 0);
+  const relaxation = extra?.relaxation ?? 0;
   const lateCount = extra?.lateCount ?? 0;
   const absentCount = extra?.absentCount ?? 0;
   const leaveDays = extra?.leaveDays ?? 0;
@@ -339,19 +346,37 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                 <Row label="Basic Salary" value={fmtPKR(basic)} />
                 <Row label="Allowance" value={fmtPKR(allowance)} />
                 <Row label="Total Base Salary" value={fmtPKR(basic + allowance)} bold />
+                {!isDirector && (
+                  <>
+                    <Row label="Per Day Salary" value={fmtPKR(perDay)} />
+                    <Row label="Per Hour Salary" value={fmtPKR(perHour)} />
+                  </>
+                )}
               </div>
 
               {!isDirector && (
                 <>
-                  <SectionTitle>Attendance Summary</SectionTitle>
+                  {/* ── Summary ── */}
+                  <SectionTitle>Summary</SectionTitle>
                   <div>
                     <Row label="Leaves" value={`${leaveDays % 1 === 0 ? leaveDays.toFixed(0) : leaveDays.toFixed(1)} days`} />
                     <Row label="Absents" value={`${absentCount} days`} />
                     <Row label="Lates" value={`${lateCount} times`} />
+                  </div>
+
+                  {/* ── Regular Days ── */}
+                  <SectionTitle>Regular Days</SectionTitle>
+                  <div>
                     <Row
-                      label="Short Time"
+                      label="Actual Short Time"
+                      value={fmtHrs(rawShortHours)}
+                      valueColor={rawShortHours > 0 ? RED : undefined}
+                    />
+                    <Row
+                      label={relaxation > 0 ? `Short Time (after ${relaxation}hr relaxation)` : 'Short Time'}
                       value={fmtHrs(shortHours)}
                       valueColor={shortHours > 0 ? RED : undefined}
+                      note={relaxation > 0 && shortHours === 0 ? 'Fully covered by relaxation' : relaxation > 0 ? `${relaxation}hr relaxation applied` : undefined}
                     />
                     <Row
                       label="Overtime"
@@ -359,32 +384,38 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                       valueColor={overtimeHours > 0 ? GREEN : undefined}
                     />
                     <Row
-                      label="Regular Days OT"
-                      value={fmtHrs(regOtHours)}
-                      valueColor={signColor(regOtHours)}
+                      label="Total"
+                      value={fmtHrs(Math.max(0, overtimeHours - shortHours))}
+                      valueColor={overtimeHours - shortHours > 0 ? GREEN : undefined}
+                      bold
                     />
-                    <Row
-                      label="Holiday OT"
-                      value={fmtHrs(holOtHours)}
-                      valueColor={holOtHours > 0 ? GREEN : undefined}
-                    />
-                  </div>
-
-                  <SectionTitle>Salary Breakdown</SectionTitle>
-                  <div>
-                    <Row label="Per Day Salary" value={fmtPKR(perDay)} />
-                    <Row label="Per Hour Salary" value={fmtPKR(perHour)} />
                     <Row
                       label="Regular OT Salary"
                       value={fmtPKR(regOtAmt)}
                       valueColor={signColor(regOtAmt)}
+                      bold
+                    />
+                  </div>
+
+                  {/* ── Holiday Overtime ── */}
+                  <SectionTitle>Holiday Overtime</SectionTitle>
+                  <div>
+                    <Row
+                      label="Holiday OT Hours"
+                      value={fmtHrs(holOtHours)}
+                      valueColor={holOtHours > 0 ? VIOLET : undefined}
                     />
                     <Row
                       label="Holiday OT Salary"
                       value={fmtPKR(holOtAmt)}
-                      valueColor={holOtAmt > 0 ? GREEN : undefined}
+                      valueColor={holOtAmt > 0 ? VIOLET : undefined}
+                      bold
                     />
-                    <Row label="Total OT Salary" value={fmtPKR(totalOtAmt)} bold />
+                  </div>
+
+                  {/* ── Salary Breakdown ── */}
+                  <SectionTitle>Salary Breakdown</SectionTitle>
+                  <div>
                     {loan > 0 && (
                       <Row
                         label="Loan Deduction"
@@ -396,7 +427,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                     )}
                     {bonus > 0 && (
                       <Row
-                        label="Bonus"
+                        label="Bonus / Arrears"
                         value={`+ ${fmtPKR(bonus)}`}
                         valueColor={GREEN}
                       />
