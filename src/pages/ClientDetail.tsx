@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users } from 'lucide-react';
+import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users, ExternalLink } from 'lucide-react';
 import { formatDate } from '@/lib/format-date';
 import { Country, State } from 'country-state-city';
 
@@ -181,6 +181,7 @@ const ClientDetail = () => {
         source: editForm.source || null,
         onboarding_date: editForm.onboarding_date || null,
         nature_of_business: editForm.nature_of_business?.trim() || null,
+        links: (editForm.links || []).filter((l: any) => l.name?.trim() || l.url?.trim()).map((l: any) => ({ name: l.name?.trim() || '', url: l.url?.trim() || '' })),
         billing_currency: editForm.billing_currency,
         notes: editForm.notes?.trim() || null,
         scope: editForm.scope?.trim() || null,
@@ -265,6 +266,7 @@ const ClientDetail = () => {
                 source: client.source || '',
                 onboarding_date: client.onboarding_date || '',
                 nature_of_business: client.nature_of_business || '',
+                links: (client.links as { name: string; url: string }[] | null) || [],
                 billing_currency: client.billing_currency || 'USD',
                 notes: client.notes || '',
                 scope: client.scope || '',
@@ -337,6 +339,26 @@ const ClientDetail = () => {
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Nature of Business</p>
             <p className="text-sm">{client.nature_of_business}</p>
+          </div>
+        )}
+        {client.links && (client.links as any[]).length > 0 && (
+          <div className="col-span-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Links</p>
+            <div className="flex flex-wrap gap-2">
+              {(client.links as { name: string; url: string }[]).map((link, idx) => (
+                <a
+                  key={idx}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border hover:border-primary hover:text-primary transition-colors"
+                  style={{ borderColor: 'rgba(91,63,248,0.3)', color: '#5B3FF8' }}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  {link.name || link.url}
+                </a>
+              ))}
+            </div>
           </div>
         )}
         <div className="flex items-center gap-2">
@@ -651,6 +673,54 @@ const ClientDetail = () => {
                   <Label>Notes</Label>
                   <Textarea value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} rows={3} />
                 </div>
+              </div>
+
+              {/* Links section in edit form */}
+              <div className="space-y-2">
+                <Label className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Links</Label>
+                {(editForm.links || []).map((link: any, idx: number) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      className="w-32 shrink-0"
+                      placeholder="Label"
+                      value={link.name}
+                      onChange={e => {
+                        const updated = [...(editForm.links || [])];
+                        updated[idx] = { ...updated[idx], name: e.target.value };
+                        setEditForm({ ...editForm, links: updated });
+                      }}
+                    />
+                    <Input
+                      className="flex-1"
+                      placeholder="https://..."
+                      value={link.url}
+                      onChange={e => {
+                        const updated = [...(editForm.links || [])];
+                        updated[idx] = { ...updated[idx], url: e.target.value };
+                        setEditForm({ ...editForm, links: updated });
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setEditForm({ ...editForm, links: (editForm.links || []).filter((_: any, i: number) => i !== idx) })}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={() => setEditForm({ ...editForm, links: [...(editForm.links || []), { name: '', url: '' }] })}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Link
+                </Button>
               </div>
 
             </div>
