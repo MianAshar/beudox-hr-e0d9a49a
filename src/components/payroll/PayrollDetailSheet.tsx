@@ -126,7 +126,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
           .gte('end_date', startDate),
         supabase
           .from('company_settings')
-          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, working_days, short_time_relaxation_hours')
+          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, working_days')
           .eq('company_id', companyId!)
           .maybeSingle(),
         supabase
@@ -170,10 +170,6 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
         else if (v > 0) overtimeHours += v;
         if (r.is_late) lateCount++;
       }
-
-      const relaxation = Number((csRes.data as any)?.short_time_relaxation_hours ?? 0);
-      const shortHoursAfterRelaxation = Math.floor(Math.max(0, shortHours - relaxation));
-      const overtimeHoursFloored = Math.floor(overtimeHours);
 
       const leaveDays = leaveDates.size;
 
@@ -233,14 +229,13 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
       }
 
       return {
-        shortHours: shortHoursAfterRelaxation,
-        overtimeHours: overtimeHoursFloored,
+        shortHours,
+        overtimeHours,
         lateCount,
         absentCount,
         leaveDays,
         otDivisor,
         workingHoursPerDay,
-        relaxation,
       };
     },
   });
@@ -268,7 +263,6 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
 
   const shortHours = extra?.shortHours ?? (regOtHours < 0 ? Math.abs(regOtHours) : 0);
   const overtimeHours = extra?.overtimeHours ?? (regOtHours > 0 ? regOtHours : 0);
-  const relaxation = extra?.relaxation ?? 0;
   const lateCount = extra?.lateCount ?? 0;
   const absentCount = extra?.absentCount ?? 0;
   const leaveDays = extra?.leaveDays ?? 0;
@@ -358,7 +352,6 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                       label="Short Time"
                       value={fmtHrs(shortHours)}
                       valueColor={shortHours > 0 ? RED : undefined}
-                      note={relaxation > 0 ? `${relaxation}hr relaxation applied` : undefined}
                     />
                     <Row
                       label="Overtime"

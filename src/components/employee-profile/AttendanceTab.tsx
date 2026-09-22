@@ -173,8 +173,7 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
     }, 0); // e.g. 16
 
     // Short time after relaxation: if relaxation covers it fully, short time = 0
-    // Floor applied — fractional minutes are discarded, consistent with payroll engine
-    const shortTimeAfterRelaxation = Math.floor(Math.max(0, Math.abs(negativeSum) - relaxationHours));
+    const shortTimeAfterRelaxation = Math.max(0, Math.abs(negativeSum) - relaxationHours);
 
     // Per-row totals for the table footer
     const totalShortTime = list.reduce((s, r) => {
@@ -191,12 +190,12 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
       absent: list.filter(r => r.is_absent).length,
       late: list.filter(r => r.is_late).length,
       shortTime: shortTimeAfterRelaxation,
-      regularOt: Math.floor(positiveSum),
-      holidayOt: Math.floor(totalHolOt),
-      // Raw column totals — floored
-      colShortTime: Math.floor(totalShortTime),
-      colRegularOt: Math.floor(totalRegularOt),
-      colHolOt: Math.floor(totalHolOt),
+      regularOt: positiveSum,
+      holidayOt: totalHolOt,
+      // Raw column totals (no relaxation applied — just sum of values per column)
+      colShortTime: totalShortTime,
+      colRegularOt: totalRegularOt,
+      colHolOt: totalHolOt,
     };
   }, [records, relaxationHours]);
 
