@@ -44,11 +44,14 @@ interface AttendanceRow {
   working_hours: number | null;
   notes: string | null;
   is_late: boolean | null;
+  is_holiday: boolean | null;
+  is_weekend: boolean | null;
   regular_ot_hours: number | null;
   holiday_ot_hours: number | null;
   status: string | null;
   employee_name?: string | null;
 }
+
 
 interface CompanySettings {
   shift_start_time: string;
@@ -541,11 +544,14 @@ const Attendance = () => {
         working_hours: null,
         notes: leaveTypeName,
         is_late: false,
+        is_holiday: false,
+        is_weekend: false,
         regular_ot_hours: 0,
         holiday_ot_hours: 0,
         status: 'on_leave',
         employee_name: employeeName,
       });
+
     });
     return rows;
   };
@@ -585,11 +591,14 @@ const Attendance = () => {
           working_hours: null,
           notes: 'Absent',
           is_late: false,
+          is_holiday: false,
+          is_weekend: false,
           regular_ot_hours: 0,
           holiday_ot_hours: 0,
           status: 'absent',
           employee_name: employeeName,
         });
+
       }
       cur.setDate(cur.getDate() + 1);
     }
@@ -817,8 +826,11 @@ const Attendance = () => {
       mode: isSynthetic ? 'insert' : 'update',
       existingCheckIn: row.check_in,
       existingCheckOut: row.check_out,
+      isHoliday: row.is_holiday ?? false,
+      isWeekend: row.is_weekend ?? false,
     });
   };
+
 
   const canEditMy = (row: AttendanceRow) => row.employee_id === employee?.employee_id;
   const canEditCompany = (row: AttendanceRow) => (isCeo || isHr) && !attendanceLocked;

@@ -23,7 +23,10 @@ export interface MissingEntryTarget {
   existingCheckOut: string | null;
   /** 'insert' when no attendance_record exists yet for this day. */
   mode?: 'update' | 'insert';
+  isHoliday?: boolean;
+  isWeekend?: boolean;
 }
+
 
 interface Props {
   open: boolean;
@@ -149,18 +152,26 @@ export default function MissingEntryModal({
       let workingHours: number | null = null;
       let regularOt = 0;
       let isLate = false;
+      const isHolidayOrWeekend = !!(target.isHoliday || target.isWeekend);
 
       if (newCheckIn && newCheckOut) {
         const inDate = new Date(newCheckIn);
         const outDate = new Date(newCheckOut);
         const rawHours = (outDate.getTime() - inDate.getTime()) / (1000 * 60 * 60);
         workingHours = Math.max(0, rawHours - lunchBreakHours);
-        regularOt = workingHours - shiftDuration;
+
+        if (isHolidayOrWeekend) {
+          // Holiday/weekend: all working hours count as holiday OT
+          regularOt = 0;
+        } else {
+          regularOt = workingHours - shiftDuration;
+        }
 
         const shiftStartHours = parseTimeToHours(shiftStart);
         const inHours = inDate.getHours() + inDate.getMinutes() / 60;
-        isLate = (inHours - shiftStartHours) * 60 > lateThresholdMin;
+        isLate = !isHolidayOrWeekend && (inHours - shiftStartHours) * 60 > lateThresholdMin;
       }
+
 
       if (isBoth && mode === 'insert') {
         const { data: inserted, error: insErr } = await supabase
@@ -174,11 +185,13 @@ export default function MissingEntryModal({
             check_out: newCheckOut,
             working_hours: workingHours ?? 0,
             regular_ot_hours: regularOt,
-            holiday_ot_hours: 0,
+            holiday_ot_hours: isHolidayOrWeekend ? (workingHours ?? 0) : 0,
             is_late: isLate,
+
             is_absent: false,
-            is_weekend: false,
-            is_holiday: false,
+            is_weekend: target.isWeekend ?? false,
+            is_holiday: target.isHoliday ?? false,
+
             status: isLate ? 'late' : 'present',
             source: 'manual_entry',
             notes: null,
@@ -221,19 +234,22 @@ export default function MissingEntryModal({
               check_out: newCheckOut,
               working_hours: workingHours ?? 0,
               regular_ot_hours: regularOt,
+              holiday_ot_hours: isHolidayOrWeekend ? (workingHours ?? 0) : 0,
               is_late: isLate,
               is_absent: false,
-              status: isLate ? 'late' : 'present',
+              status: isHolidayOrWeekend ? 'present' : (isLate ? 'late' : 'present'),
               notes: null as string | null,
             }
           : {
               [target.field]: target.field === 'check_in' ? newCheckIn : newCheckOut,
               working_hours: workingHours ?? 0,
               regular_ot_hours: regularOt,
+              holiday_ot_hours: isHolidayOrWeekend ? (workingHours ?? 0) : 0,
               is_late: isLate,
               status: 'present',
               notes: null as string | null,
             }) as never;
+
 
         const { error: updErr } = await supabase
           .from('attendance_records')

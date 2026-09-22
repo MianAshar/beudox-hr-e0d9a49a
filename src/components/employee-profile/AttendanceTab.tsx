@@ -353,7 +353,10 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                               mode: r.is_absent ? 'insert' : 'update',
                               existingCheckIn: r.check_in,
                               existingCheckOut: r.check_out,
+                              isHoliday: r.is_holiday ?? false,
+                              isWeekend: r.is_weekend ?? false,
                             })}
+
                             className="inline-flex items-center gap-1 px-2 h-6 text-[11px] font-medium rounded border transition-colors hover:bg-muted"
                             style={{ borderColor: 'rgba(91,63,248,0.3)', color: '#5B3FF8' }}
                           >
