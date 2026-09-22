@@ -463,6 +463,7 @@ const AttendanceUploadFlow = ({
       };
       const leaveByEmpDate = new Map<string, LeaveReq>(); // key: empId|date
       const empNameById = new Map<string, string>();
+      const halfDayEmpDates = new Set<string>(); // key: `${empId}|${date}`
       (empRows ?? []).forEach((e: any) => {
         if (e.id && e.full_name) empNameById.set(e.id, e.full_name);
       });
@@ -476,9 +477,6 @@ const AttendanceUploadFlow = ({
           .in('employee_id', matchedEmpIds)
           .lte('start_date', maxDate)
           .gte('end_date', minDate);
-
-        // Build half-day leave date set per employee
-        const halfDayEmpDates = new Set<string>(); // key: `${empId}|${date}`
 
         for (const lr of (leaveRows as any[]) ?? []) {
           const ltName = lr.leave_types?.name ?? 'Leave';
