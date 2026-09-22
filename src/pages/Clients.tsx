@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Country, State } from 'country-state-city';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
-import { Plus, Search, XCircle, Building2, RotateCcw, Users, Check, ChevronsUpDown } from 'lucide-react';
+import { Plus, Search, XCircle, Building2, RotateCcw, Users, Check, ChevronsUpDown, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -113,6 +113,7 @@ const emptyForm = {
   billing_currency: 'USD',
   source: '',
   nature_of_business: '',
+  links: [] as { name: string; url: string }[],
   onboarding_date: '',
   notes: '',
   scope: '',
@@ -247,6 +248,7 @@ const Clients = () => {
         billing_currency: form.billing_currency,
         source: form.source || null,
         nature_of_business: form.nature_of_business.trim() || null,
+        links: form.links.filter(l => l.name.trim() || l.url.trim()).map(l => ({ name: l.name.trim(), url: l.url.trim() })),
         onboarding_date: form.onboarding_date || null,
         notes: form.notes.trim() || null,
         scope: form.scope.trim() || null,
@@ -868,6 +870,54 @@ const Clients = () => {
                 <Label>Notes</Label>
                 <Textarea className="bg-white" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} />
               </div>
+            </div>
+
+            {/* Section: Links */}
+            <div className="space-y-3">
+              <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Links</p>
+              {form.links.map((link, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <Input
+                    className="bg-white w-32 shrink-0"
+                    placeholder="Label"
+                    value={link.name}
+                    onChange={e => {
+                      const updated = [...form.links];
+                      updated[idx] = { ...updated[idx], name: e.target.value };
+                      setForm({ ...form, links: updated });
+                    }}
+                  />
+                  <Input
+                    className="bg-white flex-1"
+                    placeholder="https://..."
+                    value={link.url}
+                    onChange={e => {
+                      const updated = [...form.links];
+                      updated[idx] = { ...updated[idx], url: e.target.value };
+                      setForm({ ...form, links: updated });
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => setForm({ ...form, links: form.links.filter((_, i) => i !== idx) })}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs"
+                onClick={() => setForm({ ...form, links: [...form.links, { name: '', url: '' }] })}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add Link
+              </Button>
             </div>
 
           </div>
