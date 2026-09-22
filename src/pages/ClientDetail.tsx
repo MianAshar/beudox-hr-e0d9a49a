@@ -542,12 +542,13 @@ const ClientDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={editOpen} onOpenChange={v => { if (!v) setEditOpen(false); }}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Client</DialogTitle>
-          </DialogHeader>
+      {/* Edit Sheet */}
+      <Sheet open={editOpen} onOpenChange={v => { if (!v) setEditOpen(false); }}>
+        <SheetContent className="w-full sm:max-w-[648px] flex flex-col">
+          <SheetHeader className="shrink-0 px-6 pt-6">
+            <SheetTitle>Edit Client</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
           {editForm && (
             <div className="space-y-6 py-2">
 
