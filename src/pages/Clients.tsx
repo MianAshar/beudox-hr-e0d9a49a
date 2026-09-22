@@ -100,7 +100,7 @@ interface Client {
 
 const CURRENCIES = ['USD', 'PKR', 'AED', 'GBP', 'EUR', 'AUD', 'CAD'];
 
-const SOURCE_OPTIONS = ['Direct', 'Referral', 'LinkedIn', 'Cold Outreach', 'Website', 'Exhibition', 'Other'];
+const SOURCE_OPTIONS = ['Direct', 'Referral', 'LinkedIn', 'Cold Outreach', 'Website', 'Exhibition', 'Fiverr', 'Upwork', 'Email', 'Ads', 'Meta', 'Other'];
 
 const emptyForm = {
   name: '',
