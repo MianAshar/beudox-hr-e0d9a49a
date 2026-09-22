@@ -126,7 +126,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
           .gte('end_date', startDate),
         supabase
           .from('company_settings')
-          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, working_days')
+          .select('ot_divisor, shift_start_time, shift_end_time, lunch_break_hours, working_days, short_time_relaxation_hours')
           .eq('company_id', companyId!)
           .maybeSingle(),
         supabase
