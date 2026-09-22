@@ -358,6 +358,7 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
                       label="Short Time"
                       value={fmtHrs(shortHours)}
                       valueColor={shortHours > 0 ? RED : undefined}
+                      note={relaxation > 0 ? `${relaxation}hr relaxation applied` : undefined}
                     />
                     <Row
                       label="Overtime"
