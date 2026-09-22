@@ -622,17 +622,30 @@ const ClientDetail = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Country</Label>
-                    <Select
-                      value={editForm.country}
-                      onValueChange={v => setEditForm({ ...editForm, country: v, state: '' })}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Select country…" /></SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {Country.getAllCountries().map(c => (
-                          <SelectItem key={c.isoCode} value={c.name}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={editCountryOpen} onOpenChange={setEditCountryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                          {editForm.country || <span className="text-muted-foreground">Select country…</span>}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search country…" />
+                          <CommandList className="max-h-[200px]">
+                            <CommandEmpty>No country found.</CommandEmpty>
+                            <CommandGroup>
+                              {Country.getAllCountries().map(c => (
+                                <CommandItem key={c.isoCode} value={c.name} onSelect={val => { setEditForm({ ...editForm, country: val, state: '' }); setEditCountryOpen(false); }}>
+                                  <Check className={cn('mr-2 h-4 w-4', editForm.country === c.name ? 'opacity-100' : 'opacity-0')} />
+                                  {c.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div>
                     <Label>State / Province</Label>
