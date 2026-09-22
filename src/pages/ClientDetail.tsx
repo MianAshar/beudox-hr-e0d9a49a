@@ -12,8 +12,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users, ExternalLink, X } from 'lucide-react';
+import { ArrowLeft, Plus, Mail, Phone, Globe, DollarSign, StickyNote, Trash2, Pencil, Users, ExternalLink, X, Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
 import { Country, State } from 'country-state-city';
 
@@ -78,6 +82,8 @@ const ClientDetail = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<any>(null);
+  const [editCountryOpen, setEditCountryOpen] = useState(false);
+  const [editStateOpen, setEditStateOpen] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [invitingUser, setInvitingUser] = useState(false);
@@ -536,18 +542,19 @@ const ClientDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={editOpen} onOpenChange={v => { if (!v) setEditOpen(false); }}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Client</DialogTitle>
-          </DialogHeader>
+      {/* Edit Sheet */}
+      <Sheet open={editOpen} onOpenChange={v => { if (!v) setEditOpen(false); }}>
+        <SheetContent className="w-full sm:max-w-[648px] flex flex-col">
+          <SheetHeader className="shrink-0 px-6 pt-6">
+            <SheetTitle>Edit Client</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
           {editForm && (
             <div className="space-y-6 py-2">
 
               {/* Section: Company Info */}
               <div className="space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Company Info</p>
+                <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Company Info</p>
                 <div>
                   <Label>Company Name *</Label>
                   <Input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
@@ -586,7 +593,7 @@ const ClientDetail = () => {
 
               {/* Section: Contact Details */}
               <div className="space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contact Details</p>
+                <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Contact Details</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Contact Name</Label>
@@ -611,40 +618,70 @@ const ClientDetail = () => {
 
               {/* Section: Location & Billing */}
               <div className="space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Location & Billing</p>
+                <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Location & Billing</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Country</Label>
-                    <Select
-                      value={editForm.country}
-                      onValueChange={v => setEditForm({ ...editForm, country: v, state: '' })}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Select country…" /></SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {Country.getAllCountries().map(c => (
-                          <SelectItem key={c.isoCode} value={c.name}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={editCountryOpen} onOpenChange={setEditCountryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                          {editForm.country || <span className="text-muted-foreground">Select country…</span>}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search country…" />
+                          <CommandList className="max-h-[200px]">
+                            <CommandEmpty>No country found.</CommandEmpty>
+                            <CommandGroup>
+                              {Country.getAllCountries().map(c => (
+                                <CommandItem key={c.isoCode} value={c.name} onSelect={val => { setEditForm({ ...editForm, country: val, state: '' }); setEditCountryOpen(false); }}>
+                                  <Check className={cn('mr-2 h-4 w-4', editForm.country === c.name ? 'opacity-100' : 'opacity-0')} />
+                                  {c.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div>
                     <Label>State / Province</Label>
-                    <Select
-                      value={editForm.state}
-                      onValueChange={v => setEditForm({ ...editForm, state: v })}
-                      disabled={!editForm.country}
-                    >
-                      <SelectTrigger><SelectValue placeholder={editForm.country ? 'Select state…' : 'Select country first'} /></SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {editForm.country && (() => {
-                          const isoCode = Country.getAllCountries().find(c => c.name === editForm.country)?.isoCode;
-                          const states = isoCode ? State.getStatesOfCountry(isoCode) : [];
-                          return states.length > 0
-                            ? states.map(s => <SelectItem key={s.isoCode} value={s.name}>{s.name}</SelectItem>)
-                            : <SelectItem value="_none" disabled>No states available</SelectItem>;
-                        })()}
-                      </SelectContent>
-                    </Select>
+                    {(() => {
+                      const isoCode = Country.getAllCountries().find(c => c.name === editForm.country)?.isoCode;
+                      const stateList = isoCode ? State.getStatesOfCountry(isoCode) : [];
+                      return (
+                        <Popover open={editStateOpen} onOpenChange={setEditStateOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" role="combobox" disabled={!editForm.country} className="w-full justify-between font-normal">
+                              {editForm.state || <span className="text-muted-foreground">{editForm.country ? 'Select state…' : 'Select country first'}</span>}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[280px] p-0">
+                            <Command>
+                              <CommandInput placeholder="Search state…" />
+                              <CommandList className="max-h-[200px]">
+                                <CommandEmpty>No state found.</CommandEmpty>
+                                <CommandGroup>
+                                  {stateList.length === 0
+                                    ? <CommandItem disabled value="_none">No states available</CommandItem>
+                                    : stateList.map(s => (
+                                      <CommandItem key={s.isoCode} value={s.name} onSelect={val => { setEditForm({ ...editForm, state: val }); setEditStateOpen(false); }}>
+                                        <Check className={cn('mr-2 h-4 w-4', editForm.state === s.name ? 'opacity-100' : 'opacity-0')} />
+                                        {s.name}
+                                      </CommandItem>
+                                    ))
+                                  }
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      );
+                    })()}
                   </div>
                 </div>
                 <div>
@@ -660,7 +697,7 @@ const ClientDetail = () => {
 
               {/* Section: Requirements */}
               <div className="space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Requirements</p>
+                <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#5B3FF8' }}>Requirements</p>
                 <div>
                   <Label>Scope</Label>
                   <Textarea value={editForm.scope} onChange={e => setEditForm({ ...editForm, scope: e.target.value })} rows={3} />
@@ -725,14 +762,15 @@ const ClientDetail = () => {
 
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={() => updateMutation.mutate()} disabled={!editForm?.name?.trim() || updateMutation.isPending}>
+          </div>
+          <SheetFooter className="shrink-0 px-6 pb-6 pt-4 border-t gap-2">
+            <Button variant="outline" onClick={() => setEditOpen(false)} className="flex-1">Cancel</Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={!editForm?.name?.trim() || updateMutation.isPending} className="flex-1">
               {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* Remove Portal User Dialog */}
       <Dialog open={!!deletePortalUser} onOpenChange={v => { if (!v) setDeletePortalUser(null); }}>
