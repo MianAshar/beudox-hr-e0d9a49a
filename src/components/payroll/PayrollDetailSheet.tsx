@@ -233,13 +233,14 @@ const PayrollDetailSheet = ({ record, open, onClose, monthLabel, hideSalary }: P
       }
 
       return {
-        shortHours,
-        overtimeHours,
+        shortHours: shortHoursAfterRelaxation,
+        overtimeHours: overtimeHoursFloored,
         lateCount,
         absentCount,
         leaveDays,
         otDivisor,
         workingHoursPerDay,
+        relaxation,
       };
     },
   });
