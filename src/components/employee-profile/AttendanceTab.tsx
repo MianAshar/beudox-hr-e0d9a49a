@@ -399,6 +399,47 @@ const AttendanceTab = ({ employeeId }: { employeeId: string }) => {
                   </TableRow>
                 );
               })}
+              {/* Totals row */}
+              <TableRow style={{ background: '#F6F5FF', borderTop: '2px solid rgba(91,63,248,0.15)' }}>
+                <TableCell colSpan={4} className="text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wide py-2">
+                  Monthly Total
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums py-2">
+                  <span className="text-[12px] font-semibold text-muted-foreground">—</span>
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums py-2">
+                  {summary.colShortTime > 0 ? (
+                    <div className="flex flex-col items-end leading-tight">
+                      <span className="text-[13px] font-bold" style={{ color: '#E84545' }}>
+                        {formatWorkingHours(summary.colShortTime)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{summary.colShortTime.toFixed(2)}h</span>
+                    </div>
+                  ) : <span className="text-muted-foreground text-[12px]">—</span>}
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums py-2">
+                  {summary.colRegularOt > 0 ? (
+                    <div className="flex flex-col items-end leading-tight">
+                      <span className="text-[13px] font-bold" style={{ color: '#1DC97A' }}>
+                        +{formatWorkingHours(summary.colRegularOt)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">+{summary.colRegularOt.toFixed(2)}h</span>
+                    </div>
+                  ) : <span className="text-muted-foreground text-[12px]">—</span>}
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums py-2">
+                  {summary.colHolOt > 0 ? (
+                    <div className="flex flex-col items-end leading-tight">
+                      <span className="text-[13px] font-bold" style={{ color: '#5B3FF8' }}>
+                        +{formatWorkingHours(summary.colHolOt)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">+{summary.colHolOt.toFixed(2)}h</span>
+                    </div>
+                  ) : <span className="text-muted-foreground text-[12px]">—</span>}
+                </TableCell>
+                <TableCell />
+                {(isCeo || isHrManager) && <TableCell />}
+              </TableRow>
             </TableBody>
           </Table>
         )}
