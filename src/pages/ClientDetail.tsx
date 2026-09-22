@@ -649,22 +649,39 @@ const ClientDetail = () => {
                   </div>
                   <div>
                     <Label>State / Province</Label>
-                    <Select
-                      value={editForm.state}
-                      onValueChange={v => setEditForm({ ...editForm, state: v })}
-                      disabled={!editForm.country}
-                    >
-                      <SelectTrigger><SelectValue placeholder={editForm.country ? 'Select state…' : 'Select country first'} /></SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {editForm.country && (() => {
-                          const isoCode = Country.getAllCountries().find(c => c.name === editForm.country)?.isoCode;
-                          const states = isoCode ? State.getStatesOfCountry(isoCode) : [];
-                          return states.length > 0
-                            ? states.map(s => <SelectItem key={s.isoCode} value={s.name}>{s.name}</SelectItem>)
-                            : <SelectItem value="_none" disabled>No states available</SelectItem>;
-                        })()}
-                      </SelectContent>
-                    </Select>
+                    {(() => {
+                      const isoCode = Country.getAllCountries().find(c => c.name === editForm.country)?.isoCode;
+                      const stateList = isoCode ? State.getStatesOfCountry(isoCode) : [];
+                      return (
+                        <Popover open={editStateOpen} onOpenChange={setEditStateOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" role="combobox" disabled={!editForm.country} className="w-full justify-between font-normal">
+                              {editForm.state || <span className="text-muted-foreground">{editForm.country ? 'Select state…' : 'Select country first'}</span>}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[280px] p-0">
+                            <Command>
+                              <CommandInput placeholder="Search state…" />
+                              <CommandList className="max-h-[200px]">
+                                <CommandEmpty>No state found.</CommandEmpty>
+                                <CommandGroup>
+                                  {stateList.length === 0
+                                    ? <CommandItem disabled value="_none">No states available</CommandItem>
+                                    : stateList.map(s => (
+                                      <CommandItem key={s.isoCode} value={s.name} onSelect={val => { setEditForm({ ...editForm, state: val }); setEditStateOpen(false); }}>
+                                        <Check className={cn('mr-2 h-4 w-4', editForm.state === s.name ? 'opacity-100' : 'opacity-0')} />
+                                        {s.name}
+                                      </CommandItem>
+                                    ))
+                                  }
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      );
+                    })()}
                   </div>
                 </div>
                 <div>
