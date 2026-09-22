@@ -477,6 +477,9 @@ const AttendanceUploadFlow = ({
           .lte('start_date', maxDate)
           .gte('end_date', minDate);
 
+        // Build half-day leave date set per employee
+        const halfDayEmpDates = new Set<string>(); // key: `${empId}|${date}`
+
         for (const lr of (leaveRows as any[]) ?? []) {
           const ltName = lr.leave_types?.name ?? 'Leave';
           const cur = new Date(lr.start_date + 'T00:00:00');
@@ -496,16 +499,13 @@ const AttendanceUploadFlow = ({
             }
             cur.setDate(cur.getDate() + 1);
           }
-        }
-      }
 
-      // Build half-day leave date set per employee
-      const halfDayEmpDates = new Set<string>(); // key: `${empId}|${date}`
-      for (const lr of (leaveRows as any[]) ?? []) {
-        if (!lr.half_day) continue;
-        const d = lr.start_date as string;
-        if (d >= minDate && d <= maxDate) {
-          halfDayEmpDates.add(`${lr.employee_id}|${d}`);
+          if (lr.half_day) {
+            const d = lr.start_date as string;
+            if (d >= minDate && d <= maxDate) {
+              halfDayEmpDates.add(`${lr.employee_id}|${d}`);
+            }
+          }
         }
       }
 
