@@ -79,10 +79,12 @@ const TaskCard = ({
   task,
   onMove,
   onOpenDetail,
+  isMoving,
 }: {
   task: any;
   onMove: (task: any, toStage: Stage, reason?: string) => void;
   onOpenDetail: (task: any) => void;
+  isMoving?: boolean;
 }) => {
 
   const [rejectOpen, setRejectOpen] = useState(false);
