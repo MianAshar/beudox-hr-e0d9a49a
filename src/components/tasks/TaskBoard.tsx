@@ -415,8 +415,12 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
 
   return (
     <div className="space-y-3">
+      {scopeEmployeeId && (
+        <p className="text-[13px] font-semibold mb-2" style={{ color: '#5B3FF8' }}>Your Tasks</p>
+      )}
       {/* Filters + header action */}
       <div className="flex items-center gap-2">
+
         {!scopeEmployeeId && (
           <>
             <Select value={projectFilter} onValueChange={setProjectFilter}>
