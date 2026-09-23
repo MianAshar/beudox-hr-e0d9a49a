@@ -1407,6 +1407,169 @@ export type Database = {
           },
         ]
       }
+      job_applications: {
+        Row: {
+          area_lahore: string | null
+          city: string
+          company_id: string
+          created_at: string
+          cv_filename: string | null
+          cv_url: string | null
+          degree_year: number
+          duplicate_reason: string | null
+          email: string
+          gender: string | null
+          id: string
+          interview_date: string | null
+          interview_notes: string | null
+          is_duplicate: boolean
+          job_id: string
+          last_degree: string
+          linkedin_url: string | null
+          message: string | null
+          mobile: string
+          name: string
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          area_lahore?: string | null
+          city: string
+          company_id: string
+          created_at?: string
+          cv_filename?: string | null
+          cv_url?: string | null
+          degree_year: number
+          duplicate_reason?: string | null
+          email: string
+          gender?: string | null
+          id?: string
+          interview_date?: string | null
+          interview_notes?: string | null
+          is_duplicate?: boolean
+          job_id: string
+          last_degree: string
+          linkedin_url?: string | null
+          message?: string | null
+          mobile: string
+          name: string
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          area_lahore?: string | null
+          city?: string
+          company_id?: string
+          created_at?: string
+          cv_filename?: string | null
+          cv_url?: string | null
+          degree_year?: number
+          duplicate_reason?: string | null
+          email?: string
+          gender?: string | null
+          id?: string
+          interview_date?: string | null
+          interview_notes?: string | null
+          is_duplicate?: boolean
+          job_id?: string
+          last_degree?: string
+          linkedin_url?: string | null
+          message?: string | null
+          mobile?: string
+          name?: string
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_listings: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          department: string | null
+          description: string | null
+          employment_type: string
+          expires_at: string | null
+          id: string
+          location: string | null
+          requirements: string | null
+          status: string
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          description?: string | null
+          employment_type?: string
+          expires_at?: string | null
+          id?: string
+          location?: string | null
+          requirements?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          description?: string | null
+          employment_type?: string
+          expires_at?: string | null
+          id?: string
+          location?: string | null
+          requirements?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_listings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_listings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_balance_history: {
         Row: {
           adjusted_by: string
