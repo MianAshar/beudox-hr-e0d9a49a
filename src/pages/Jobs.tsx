@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Eye, Briefcase, Inbox } from 'lucide-react';
+import { Plus, MoreHorizontal, Eye, Briefcase, Inbox, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -25,6 +25,14 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
   draft:  { bg: '#FEF3C7', text: '#92400E', label: 'Draft' },
   active: { bg: '#D1FAE5', text: '#065F46', label: 'Active' },
   closed: { bg: '#F3F4F6', text: '#6B7280', label: 'Closed' },
+};
+
+const APP_STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  new:                 { bg: '#EBE6FF', text: '#2B1899', label: 'New' },
+  shortlisted:         { bg: '#D1FAE5', text: '#065F46', label: 'Shortlisted' },
+  interview_scheduled: { bg: '#DBEAFE', text: '#1E40AF', label: 'Interview Scheduled' },
+  hired:               { bg: '#D1FAE5', text: '#065F46', label: 'Hired' },
+  rejected:            { bg: '#FEE2E2', text: '#991B1B', label: 'Rejected' },
 };
 
 const emptyForm = {
