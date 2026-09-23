@@ -230,8 +230,8 @@ const TaskCard = ({
                     return (
                       <DropdownMenuItem key={t} onClick={() => handleMoveTo(t)}>
                         <span
-                          className="text-xs px-1.5 py-0.5 rounded-full mr-2"
-                          style={{ background: '#DFE1E6', color: stageInfo.dot }}
+                          className="text-xs px-1.5 py-0.5 rounded-full mr-2 font-medium"
+                          style={{ background: stageInfo.dot + '22', color: stageInfo.textColor, border: `1px solid ${stageInfo.dot}` }}
                         >
                           {stageInfo.label}
                         </span>
@@ -251,10 +251,10 @@ const TaskCard = ({
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Reject from QC</DialogTitle>
-            <DialogDescription>Move "{task.title}" back to In Progress. Add an optional reason.</DialogDescription>
+            <DialogDescription>Move "{task.title}" back to In Progress. A reason is required.</DialogDescription>
           </DialogHeader>
           <div className="py-2">
-            <Label>Reason <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+            <Label>Reason <span className="text-destructive text-xs font-normal ml-1">*</span></Label>
             <Textarea
               value={rejectReason}
               onChange={e => setRejectReason(e.target.value)}
@@ -265,7 +265,7 @@ const TaskCard = ({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setRejectOpen(false); setRejectReason(''); }}>Cancel</Button>
-            <Button variant="destructive" onClick={handleRejectConfirm}>Reject & Move Back</Button>
+            <Button variant="destructive" onClick={handleRejectConfirm} disabled={!rejectReason.trim()}>Reject & Move Back</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -332,7 +332,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
           id, title, complexity, deadline, status, is_completed, assigned_to, project_id,
           assignee:employees!project_tasks_assigned_to_fkey(id, full_name, avatar_url),
           project:projects!project_tasks_project_id_fkey(id, project_code, project_name),
-          task_stage_logs(id, from_stage, to_stage, changed_at, reason)
+          task_stage_logs(id, from_stage, to_stage, changed_at, reason, changed_by, employees!task_stage_logs_changed_by_fkey(full_name))
         `)
         .eq('company_id', companyId!);
 
@@ -579,6 +579,9 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
                                 </span>
                                 {log.reason && <span className="block text-[11px] mt-0.5 italic" style={{ color: '#6B778C' }}>"{log.reason}"</span>}
                                 <span className="block text-[10px] mt-0.5" style={{ color: '#97A0AF' }}>
+                                  {(log.employees as any)?.full_name && (
+                                    <span className="font-medium text-foreground mr-1">{(log.employees as any).full_name}</span>
+                                  )}
                                   {new Date(log.changed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               </div>
