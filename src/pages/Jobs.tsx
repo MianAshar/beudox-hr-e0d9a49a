@@ -344,13 +344,94 @@ export default function Jobs() {
           </div>
         </TabsContent>
 
-        <TabsContent value="applications" className="mt-4">
-          <div className="bg-card rounded-[14px] border py-16 text-center space-y-2">
-            <Inbox className="h-8 w-8 mx-auto text-muted-foreground opacity-40" />
-            <p className="text-sm font-medium text-foreground">Applications review is coming next</p>
-            <p className="text-sm text-muted-foreground">
-              Candidates applying through the website will appear here. {totalApps > 0 ? `${totalApps} received so far.` : ''}
-            </p>
+        <TabsContent value="applications" className="mt-4 space-y-3">
+          {/* Filter by job */}
+          <div className="flex items-center gap-3">
+            <Select value={appJobFilter} onValueChange={setAppJobFilter}>
+              <SelectTrigger className="w-[260px]">
+                <SelectValue placeholder="All listings" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Listings</SelectItem>
+                {listings.map((l: any) => (
+                  <SelectItem key={l.id} value={l.id}>{l.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground">
+              {applications.filter((a: any) => appJobFilter === 'all' || a.job_id === appJobFilter).length} applications
+            </span>
+          </div>
+
+          <div className="bg-card rounded-[14px] border overflow-hidden">
+            {applications.length === 0 ? (
+              <div className="py-16 text-center space-y-2">
+                <Inbox className="h-8 w-8 mx-auto text-muted-foreground opacity-40" />
+                <p className="text-sm text-muted-foreground">No applications received yet.</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Applied For</TableHead>
+                    <TableHead>Degree</TableHead>
+                    <TableHead>City</TableHead>
+                    <TableHead>Applied</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {applications
+                    .filter((a: any) => appJobFilter === 'all' || a.job_id === appJobFilter)
+                    .map((app: any) => {
+                      const appStatus = APP_STATUS_STYLES[app.status] || APP_STATUS_STYLES.new;
+                      return (
+                        <TableRow
+                          key={app.id}
+                          className="cursor-pointer hover:bg-muted/40"
+                          onClick={() => openApp(app)}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">{app.name}</span>
+                              {app.is_duplicate && (
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: '#FEF3C7', color: '#92400E' }} title={app.duplicate_reason}>
+                                  ⚠ Duplicate
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{app.email}</p>
+                          </TableCell>
+                          <TableCell className="text-sm">{(app.job_listings as any)?.title || '—'}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{app.last_degree}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{app.city}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{format(new Date(app.created_at), 'dd MMM yyyy')}</TableCell>
+                          <TableCell>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold" style={{ background: appStatus.bg, color: appStatus.text }}>
+                              {appStatus.label}
+                            </span>
+                          </TableCell>
+                          <TableCell onClick={e => e.stopPropagation()}>
+                            <Select
+                              value={app.status}
+                              onValueChange={val => updateAppMutation.mutate({ id: app.id, status: val })}
+                            >
+                              <SelectTrigger className="h-7 text-xs w-[140px]"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(APP_STATUS_STYLES).map(([key, val]) => (
+                                  <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </TabsContent>
       </Tabs>
