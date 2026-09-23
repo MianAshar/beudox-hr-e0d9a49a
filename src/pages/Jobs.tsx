@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,7 @@ export default function Jobs() {
   const { employee } = useAuth();
   const companyId = employee?.company_id;
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -289,7 +291,7 @@ export default function Jobs() {
                   {listings.map((listing: any) => {
                     const st = STATUS_STYLES[listing.status] || STATUS_STYLES.draft;
                     return (
-                      <TableRow key={listing.id}>
+                      <TableRow key={listing.id} className="cursor-pointer hover:bg-muted/40" onClick={() => navigate(`/jobs/${listing.id}`)}>
                         <TableCell className="font-medium">{listing.title}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">{listing.department || '—'}</TableCell>
                         <TableCell className="text-sm">{EMPLOYMENT_TYPES[listing.employment_type] || listing.employment_type}</TableCell>
@@ -308,7 +310,7 @@ export default function Jobs() {
                         <TableCell className="text-sm text-muted-foreground">
                           {listing.expires_at ? format(new Date(listing.expires_at), 'dd MMM yyyy') : '—'}
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={e => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-8 w-8">
