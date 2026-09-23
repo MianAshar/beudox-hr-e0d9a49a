@@ -188,10 +188,27 @@ export default function JobDetail() {
             <span>{applications.length} applications</span>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={openEdit}>
-          <Pencil className="h-3.5 w-3.5" />
-          Edit
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          {job.status !== 'draft' && (
+            <Button size="sm" variant="outline" onClick={() => updateMutation.mutate({ status: 'draft' })} disabled={updateMutation.isPending}>
+              Set Draft
+            </Button>
+          )}
+          {job.status !== 'closed' && (
+            <Button size="sm" variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => updateMutation.mutate({ status: 'closed' })} disabled={updateMutation.isPending}>
+              Close Listing
+            </Button>
+          )}
+          {job.status !== 'active' && (
+            <Button size="sm" onClick={() => updateMutation.mutate({ status: 'active' })} disabled={updateMutation.isPending}>
+              Set Active
+            </Button>
+          )}
+          <Button variant="outline" size="sm" className="gap-2" onClick={openEdit}>
+            <Pencil className="h-3.5 w-3.5" />
+            Edit
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -206,57 +223,62 @@ export default function JobDetail() {
         </TabsList>
 
         {/* Job Details Tab */}
-        <TabsContent value="details" className="mt-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left: description + requirements */}
-            <div className="space-y-5">
-              <div className="bg-card rounded-[14px] border p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: '#5B3FF8' }}>Job Description</p>
-                {job.description ? (
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{job.description}</p>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">No description added yet.</p>
-                )}
+        <TabsContent value="details" className="mt-5 space-y-4">
+          {/* Top meta card — like Project Details card */}
+          <div className="bg-card rounded-[14px] border p-6">
+            <h2 className="text-[15px] font-bold mb-4" style={{ fontFamily: 'var(--ff-display)', color: '#120E36' }}>Listing Details</h2>
+            <div className="grid grid-cols-3 gap-x-8 gap-y-4">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Department</p>
+                <p className="text-sm font-medium">{job.department || '—'}</p>
               </div>
-              <div className="bg-card rounded-[14px] border p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: '#5B3FF8' }}>Requirements</p>
-                {job.requirements ? (
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{job.requirements}</p>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">No requirements added yet.</p>
-                )}
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Location</p>
+                <p className="text-sm font-medium">{job.location || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Employment Type</p>
+                <p className="text-sm font-medium">{EMPLOYMENT_TYPES[job.employment_type] || job.employment_type}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Expiry Date</p>
+                <p className="text-sm font-medium">{job.expires_at ? format(new Date(job.expires_at), 'dd MMM yyyy') : 'No expiry set'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Created</p>
+                <p className="text-sm font-medium">{format(new Date(job.created_at), 'dd MMM yyyy')}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Views · Applications</p>
+                <p className="text-sm font-medium">
+                  <span className="inline-flex items-center gap-1 mr-3"><Eye className="h-3.5 w-3.5 text-muted-foreground" />{job.view_count}</span>
+                  <span>{applications.length} applied</span>
+                </p>
               </div>
             </div>
-            {/* Right: meta */}
-            <div className="bg-card rounded-[14px] border p-5 space-y-3 h-fit">
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#5B3FF8' }}>Listing Info</p>
-              {[
-                { label: 'Status', value: st.label },
-                { label: 'Department', value: job.department || '—' },
-                { label: 'Location', value: job.location || '—' },
-                { label: 'Employment Type', value: EMPLOYMENT_TYPES[job.employment_type] || job.employment_type },
-                { label: 'Expires', value: job.expires_at ? format(new Date(job.expires_at), 'dd MMM yyyy') : 'No expiry' },
-                { label: 'Created', value: format(new Date(job.created_at), 'dd MMM yyyy') },
-                { label: 'Views', value: job.view_count },
-                { label: 'Applications', value: applications.length },
-              ].map(row => (
-                <div key={row.label} className="flex items-center justify-between py-1.5 border-b border-border/50 text-sm">
-                  <span className="text-muted-foreground">{row.label}</span>
-                  <span className="font-medium">{row.value}</span>
-                </div>
-              ))}
-              {/* Status actions */}
-              <div className="pt-2 flex gap-2 flex-wrap">
-                {job.status !== 'active' && (
-                  <Button size="sm" variant="outline" onClick={() => updateMutation.mutate({ status: 'active' })}>Set Active</Button>
-                )}
-                {job.status !== 'draft' && (
-                  <Button size="sm" variant="outline" onClick={() => updateMutation.mutate({ status: 'draft' })}>Set Draft</Button>
-                )}
-                {job.status !== 'closed' && (
-                  <Button size="sm" variant="outline" className="text-destructive border-destructive hover:bg-destructive/10" onClick={() => updateMutation.mutate({ status: 'closed' })}>Close Listing</Button>
-                )}
+          </div>
+
+          {/* Description + Requirements side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-card rounded-[14px] border p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[13px] font-bold" style={{ fontFamily: 'var(--ff-display)', color: '#120E36' }}>Scope of Work</span>
               </div>
+              {job.description ? (
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{job.description}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No description added yet.</p>
+              )}
+            </div>
+            <div className="bg-card rounded-[14px] border p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[13px] font-bold" style={{ fontFamily: 'var(--ff-display)', color: '#120E36' }}>Requirements</span>
+              </div>
+              {job.requirements ? (
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{job.requirements}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No requirements added yet.</p>
+              )}
             </div>
           </div>
         </TabsContent>
