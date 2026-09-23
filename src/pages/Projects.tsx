@@ -593,7 +593,9 @@ const Projects = () => {
               )}
             </SelectContent>
           </Select>
+          {opts.switcher}
         </div>
+
         {isManager && opts.showAdd && (
           <Button onClick={() => navigate('/projects/new')}>
             <Plus className="h-4 w-4 mr-2" /> Add Project
