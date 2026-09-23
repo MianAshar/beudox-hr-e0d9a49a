@@ -470,8 +470,6 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
                       task={task}
                       onMove={moveTask}
                       onOpenDetail={setSelectedTask}
-                      myRoles={myRoles}
-                      myEmployeeId={myEmployeeId}
                     />
 
                   ))
