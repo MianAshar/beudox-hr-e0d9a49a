@@ -248,13 +248,6 @@ export default function JobDetail() {
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Created</p>
                 <p className="text-sm font-medium">{format(new Date(job.created_at), 'dd MMM yyyy')}</p>
               </div>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Views · Applications</p>
-                <p className="text-sm font-medium">
-                  <span className="inline-flex items-center gap-1 mr-3"><Eye className="h-3.5 w-3.5 text-muted-foreground" />{job.view_count}</span>
-                  <span>{applications.length} applied</span>
-                </p>
-              </div>
             </div>
           </div>
 
@@ -262,7 +255,7 @@ export default function JobDetail() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-card rounded-[14px] border p-5">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-[13px] font-bold" style={{ fontFamily: 'var(--ff-display)', color: '#120E36' }}>Scope of Work</span>
+                <span className="text-[13px] font-bold" style={{ fontFamily: 'var(--ff-display)', color: '#120E36' }}>Job Description</span>
               </div>
               {job.description ? (
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{job.description}</p>
