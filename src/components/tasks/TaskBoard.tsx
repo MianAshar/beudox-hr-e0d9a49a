@@ -79,39 +79,18 @@ const TaskCard = ({
   task,
   onMove,
   onOpenDetail,
-  myRoles,
-  myEmployeeId,
 }: {
   task: any;
   onMove: (task: any, toStage: Stage, reason?: string) => void;
   onOpenDetail: (task: any) => void;
-  myRoles: string[];
-  myEmployeeId: string;
 }) => {
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
-  const isManager = myRoles.some(r => ['ceo', 'hr_manager'].includes(r));
-  const isTeamLead = myRoles.includes('team_lead');
-  const isEmployee = myRoles.includes('employee') && !isManager && !isTeamLead;
-  const isOwner = task.assigned_to === myEmployeeId;
   const stage: Stage = task.status;
-  const isDone = stage === 'done';
+  const targets: Stage[] = STAGES.map(s => s.key).filter(s => s !== stage) as Stage[];
 
-  // Determine which stages this user can move this task to
-  const allowedTargets = (): Stage[] => {
-    if (isDone) return [];
-    if (isEmployee) {
-      if (!isOwner) return [];
-      if (stage === 'todo') return ['in_progress'];
-      if (stage === 'in_progress') return ['qc'];
-      return [];
-    }
-    // Team lead or manager — any stage except current
-    return STAGES.map(s => s.key).filter(s => s !== stage);
-  };
-  const targets = allowedTargets();
 
   const cc = complexityColors[task.complexity] || complexityColors.easy;
   const assignee = task.assignee;
