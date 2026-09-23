@@ -14,6 +14,16 @@ import { MoreHorizontal, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  useDraggable,
+} from '@dnd-kit/core';
+
 
 type Stage = 'todo' | 'in_progress' | 'qc' | 'done';
 
@@ -125,13 +135,30 @@ const TaskCard = ({
     setRejectReason('');
   };
 
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+    disabled: targets.length === 0,
+    data: { task, targets, requestReject: () => setRejectOpen(true) },
+  });
+  const dragStyle: React.CSSProperties = {
+    borderColor: '#DFE1E6',
+    boxShadow: '0 1px 2px rgba(9,30,66,0.08)',
+    ...(transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : {}),
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 999 : undefined,
+  };
+
   return (
     <>
       <div
+        ref={setNodeRef}
+        {...attributes}
+        {...listeners}
         className="group bg-white rounded-[3px] border cursor-pointer select-none transition-shadow hover:shadow-md"
-        style={{ borderColor: '#DFE1E6', boxShadow: '0 1px 2px rgba(9,30,66,0.08)' }}
+        style={dragStyle}
         onClick={() => onOpenDetail(task)}
       >
+
 
         <div className="p-[10px_12px] space-y-2">
           {/* Complexity badge top */}
@@ -260,6 +287,24 @@ const TaskCard = ({
   );
 };
 
+const DroppableColumn = ({ id, children }: { id: string; children: React.ReactNode }) => {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      className="flex flex-col gap-2 p-2 rounded-b-sm"
+      style={{
+        background: isOver ? 'rgba(91,63,248,0.05)' : '#F8F9FA',
+        minHeight: 'calc(100vh - 280px)',
+        transition: 'background 150ms',
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
+
 const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
   const { employee } = useAuth();
   const companyId = employee?.company_id;
@@ -340,6 +385,28 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
     }
   };
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || !active) return;
+    const newStage = over.id as Stage;
+    const data = active.data.current as { task?: any; targets?: Stage[]; requestReject?: () => void } | undefined;
+    const task = data?.task;
+    if (!task || task.status === newStage) return;
+    if (!(data?.targets || []).includes(newStage)) {
+      toast.error("You can't move this task to that stage");
+      return;
+    }
+    // QC → In Progress needs a reject reason — open the card's modal instead
+    if (task.status === 'qc' && newStage === 'in_progress') {
+      data?.requestReject?.();
+      return;
+    }
+    moveTask(task, newStage);
+  };
+
+
   // Group tasks by stage
   const grouped = useMemo(() => {
     const g: Record<Stage, any[]> = { todo: [], in_progress: [], qc: [], done: [] };
@@ -370,8 +437,12 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
 
   return (
     <div className="space-y-3">
+      {scopeEmployeeId && (
+        <p className="text-[13px] font-semibold mb-2" style={{ color: '#5B3FF8' }}>Your Tasks</p>
+      )}
       {/* Filters + header action */}
       <div className="flex items-center gap-2">
+
         {!scopeEmployeeId && (
           <>
             <Select value={projectFilter} onValueChange={setProjectFilter}>
@@ -393,7 +464,9 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
 
 
       {/* Board columns */}
-      <div className="flex gap-3 items-stretch overflow-x-auto pb-4">
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        <div className="flex gap-3 items-stretch overflow-x-auto pb-4">
+
         {STAGES.map(stage => {
           const columnTasks = stage.key === 'done'
             ? grouped.done.slice(0, doneLimit)
@@ -417,10 +490,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
               </div>
 
               {/* Body */}
-              <div
-                className="flex flex-col gap-2 p-2 rounded-b-sm"
-                style={{ background: '#F8F9FA', minHeight: 'calc(100vh - 280px)' }}
-              >
+              <DroppableColumn id={stage.key}>
 
                 {columnTasks.length === 0 ? (
                   <p className="text-xs text-center py-6" style={{ color: '#5E6C84' }}>No issues</p>
@@ -449,11 +519,14 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
                     Load more ({Math.min(DONE_PAGE_SIZE, totalDone - doneLimit)} of {totalDone - doneLimit} remaining)
                   </button>
                 )}
-              </div>
+              </DroppableColumn>
             </div>
+
           );
         })}
-      </div>
+        </div>
+      </DndContext>
+
 
       {/* Task detail modal */}
       {selectedTask && (() => {

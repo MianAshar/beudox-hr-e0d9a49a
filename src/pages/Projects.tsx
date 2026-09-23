@@ -520,7 +520,7 @@ const Projects = () => {
     </div>
   );
 
-  const renderProjectList = (items: any[], opts: { showAdd: boolean; past?: boolean }) => {
+  const renderProjectList = (items: any[], opts: { showAdd: boolean; past?: boolean; switcher?: React.ReactNode; heading?: boolean }) => {
     const effectiveSortBy = opts.past && sortBy === 'internal_deadline' ? 'default' : sortBy;
     const allExpanded = items.length > 0 && items.every((p: any) => expandedIds.has(p.id));
     const toggleAll = () => {
@@ -532,6 +532,9 @@ const Projects = () => {
     };
     return (
     <>
+      {opts.heading && (
+        <p className="text-[13px] font-semibold mb-2" style={{ color: '#5B3FF8' }}>Projects Assigned to you</p>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
@@ -539,6 +542,7 @@ const Projects = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search code or name…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
+
         {isManager && (
           <>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -589,7 +593,9 @@ const Projects = () => {
               )}
             </SelectContent>
           </Select>
+          {opts.switcher}
         </div>
+
         {isManager && opts.showAdd && (
           <Button onClick={() => navigate('/projects/new')}>
             <Plus className="h-4 w-4 mr-2" /> Add Project
@@ -981,12 +987,10 @@ const Projects = () => {
       ) : (
 
         <>
-          <div className="flex items-center justify-end border-b pb-2" style={{ borderColor: 'hsl(var(--border))' }}>
-            {viewSwitcher}
-          </div>
-          {listContent}
+          {renderProjectList(monthFilteredActive, { showAdd: true, switcher: viewSwitcher, heading: true })}
           {sharedDialogs}
         </>
+
       )}
     </div>
   );
