@@ -26,7 +26,14 @@ Deno.serve(async (req) => {
     );
 
     // Parse multipart form data
-    const formData = await req.formData();
+    let formData: FormData;
+    try {
+      formData = await req.formData();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Missing required fields', fields: ['job_id', 'name', 'mobile', 'email', 'city', 'last_degree', 'degree_year', 'cv'] }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const jobId = formData.get('job_id') as string;
     const name = formData.get('name') as string;
