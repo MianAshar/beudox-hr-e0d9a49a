@@ -93,6 +93,57 @@ export default function Jobs() {
     enabled: !!companyId,
   });
 
+  const { data: applications = [] } = useQuery({
+    queryKey: ['job-applications', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('job_applications')
+        .select('id, job_id, name, gender, mobile, email, city, area_lahore, last_degree, degree_year, linkedin_url, cv_url, cv_filename, message, status, is_duplicate, duplicate_reason, interview_date, interview_notes, created_at, job_listings(title)')
+        .eq('company_id', companyId!)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
+  const updateAppMutation = useMutation({
+    mutationFn: async ({ id, status, interview_notes }: { id: string; status?: string; interview_notes?: string }) => {
+      const payload: any = {};
+      if (status !== undefined) payload.status = status;
+      if (interview_notes !== undefined) payload.interview_notes = interview_notes;
+      const { error } = await supabase
+        .from('job_applications')
+        .update(payload)
+        .eq('id', id)
+        .eq('company_id', companyId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['job-applications'] });
+      qc.invalidateQueries({ queryKey: ['job-app-counts'] });
+      toast.success('Updated');
+    },
+    onError: (e: any) => toast.error(e.message || 'Failed to update'),
+  });
+
+  const downloadCV = async (cvUrl: string, cvFilename: string) => {
+    const { data, error } = await supabase.storage
+      .from('job-cvs')
+      .createSignedUrl(cvUrl, 60);
+    if (error || !data?.signedUrl) {
+      toast.error('Could not generate download link');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
+
+  const openApp = (app: any) => {
+    setSelectedApp(app);
+    setAppNotes(app.interview_notes || '');
+    setAppPanelOpen(true);
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const payload = {
