@@ -116,8 +116,7 @@ const TaskCard = ({
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
-    disabled: targets.length === 0,
-    data: { task, targets, requestReject: () => setRejectOpen(true) },
+    data: { task },
   });
   const dragStyle: React.CSSProperties = {
     borderColor: '#DFE1E6',
