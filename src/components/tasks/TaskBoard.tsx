@@ -135,13 +135,30 @@ const TaskCard = ({
     setRejectReason('');
   };
 
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+    disabled: targets.length === 0,
+    data: { task, targets, requestReject: () => setRejectOpen(true) },
+  });
+  const dragStyle: React.CSSProperties = {
+    borderColor: '#DFE1E6',
+    boxShadow: '0 1px 2px rgba(9,30,66,0.08)',
+    ...(transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : {}),
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 999 : undefined,
+  };
+
   return (
     <>
       <div
+        ref={setNodeRef}
+        {...attributes}
+        {...listeners}
         className="group bg-white rounded-[3px] border cursor-pointer select-none transition-shadow hover:shadow-md"
-        style={{ borderColor: '#DFE1E6', boxShadow: '0 1px 2px rgba(9,30,66,0.08)' }}
+        style={dragStyle}
         onClick={() => onOpenDetail(task)}
       >
+
 
         <div className="p-[10px_12px] space-y-2">
           {/* Complexity badge top */}
