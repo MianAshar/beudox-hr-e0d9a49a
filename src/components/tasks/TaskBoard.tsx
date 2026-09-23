@@ -369,18 +369,9 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
     const { active, over } = event;
     if (!over || !active) return;
     const newStage = over.id as Stage;
-    const data = active.data.current as { task?: any; targets?: Stage[]; requestReject?: () => void } | undefined;
+    const data = active.data.current as { task?: any } | undefined;
     const task = data?.task;
     if (!task || task.status === newStage) return;
-    if (!(data?.targets || []).includes(newStage)) {
-      toast.error("You can't move this task to that stage");
-      return;
-    }
-    // QC → In Progress needs a reject reason — open the card's modal instead
-    if (task.status === 'qc' && newStage === 'in_progress') {
-      data?.requestReject?.();
-      return;
-    }
     moveTask(task, newStage);
   };
 
