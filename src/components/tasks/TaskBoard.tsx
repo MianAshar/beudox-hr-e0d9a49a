@@ -489,6 +489,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
                       task={task}
                       onMove={moveTask}
                       onOpenDetail={setSelectedTask}
+                      isMoving={movingId === task.id}
                     />
 
                   ))
