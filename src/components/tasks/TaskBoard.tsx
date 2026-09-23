@@ -462,10 +462,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
               </div>
 
               {/* Body */}
-              <div
-                className="flex flex-col gap-2 p-2 rounded-b-sm"
-                style={{ background: '#F8F9FA', minHeight: 'calc(100vh - 280px)' }}
-              >
+              <DroppableColumn id={stage.key}>
 
                 {columnTasks.length === 0 ? (
                   <p className="text-xs text-center py-6" style={{ color: '#5E6C84' }}>No issues</p>
@@ -494,8 +491,9 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
                     Load more ({Math.min(DONE_PAGE_SIZE, totalDone - doneLimit)} of {totalDone - doneLimit} remaining)
                   </button>
                 )}
-              </div>
+              </DroppableColumn>
             </div>
+
           );
         })}
       </div>
