@@ -118,7 +118,7 @@ const TaskCard = ({
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
-    data: { task },
+    data: { task, requestReject: () => setRejectOpen(true) },
   });
   const dragStyle: React.CSSProperties = {
     borderColor: '#DFE1E6',
@@ -388,9 +388,14 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
     const { active, over } = event;
     if (!over || !active) return;
     const newStage = over.id as Stage;
-    const data = active.data.current as { task?: any } | undefined;
+    const data = active.data.current as { task?: any; requestReject?: () => void } | undefined;
     const task = data?.task;
     if (!task || task.status === newStage) return;
+    // QC → In Progress requires a rejection reason: open the card's modal instead
+    if (task.status === 'qc' && newStage === 'in_progress') {
+      data?.requestReject?.();
+      return;
+    }
     moveTask(task, newStage);
   };
 
