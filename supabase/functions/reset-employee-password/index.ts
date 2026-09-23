@@ -20,10 +20,10 @@ Deno.serve(async (req) => {
     });
 
   try {
-    const { email } = await req.json();
-
-    if (!email || typeof email !== 'string') {
-      return json(400, { error: 'email is required' });
+    // Validate auth — only HR Manager or CEO may reset passwords
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return json(401, { error: 'Unauthorized' });
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -35,12 +35,35 @@ Deno.serve(async (req) => {
       return json(500, { error: 'Server is missing Supabase credentials.' });
     }
 
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return json(401, { error: 'Unauthorized' });
+    }
+
+    const callerAuthId = claimsData.claims.sub as string;
     const admin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    const { data: callerRole } = await admin.rpc('get_employee_role_for_auth', { _auth_id: callerAuthId });
+    if (!callerRole || !['hr_manager', 'ceo'].includes(callerRole)) {
+      return json(403, { error: 'Forbidden: insufficient role' });
+    }
+
+    const { email } = await req.json();
+
+    if (!email || typeof email !== 'string') {
+      return json(400, { error: 'email is required' });
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
-    console.log(`Resetting password for: ${normalizedEmail}`);
 
     // 1) Find the active employee by email.
     const { data: employee, error: findErr } = await admin
@@ -57,7 +80,6 @@ Deno.serve(async (req) => {
 
     if (!employee) {
       // Return the same generic message as a successful send to avoid leaking account existence.
-      console.log(`No active employee found for ${normalizedEmail}`);
       return json(200, {
         success: true,
         email_sent: true,
@@ -67,7 +89,6 @@ Deno.serve(async (req) => {
     }
 
     if (!employee.auth_user_id) {
-      console.log(`Employee found but no auth_user_id: ${employee.id}`);
       return json(400, {
         error:
           'This employee account is not linked to a login identity. Please contact your administrator.',
@@ -99,10 +120,6 @@ Deno.serve(async (req) => {
         error: 'Password was reset but the account flag could not be updated.',
       });
     }
-
-    console.log(
-      `Password reset for employee ${employee.id} / auth ${employee.auth_user_id}`,
-    );
 
     // 4) Send the reset email via Resend.
     if (!resendApiKey) {

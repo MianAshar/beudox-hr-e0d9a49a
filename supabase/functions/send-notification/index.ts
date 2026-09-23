@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
               .eq('id', notif.id);
           }
         } catch (emailErr) {
-          console.error('Email send failed for', email, emailErr);
+          console.error('Email send failed:', emailErr);
         }
       }
     }

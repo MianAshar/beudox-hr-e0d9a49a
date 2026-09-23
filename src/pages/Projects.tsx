@@ -121,7 +121,7 @@ const StartProjectButton = ({ projectId, companyId, employeeId, size = 'sm' }: S
   const [open, setOpen] = useState(false);
   const mutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('projects').update({ status: 'in_progress' }).eq('id', projectId);
+      const { error } = await supabase.from('projects').update({ status: 'in_progress' }).eq('id', projectId).eq('company_id', companyId);
       if (error) throw error;
       await logProjectActivity({
         companyId, projectId, employeeId,
@@ -1374,7 +1374,7 @@ const StatusCell = ({ project, canEdit, companyId, employeeId }: StatusCellProps
   const mutation = useMutation({
     mutationFn: async (newStatus: string) => {
       const previousStatus = project.status;
-      const { error } = await supabase.from('projects').update({ status: newStatus }).eq('id', project.id);
+      const { error } = await supabase.from('projects').update({ status: newStatus }).eq('id', project.id).eq('company_id', companyId);
       if (error) throw error;
       await logProjectActivity({
         companyId,

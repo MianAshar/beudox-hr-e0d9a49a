@@ -272,7 +272,7 @@ Deno.serve(async (req) => {
       if (authDeleteError) {
         console.error("Error deleting auth user:", authDeleteError);
       } else {
-        console.log("Deleted auth user:", emp.auth_user_id);
+        // auth user deleted successfully
       }
     }
 

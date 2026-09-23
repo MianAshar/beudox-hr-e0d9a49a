@@ -39,8 +39,6 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    console.log(`Inviting employee: ${email} ${employee_id ?? ''}`);
-
     // 1) Create the auth user with a temporary password (or reuse if exists).
     let authUserId: string | null = null;
     const { data: createData, error: createErr } =
@@ -61,7 +59,6 @@ Deno.serve(async (req) => {
         if (found) {
           authUserId = found.id;
           await admin.auth.admin.updateUserById(found.id, { password: TEMP_PASSWORD });
-          console.log(`Existing auth user reused: ${authUserId}`);
         } else {
           console.error('createUser error:', createErr);
           return json(400, { error: createErr.message });
@@ -72,7 +69,6 @@ Deno.serve(async (req) => {
       }
     } else {
       authUserId = createData?.user?.id ?? null;
-      console.log(`Auth user created: ${authUserId}`);
     }
 
     // 2) Link auth_user_id and require password change on first login.
@@ -83,8 +79,6 @@ Deno.serve(async (req) => {
         .eq('id', employee_id);
       if (linkErr) {
         console.error('Failed to link auth_user_id to employee:', linkErr);
-      } else {
-        console.log('Employee record updated');
       }
     }
 
