@@ -79,10 +79,12 @@ const TaskCard = ({
   task,
   onMove,
   onOpenDetail,
+  isMoving,
 }: {
   task: any;
   onMove: (task: any, toStage: Stage, reason?: string) => void;
   onOpenDetail: (task: any) => void;
+  isMoving?: boolean;
 }) => {
 
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -132,10 +134,16 @@ const TaskCard = ({
         ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className="group bg-white rounded-[3px] border cursor-pointer select-none transition-shadow hover:shadow-md"
+        className="group bg-white rounded-[3px] border cursor-pointer select-none transition-shadow hover:shadow-md relative"
         style={dragStyle}
         onClick={() => onOpenDetail(task)}
       >
+        {isMoving && (
+          <div className="absolute inset-0 rounded-[3px] flex items-center justify-center z-10"
+            style={{ background: 'rgba(255,255,255,0.75)' }}>
+            <Loader2 className="h-4 w-4 animate-spin" style={{ color: '#5B3FF8' }} />
+          </div>
+        )}
 
 
         <div className="p-[10px_12px] space-y-2">
@@ -347,16 +355,27 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
 
   const moveTask = async (task: any, toStage: Stage, reason?: string) => {
     setMovingId(task.id);
+
+    // Optimistic update — move card to new column immediately
+    const boardQueryKey = ['board-tasks', companyId, scopeEmployeeId, projectFilter];
+    const previousData = qc.getQueryData(boardQueryKey);
+    qc.setQueryData(boardQueryKey, (old: any[]) =>
+      (old || []).map((t: any) => t.id === task.id ? { ...t, status: toStage } : t)
+    );
+
     try {
       const { error } = await supabase.functions.invoke('move-task-stage', {
         body: { taskId: task.id, toStage, reason },
       });
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ['board-tasks'] });
-      await qc.invalidateQueries({ queryKey: ['project-tasks'] });
-      await qc.invalidateQueries({ queryKey: ['my-tasks'] });
+      // Refresh in background to get updated stage logs etc.
+      qc.invalidateQueries({ queryKey: ['board-tasks'] });
+      qc.invalidateQueries({ queryKey: ['project-tasks'] });
+      qc.invalidateQueries({ queryKey: ['my-tasks'] });
       toast.success(`Moved to ${STAGES.find(s => s.key === toStage)?.label}`);
     } catch (e: any) {
+      // Roll back the optimistic update on failure
+      qc.setQueryData(boardQueryKey, previousData);
       toast.error(e?.message || 'Failed to move task');
     } finally {
       setMovingId(null);
@@ -470,6 +489,7 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
                       task={task}
                       onMove={moveTask}
                       onOpenDetail={setSelectedTask}
+                      isMoving={movingId === task.id}
                     />
 
                   ))
