@@ -3445,6 +3445,7 @@ export type Database = {
         Args: { _company_id?: string; _days?: number }
         Returns: number
       }
+      increment_job_view_count: { Args: { job_id: string }; Returns: undefined }
       is_admin_user: { Args: { _auth_id: string }; Returns: boolean }
       is_client_user: { Args: { user_id: string }; Returns: boolean }
     }
