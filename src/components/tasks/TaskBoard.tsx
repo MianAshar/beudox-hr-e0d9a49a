@@ -496,7 +496,9 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
 
           );
         })}
-      </div>
+        </div>
+      </DndContext>
+
 
       {/* Task detail modal */}
       {selectedTask && (() => {
