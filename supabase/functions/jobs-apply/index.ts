@@ -161,7 +161,6 @@ Deno.serve(async (req) => {
       success: true,
       applicationId: application.id,
       message: 'Your application has been submitted successfully.',
-      ...(isDuplicate ? { notice: 'Our team noted that we may have received a previous application from you.' } : {}),
     }), {
       status: 201,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
