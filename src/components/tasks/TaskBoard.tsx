@@ -347,16 +347,27 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
 
   const moveTask = async (task: any, toStage: Stage, reason?: string) => {
     setMovingId(task.id);
+
+    // Optimistic update — move card to new column immediately
+    const boardQueryKey = ['board-tasks', companyId, scopeEmployeeId, projectFilter];
+    const previousData = qc.getQueryData(boardQueryKey);
+    qc.setQueryData(boardQueryKey, (old: any[]) =>
+      (old || []).map((t: any) => t.id === task.id ? { ...t, status: toStage } : t)
+    );
+
     try {
       const { error } = await supabase.functions.invoke('move-task-stage', {
         body: { taskId: task.id, toStage, reason },
       });
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ['board-tasks'] });
-      await qc.invalidateQueries({ queryKey: ['project-tasks'] });
-      await qc.invalidateQueries({ queryKey: ['my-tasks'] });
+      // Refresh in background to get updated stage logs etc.
+      qc.invalidateQueries({ queryKey: ['board-tasks'] });
+      qc.invalidateQueries({ queryKey: ['project-tasks'] });
+      qc.invalidateQueries({ queryKey: ['my-tasks'] });
       toast.success(`Moved to ${STAGES.find(s => s.key === toStage)?.label}`);
     } catch (e: any) {
+      // Roll back the optimistic update on failure
+      qc.setQueryData(boardQueryKey, previousData);
       toast.error(e?.message || 'Failed to move task');
     } finally {
       setMovingId(null);
