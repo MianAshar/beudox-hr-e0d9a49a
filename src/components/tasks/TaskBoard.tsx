@@ -287,6 +287,24 @@ const TaskCard = ({
   );
 };
 
+const DroppableColumn = ({ id, children }: { id: string; children: React.ReactNode }) => {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      className="flex flex-col gap-2 p-2 rounded-b-sm"
+      style={{
+        background: isOver ? 'rgba(91,63,248,0.05)' : '#F8F9FA',
+        minHeight: 'calc(100vh - 280px)',
+        transition: 'background 150ms',
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
+
 const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
   const { employee } = useAuth();
   const companyId = employee?.company_id;
