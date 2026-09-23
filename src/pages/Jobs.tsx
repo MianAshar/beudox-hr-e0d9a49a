@@ -54,6 +54,11 @@ export default function Jobs() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedApp, setSelectedApp] = useState<any | null>(null);
+  const [appPanelOpen, setAppPanelOpen] = useState(false);
+  const [appJobFilter, setAppJobFilter] = useState<string>('all');
+  const [appNotes, setAppNotes] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
 
   // Fetch all job listings
   const { data: listings = [], isLoading } = useQuery({
