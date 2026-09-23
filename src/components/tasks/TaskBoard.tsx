@@ -134,10 +134,16 @@ const TaskCard = ({
         ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className="group bg-white rounded-[3px] border cursor-pointer select-none transition-shadow hover:shadow-md"
+        className="group bg-white rounded-[3px] border cursor-pointer select-none transition-shadow hover:shadow-md relative"
         style={dragStyle}
         onClick={() => onOpenDetail(task)}
       >
+        {isMoving && (
+          <div className="absolute inset-0 rounded-[3px] flex items-center justify-center z-10"
+            style={{ background: 'rgba(255,255,255,0.75)' }}>
+            <Loader2 className="h-4 w-4 animate-spin" style={{ color: '#5B3FF8' }} />
+          </div>
+        )}
 
 
         <div className="p-[10px_12px] space-y-2">
