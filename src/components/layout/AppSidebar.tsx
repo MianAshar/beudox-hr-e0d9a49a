@@ -13,7 +13,7 @@ import {
   LayoutDashboard, Users, CalendarCheck, Calendar, CalendarOff,
   DollarSign, BarChart2, CreditCard, Receipt, Building2,
   FolderKanban, ClipboardCheck, ClipboardList, FileText, Settings, FileSpreadsheet,
-  ChevronLeft, ChevronRight, Briefcase, Wallet, ListChecks,
+  ChevronLeft, ChevronRight, Briefcase, Wallet, ListChecks, UserPlus,
 } from 'lucide-react';
 
 const navSections = [
@@ -49,6 +49,7 @@ const navSections = [
       { title: 'Projects', icon: FolderKanban, path: '/projects' },
       { title: 'My Tasks', icon: ListChecks, path: '/my-tasks' },
       { title: 'Clients', icon: Briefcase, path: '/clients' },
+      { title: 'Jobs', icon: UserPlus, path: '/jobs' },
       { title: 'Employee Reviews', icon: ClipboardCheck, path: '/employee-reviews' },
       { title: 'Project Evaluations', icon: ClipboardList, path: '/evaluations/project' },
       { title: 'HR Policies', icon: FileText, path: '/hr-policies' },
