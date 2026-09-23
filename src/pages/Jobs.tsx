@@ -492,6 +492,144 @@ export default function Jobs() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+      {/* Applicant detail panel */}
+      <Sheet open={appPanelOpen} onOpenChange={v => { if (!v) { setAppPanelOpen(false); setSelectedApp(null); } }}>
+        <SheetContent className="w-full sm:max-w-[540px] flex flex-col">
+          {selectedApp && (
+            <>
+              <SheetHeader className="shrink-0 px-6 pt-6 pb-4 border-b">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <SheetTitle className="text-lg">{selectedApp.name}</SheetTitle>
+                    <p className="text-sm text-muted-foreground mt-0.5">{(selectedApp.job_listings as any)?.title}</p>
+                  </div>
+                  {selectedApp.is_duplicate && (
+                    <span className="text-[11px] font-semibold px-2 py-1 rounded-full shrink-0" style={{ background: '#FEF3C7', color: '#92400E' }}>
+                      ⚠ Duplicate
+                    </span>
+                  )}
+                </div>
+                {selectedApp.is_duplicate && selectedApp.duplicate_reason && (
+                  <p className="text-xs mt-2 px-2 py-1.5 rounded" style={{ background: '#FEF3C7', color: '#92400E' }}>
+                    {selectedApp.duplicate_reason}
+                  </p>
+                )}
+              </SheetHeader>
+
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
+                {/* Status */}
+                <div className="flex items-center gap-3">
+                  <Label className="shrink-0">Status</Label>
+                  <Select
+                    value={selectedApp.status}
+                    onValueChange={val => {
+                      updateAppMutation.mutate({ id: selectedApp.id, status: val });
+                      setSelectedApp({ ...selectedApp, status: val });
+                    }}
+                  >
+                    <SelectTrigger className="w-[200px] h-8 text-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(APP_STATUS_STYLES).map(([key, val]) => (
+                        <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Contact info */}
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: '#5B3FF8' }}>Contact Details</p>
+                  <div className="space-y-2 text-sm">
+                    {[
+                      { label: 'Email', value: selectedApp.email },
+                      { label: 'Mobile', value: selectedApp.mobile },
+                      { label: 'City', value: selectedApp.city + (selectedApp.area_lahore ? `, ${selectedApp.area_lahore}` : '') },
+                      { label: 'Gender', value: selectedApp.gender ? selectedApp.gender.charAt(0).toUpperCase() + selectedApp.gender.slice(1) : '—' },
+                    ].map(row => (
+                      <div key={row.label} className="flex items-center justify-between py-1.5 border-b border-border/50">
+                        <span className="text-muted-foreground">{row.label}</span>
+                        <span className="font-medium">{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Education */}
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: '#5B3FF8' }}>Education</p>
+                  <div className="space-y-2 text-sm">
+                    {[
+                      { label: 'Degree', value: selectedApp.last_degree },
+                      { label: 'Completion Year', value: selectedApp.degree_year },
+                      { label: 'LinkedIn', value: selectedApp.linkedin_url || '—' },
+                    ].map(row => (
+                      <div key={row.label} className="flex items-center justify-between py-1.5 border-b border-border/50">
+                        <span className="text-muted-foreground">{row.label}</span>
+                        {row.label === 'LinkedIn' && selectedApp.linkedin_url ? (
+                          <a href={selectedApp.linkedin_url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline truncate max-w-[200px]">
+                            View Profile
+                          </a>
+                        ) : (
+                          <span className="font-medium">{row.value}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Message */}
+                {selectedApp.message && (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#5B3FF8' }}>Message</p>
+                    <p className="text-sm text-muted-foreground bg-muted/40 rounded-lg p-3">{selectedApp.message}</p>
+                  </div>
+                )}
+
+                {/* CV */}
+                {selectedApp.cv_url && (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#5B3FF8' }}>CV</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => downloadCV(selectedApp.cv_url, selectedApp.cv_filename)}
+                    >
+                      <FileDown className="h-3.5 w-3.5" />
+                      {selectedApp.cv_filename || 'Download CV'}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Interview notes */}
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#5B3FF8' }}>Interview Notes</p>
+                  <Textarea
+                    className="bg-white text-sm"
+                    rows={4}
+                    value={appNotes}
+                    onChange={e => setAppNotes(e.target.value)}
+                    placeholder="Add notes about the interview, candidate impression, follow-up actions…"
+                  />
+                  <Button
+                    size="sm"
+                    className="mt-2"
+                    disabled={savingNotes || appNotes === (selectedApp.interview_notes || '')}
+                    onClick={async () => {
+                      setSavingNotes(true);
+                      await updateAppMutation.mutateAsync({ id: selectedApp.id, interview_notes: appNotes });
+                      setSelectedApp({ ...selectedApp, interview_notes: appNotes });
+                      setSavingNotes(false);
+                    }}
+                  >
+                    {savingNotes ? 'Saving…' : 'Save Notes'}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
