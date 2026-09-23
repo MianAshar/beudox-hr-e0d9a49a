@@ -14,6 +14,16 @@ import { MoreHorizontal, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
 import { toast } from 'sonner';
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  useDraggable,
+} from '@dnd-kit/core';
+
 
 type Stage = 'todo' | 'in_progress' | 'qc' | 'done';
 
