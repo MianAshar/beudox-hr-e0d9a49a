@@ -987,12 +987,10 @@ const Projects = () => {
       ) : (
 
         <>
-          <div className="flex items-center justify-end border-b pb-2" style={{ borderColor: 'hsl(var(--border))' }}>
-            {viewSwitcher}
-          </div>
-          {listContent}
+          {renderProjectList(monthFilteredActive, { showAdd: true, switcher: viewSwitcher, heading: true })}
           {sharedDialogs}
         </>
+
       )}
     </div>
   );
