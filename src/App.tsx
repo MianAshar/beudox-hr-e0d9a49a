@@ -27,6 +27,7 @@ import HrPolicies from "./pages/HrPolicies";
 import HrPolicyDetail from "./pages/HrPolicyDetail";
 import HrPolicyForm from "./pages/HrPolicyForm";
 import JobDescriptions from "./pages/JobDescriptions";
+import Jobs from "./pages/Jobs";
 import JobDescriptionDetail from "./pages/JobDescriptionDetail";
 import JobDescriptionForm from "./pages/JobDescriptionForm";
 import Evaluations from "./pages/Evaluations";
@@ -146,6 +147,7 @@ const App = () => (
               <Route path="/my-tasks" element={<MyTasks />} />
               <Route path="/attendance" element={<Attendance />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/jobs" element={<Jobs />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
