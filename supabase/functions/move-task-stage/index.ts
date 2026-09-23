@@ -71,34 +71,7 @@ Deno.serve(async (req) => {
 
     const fromStage = task.status as Stage;
 
-    // Done is terminal — nobody can move out of done
-    if (fromStage === 'done') {
-      return json(null, 403, { error: 'Done tasks cannot be moved' });
-    }
-
-    // Permission check per role
-    if (isEmployee) {
-      // Employees can only move their own tasks
-      if (task.assigned_to !== employeeId) {
-        return json(null, 403, { error: 'You can only move your own tasks' });
-      }
-      // Employees can only move: todo→in_progress or in_progress→qc
-      const allowed: Partial<Record<Stage, Stage[]>> = {
-        todo: ['in_progress'],
-        in_progress: ['qc'],
-      };
-      if (!allowed[fromStage]?.includes(toStage as Stage)) {
-        return json(null, 403, { error: `Employees cannot move tasks from ${fromStage} to ${toStage}` });
-      }
-    } else if (isTeamLead) {
-      // Team leads can move anything except out of done (already blocked above)
-      // No extra restrictions
-    } else if (isManager) {
-      // Managers can move anything except out of done (already blocked above)
-      // No extra restrictions
-    } else {
-      return json(null, 403, { error: 'Insufficient permissions' });
-    }
+    // Any authenticated employee of the company may move any task to any stage.
 
     // If same stage, no-op
     if (fromStage === toStage) {
