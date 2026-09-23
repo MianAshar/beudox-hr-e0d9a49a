@@ -77,6 +77,9 @@ Deno.serve(async (req) => {
     if (fromStage === toStage) {
       return json(null, 400, { error: 'Task is already in this stage' });
     }
+    if (fromStage === 'qc' && toStage === 'in_progress' && !reason?.trim()) {
+      return json(null, 400, { error: 'A reason is required when rejecting from QC' });
+    }
 
     // Update task status
     const now = new Date().toISOString();
