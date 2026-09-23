@@ -438,7 +438,9 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
 
 
       {/* Board columns */}
-      <div className="flex gap-3 items-stretch overflow-x-auto pb-4">
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        <div className="flex gap-3 items-stretch overflow-x-auto pb-4">
+
         {STAGES.map(stage => {
           const columnTasks = stage.key === 'done'
             ? grouped.done.slice(0, doneLimit)
