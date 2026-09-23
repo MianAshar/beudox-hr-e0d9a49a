@@ -385,6 +385,28 @@ const TaskBoard = ({ scopeEmployeeId, headerAction }: TaskBoardProps) => {
     }
   };
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || !active) return;
+    const newStage = over.id as Stage;
+    const data = active.data.current as { task?: any; targets?: Stage[]; requestReject?: () => void } | undefined;
+    const task = data?.task;
+    if (!task || task.status === newStage) return;
+    if (!(data?.targets || []).includes(newStage)) {
+      toast.error("You can't move this task to that stage");
+      return;
+    }
+    // QC → In Progress needs a reject reason — open the card's modal instead
+    if (task.status === 'qc' && newStage === 'in_progress') {
+      data?.requestReject?.();
+      return;
+    }
+    moveTask(task, newStage);
+  };
+
+
   // Group tasks by stage
   const grouped = useMemo(() => {
     const g: Record<Stage, any[]> = { todo: [], in_progress: [], qc: [], done: [] };
